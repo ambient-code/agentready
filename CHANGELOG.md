@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/ambient-code/agentready/compare/v1.1.0...v1.1.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* add repository checkout step to Claude Code Action workflow ([17aa0cf](https://github.com/ambient-code/agentready/commit/17aa0cf9eae93176b735ed082f3979dda0451bbd))
+
 # [1.1.0](https://github.com/ambient-code/agentready/compare/v1.0.4...v1.1.0) (2025-11-21)
 
 
