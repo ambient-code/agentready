@@ -738,12 +738,12 @@ Templates can use Jinja2 conditionals:
     run: |
       pip install pytest pytest-cov
       pytest --cov=src --cov-report=html
-{% elif language == "javascript" %}
+{% elsif language == "javascript" %}
   - name: Run Tests
     run: |
       npm install
       npm test -- --coverage
-{% elif language == "go" %}
+{% elsif language == "go" %}
   - name: Run Tests
     run: |
       go test -v -race -coverprofile=coverage.out ./...
