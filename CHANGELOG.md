@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ambient-code/agentready/compare/v1.1.2...v1.2.0) (2025-11-21)
+
+
+### Features
+
+* Add automated demo command for AgentReady ([#24](https://github.com/ambient-code/agentready/issues/24)) ([f4e89d9](https://github.com/ambient-code/agentready/commit/f4e89d9531b38239e3561947015be100de6cbd12)), closes [#1](https://github.com/ambient-code/agentready/issues/1) [#25](https://github.com/ambient-code/agentready/issues/25) [hi#quality](https://github.com/hi/issues/quality) [hi#scoring](https://github.com/hi/issues/scoring)
+
 ## [1.1.2](https://github.com/ambient-code/agentready/compare/v1.1.1...v1.1.2) (2025-11-21)
 
 
