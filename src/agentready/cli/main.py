@@ -27,6 +27,7 @@ from ..reporters.markdown import MarkdownReporter
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
 from .bootstrap import bootstrap
+from .demo import demo
 
 
 def create_all_assessors():
@@ -280,8 +281,9 @@ def generate_config():
     click.echo("Edit this file to customize weights and behavior.")
 
 
-# Register bootstrap command
+# Register commands
 cli.add_command(bootstrap)
+cli.add_command(demo)
 
 
 def show_version():
