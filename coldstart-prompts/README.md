@@ -1,8 +1,8 @@
 # AgentReady Coldstart Implementation Prompts
 
 **Generated**: 2025-11-21
-**Total Prompts**: 17
-**Source**: BACKLOG.md
+**Total Prompts**: 18
+**Source**: BACKLOG.md + Community Contributions
 
 ---
 
@@ -43,13 +43,14 @@ These prompts are designed to be "drop in and go" - an AI agent or developer can
 | 12 | [12-improve-test-coverage-and-edge-case-handling.md](12-improve-test-coverage-and-edge-case-handling.md) | Improve Test Coverage and Edge Case Handling | 6.5K | 🔴 Not Started |
 | 14 | [14-align-subcommand-automated-remediation.md](14-align-subcommand-automated-remediation.md) | Align Subcommand (Automated Remediation) | 12K | 🔴 Not Started |
 
-### P2 (Medium) - 3 Items
+### P2 (Medium) - 4 Items
 
 | # | File | Title | Size | Status |
 |---|------|-------|------|--------|
 | 13 | [13-add-security-quality-improvements-from-code-review.md](13-add-security-quality-improvements-from-code-review.md) | Add Security & Quality Improvements from Code Review | 5.7K | 🔴 Not Started |
 | 15 | [15-interactive-dashboard-with-automated-remediation.md](15-interactive-dashboard-with-automated-remediation.md) | Interactive Dashboard with Automated Remediation | 11K | 🔴 Not Started |
 | 16 | [16-github-app-integration-badge-status-checks.md](16-github-app-integration-badge-status-checks.md) | GitHub App Integration (Badge & Status Checks) | 11K | 🔴 Not Started |
+| 18 | [18-setup-release-pipeline.md](18-setup-release-pipeline.md) | Setup GitHub Release Pipeline | 24K | 🟡 In Progress |
 
 ### P3 (Important) - 2 Items
 
@@ -161,14 +162,14 @@ python scripts/backlog_to_issues.py --all
 
 ## Statistics
 
-- **Total Features**: 17
+- **Total Features**: 18
 - **P0 (Critical)**: 6 features
 - **P1 (High)**: 3 features
-- **P2 (Medium)**: 3 features
+- **P2 (Medium)**: 4 features
 - **P3 (Important)**: 2 features
 - **P4 (Enhancement)**: 3 features
-- **Total Prompt Size**: ~138 KB
-- **Avg Prompt Size**: ~8.1 KB
+- **Total Prompt Size**: ~162 KB
+- **Avg Prompt Size**: ~9.0 KB
 
 ---
 
