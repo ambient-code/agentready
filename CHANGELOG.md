@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ambient-code/agentready/compare/v1.0.4...v1.1.0) (2025-11-21)
+
+
+### Features
+
+* add Claude Code GitHub Action for [@claude](https://github.com/claude) mentions ([3e7224d](https://github.com/ambient-code/agentready/commit/3e7224d3cb8cc7b7a4088948a06622da6716e2cd))
+
 ## [1.0.4](https://github.com/ambient-code/agentready/compare/v1.0.3...v1.0.4) (2025-11-21)
 
 
