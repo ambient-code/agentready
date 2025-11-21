@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/ambient-code/agentready/compare/v1.2.0...v1.3.0) (2025-11-21)
+
+
+### Features
+
+* add report header with repository metadata ([#28](https://github.com/ambient-code/agentready/issues/28)) ([7a8b34a](https://github.com/ambient-code/agentready/commit/7a8b34a55471156885e44bab808e959e4c7db3e6))
+
 # [1.2.0](https://github.com/ambient-code/agentready/compare/v1.1.2...v1.2.0) (2025-11-21)
 
 
