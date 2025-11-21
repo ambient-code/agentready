@@ -19,6 +19,7 @@ from ..assessors.code_quality import (
 
 # Import all assessors
 from ..assessors.documentation import CLAUDEmdAssessor, READMEAssessor
+from ..assessors.repomix import RepomixConfigAssessor
 from ..assessors.structure import StandardLayoutAssessor
 from ..assessors.stub_assessors import (
     ConventionalCommitsAssessor,
@@ -65,6 +66,8 @@ def create_all_assessors():
         ConventionalCommitsAssessor(),
         GitignoreAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
+        # Tier 3 Important (including Repomix)
+        RepomixConfigAssessor(),
     ]
 
     # Add remaining stub assessors

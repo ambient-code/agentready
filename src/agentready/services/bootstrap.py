@@ -6,6 +6,7 @@ from typing import List
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .language_detector import LanguageDetector
+from .repomix import RepomixService
 
 
 class BootstrapGenerator:
@@ -42,11 +43,14 @@ class BootstrapGenerator:
         # Return most used language
         return max(languages, key=languages.get).lower()
 
-    def generate_all(self, dry_run: bool = False) -> List[Path]:
+    def generate_all(
+        self, dry_run: bool = False, enable_repomix: bool = False
+    ) -> List[Path]:
         """Generate all bootstrap files.
 
         Args:
             dry_run: If True, don't create files, just return paths
+            enable_repomix: If True, generate Repomix configuration and workflow
 
         Returns:
             List of created file paths
@@ -54,7 +58,7 @@ class BootstrapGenerator:
         created_files = []
 
         # GitHub Actions workflows
-        created_files.extend(self._generate_workflows(dry_run))
+        created_files.extend(self._generate_workflows(dry_run, enable_repomix))
 
         # GitHub templates
         created_files.extend(self._generate_github_templates(dry_run))
@@ -68,9 +72,15 @@ class BootstrapGenerator:
         # Contributing guidelines
         created_files.extend(self._generate_docs(dry_run))
 
+        # Repomix configuration (if enabled)
+        if enable_repomix:
+            created_files.extend(self._generate_repomix_config(dry_run))
+
         return created_files
 
-    def _generate_workflows(self, dry_run: bool) -> List[Path]:
+    def _generate_workflows(
+        self, dry_run: bool, enable_repomix: bool = False
+    ) -> List[Path]:
         """Generate GitHub Actions workflows."""
         workflows_dir = self.repo_path / ".github" / "workflows"
         created = []
@@ -100,6 +110,13 @@ class BootstrapGenerator:
         template = self.env.get_template("workflows/security.yml.j2")
         content = template.render(language=test_language)
         created.append(self._write_file(security_workflow, content, dry_run))
+
+        # Repomix update workflow (if enabled)
+        if enable_repomix:
+            repomix_workflow = workflows_dir / "repomix-update.yml"
+            template = self.env.get_template("workflows/repomix-update.yml.j2")
+            content = template.render()
+            created.append(self._write_file(repomix_workflow, content, dry_run))
 
         return created
 
@@ -174,6 +191,35 @@ class BootstrapGenerator:
             template = self.env.get_template("CODE_OF_CONDUCT.md.j2")
             content = template.render()
             created.append(self._write_file(code_of_conduct, content, dry_run))
+
+        return created
+
+    def _generate_repomix_config(self, dry_run: bool) -> List[Path]:
+        """Generate Repomix configuration files.
+
+        Args:
+            dry_run: If True, don't create files, just return paths
+
+        Returns:
+            List of created file paths
+        """
+        created = []
+
+        if not dry_run:
+            # Use RepomixService to generate config and ignore files
+            service = RepomixService(self.repo_path)
+
+            # Generate config (don't overwrite if exists)
+            if service.generate_config(overwrite=False):
+                created.append(service.config_path)
+
+            # Generate ignore file (don't overwrite if exists)
+            if service.generate_ignore(overwrite=False):
+                created.append(service.ignore_path)
+        else:
+            # For dry run, just return the paths that would be created
+            created.append(self.repo_path / "repomix.config.json")
+            created.append(self.repo_path / ".repomixignore")
 
         return created
 

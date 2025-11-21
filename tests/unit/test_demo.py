@@ -3,7 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 from click.testing import CliRunner
 
 from agentready.cli.demo import create_demo_repository, demo

@@ -1,8 +1,5 @@
 """Testing assessors for test coverage, naming conventions, and pre-commit hooks."""
 
-import re
-import subprocess
-from pathlib import Path
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation

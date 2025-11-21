@@ -1,8 +1,6 @@
 """Tests for structure assessors."""
 
-from pathlib import Path
 
-import pytest
 
 from agentready.assessors.structure import StandardLayoutAssessor
 from agentready.models.repository import Repository

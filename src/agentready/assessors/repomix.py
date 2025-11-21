@@ -1,7 +1,8 @@
 """Repomix configuration assessor."""
 
 from ..models.attribute import Attribute
-from ..models.finding import Finding
+from ..models.citation import Citation
+from ..models.finding import Finding, Remediation
 from ..models.repository import Repository
 from ..services.repomix import RepomixService
 from .base import BaseAssessor
@@ -50,14 +51,9 @@ class RepomixConfigAssessor(BaseAssessor):
 
         # Check if Repomix is configured
         if not service.has_config():
-            return Finding.create_fail(
-                self.attribute,
-                score=0,
-                evidence=[
-                    "Repomix configuration not found",
-                    "Missing repomix.config.json",
-                ],
-                remediation_steps=[
+            remediation = Remediation(
+                summary="Initialize Repomix configuration",
+                steps=[
                     "Initialize Repomix: agentready repomix-generate --init",
                     "Generate context: agentready repomix-generate",
                     "Add to bootstrap: agentready bootstrap --repomix",
@@ -77,31 +73,55 @@ class RepomixConfigAssessor(BaseAssessor):
                     "agentready repomix-generate --check"
                 ],
                 citations=[
-                    {
-                        "title": "Repomix - AI-Friendly Repository Packager",
-                        "url": "https://github.com/yamadashy/repomix",
-                        "type": "tool",
-                    }
+                    Citation(
+                        source="Repomix GitHub Repository",
+                        title="Repomix - AI-Friendly Repository Packager",
+                        url="https://github.com/yamadashy/repomix",
+                        relevance="Tool for generating AI-optimized repository context",
+                    )
                 ],
+            )
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=0.0,
+                measured_value=None,
+                threshold="Configuration exists",
+                evidence=[
+                    "Repomix configuration not found",
+                    "Missing repomix.config.json",
+                ],
+                remediation=remediation,
+                error_message=None,
             )
 
         # Check if output exists and is fresh
         output_files = service.get_output_files()
         if not output_files:
-            return Finding.create_fail(
-                self.attribute,
-                score=50,
-                evidence=[
-                    "Repomix configuration exists",
-                    "No Repomix output files found",
-                ],
-                remediation_steps=[
+            remediation = Remediation(
+                summary="Generate Repomix output",
+                steps=[
                     "Generate Repomix output: agentready repomix-generate",
                     "Commit output if needed for team access",
                     "Set up GitHub Action for automatic regeneration",
                 ],
                 tools=["Repomix"],
                 commands=["agentready repomix-generate"],
+                examples=[],
+                citations=[],
+            )
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=50.0,
+                measured_value=None,
+                threshold="Output files exist and are fresh",
+                evidence=[
+                    "Repomix configuration exists",
+                    "No Repomix output files found",
+                ],
+                remediation=remediation,
+                error_message=None,
             )
 
         # Check freshness (7 days max age)
@@ -109,30 +129,45 @@ class RepomixConfigAssessor(BaseAssessor):
 
         if is_fresh:
             # All good - config exists, output exists and is fresh
-            return Finding.create_pass(
-                self.attribute,
-                score=100,
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=100.0,
+                measured_value=message,
+                threshold="< 7 days old",
                 evidence=[
                     "Repomix configuration exists",
                     f"{len(output_files)} output file(s) found",
                     message,
                 ],
+                remediation=None,
+                error_message=None,
             )
         else:
             # Config exists, output exists but is stale
-            return Finding.create_fail(
-                self.attribute,
-                score=75,
-                evidence=[
-                    "Repomix configuration exists",
-                    f"{len(output_files)} output file(s) found",
-                    message,
-                ],
-                remediation_steps=[
+            remediation = Remediation(
+                summary="Regenerate Repomix output",
+                steps=[
                     "Regenerate Repomix output: agentready repomix-generate",
                     "Set up GitHub Action for automatic weekly updates",
                     "Add to pre-commit hooks for automatic regeneration",
                 ],
                 tools=["Repomix"],
                 commands=["agentready repomix-generate"],
+                examples=[],
+                citations=[],
+            )
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=75.0,
+                measured_value=message,
+                threshold="< 7 days old",
+                evidence=[
+                    "Repomix configuration exists",
+                    f"{len(output_files)} output file(s) found",
+                    message,
+                ],
+                remediation=remediation,
+                error_message=None,
             )

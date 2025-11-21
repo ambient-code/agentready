@@ -217,3 +217,107 @@ class TestBootstrapCLIEdgeCases:
 
         # Click should handle this with proper error
         assert result.exit_code != 0
+
+
+class TestBootstrapCLIRepomix:
+    """Test Repomix integration in bootstrap CLI."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.runner = CliRunner()
+
+    def test_bootstrap_with_repomix_flag(self):
+        """Test bootstrap with --repomix flag creates Repomix files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+
+            result = self.runner.invoke(cli, ["bootstrap", tmpdir, "--repomix"])
+
+            assert result.exit_code == 0
+            assert "Repomix: True" in result.output
+
+            # Check that Repomix files were created
+            assert (repo_path / "repomix.config.json").exists()
+            assert (repo_path / ".repomixignore").exists()
+
+            # Check that Repomix workflow was created
+            assert (repo_path / ".github" / "workflows" / "repomix-update.yml").exists()
+
+    def test_bootstrap_without_repomix_flag(self):
+        """Test bootstrap without --repomix flag doesn't create Repomix files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+
+            result = self.runner.invoke(cli, ["bootstrap", tmpdir])
+
+            assert result.exit_code == 0
+            assert "Repomix: False" in result.output
+
+            # Check that Repomix files were NOT created
+            assert not (repo_path / "repomix.config.json").exists()
+            assert not (repo_path / ".repomixignore").exists()
+
+            # Check that Repomix workflow was NOT created
+            assert not (
+                repo_path / ".github" / "workflows" / "repomix-update.yml"
+            ).exists()
+
+    def test_bootstrap_repomix_dry_run(self):
+        """Test bootstrap --repomix with --dry-run."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+
+            result = self.runner.invoke(
+                cli, ["bootstrap", tmpdir, "--repomix", "--dry-run"]
+            )
+
+            assert result.exit_code == 0
+            assert "Dry run complete" in result.output
+
+            # Should list Repomix files that would be created
+            assert "repomix.config.json" in result.output
+            assert ".repomixignore" in result.output
+            assert "repomix-update.yml" in result.output
+
+            # Files should not actually be created
+            assert not (repo_path / "repomix.config.json").exists()
+            assert not (repo_path / ".repomixignore").exists()
+
+    def test_bootstrap_repomix_lists_created_files(self):
+        """Test bootstrap --repomix lists Repomix files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+
+            result = self.runner.invoke(cli, ["bootstrap", tmpdir, "--repomix"])
+
+            assert result.exit_code == 0
+
+            # Should list Repomix files with checkmarks
+            assert "✓ repomix.config.json" in result.output
+            assert "✓ .repomixignore" in result.output
+            assert "✓ .github/workflows/repomix-update.yml" in result.output
+
+    def test_bootstrap_repomix_doesnt_overwrite_existing(self):
+        """Test bootstrap --repomix doesn't overwrite existing Repomix config."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+
+            # Create existing Repomix config
+            config_path = repo_path / "repomix.config.json"
+            existing_content = '{"custom": "config"}'
+            config_path.write_text(existing_content)
+
+            result = self.runner.invoke(cli, ["bootstrap", tmpdir, "--repomix"])
+
+            assert result.exit_code == 0
+
+            # Should not overwrite existing config
+            assert config_path.read_text() == existing_content
+
+            # But should still create ignore file if it doesn't exist
+            assert (repo_path / ".repomixignore").exists()

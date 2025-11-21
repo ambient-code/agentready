@@ -21,7 +21,12 @@ from ..services.bootstrap import BootstrapGenerator
     default="auto",
     help="Primary language (default: auto-detect)",
 )
-def bootstrap(repository, dry_run, language):
+@click.option(
+    "--repomix",
+    is_flag=True,
+    help="Initialize Repomix configuration for AI-friendly context generation",
+)
+def bootstrap(repository, dry_run, language, repomix):
     """Bootstrap repository with GitHub infrastructure and best practices.
 
     Creates:
@@ -30,6 +35,7 @@ def bootstrap(repository, dry_run, language):
     - Pre-commit hooks configuration
     - Dependabot configuration
     - Contributing guidelines
+    - Repomix configuration (if --repomix flag is set)
 
     REPOSITORY: Path to git repository (default: current directory)
     """
@@ -44,6 +50,7 @@ def bootstrap(repository, dry_run, language):
     click.echo("=" * 50)
     click.echo(f"\nRepository: {repo_path}")
     click.echo(f"Language: {language}")
+    click.echo(f"Repomix: {repomix}")
     click.echo(f"Dry run: {dry_run}\n")
 
     # Create generator
@@ -51,7 +58,7 @@ def bootstrap(repository, dry_run, language):
 
     # Generate all files
     try:
-        created_files = generator.generate_all(dry_run=dry_run)
+        created_files = generator.generate_all(dry_run=dry_run, enable_repomix=repomix)
     except Exception as e:
         click.echo(f"\nError during bootstrap: {str(e)}", err=True)
         sys.exit(1)

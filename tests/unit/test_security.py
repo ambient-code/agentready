@@ -1,9 +1,7 @@
 """Security tests for AgentReady."""
 
 from datetime import datetime
-from pathlib import Path
 
-import pytest
 
 from agentready.models.assessment import Assessment
 from agentready.models.attribute import Attribute

@@ -1,7 +1,6 @@
 """Code quality assessors for complexity, file length, type annotations, and code smells."""
 
 import subprocess
-from pathlib import Path
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -326,7 +325,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     self.attribute, reason="No Python code to analyze"
                 )
 
-        except MissingToolError as e:
+        except MissingToolError:
             raise  # Re-raise to be caught by Scanner
         except Exception as e:
             return Finding.error(
@@ -352,7 +351,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 self.attribute, reason="Lizard analysis not fully implemented"
             )
 
-        except MissingToolError as e:
+        except MissingToolError:
             raise
         except Exception as e:
             return Finding.error(
