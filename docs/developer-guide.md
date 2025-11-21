@@ -719,7 +719,7 @@ A clear and concise description of what you expected to happen.
 
 **Environment**
 - OS: [e.g., Ubuntu 22.04, macOS 14.0, Windows 11]
-- {% if language == "python" %}Python{% elif language == "javascript" %}Node.js{% elif language == "go" %}Go{% endif %} Version: [e.g., {{ python_version if language == "python" else node_version if language == "javascript" else go_version }}]
+- {% if language == "python" %}Python{% elsif language == "javascript" %}Node.js{% elsif language == "go" %}Go{% endif %} Version: [e.g., {{ python_version if language == "python" else node_version if language == "javascript" else go_version }}]
 - {{ repository_name }} Version: [e.g., 1.0.0]
 
 **Additional context**
