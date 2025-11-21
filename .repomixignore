@@ -2,3 +2,53 @@
 # Example:
 # *.log
 # tmp/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.hypothesis/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated reports (keep examples/ for reference)
+.agentready/*.html
+.agentready/*.json
+.agentready/*.md
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Git internal files
+.git/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Large generated documentation
+repomix-output.md

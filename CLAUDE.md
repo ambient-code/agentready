@@ -317,6 +317,68 @@ See `BACKLOG.md` for full feature list.
 - Fail gracefully (missing tools → skip, don't crash)
 - User-focused (actionable remediation over theoretical guidance)
 
+### Documentation Workflow
+
+**CRITICAL: Proactive Documentation Agent Usage**
+
+When working with documentation in this repository, **ALWAYS** use the `github-pages-docs` agent for any documentation updates, revisions, or additions. This ensures consistency, quality, and adherence to the established documentation structure.
+
+**Trigger the github-pages-docs agent when**:
+
+1. **After implementing new features** (e.g., Bootstrap, new assessors, new commands)
+   - Update user guide with new feature documentation
+   - Update developer guide with architecture changes
+   - Update API reference with new classes/methods
+   - Update examples with new use cases
+
+2. **After modifying source-of-truth files**:
+   - `CLAUDE.md` changes → Update developer-guide.md and user-guide.md
+   - `agent-ready-codebase-attributes.md` changes → Update attributes.md
+   - `README.md` changes → Sync with docs/index.md
+   - Bootstrap implementation changes → Update bootstrap documentation sections
+
+3. **When fixing bugs or addressing issues**:
+   - Update troubleshooting sections
+   - Update known issues documentation
+   - Update migration guides if breaking changes
+
+4. **When updating project status**:
+   - Certification level changes (e.g., Silver → Gold)
+   - Version bumps (v1.0 → v1.1)
+   - Roadmap updates
+   - New milestone achievements
+
+**Agent Invocation Pattern**:
+```
+Use the @agent-github-pages-docs to [action] based on:
+- [Source of truth file] updates
+- [Feature/bug/change] implementation
+- [Specific sections] that need updating
+```
+
+**Example**:
+```
+Use the @agent-github-pages-docs to revise all documentation in docs/ based on:
+- Bootstrap feature now fully implemented
+- New CLI commands (bootstrap, align)
+- Updated architecture in CLAUDE.md
+- Self-assessment score improvement (75.4 → 82.1)
+```
+
+**Documentation Sources of Truth** (in priority order):
+1. `CLAUDE.md` - Complete project guide (architecture, development, workflows)
+2. `agent-ready-codebase-attributes.md` - Research report (25 attributes, tier system)
+3. `contracts/` - Schemas and contracts (data models, validation rules)
+4. `specs/` - Feature specifications (design documents, plans)
+5. `README.md` - User-facing overview
+6. Source code - Actual implementation (CLI, services, assessors)
+
+**Documentation Automation**:
+- Manual trigger: `.github/workflows/update-docs.yml` (workflow_dispatch)
+- Future: Automatic cascade updates on source file changes (see BACKLOG.md - P2 item)
+- Always review agent-generated docs before committing
+- Ensure Bootstrap documentation is kept prominent and up-to-date
+
 ---
 
 **Last Updated**: 2025-11-21 by Jeremy Eder

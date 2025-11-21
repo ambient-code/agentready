@@ -1829,11 +1829,281 @@ github:
 
 ---
 
+### Documentation Source Truth and Cascade System
+
+**Priority**: P2 (Medium - Developer Experience)
+
+**Description**: Implement a system to ensure documentation stays synchronized when source content changes, with automatic cascade updates from authoritative sources to derived documentation.
+
+**Problem**: When substantial changes are made to source documentation (like research reports, specifications, or CLAUDE.md), there's currently no mechanism to ensure those changes propagate to derived documentation (GitHub Pages, API docs, tutorials, etc.). This leads to documentation drift and inconsistency.
+
+**Requirements**:
+
+1. **Source-of-Truth Designation**
+   - Designate authoritative source files (contracts/*, specs/*, CLAUDE.md, research reports)
+   - Mark derived documentation files that depend on sources
+   - Document source → derived relationships explicitly
+
+2. **Change Detection**
+   - Track content changes in source files via git hooks or CI
+   - Identify which derived docs are affected by source changes
+   - Calculate "documentation drift score" (how out of sync derived docs are)
+
+3. **Automatic Cascade Updates**
+   - Trigger documentation regeneration when sources change
+   - Update affected GitHub Pages content
+   - Regenerate API documentation if models change
+   - Update code examples if interfaces change
+   - Refresh tutorial content if workflows change
+
+4. **Validation & Consistency**
+   - Validate that derived docs accurately reflect sources
+   - Check for broken cross-references after updates
+   - Ensure code examples still compile/run
+   - Verify attribute definitions match research report
+
+**Implementation Approach**:
+
+```yaml
+# .agentready/doc-sources.yaml
+documentation_sources:
+  # Source of truth files
+  sources:
+    - path: contracts/assessment-schema.json
+      type: json_schema
+      affects:
+        - docs/api-reference.md
+        - README.md (Data Models section)
+
+    - path: agent-ready-codebase-attributes.md
+      type: research_report
+      affects:
+        - docs/attributes.md
+        - docs/index.md (Features section)
+        - README.md (Overview)
+
+    - path: CLAUDE.md
+      type: project_guide
+      affects:
+        - docs/developer-guide.md
+        - docs/user-guide.md
+
+    - path: specs/plan.md
+      type: design_spec
+      affects:
+        - docs/developer-guide.md (Architecture)
+        - docs/api-reference.md
+
+  # Cascade rules
+  cascade_rules:
+    - source: contracts/assessment-schema.json
+      trigger: schema_version_change
+      actions:
+        - regenerate_api_docs
+        - update_model_documentation
+        - validate_code_examples
+
+    - source: agent-ready-codebase-attributes.md
+      trigger: attribute_definition_change
+      actions:
+        - update_attributes_page
+        - regenerate_tier_summaries
+        - update_scoring_documentation
+```
+
+**CLI Commands**:
+
+```bash
+# Check for documentation drift
+agentready docs check-drift
+
+# Output:
+# Documentation Drift Report
+# =========================
+#
+# ⚠️  agent-ready-codebase-attributes.md changed (5 days ago)
+#     Affected: docs/attributes.md (not updated)
+#     Affected: docs/index.md (not updated)
+#
+# ⚠️  contracts/assessment-schema.json changed (2 days ago)
+#     Affected: docs/api-reference.md (not updated)
+#
+# Drift Score: 45/100 (needs attention)
+
+# Update derived docs from sources
+agentready docs cascade-update
+
+# Output:
+# Cascading Documentation Updates
+# ================================
+#
+# ✓ Updated docs/attributes.md from agent-ready-codebase-attributes.md
+# ✓ Updated docs/index.md from agent-ready-codebase-attributes.md
+# ✓ Regenerated docs/api-reference.md from contracts/assessment-schema.json
+# ✓ Validated all code examples
+#
+# 3 files updated, 0 errors
+
+# Preview what would be updated (dry-run)
+agentready docs cascade-update --dry-run
+
+# Update specific derived doc
+agentready docs update docs/attributes.md
+```
+
+**GitHub Actions Integration**:
+
+```yaml
+# .github/workflows/doc-cascade.yml
+name: Documentation Cascade
+
+on:
+  push:
+    paths:
+      - 'contracts/**'
+      - 'specs/**'
+      - 'CLAUDE.md'
+      - 'agent-ready-codebase-attributes.md'
+
+jobs:
+  cascade-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Documentation Drift
+        run: agentready docs check-drift --fail-threshold 30
+
+      - name: Cascade Updates
+        run: agentready docs cascade-update
+
+      - name: Create PR if Changes
+        if: changes detected
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "docs: Cascade updates from source changes"
+          body: |
+            Automated documentation updates triggered by source changes.
+
+            This PR contains documentation updates cascaded from:
+            - Contract/schema changes
+            - Research report updates
+            - Specification changes
+```
+
+**Pre-commit Hook Integration**:
+
+```yaml
+# .pre-commit-config.yaml
+- repo: local
+  hooks:
+    - id: doc-drift-check
+      name: Check Documentation Drift
+      entry: agentready docs check-drift --fail-threshold 50
+      language: system
+      pass_filenames: false
+      # Warns if drift > 50%, fails if drift > 80%
+```
+
+**Cascade Update Strategies**:
+
+1. **Template-Based Regeneration**
+   - Keep templates for derived docs
+   - Re-render templates when sources change
+   - Example: docs/attributes.md regenerated from research report + template
+
+2. **Section Replacement**
+   - Identify sections in derived docs sourced from elsewhere
+   - Replace only those sections, preserve custom content
+   - Use HTML comments or YAML frontmatter to mark auto-generated sections
+
+3. **Code Example Validation**
+   - Extract code examples from derived docs
+   - Validate against current codebase/schemas
+   - Update if broken, flag if unfixable
+
+4. **Link Validation**
+   - Check all cross-references between docs
+   - Update broken links after renames/moves
+   - Report dead external links
+
+**Marking Auto-Generated Sections**:
+
+```markdown
+<!-- BEGIN AUTO-GENERATED: source=agent-ready-codebase-attributes.md section=tier-1-attributes -->
+
+## Tier 1 Attributes (Essential)
+
+These are the foundational attributes...
+
+[Content auto-generated from research report]
+
+<!-- END AUTO-GENERATED -->
+
+<!-- Custom content below is preserved during cascade updates -->
+
+## Additional Notes
+
+These are custom notes that won't be overwritten...
+```
+
+**Use Cases**:
+
+**Use Case 1: Research Report Updated**
+- Researcher adds new attribute to research report
+- Pre-commit hook detects drift
+- Developer runs `agentready docs cascade-update`
+- GitHub Pages attributes page automatically updated
+- Homepage feature count updated
+- API reference regenerated
+
+**Use Case 2: Schema Version Bump**
+- Assessment schema updated (v1.0 → v2.0)
+- CI detects schema change
+- Automatically creates PR with:
+  - Updated API reference
+  - Updated data model documentation
+  - Validated code examples
+  - Migration guide
+
+**Use Case 3: Spec Changes During Development**
+- Developer updates plan.md with architecture changes
+- Local pre-commit hook warns of documentation drift
+- Developer runs cascade update
+- Developer guide automatically synchronized
+
+**Acceptance Criteria**:
+- [ ] Source-of-truth files explicitly designated
+- [ ] Drift detection algorithm implemented
+- [ ] Cascade update command working for all doc types
+- [ ] GitHub Actions workflow for automatic cascade
+- [ ] Pre-commit hook warns of high drift
+- [ ] Documentation explains source/derived relationships
+- [ ] Preserves custom content in derived docs
+- [ ] Validates code examples after updates
+
+**Priority Justification**:
+- Currently experiencing documentation drift (GitHub Pages may not match CLAUDE.md)
+- Will worsen as project grows without automation
+- Essential for maintaining documentation quality
+- Aligns with "agent-ready" principles (machine-readable sources of truth)
+
+**Related**: Documentation maintenance, automation, consistency, DRY principle
+
+**Notes**:
+- Start with simple template-based regeneration
+- Expand to intelligent section replacement
+- Consider using LLMs to help with content transformation
+- Could become a reusable tool for other projects
+- Document the documentation architecture (meta!)
+
+---
+
 ## Backlog Metadata
 
 **Created**: 2025-11-21
 **Last Updated**: 2025-11-21
-**Total Items**: 14 (11 original + 3 from code review)
+**Total Items**: 15 (11 original + 3 from code review + 1 documentation cascade)
 
 ## Priority Summary
 

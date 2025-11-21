@@ -83,6 +83,9 @@ The content is organized as follows:
     tasks-template.md
 docs/
   _config.yml
+  developer-guide.md
+  index.md
+  user-guide.md
 examples/
   self-assessment/
     assessment-20251121.json
@@ -204,6 +207,2968 @@ repos.txt
     "ask": []
   }
 }
+````
+
+## File: docs/developer-guide.md
+````markdown
+---
+layout: page
+title: Developer Guide
+---
+
+# Developer Guide
+
+Comprehensive guide for contributors and developers extending AgentReady.
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Development Environment](#development-environment)
+- [Architecture Overview](#architecture-overview)
+- [Implementing New Assessors](#implementing-new-assessors)
+- [Testing Guidelines](#testing-guidelines)
+- [Code Quality Standards](#code-quality-standards)
+- [Contributing Workflow](#contributing-workflow)
+- [Release Process](#release-process)
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Python 3.11 or 3.12**
+- **Git**
+- **uv** or **pip** (uv recommended for faster dependency management)
+- **Make** (optional, for convenience commands)
+
+### Fork and Clone
+
+```bash
+# Fork on GitHub first, then:
+git clone https://github.com/YOUR_USERNAME/agentready.git
+cd agentready
+
+# Add upstream remote
+git remote add upstream https://github.com/yourusername/agentready.git
+```
+
+### Install Development Dependencies
+
+```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install with development dependencies
+uv pip install -e ".[dev]"
+
+# Or using pip
+pip install -e ".[dev]"
+
+# Verify installation
+pytest --version
+black --version
+ruff --version
+```
+
+---
+
+## Development Environment
+
+### Project Structure
+
+```
+agentready/
+├── src/agentready/          # Source code
+│   ├── cli/                 # Click-based CLI
+│   │   └── main.py          # Entry point (assess, research-version, generate-config)
+│   ├── models/              # Data models
+│   │   ├── repository.py    # Repository representation
+│   │   ├── attribute.py     # Attribute definition
+│   │   ├── finding.py       # Assessment finding
+│   │   └── assessment.py    # Complete assessment result
+│   ├── services/            # Core business logic
+│   │   ├── scanner.py       # Assessment orchestration
+│   │   ├── scorer.py        # Score calculation
+│   │   └── language_detector.py  # Language detection via git
+│   ├── assessors/           # Attribute assessors
+│   │   ├── base.py          # BaseAssessor abstract class
+│   │   ├── documentation.py # CLAUDE.md, README assessors
+│   │   ├── code_quality.py  # Type annotations, complexity
+│   │   ├── testing.py       # Test coverage, pre-commit hooks
+│   │   ├── structure.py     # Standard layout, gitignore
+│   │   └── stub_assessors.py # 15 not-yet-implemented assessors
+│   ├── reporters/           # Report generators
+│   │   ├── html.py          # Interactive HTML with Jinja2
+│   │   ├── markdown.py      # GitHub-Flavored Markdown
+│   │   └── json.py          # Machine-readable JSON
+│   ├── templates/           # Jinja2 templates
+│   │   └── report.html.j2   # HTML report template
+│   └── data/                # Bundled data
+│       └── attributes.yaml  # Attribute definitions
+├── tests/                   # Test suite
+│   ├── unit/               # Unit tests (fast, isolated)
+│   │   ├── test_models.py
+│   │   ├── test_assessors_documentation.py
+│   │   ├── test_assessors_code_quality.py
+│   │   └── ...
+│   ├── integration/        # End-to-end tests
+│   │   └── test_full_assessment.py
+│   └── fixtures/           # Test data
+│       └── sample_repos/   # Sample repositories for testing
+├── docs/                    # GitHub Pages documentation
+├── examples/               # Example reports
+│   └── self-assessment/    # AgentReady's own assessment
+├── pyproject.toml          # Python package configuration
+├── CLAUDE.md              # Project context for AI agents
+├── README.md              # User-facing documentation
+└── BACKLOG.md             # Feature backlog
+```
+
+### Development Tools
+
+AgentReady uses modern Python tooling:
+
+| Tool | Purpose | Configuration |
+|------|---------|---------------|
+| **pytest** | Testing framework | `pyproject.toml` |
+| **black** | Code formatter | `pyproject.toml` |
+| **isort** | Import sorter | `pyproject.toml` |
+| **ruff** | Fast linter | `pyproject.toml` |
+| **mypy** | Type checker | `pyproject.toml` (future) |
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src/agentready --cov-report=html
+
+# Run specific test file
+pytest tests/unit/test_models.py -v
+
+# Run tests matching pattern
+pytest -k "test_claude_md" -v
+
+# Run with output (don't capture print statements)
+pytest -s
+
+# Fast fail (stop on first failure)
+pytest -x
+```
+
+### Code Quality Checks
+
+```bash
+# Format code
+black src/ tests/
+
+# Sort imports
+isort src/ tests/
+
+# Lint code
+ruff check src/ tests/
+
+# Run all quality checks (recommended before committing)
+black src/ tests/ && isort src/ tests/ && ruff check src/ tests/
+```
+
+### Pre-commit Hooks (Recommended)
+
+Install pre-commit hooks to automatically run quality checks:
+
+```bash
+# Install pre-commit (if not already installed)
+pip install pre-commit
+
+# Install git hooks
+pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
+```
+
+---
+
+## Architecture Overview
+
+AgentReady follows a **library-first architecture** with clear separation of concerns.
+
+### Data Flow
+
+```
+Repository → Scanner → Assessors → Findings → Assessment → Reporters → Reports
+                ↓
+         Language Detection
+         (git ls-files)
+```
+
+### Core Components
+
+#### 1. Models (`models/`)
+
+Immutable data classes representing domain entities:
+
+- **Repository**: Path, name, detected languages
+- **Attribute**: ID, name, tier, weight, description
+- **Finding**: Attribute, status (pass/fail/skip), score, evidence, remediation
+- **Assessment**: Repository, overall score, certification level, findings list
+
+**Design Principles**:
+- Immutable (frozen dataclasses)
+- Type-annotated
+- No business logic (pure data)
+- Factory methods for common patterns (`Finding.create_pass()`, etc.)
+
+#### 2. Services (`services/`)
+
+Orchestration and core algorithms:
+
+- **Scanner**: Coordinates assessment flow, manages assessors
+- **Scorer**: Calculates weighted scores, determines certification levels
+- **LanguageDetector**: Detects repository languages via `git ls-files`
+
+**Design Principles**:
+- Stateless (pure functions or stateless classes)
+- Single responsibility
+- No external dependencies (file I/O, network)
+- Testable with mocks
+
+#### 3. Assessors (`assessors/`)
+
+Strategy pattern implementations for each attribute:
+
+- **BaseAssessor**: Abstract base class defining interface
+- Concrete assessors: `CLAUDEmdAssessor`, `READMEAssessor`, etc.
+
+**Design Principles**:
+- Each assessor is independent
+- Inherit from `BaseAssessor`
+- Implement `assess(repository)` method
+- Return `Finding` object
+- Fail gracefully (return "skipped" if tools missing, don't crash)
+
+#### 4. Reporters (`reporters/`)
+
+Transform `Assessment` into report formats:
+
+- **HTMLReporter**: Jinja2-based interactive report
+- **MarkdownReporter**: GitHub-Flavored Markdown
+- **JSONReporter**: Machine-readable JSON
+
+**Design Principles**:
+- Take `Assessment` as input
+- Return formatted string
+- Self-contained (HTML has inline CSS/JS, no CDN)
+- Idempotent (same input → same output)
+
+### Key Design Patterns
+
+#### Strategy Pattern (Assessors)
+
+Each assessor is a pluggable strategy implementing the same interface:
+
+```python
+from abc import ABC, abstractmethod
+
+class BaseAssessor(ABC):
+    @property
+    @abstractmethod
+    def attribute_id(self) -> str:
+        """Unique attribute identifier."""
+        pass
+
+    @abstractmethod
+    def assess(self, repository: Repository) -> Finding:
+        """Assess repository for this attribute."""
+        pass
+
+    def is_applicable(self, repository: Repository) -> bool:
+        """Check if this assessor applies to the repository."""
+        return True
+```
+
+#### Factory Pattern (Finding Creation)
+
+`Finding` class provides factory methods for common patterns:
+
+```python
+# Pass with full score
+finding = Finding.create_pass(
+    attribute=attribute,
+    evidence="Found CLAUDE.md at repository root",
+    remediation=None
+)
+
+# Fail with zero score
+finding = Finding.create_fail(
+    attribute=attribute,
+    evidence="No CLAUDE.md file found",
+    remediation=Remediation(steps=[...], tools=[...])
+)
+
+# Skip (not applicable)
+finding = Finding.create_skip(
+    attribute=attribute,
+    reason="Not implemented yet"
+)
+```
+
+#### Template Pattern (Reporters)
+
+Reporters use Jinja2 templates for HTML generation:
+
+```python
+from jinja2 import Environment, FileSystemLoader
+
+class HTMLReporter:
+    def generate(self, assessment: Assessment) -> str:
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template('report.html.j2')
+        return template.render(assessment=assessment)
+```
+
+---
+
+## Implementing New Assessors
+
+Follow this step-by-step guide to add a new assessor.
+
+### Step 1: Choose an Attribute
+
+Check `src/agentready/assessors/stub_assessors.py` for not-yet-implemented attributes:
+
+```python
+# Example stub assessor
+class InlineDocumentationAssessor(BaseAssessor):
+    @property
+    def attribute_id(self) -> str:
+        return "inline_documentation"
+
+    def assess(self, repository: Repository) -> Finding:
+        # TODO: Implement actual assessment logic
+        return Finding.create_skip(
+            self.attribute,
+            reason="Assessor not yet implemented"
+        )
+```
+
+### Step 2: Create Assessor Class
+
+Create a new file or expand existing category file in `src/agentready/assessors/`:
+
+```python
+# src/agentready/assessors/documentation.py
+
+from agentready.models import Repository, Finding, Attribute, Remediation
+from agentready.assessors.base import BaseAssessor
+
+class InlineDocumentationAssessor(BaseAssessor):
+    @property
+    def attribute_id(self) -> str:
+        return "inline_documentation"
+
+    def assess(self, repository: Repository) -> Finding:
+        """
+        Assess inline documentation coverage (docstrings/JSDoc).
+
+        Checks:
+        - Python: Presence of docstrings in .py files
+        - JavaScript/TypeScript: JSDoc comments
+        - Coverage: >80% of public functions documented
+        """
+        # Implement assessment logic here
+        pass
+```
+
+### Step 3: Implement Assessment Logic
+
+Use the `calculate_proportional_score()` helper for partial compliance:
+
+```python
+def assess(self, repository: Repository) -> Finding:
+    # Example: Check Python docstrings
+    if "Python" not in repository.languages:
+        return Finding.create_skip(
+            self.attribute,
+            reason="No Python files detected"
+        )
+
+    # Count functions and docstrings
+    total_functions = self._count_functions(repository)
+    documented_functions = self._count_documented_functions(repository)
+
+    if total_functions == 0:
+        return Finding.create_skip(
+            self.attribute,
+            reason="No functions found"
+        )
+
+    # Calculate coverage
+    coverage = documented_functions / total_functions
+    score = self.calculate_proportional_score(coverage, 0.80)
+
+    if score >= 80:  # Passes if >= 80% of target
+        return Finding.create_pass(
+            self.attribute,
+            evidence=f"Documented {documented_functions}/{total_functions} functions ({coverage:.1%})",
+            remediation=None
+        )
+    else:
+        return Finding.create_fail(
+            self.attribute,
+            evidence=f"Only {documented_functions}/{total_functions} functions documented ({coverage:.1%})",
+            remediation=self._create_remediation(coverage)
+        )
+
+def _count_functions(self, repository: Repository) -> int:
+    """Count total functions in Python files."""
+    # Implementation using ast or grep
+    pass
+
+def _count_documented_functions(self, repository: Repository) -> int:
+    """Count functions with docstrings."""
+    # Implementation using ast
+    pass
+
+def _create_remediation(self, current_coverage: float) -> Remediation:
+    """Generate remediation guidance."""
+    return Remediation(
+        steps=[
+            "Install pydocstyle: `pip install pydocstyle`",
+            "Run docstring linter: `pydocstyle src/`",
+            "Add docstrings to flagged functions",
+            f"Target: {(0.80 - current_coverage) * 100:.0f}% more functions need documentation"
+        ],
+        tools=["pydocstyle", "pylint"],
+        commands=[
+            "pydocstyle src/",
+            "pylint --disable=all --enable=missing-docstring src/"
+        ],
+        examples=[
+            '''def calculate_total(items: List[Item]) -> float:
+    """
+    Calculate total price of items.
+
+    Args:
+        items: List of items to sum
+
+    Returns:
+        Total price in USD
+
+    Example:
+        >>> calculate_total([Item(5.0), Item(3.0)])
+        8.0
+    """
+    return sum(item.price for item in items)'''
+        ],
+        citations=[
+            "PEP 257 - Docstring Conventions",
+            "Google Python Style Guide"
+        ]
+    )
+```
+
+### Step 4: Register Assessor
+
+Add to scanner's assessor list in `src/agentready/services/scanner.py`:
+
+```python
+def __init__(self):
+    self.assessors = [
+        # Existing assessors...
+        InlineDocumentationAssessor(),
+    ]
+```
+
+### Step 5: Write Tests
+
+Create comprehensive unit tests in `tests/unit/test_assessors_documentation.py`:
+
+```python
+import pytest
+from agentready.models import Repository
+from agentready.assessors.documentation import InlineDocumentationAssessor
+
+class TestInlineDocumentationAssessor:
+    def test_python_well_documented_passes(self, tmp_path):
+        """Well-documented Python code should pass."""
+        # Create test repository
+        repo_path = tmp_path / "test_repo"
+        repo_path.mkdir()
+        (repo_path / ".git").mkdir()
+
+        # Create Python file with docstrings
+        code = '''
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+def subtract(a: int, b: int) -> int:
+    """Subtract b from a."""
+    return a - b
+'''
+        (repo_path / "main.py").write_text(code)
+
+        # Create repository object
+        repo = Repository(
+            path=str(repo_path),
+            name="test_repo",
+            languages={"Python": 1}
+        )
+
+        # Run assessment
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        # Verify result
+        assert finding.status == "pass"
+        assert finding.score == 100
+        assert "2/2 functions" in finding.evidence
+
+    def test_python_poorly_documented_fails(self, tmp_path):
+        """Poorly documented Python code should fail."""
+        # Create test repository
+        repo_path = tmp_path / "test_repo"
+        repo_path.mkdir()
+        (repo_path / ".git").mkdir()
+
+        # Create Python file with no docstrings
+        code = '''
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+'''
+        (repo_path / "main.py").write_text(code)
+
+        repo = Repository(
+            path=str(repo_path),
+            name="test_repo",
+            languages={"Python": 1}
+        )
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score < 80
+        assert "0/2 functions" in finding.evidence
+        assert finding.remediation is not None
+        assert "pydocstyle" in finding.remediation.tools
+
+    def test_non_python_skips(self, tmp_path):
+        """Non-Python repositories should skip."""
+        repo = Repository(
+            path=str(tmp_path),
+            name="test_repo",
+            languages={"JavaScript": 10}
+        )
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "skipped"
+        assert "No Python files" in finding.reason
+```
+
+### Step 6: Test Manually
+
+```bash
+# Run your new tests
+pytest tests/unit/test_assessors_documentation.py -v
+
+# Run full assessment on AgentReady itself
+agentready assess . --verbose
+
+# Verify your assessor appears in output
+```
+
+### Best Practices for Assessors
+
+1. **Fail Gracefully**: Return "skipped" if required tools missing, don't crash
+2. **Provide Rich Remediation**: Include steps, tools, commands, examples, citations
+3. **Use Proportional Scoring**: `calculate_proportional_score()` for partial compliance
+4. **Language-Specific Logic**: Check `repository.languages` before assessing
+5. **Avoid External Dependencies**: Use stdlib when possible (ast, re, pathlib)
+6. **Performance**: Keep assessments fast (<1 second per assessor)
+7. **Idempotent**: Same repository → same result
+8. **Evidence**: Provide specific, actionable evidence (file paths, counts, examples)
+
+---
+
+## Testing Guidelines
+
+AgentReady maintains high test quality standards.
+
+### Test Organization
+
+```
+tests/
+├── unit/                  # Fast, isolated tests
+│   ├── test_models.py
+│   ├── test_assessors_*.py
+│   └── test_reporters.py
+├── integration/           # End-to-end tests
+│   └── test_full_assessment.py
+└── fixtures/              # Shared test data
+    └── sample_repos/
+```
+
+### Test Types
+
+#### Unit Tests
+
+- **Purpose**: Test individual components in isolation
+- **Speed**: Very fast (<1s total)
+- **Coverage**: Models, assessors, services, reporters
+- **Mocking**: Use `pytest` fixtures and mocks
+
+#### Integration Tests
+
+- **Purpose**: Test complete workflows end-to-end
+- **Speed**: Slower (acceptable up to 10s total)
+- **Coverage**: Full assessment pipeline
+- **Real Data**: Use fixture repositories
+
+### Writing Good Tests
+
+#### Test Naming
+
+Use descriptive names following pattern: `test_<what>_<when>_<expected>`
+
+```python
+# Good
+def test_claude_md_assessor_with_existing_file_passes():
+    pass
+
+def test_readme_assessor_missing_quick_start_fails():
+    pass
+
+def test_type_annotations_assessor_javascript_repo_skips():
+    pass
+
+# Bad
+def test_assessor():
+    pass
+
+def test_pass_case():
+    pass
+```
+
+#### Arrange-Act-Assert Pattern
+
+```python
+def test_finding_create_pass_sets_correct_attributes():
+    # Arrange
+    attribute = Attribute(
+        id="test_attr",
+        name="Test Attribute",
+        tier=1,
+        weight=0.10
+    )
+
+    # Act
+    finding = Finding.create_pass(
+        attribute=attribute,
+        evidence="Test evidence",
+        remediation=None
+    )
+
+    # Assert
+    assert finding.status == "pass"
+    assert finding.score == 100
+    assert finding.evidence == "Test evidence"
+    assert finding.remediation is None
+```
+
+#### Use Fixtures
+
+```python
+@pytest.fixture
+def sample_repository(tmp_path):
+    """Create a sample repository for testing."""
+    repo_path = tmp_path / "sample_repo"
+    repo_path.mkdir()
+    (repo_path / ".git").mkdir()
+
+    # Add files
+    (repo_path / "README.md").write_text("# Sample Repo")
+    (repo_path / "CLAUDE.md").write_text("# Tech Stack")
+
+    return Repository(
+        path=str(repo_path),
+        name="sample_repo",
+        languages={"Python": 5}
+    )
+
+def test_with_fixture(sample_repository):
+    assert sample_repository.name == "sample_repo"
+```
+
+### Coverage Requirements
+
+- **Target**: >80% line coverage for new code
+- **Minimum**: >70% overall coverage
+- **Critical Paths**: 100% coverage (scoring algorithm, finding creation)
+
+```bash
+# Generate coverage report
+pytest --cov=src/agentready --cov-report=html
+
+# View report
+open htmlcov/index.html
+```
+
+---
+
+## Code Quality Standards
+
+### Formatting
+
+**Black** (88 character line length, opinionated formatting):
+
+```bash
+black src/ tests/
+```
+
+Configuration in `pyproject.toml`:
+
+```toml
+[tool.black]
+line-length = 88
+target-version = ['py311', 'py312']
+```
+
+### Import Sorting
+
+**isort** (consistent import organization):
+
+```bash
+isort src/ tests/
+```
+
+Configuration in `pyproject.toml`:
+
+```toml
+[tool.isort]
+profile = "black"
+line_length = 88
+```
+
+### Linting
+
+**Ruff** (fast Python linter):
+
+```bash
+ruff check src/ tests/
+```
+
+Configuration in `pyproject.toml`:
+
+```toml
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]  # Line too long (handled by black)
+```
+
+### Type Checking (Future)
+
+**mypy** (static type checking):
+
+```bash
+mypy src/
+```
+
+Configuration in `pyproject.toml`:
+
+```toml
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+```
+
+### Documentation Standards
+
+- **Docstrings**: All public functions, classes, methods
+- **Format**: Google-style docstrings
+- **Type hints**: All function parameters and return types
+
+```python
+def calculate_weighted_score(findings: List[Finding], weights: Dict[str, float]) -> float:
+    """
+    Calculate weighted average score from findings.
+
+    Args:
+        findings: List of assessment findings
+        weights: Attribute ID to weight mapping
+
+    Returns:
+        Weighted score from 0.0 to 100.0
+
+    Raises:
+        ValueError: If weights don't sum to 1.0
+
+    Example:
+        >>> findings = [Finding(score=80), Finding(score=90)]
+        >>> weights = {"attr1": 0.5, "attr2": 0.5}
+        >>> calculate_weighted_score(findings, weights)
+        85.0
+    """
+    pass
+```
+
+---
+
+## Contributing Workflow
+
+### 1. Create Feature Branch
+
+```bash
+# Update main
+git checkout main
+git pull upstream main
+
+# Create feature branch
+git checkout -b feature/inline-documentation-assessor
+```
+
+### 2. Implement Changes
+
+- Write code following style guide
+- Add comprehensive tests
+- Update documentation (CLAUDE.md, README.md if needed)
+
+### 3. Run Quality Checks
+
+```bash
+# Format code
+black src/ tests/
+isort src/ tests/
+
+# Lint
+ruff check src/ tests/
+
+# Run tests
+pytest --cov
+
+# All checks must pass
+```
+
+### 4. Commit Changes
+
+Use **conventional commits**:
+
+```bash
+git add .
+git commit -m "feat(assessors): add inline documentation assessor
+
+- Implement Python docstring coverage assessment
+- Add test coverage for various documentation levels
+- Include rich remediation guidance with examples
+- Support JSDoc detection for JavaScript/TypeScript (future)"
+```
+
+**Commit types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `test`: Test additions/changes
+- `refactor`: Code refactoring
+- `chore`: Maintenance tasks
+
+### 5. Push and Create PR
+
+```bash
+git push origin feature/inline-documentation-assessor
+```
+
+Create pull request on GitHub with:
+
+- **Title**: Clear, descriptive (e.g., "Add inline documentation assessor")
+- **Description**:
+  - What changed
+  - Why (link to issue if applicable)
+  - Testing performed
+  - Screenshots/examples (if UI changes)
+- **Checklist**:
+  - [ ] Tests added and passing
+  - [ ] Code formatted (black, isort)
+  - [ ] Linting passes (ruff)
+  - [ ] Documentation updated
+  - [ ] Changelog entry (if user-facing)
+
+### 6. Address Review Feedback
+
+- Respond to comments
+- Make requested changes
+- Push updates to same branch
+- Re-request review
+
+---
+
+## Release Process
+
+AgentReady follows **semantic versioning** (SemVer):
+
+- **Major (X.0.0)**: Breaking changes
+- **Minor (x.Y.0)**: New features, backward-compatible
+- **Patch (x.y.Z)**: Bug fixes, backward-compatible
+
+### Release Checklist
+
+1. **Update version** in `pyproject.toml`
+2. **Update CHANGELOG.md** with release notes
+3. **Run full test suite**: `pytest --cov`
+4. **Run quality checks**: `black . && isort . && ruff check .`
+5. **Build package**: `python -m build`
+6. **Test package locally**: `pip install dist/agentready-X.Y.Z.tar.gz`
+7. **Create git tag**: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
+8. **Push tag**: `git push upstream vX.Y.Z`
+9. **Upload to PyPI**: `twine upload dist/*`
+10. **Create GitHub release** with changelog
+
+---
+
+## Additional Resources
+
+- **[Attributes Reference](/attributes)** — Detailed attribute definitions
+- **[API Reference](/api-reference)** — Public API documentation
+- **[Examples](/examples)** — Real-world assessment reports
+- **CLAUDE.md** — Project context for AI agents
+- **BACKLOG.md** — Planned features and enhancements
+
+---
+
+**Ready to contribute?** Check out [good first issues](https://github.com/yourusername/agentready/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) on GitHub!
+````
+
+## File: docs/user-guide.md
+````markdown
+---
+layout: page
+title: User Guide
+---
+
+# User Guide
+
+Complete guide to installing, configuring, and using AgentReady to assess your repositories.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Running Assessments](#running-assessments)
+- [Understanding Reports](#understanding-reports)
+- [Configuration](#configuration)
+- [CLI Reference](#cli-reference)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Installation
+
+### Prerequisites
+
+- **Python 3.11 or 3.12** (AgentReady supports versions N and N-1)
+- **Git** (for repository analysis)
+- **pip** or **uv** (Python package manager)
+
+### Install from PyPI
+
+```bash
+# Using pip
+pip install agentready
+
+# Using uv (recommended)
+uv pip install agentready
+
+# Verify installation
+agentready --version
+```
+
+### Install from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/agentready.git
+cd agentready
+
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install in development mode
+pip install -e .
+
+# Or using uv
+uv pip install -e .
+```
+
+### Development Installation
+
+If you plan to contribute or modify AgentReady:
+
+```bash
+# Install with development dependencies
+pip install -e ".[dev]"
+
+# Or using uv
+uv pip install -e ".[dev]"
+
+# Verify installation
+pytest --version
+black --version
+```
+
+---
+
+## Quick Start
+
+The fastest way to assess a repository:
+
+```bash
+# Navigate to your repository
+cd /path/to/your/repo
+
+# Run assessment
+agentready assess .
+
+# View the HTML report
+open .agentready/report-latest.html  # macOS
+xdg-open .agentready/report-latest.html  # Linux
+start .agentready/report-latest.html  # Windows
+```
+
+**Output location**: `.agentready/` directory in your repository root.
+
+**Duration**: Most assessments complete in under 5 seconds.
+
+---
+
+## Running Assessments
+
+### Basic Usage
+
+```bash
+# Assess current directory
+agentready assess .
+
+# Assess specific repository
+agentready assess /path/to/repo
+
+# Assess with verbose output
+agentready assess . --verbose
+
+# Custom output directory
+agentready assess . --output-dir ./custom-reports
+```
+
+### Assessment Output
+
+AgentReady creates a `.agentready/` directory containing:
+
+```
+.agentready/
+├── assessment-YYYYMMDD-HHMMSS.json    # Machine-readable data
+├── report-YYYYMMDD-HHMMSS.html        # Interactive web report
+├── report-YYYYMMDD-HHMMSS.md          # Markdown report
+├── assessment-latest.json             # Symlink to latest
+├── report-latest.html                 # Symlink to latest
+└── report-latest.md                   # Symlink to latest
+```
+
+**Timestamps**: All files are timestamped for historical tracking.
+
+**Latest links**: Symlinks always point to the most recent assessment.
+
+### Verbose Mode
+
+Get detailed progress information during assessment:
+
+```bash
+agentready assess . --verbose
+```
+
+**Output includes**:
+- Repository path and detected languages
+- Each assessor's execution status
+- Finding summaries (pass/fail/skip)
+- Final score calculation breakdown
+- Report generation progress
+
+---
+
+## Understanding Reports
+
+AgentReady generates three complementary report formats.
+
+### HTML Report (Interactive)
+
+**File**: `report-YYYYMMDD-HHMMSS.html`
+
+The HTML report provides an interactive, visual interface:
+
+#### Features
+
+- **Overall Score Card**: Certification level, score, and visual gauge
+- **Tier Summary**: Breakdown by attribute tier (Essential/Critical/Important/Advanced)
+- **Attribute Table**: Sortable, filterable list of all attributes
+- **Detailed Findings**: Expandable sections for each attribute
+- **Search**: Find specific attributes by name or ID
+- **Filters**: Show only passed, failed, or skipped attributes
+- **Copy Buttons**: One-click code example copying
+- **Offline**: No CDN dependencies, works anywhere
+
+#### How to Use
+
+1. **Open in browser**: Double-click the HTML file
+2. **Review overall score**: Check certification level and tier breakdown
+3. **Explore findings**:
+   - Green ✅ = Passed
+   - Red ❌ = Failed (needs remediation)
+   - Gray ⊘ = Skipped (not applicable or not yet implemented)
+4. **Click to expand**: View detailed evidence and remediation steps
+5. **Filter results**: Focus on specific attribute statuses
+6. **Copy remediation commands**: Use one-click copy for code examples
+
+#### Sharing
+
+The HTML report is self-contained and can be:
+- Emailed to stakeholders
+- Uploaded to internal wikis
+- Viewed on any device with a browser
+- Archived for compliance/audit purposes
+
+### Markdown Report (Version Control Friendly)
+
+**File**: `report-YYYYMMDD-HHMMSS.md`
+
+The Markdown report is optimized for git tracking:
+
+#### Features
+
+- **GitHub-Flavored Markdown**: Renders beautifully on GitHub
+- **Git-Diffable**: Track score improvements over time
+- **ASCII Tables**: Attribute summaries without HTML
+- **Emoji Indicators**: ✅❌⊘ for visual status
+- **Certification Ladder**: Visual progress chart
+- **Prioritized Next Steps**: Highest-impact improvements first
+
+#### How to Use
+
+1. **Commit to repository**:
+   ```bash
+   git add .agentready/report-latest.md
+   git commit -m "docs: Add AgentReady assessment report"
+   ```
+
+2. **Track progress**:
+   ```bash
+   # Run new assessment
+   agentready assess .
+
+   # Compare to previous
+   git diff .agentready/report-latest.md
+   ```
+
+3. **Review on GitHub**: Push and view formatted Markdown
+
+4. **Share in PRs**: Reference in pull request descriptions
+
+#### Recommended Workflow
+
+```bash
+# Initial baseline
+agentready assess .
+git add .agentready/report-latest.md
+git commit -m "docs: AgentReady baseline (Score: 65.2)"
+
+# Make improvements
+# ... implement recommendations ...
+
+# Re-assess
+agentready assess .
+git add .agentready/report-latest.md
+git commit -m "docs: AgentReady improvements (Score: 72.8, +7.6)"
+```
+
+### JSON Report (Machine-Readable)
+
+**File**: `assessment-YYYYMMDD-HHMMSS.json`
+
+The JSON report contains complete assessment data:
+
+#### Structure
+
+```json
+{
+  "metadata": {
+    "timestamp": "2025-11-21T10:30:00Z",
+    "repository_path": "/path/to/repo",
+    "agentready_version": "1.0.0",
+    "duration_seconds": 2.35
+  },
+  "repository": {
+    "path": "/path/to/repo",
+    "name": "myproject",
+    "languages": {"Python": 42, "JavaScript": 18}
+  },
+  "overall_score": 75.4,
+  "certification_level": "Gold",
+  "tier_scores": {
+    "tier_1": 85.0,
+    "tier_2": 70.0,
+    "tier_3": 65.0,
+    "tier_4": 50.0
+  },
+  "findings": [
+    {
+      "attribute_id": "claude_md_file",
+      "attribute_name": "CLAUDE.md File",
+      "tier": 1,
+      "weight": 0.10,
+      "status": "pass",
+      "score": 100,
+      "evidence": "Found CLAUDE.md at repository root",
+      "remediation": null
+    }
+  ]
+}
+```
+
+#### Use Cases
+
+**CI/CD Integration**:
+```bash
+# Fail build if score < 70
+score=$(jq '.overall_score' .agentready/assessment-latest.json)
+if (( $(echo "$score < 70" | bc -l) )); then
+  echo "AgentReady score too low: $score"
+  exit 1
+fi
+```
+
+**Trend Analysis**:
+```python
+import json
+import glob
+
+# Load all historical assessments
+assessments = []
+for file in sorted(glob.glob('.agentready/assessment-*.json')):
+    with open(file) as f:
+        assessments.append(json.load(f))
+
+# Track score over time
+for a in assessments:
+    print(f"{a['metadata']['timestamp']}: {a['overall_score']}")
+```
+
+**Custom Reporting**:
+```python
+import json
+
+with open('.agentready/assessment-latest.json') as f:
+    assessment = json.load(f)
+
+# Extract failed attributes
+failed = [
+    f for f in assessment['findings']
+    if f['status'] == 'fail'
+]
+
+# Create custom report
+for finding in failed:
+    print(f"❌ {finding['attribute_name']}")
+    print(f"   {finding['evidence']}")
+    print()
+```
+
+---
+
+## Configuration
+
+### Default Behavior
+
+AgentReady works out-of-the-box with sensible defaults. No configuration required for basic usage.
+
+### Custom Configuration File
+
+Create `.agentready-config.yaml` to customize:
+
+```yaml
+# Custom attribute weights (must sum to 1.0)
+weights:
+  claude_md_file: 0.15      # Increase from default 0.10
+  readme_structure: 0.12    # Increase from default 0.10
+  type_annotations: 0.08    # Decrease from default 0.10
+  # ... other 22 attributes
+
+# Exclude specific attributes
+excluded_attributes:
+  - performance_benchmarks  # Skip this assessment
+  - container_setup         # Not applicable to our project
+
+# Custom output directory
+output_dir: ./reports
+
+# Verbosity (true/false)
+verbose: false
+```
+
+### Weight Customization Rules
+
+1. **Must sum to 1.0**: Total weight across all attributes (excluding excluded ones)
+2. **Minimum weight**: 0.01 (1%)
+3. **Maximum weight**: 0.20 (20%)
+4. **Automatic rebalancing**: Excluded attributes' weights redistribute proportionally
+
+### Example: Security-Focused Configuration
+
+```yaml
+# Emphasize security attributes
+weights:
+  dependency_security: 0.15    # Default: 0.05
+  secrets_management: 0.12     # Default: 0.05
+  security_scanning: 0.10      # Default: 0.03
+  # Other weights adjusted to sum to 1.0
+
+excluded_attributes:
+  - performance_benchmarks
+```
+
+### Example: Documentation-Focused Configuration
+
+```yaml
+# Emphasize documentation quality
+weights:
+  claude_md_file: 0.20         # Default: 0.10
+  readme_structure: 0.15       # Default: 0.10
+  inline_documentation: 0.12   # Default: 0.08
+  api_documentation: 0.10      # Default: 0.05
+  # Other weights adjusted to sum to 1.0
+```
+
+### Validate Configuration
+
+```bash
+# Validate configuration file
+agentready --validate-config .agentready-config.yaml
+
+# Generate example configuration
+agentready --generate-config > .agentready-config.yaml
+```
+
+---
+
+## CLI Reference
+
+### Main Commands
+
+#### `agentready assess PATH`
+
+Assess a repository at the specified path.
+
+**Arguments**:
+- `PATH` — Repository path to assess (required)
+
+**Options**:
+- `--verbose, -v` — Show detailed progress information
+- `--config FILE, -c FILE` — Use custom configuration file
+- `--output-dir DIR, -o DIR` — Custom report output directory
+
+**Examples**:
+```bash
+agentready assess .
+agentready assess /path/to/repo
+agentready assess . --verbose
+agentready assess . --config custom.yaml
+agentready assess . --output-dir ./reports
+```
+
+### Configuration Commands
+
+#### `agentready --generate-config`
+
+Generate example configuration file.
+
+**Output**: Prints YAML configuration to stdout.
+
+**Example**:
+```bash
+agentready --generate-config > .agentready-config.yaml
+```
+
+#### `agentready --validate-config FILE`
+
+Validate configuration file syntax and weights.
+
+**Example**:
+```bash
+agentready --validate-config .agentready-config.yaml
+```
+
+### Research Commands
+
+#### `agentready --research-version`
+
+Show bundled research document version.
+
+**Example**:
+```bash
+agentready --research-version
+# Output: Research version: 1.0.0 (2025-11-20)
+```
+
+### Utility Commands
+
+#### `agentready --version`
+
+Show AgentReady version.
+
+#### `agentready --help`
+
+Show help message with all commands.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### "No module named 'agentready'"
+
+**Cause**: AgentReady not installed or wrong Python environment.
+
+**Solution**:
+```bash
+# Verify Python version
+python --version  # Should be 3.11 or 3.12
+
+# Check installation
+pip list | grep agentready
+
+# Reinstall if missing
+pip install agentready
+```
+
+#### "Permission denied: .agentready/"
+
+**Cause**: No write permissions in repository directory.
+
+**Solution**:
+```bash
+# Use custom output directory
+agentready assess . --output-dir ~/agentready-reports
+
+# Or fix permissions
+chmod u+w .
+```
+
+#### "Repository not found"
+
+**Cause**: Path does not point to a git repository.
+
+**Solution**:
+```bash
+# Verify git repository
+git status
+
+# If not a git repo, initialize one
+git init
+```
+
+#### "Assessment taking too long"
+
+**Cause**: Large repository with many files.
+
+**Solution**:
+AgentReady should complete in <10 seconds for most repositories. If it hangs:
+
+1. **Check verbose output**:
+   ```bash
+   agentready assess . --verbose
+   ```
+
+2. **Verify git performance**:
+   ```bash
+   time git ls-files
+   ```
+
+3. **Report issue** with repository size and language breakdown.
+
+#### "Invalid configuration file"
+
+**Cause**: Malformed YAML or incorrect weight values.
+
+**Solution**:
+```bash
+# Validate configuration
+agentready --validate-config .agentready-config.yaml
+
+# Check YAML syntax
+python -c "import yaml; yaml.safe_load(open('.agentready-config.yaml'))"
+
+# Regenerate from template
+agentready --generate-config > .agentready-config.yaml
+```
+
+### Report Issues
+
+If you encounter issues not covered here:
+
+1. **Check GitHub Issues**: [github.com/yourusername/agentready/issues](https://github.com/yourusername/agentready/issues)
+2. **Search Discussions**: Someone may have encountered similar problems
+3. **Create New Issue**: Use the bug report template with:
+   - AgentReady version (`agentready --version`)
+   - Python version (`python --version`)
+   - Operating system
+   - Complete error message
+   - Steps to reproduce
+
+---
+
+## Next Steps
+
+- **[Developer Guide](/developer-guide)** — Learn how to contribute and extend AgentReady
+- **[Attributes Reference](/attributes)** — Understand each of the 25 attributes
+- **[API Reference](/api-reference)** — Integrate AgentReady into your tools
+- **[Examples](/examples)** — See real-world assessment reports
+
+---
+
+**Questions?** Join the discussion on [GitHub](https://github.com/yourusername/agentready/discussions).
+````
+
+## File: .claude/commands/speckit.analyze.md
+````markdown
+---
+description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Goal
+
+Identify inconsistencies, duplications, ambiguities, and underspecified items across the three core artifacts (`spec.md`, `plan.md`, `tasks.md`) before implementation. This command MUST run only after `/speckit.tasks` has successfully produced a complete `tasks.md`.
+
+## Operating Constraints
+
+**STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
+
+**Constitution Authority**: The project constitution (`.specify/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
+
+## Execution Steps
+
+### 1. Initialize Analysis Context
+
+Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS. Derive absolute paths:
+
+- SPEC = FEATURE_DIR/spec.md
+- PLAN = FEATURE_DIR/plan.md
+- TASKS = FEATURE_DIR/tasks.md
+
+Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
+For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+### 2. Load Artifacts (Progressive Disclosure)
+
+Load only the minimal necessary context from each artifact:
+
+**From spec.md:**
+
+- Overview/Context
+- Functional Requirements
+- Non-Functional Requirements
+- User Stories
+- Edge Cases (if present)
+
+**From plan.md:**
+
+- Architecture/stack choices
+- Data Model references
+- Phases
+- Technical constraints
+
+**From tasks.md:**
+
+- Task IDs
+- Descriptions
+- Phase grouping
+- Parallel markers [P]
+- Referenced file paths
+
+**From constitution:**
+
+- Load `.specify/memory/constitution.md` for principle validation
+
+### 3. Build Semantic Models
+
+Create internal representations (do not include raw artifacts in output):
+
+- **Requirements inventory**: Each functional + non-functional requirement with a stable key (derive slug based on imperative phrase; e.g., "User can upload file" → `user-can-upload-file`)
+- **User story/action inventory**: Discrete user actions with acceptance criteria
+- **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
+- **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
+
+### 4. Detection Passes (Token-Efficient Analysis)
+
+Focus on high-signal findings. Limit to 50 findings total; aggregate remainder in overflow summary.
+
+#### A. Duplication Detection
+
+- Identify near-duplicate requirements
+- Mark lower-quality phrasing for consolidation
+
+#### B. Ambiguity Detection
+
+- Flag vague adjectives (fast, scalable, secure, intuitive, robust) lacking measurable criteria
+- Flag unresolved placeholders (TODO, TKTK, ???, `<placeholder>`, etc.)
+
+#### C. Underspecification
+
+- Requirements with verbs but missing object or measurable outcome
+- User stories missing acceptance criteria alignment
+- Tasks referencing files or components not defined in spec/plan
+
+#### D. Constitution Alignment
+
+- Any requirement or plan element conflicting with a MUST principle
+- Missing mandated sections or quality gates from constitution
+
+#### E. Coverage Gaps
+
+- Requirements with zero associated tasks
+- Tasks with no mapped requirement/story
+- Non-functional requirements not reflected in tasks (e.g., performance, security)
+
+#### F. Inconsistency
+
+- Terminology drift (same concept named differently across files)
+- Data entities referenced in plan but absent in spec (or vice versa)
+- Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
+- Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
+
+### 5. Severity Assignment
+
+Use this heuristic to prioritize findings:
+
+- **CRITICAL**: Violates constitution MUST, missing core spec artifact, or requirement with zero coverage that blocks baseline functionality
+- **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion
+- **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case
+- **LOW**: Style/wording improvements, minor redundancy not affecting execution order
+
+### 6. Produce Compact Analysis Report
+
+Output a Markdown report (no file writes) with the following structure:
+
+## Specification Analysis Report
+
+| ID | Category | Severity | Location(s) | Summary | Recommendation |
+|----|----------|----------|-------------|---------|----------------|
+| A1 | Duplication | HIGH | spec.md:L120-134 | Two similar requirements ... | Merge phrasing; keep clearer version |
+
+(Add one row per finding; generate stable IDs prefixed by category initial.)
+
+**Coverage Summary Table:**
+
+| Requirement Key | Has Task? | Task IDs | Notes |
+|-----------------|-----------|----------|-------|
+
+**Constitution Alignment Issues:** (if any)
+
+**Unmapped Tasks:** (if any)
+
+**Metrics:**
+
+- Total Requirements
+- Total Tasks
+- Coverage % (requirements with >=1 task)
+- Ambiguity Count
+- Duplication Count
+- Critical Issues Count
+
+### 7. Provide Next Actions
+
+At end of report, output a concise Next Actions block:
+
+- If CRITICAL issues exist: Recommend resolving before `/speckit.implement`
+- If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
+- Provide explicit command suggestions: e.g., "Run /speckit.specify with refinement", "Run /speckit.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
+
+### 8. Offer Remediation
+
+Ask the user: "Would you like me to suggest concrete remediation edits for the top N issues?" (Do NOT apply them automatically.)
+
+## Operating Principles
+
+### Context Efficiency
+
+- **Minimal high-signal tokens**: Focus on actionable findings, not exhaustive documentation
+- **Progressive disclosure**: Load artifacts incrementally; don't dump all content into analysis
+- **Token-efficient output**: Limit findings table to 50 rows; summarize overflow
+- **Deterministic results**: Rerunning without changes should produce consistent IDs and counts
+
+### Analysis Guidelines
+
+- **NEVER modify files** (this is read-only analysis)
+- **NEVER hallucinate missing sections** (if absent, report them accurately)
+- **Prioritize constitution violations** (these are always CRITICAL)
+- **Use examples over exhaustive rules** (cite specific instances, not generic patterns)
+- **Report zero issues gracefully** (emit success report with coverage statistics)
+
+## Context
+
+$ARGUMENTS
+````
+
+## File: .claude/commands/speckit.checklist.md
+````markdown
+---
+description: Generate a custom checklist for the current feature based on user requirements.
+---
+
+## Checklist Purpose: "Unit Tests for English"
+
+**CRITICAL CONCEPT**: Checklists are **UNIT TESTS FOR REQUIREMENTS WRITING** - they validate the quality, clarity, and completeness of requirements in a given domain.
+
+**NOT for verification/testing**:
+
+- ❌ NOT "Verify the button clicks correctly"
+- ❌ NOT "Test error handling works"
+- ❌ NOT "Confirm the API returns 200"
+- ❌ NOT checking if code/implementation matches the spec
+
+**FOR requirements quality validation**:
+
+- ✅ "Are visual hierarchy requirements defined for all card types?" (completeness)
+- ✅ "Is 'prominent display' quantified with specific sizing/positioning?" (clarity)
+- ✅ "Are hover state requirements consistent across all interactive elements?" (consistency)
+- ✅ "Are accessibility requirements defined for keyboard navigation?" (coverage)
+- ✅ "Does the spec define what happens when logo image fails to load?" (edge cases)
+
+**Metaphor**: If your spec is code written in English, the checklist is its unit test suite. You're testing whether the requirements are well-written, complete, unambiguous, and ready for implementation - NOT whether the implementation works.
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Steps
+
+1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
+   - All file paths must be absolute.
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+2. **Clarify intent (dynamic)**: Derive up to THREE initial contextual clarifying questions (no pre-baked catalog). They MUST:
+   - Be generated from the user's phrasing + extracted signals from spec/plan/tasks
+   - Only ask about information that materially changes checklist content
+   - Be skipped individually if already unambiguous in `$ARGUMENTS`
+   - Prefer precision over breadth
+
+   Generation algorithm:
+   1. Extract signals: feature domain keywords (e.g., auth, latency, UX, API), risk indicators ("critical", "must", "compliance"), stakeholder hints ("QA", "review", "security team"), and explicit deliverables ("a11y", "rollback", "contracts").
+   2. Cluster signals into candidate focus areas (max 4) ranked by relevance.
+   3. Identify probable audience & timing (author, reviewer, QA, release) if not explicit.
+   4. Detect missing dimensions: scope breadth, depth/rigor, risk emphasis, exclusion boundaries, measurable acceptance criteria.
+   5. Formulate questions chosen from these archetypes:
+      - Scope refinement (e.g., "Should this include integration touchpoints with X and Y or stay limited to local module correctness?")
+      - Risk prioritization (e.g., "Which of these potential risk areas should receive mandatory gating checks?")
+      - Depth calibration (e.g., "Is this a lightweight pre-commit sanity list or a formal release gate?")
+      - Audience framing (e.g., "Will this be used by the author only or peers during PR review?")
+      - Boundary exclusion (e.g., "Should we explicitly exclude performance tuning items this round?")
+      - Scenario class gap (e.g., "No recovery flows detected—are rollback / partial failure paths in scope?")
+
+   Question formatting rules:
+   - If presenting options, generate a compact table with columns: Option | Candidate | Why It Matters
+   - Limit to A–E options maximum; omit table if a free-form answer is clearer
+   - Never ask the user to restate what they already said
+   - Avoid speculative categories (no hallucination). If uncertain, ask explicitly: "Confirm whether X belongs in scope."
+
+   Defaults when interaction impossible:
+   - Depth: Standard
+   - Audience: Reviewer (PR) if code-related; Author otherwise
+   - Focus: Top 2 relevance clusters
+
+   Output the questions (label Q1/Q2/Q3). After answers: if ≥2 scenario classes (Alternate / Exception / Recovery / Non-Functional domain) remain unclear, you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk"). Do not exceed five total questions. Skip escalation if user explicitly declines more.
+
+3. **Understand user request**: Combine `$ARGUMENTS` + clarifying answers:
+   - Derive checklist theme (e.g., security, review, deploy, ux)
+   - Consolidate explicit must-have items mentioned by user
+   - Map focus selections to category scaffolding
+   - Infer any missing context from spec/plan/tasks (do NOT hallucinate)
+
+4. **Load feature context**: Read from FEATURE_DIR:
+   - spec.md: Feature requirements and scope
+   - plan.md (if exists): Technical details, dependencies
+   - tasks.md (if exists): Implementation tasks
+
+   **Context Loading Strategy**:
+   - Load only necessary portions relevant to active focus areas (avoid full-file dumping)
+   - Prefer summarizing long sections into concise scenario/requirement bullets
+   - Use progressive disclosure: add follow-on retrieval only if gaps detected
+   - If source docs are large, generate interim summary items instead of embedding raw text
+
+5. **Generate checklist** - Create "Unit Tests for Requirements":
+   - Create `FEATURE_DIR/checklists/` directory if it doesn't exist
+   - Generate unique checklist filename:
+     - Use short, descriptive name based on domain (e.g., `ux.md`, `api.md`, `security.md`)
+     - Format: `[domain].md`
+     - If file exists, append to existing file
+   - Number items sequentially starting from CHK001
+   - Each `/speckit.checklist` run creates a NEW file (never overwrites existing checklists)
+
+   **CORE PRINCIPLE - Test the Requirements, Not the Implementation**:
+   Every checklist item MUST evaluate the REQUIREMENTS THEMSELVES for:
+   - **Completeness**: Are all necessary requirements present?
+   - **Clarity**: Are requirements unambiguous and specific?
+   - **Consistency**: Do requirements align with each other?
+   - **Measurability**: Can requirements be objectively verified?
+   - **Coverage**: Are all scenarios/edge cases addressed?
+
+   **Category Structure** - Group items by requirement quality dimensions:
+   - **Requirement Completeness** (Are all necessary requirements documented?)
+   - **Requirement Clarity** (Are requirements specific and unambiguous?)
+   - **Requirement Consistency** (Do requirements align without conflicts?)
+   - **Acceptance Criteria Quality** (Are success criteria measurable?)
+   - **Scenario Coverage** (Are all flows/cases addressed?)
+   - **Edge Case Coverage** (Are boundary conditions defined?)
+   - **Non-Functional Requirements** (Performance, Security, Accessibility, etc. - are they specified?)
+   - **Dependencies & Assumptions** (Are they documented and validated?)
+   - **Ambiguities & Conflicts** (What needs clarification?)
+
+   **HOW TO WRITE CHECKLIST ITEMS - "Unit Tests for English"**:
+
+   ❌ **WRONG** (Testing implementation):
+   - "Verify landing page displays 3 episode cards"
+   - "Test hover states work on desktop"
+   - "Confirm logo click navigates home"
+
+   ✅ **CORRECT** (Testing requirements quality):
+   - "Are the exact number and layout of featured episodes specified?" [Completeness]
+   - "Is 'prominent display' quantified with specific sizing/positioning?" [Clarity]
+   - "Are hover state requirements consistent across all interactive elements?" [Consistency]
+   - "Are keyboard navigation requirements defined for all interactive UI?" [Coverage]
+   - "Is the fallback behavior specified when logo image fails to load?" [Edge Cases]
+   - "Are loading states defined for asynchronous episode data?" [Completeness]
+   - "Does the spec define visual hierarchy for competing UI elements?" [Clarity]
+
+   **ITEM STRUCTURE**:
+   Each item should follow this pattern:
+   - Question format asking about requirement quality
+   - Focus on what's WRITTEN (or not written) in the spec/plan
+   - Include quality dimension in brackets [Completeness/Clarity/Consistency/etc.]
+   - Reference spec section `[Spec §X.Y]` when checking existing requirements
+   - Use `[Gap]` marker when checking for missing requirements
+
+   **EXAMPLES BY QUALITY DIMENSION**:
+
+   Completeness:
+   - "Are error handling requirements defined for all API failure modes? [Gap]"
+   - "Are accessibility requirements specified for all interactive elements? [Completeness]"
+   - "Are mobile breakpoint requirements defined for responsive layouts? [Gap]"
+
+   Clarity:
+   - "Is 'fast loading' quantified with specific timing thresholds? [Clarity, Spec §NFR-2]"
+   - "Are 'related episodes' selection criteria explicitly defined? [Clarity, Spec §FR-5]"
+   - "Is 'prominent' defined with measurable visual properties? [Ambiguity, Spec §FR-4]"
+
+   Consistency:
+   - "Do navigation requirements align across all pages? [Consistency, Spec §FR-10]"
+   - "Are card component requirements consistent between landing and detail pages? [Consistency]"
+
+   Coverage:
+   - "Are requirements defined for zero-state scenarios (no episodes)? [Coverage, Edge Case]"
+   - "Are concurrent user interaction scenarios addressed? [Coverage, Gap]"
+   - "Are requirements specified for partial data loading failures? [Coverage, Exception Flow]"
+
+   Measurability:
+   - "Are visual hierarchy requirements measurable/testable? [Acceptance Criteria, Spec §FR-1]"
+   - "Can 'balanced visual weight' be objectively verified? [Measurability, Spec §FR-2]"
+
+   **Scenario Classification & Coverage** (Requirements Quality Focus):
+   - Check if requirements exist for: Primary, Alternate, Exception/Error, Recovery, Non-Functional scenarios
+   - For each scenario class, ask: "Are [scenario type] requirements complete, clear, and consistent?"
+   - If scenario class missing: "Are [scenario type] requirements intentionally excluded or missing? [Gap]"
+   - Include resilience/rollback when state mutation occurs: "Are rollback requirements defined for migration failures? [Gap]"
+
+   **Traceability Requirements**:
+   - MINIMUM: ≥80% of items MUST include at least one traceability reference
+   - Each item should reference: spec section `[Spec §X.Y]`, or use markers: `[Gap]`, `[Ambiguity]`, `[Conflict]`, `[Assumption]`
+   - If no ID system exists: "Is a requirement & acceptance criteria ID scheme established? [Traceability]"
+
+   **Surface & Resolve Issues** (Requirements Quality Problems):
+   Ask questions about the requirements themselves:
+   - Ambiguities: "Is the term 'fast' quantified with specific metrics? [Ambiguity, Spec §NFR-1]"
+   - Conflicts: "Do navigation requirements conflict between §FR-10 and §FR-10a? [Conflict]"
+   - Assumptions: "Is the assumption of 'always available podcast API' validated? [Assumption]"
+   - Dependencies: "Are external podcast API requirements documented? [Dependency, Gap]"
+   - Missing definitions: "Is 'visual hierarchy' defined with measurable criteria? [Gap]"
+
+   **Content Consolidation**:
+   - Soft cap: If raw candidate items > 40, prioritize by risk/impact
+   - Merge near-duplicates checking the same requirement aspect
+   - If >5 low-impact edge cases, create one item: "Are edge cases X, Y, Z addressed in requirements? [Coverage]"
+
+   **🚫 ABSOLUTELY PROHIBITED** - These make it an implementation test, not a requirements test:
+   - ❌ Any item starting with "Verify", "Test", "Confirm", "Check" + implementation behavior
+   - ❌ References to code execution, user actions, system behavior
+   - ❌ "Displays correctly", "works properly", "functions as expected"
+   - ❌ "Click", "navigate", "render", "load", "execute"
+   - ❌ Test cases, test plans, QA procedures
+   - ❌ Implementation details (frameworks, APIs, algorithms)
+
+   **✅ REQUIRED PATTERNS** - These test requirements quality:
+   - ✅ "Are [requirement type] defined/specified/documented for [scenario]?"
+   - ✅ "Is [vague term] quantified/clarified with specific criteria?"
+   - ✅ "Are requirements consistent between [section A] and [section B]?"
+   - ✅ "Can [requirement] be objectively measured/verified?"
+   - ✅ "Are [edge cases/scenarios] addressed in requirements?"
+   - ✅ "Does the spec define [missing aspect]?"
+
+6. **Structure Reference**: Generate the checklist following the canonical template in `.specify/templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs starting at CHK001.
+
+7. **Report**: Output full path to created checklist, item count, and remind user that each run creates a new file. Summarize:
+   - Focus areas selected
+   - Depth level
+   - Actor/timing
+   - Any explicit user-specified must-have items incorporated
+
+**Important**: Each `/speckit.checklist` command invocation creates a checklist file using short, descriptive names unless file already exists. This allows:
+
+- Multiple checklists of different types (e.g., `ux.md`, `test.md`, `security.md`)
+- Simple, memorable filenames that indicate checklist purpose
+- Easy identification and navigation in the `checklists/` folder
+
+To avoid clutter, use descriptive types and clean up obsolete checklists when done.
+
+## Example Checklist Types & Sample Items
+
+**UX Requirements Quality:** `ux.md`
+
+Sample items (testing the requirements, NOT the implementation):
+
+- "Are visual hierarchy requirements defined with measurable criteria? [Clarity, Spec §FR-1]"
+- "Is the number and positioning of UI elements explicitly specified? [Completeness, Spec §FR-1]"
+- "Are interaction state requirements (hover, focus, active) consistently defined? [Consistency]"
+- "Are accessibility requirements specified for all interactive elements? [Coverage, Gap]"
+- "Is fallback behavior defined when images fail to load? [Edge Case, Gap]"
+- "Can 'prominent display' be objectively measured? [Measurability, Spec §FR-4]"
+
+**API Requirements Quality:** `api.md`
+
+Sample items:
+
+- "Are error response formats specified for all failure scenarios? [Completeness]"
+- "Are rate limiting requirements quantified with specific thresholds? [Clarity]"
+- "Are authentication requirements consistent across all endpoints? [Consistency]"
+- "Are retry/timeout requirements defined for external dependencies? [Coverage, Gap]"
+- "Is versioning strategy documented in requirements? [Gap]"
+
+**Performance Requirements Quality:** `performance.md`
+
+Sample items:
+
+- "Are performance requirements quantified with specific metrics? [Clarity]"
+- "Are performance targets defined for all critical user journeys? [Coverage]"
+- "Are performance requirements under different load conditions specified? [Completeness]"
+- "Can performance requirements be objectively measured? [Measurability]"
+- "Are degradation requirements defined for high-load scenarios? [Edge Case, Gap]"
+
+**Security Requirements Quality:** `security.md`
+
+Sample items:
+
+- "Are authentication requirements specified for all protected resources? [Coverage]"
+- "Are data protection requirements defined for sensitive information? [Completeness]"
+- "Is the threat model documented and requirements aligned to it? [Traceability]"
+- "Are security requirements consistent with compliance obligations? [Consistency]"
+- "Are security failure/breach response requirements defined? [Gap, Exception Flow]"
+
+## Anti-Examples: What NOT To Do
+
+**❌ WRONG - These test implementation, not requirements:**
+
+```markdown
+- [ ] CHK001 - Verify landing page displays 3 episode cards [Spec §FR-001]
+- [ ] CHK002 - Test hover states work correctly on desktop [Spec §FR-003]
+- [ ] CHK003 - Confirm logo click navigates to home page [Spec §FR-010]
+- [ ] CHK004 - Check that related episodes section shows 3-5 items [Spec §FR-005]
+```
+
+**✅ CORRECT - These test requirements quality:**
+
+```markdown
+- [ ] CHK001 - Are the number and layout of featured episodes explicitly specified? [Completeness, Spec §FR-001]
+- [ ] CHK002 - Are hover state requirements consistently defined for all interactive elements? [Consistency, Spec §FR-003]
+- [ ] CHK003 - Are navigation requirements clear for all clickable brand elements? [Clarity, Spec §FR-010]
+- [ ] CHK004 - Is the selection criteria for related episodes documented? [Gap, Spec §FR-005]
+- [ ] CHK005 - Are loading state requirements defined for asynchronous episode data? [Gap]
+- [ ] CHK006 - Can "visual hierarchy" requirements be objectively measured? [Measurability, Spec §FR-001]
+```
+
+**Key Differences:**
+
+- Wrong: Tests if the system works correctly
+- Correct: Tests if the requirements are written correctly
+- Wrong: Verification of behavior
+- Correct: Validation of requirement quality
+- Wrong: "Does it do X?"
+- Correct: "Is X clearly specified?"
+````
+
+## File: .claude/commands/speckit.clarify.md
+````markdown
+---
+description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
+handoffs: 
+  - label: Build Technical Plan
+    agent: speckit.plan
+    prompt: Create a plan for the spec. I am building with...
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+Goal: Detect and reduce ambiguity or missing decision points in the active feature specification and record the clarifications directly in the spec file.
+
+Note: This clarification workflow is expected to run (and be completed) BEFORE invoking `/speckit.plan`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
+
+Execution steps:
+
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json --paths-only` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
+   - `FEATURE_DIR`
+   - `FEATURE_SPEC`
+   - (Optionally capture `IMPL_PLAN`, `TASKS` for future chained flows.)
+   - If JSON parsing fails, abort and instruct user to re-run `/speckit.specify` or verify feature branch environment.
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+2. Load the current spec file. Perform a structured ambiguity & coverage scan using this taxonomy. For each category, mark status: Clear / Partial / Missing. Produce an internal coverage map used for prioritization (do not output raw map unless no questions will be asked).
+
+   Functional Scope & Behavior:
+   - Core user goals & success criteria
+   - Explicit out-of-scope declarations
+   - User roles / personas differentiation
+
+   Domain & Data Model:
+   - Entities, attributes, relationships
+   - Identity & uniqueness rules
+   - Lifecycle/state transitions
+   - Data volume / scale assumptions
+
+   Interaction & UX Flow:
+   - Critical user journeys / sequences
+   - Error/empty/loading states
+   - Accessibility or localization notes
+
+   Non-Functional Quality Attributes:
+   - Performance (latency, throughput targets)
+   - Scalability (horizontal/vertical, limits)
+   - Reliability & availability (uptime, recovery expectations)
+   - Observability (logging, metrics, tracing signals)
+   - Security & privacy (authN/Z, data protection, threat assumptions)
+   - Compliance / regulatory constraints (if any)
+
+   Integration & External Dependencies:
+   - External services/APIs and failure modes
+   - Data import/export formats
+   - Protocol/versioning assumptions
+
+   Edge Cases & Failure Handling:
+   - Negative scenarios
+   - Rate limiting / throttling
+   - Conflict resolution (e.g., concurrent edits)
+
+   Constraints & Tradeoffs:
+   - Technical constraints (language, storage, hosting)
+   - Explicit tradeoffs or rejected alternatives
+
+   Terminology & Consistency:
+   - Canonical glossary terms
+   - Avoided synonyms / deprecated terms
+
+   Completion Signals:
+   - Acceptance criteria testability
+   - Measurable Definition of Done style indicators
+
+   Misc / Placeholders:
+   - TODO markers / unresolved decisions
+   - Ambiguous adjectives ("robust", "intuitive") lacking quantification
+
+   For each category with Partial or Missing status, add a candidate question opportunity unless:
+   - Clarification would not materially change implementation or validation strategy
+   - Information is better deferred to planning phase (note internally)
+
+3. Generate (internally) a prioritized queue of candidate clarification questions (maximum 5). Do NOT output them all at once. Apply these constraints:
+    - Maximum of 10 total questions across the whole session.
+    - Each question must be answerable with EITHER:
+       - A short multiple‑choice selection (2–5 distinct, mutually exclusive options), OR
+       - A one-word / short‑phrase answer (explicitly constrain: "Answer in <=5 words").
+    - Only include questions whose answers materially impact architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
+    - Ensure category coverage balance: attempt to cover the highest impact unresolved categories first; avoid asking two low-impact questions when a single high-impact area (e.g., security posture) is unresolved.
+    - Exclude questions already answered, trivial stylistic preferences, or plan-level execution details (unless blocking correctness).
+    - Favor clarifications that reduce downstream rework risk or prevent misaligned acceptance tests.
+    - If more than 5 categories remain unresolved, select the top 5 by (Impact * Uncertainty) heuristic.
+
+4. Sequential questioning loop (interactive):
+    - Present EXACTLY ONE question at a time.
+    - For multiple‑choice questions:
+       - **Analyze all options** and determine the **most suitable option** based on:
+          - Best practices for the project type
+          - Common patterns in similar implementations
+          - Risk reduction (security, performance, maintainability)
+          - Alignment with any explicit project goals or constraints visible in the spec
+       - Present your **recommended option prominently** at the top with clear reasoning (1-2 sentences explaining why this is the best choice).
+       - Format as: `**Recommended:** Option [X] - <reasoning>`
+       - Then render all options as a Markdown table:
+
+       | Option | Description |
+       |--------|-------------|
+       | A | <Option A description> |
+       | B | <Option B description> |
+       | C | <Option C description> (add D/E as needed up to 5) |
+       | Short | Provide a different short answer (<=5 words) (Include only if free-form alternative is appropriate) |
+
+       - After the table, add: `You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.`
+    - For short‑answer style (no meaningful discrete options):
+       - Provide your **suggested answer** based on best practices and context.
+       - Format as: `**Suggested:** <your proposed answer> - <brief reasoning>`
+       - Then output: `Format: Short answer (<=5 words). You can accept the suggestion by saying "yes" or "suggested", or provide your own answer.`
+    - After the user answers:
+       - If the user replies with "yes", "recommended", or "suggested", use your previously stated recommendation/suggestion as the answer.
+       - Otherwise, validate the answer maps to one option or fits the <=5 word constraint.
+       - If ambiguous, ask for a quick disambiguation (count still belongs to same question; do not advance).
+       - Once satisfactory, record it in working memory (do not yet write to disk) and move to the next queued question.
+    - Stop asking further questions when:
+       - All critical ambiguities resolved early (remaining queued items become unnecessary), OR
+       - User signals completion ("done", "good", "no more"), OR
+       - You reach 5 asked questions.
+    - Never reveal future queued questions in advance.
+    - If no valid questions exist at start, immediately report no critical ambiguities.
+
+5. Integration after EACH accepted answer (incremental update approach):
+    - Maintain in-memory representation of the spec (loaded once at start) plus the raw file contents.
+    - For the first integrated answer in this session:
+       - Ensure a `## Clarifications` section exists (create it just after the highest-level contextual/overview section per the spec template if missing).
+       - Under it, create (if not present) a `### Session YYYY-MM-DD` subheading for today.
+    - Append a bullet line immediately after acceptance: `- Q: <question> → A: <final answer>`.
+    - Then immediately apply the clarification to the most appropriate section(s):
+       - Functional ambiguity → Update or add a bullet in Functional Requirements.
+       - User interaction / actor distinction → Update User Stories or Actors subsection (if present) with clarified role, constraint, or scenario.
+       - Data shape / entities → Update Data Model (add fields, types, relationships) preserving ordering; note added constraints succinctly.
+       - Non-functional constraint → Add/modify measurable criteria in Non-Functional / Quality Attributes section (convert vague adjective to metric or explicit target).
+       - Edge case / negative flow → Add a new bullet under Edge Cases / Error Handling (or create such subsection if template provides placeholder for it).
+       - Terminology conflict → Normalize term across spec; retain original only if necessary by adding `(formerly referred to as "X")` once.
+    - If the clarification invalidates an earlier ambiguous statement, replace that statement instead of duplicating; leave no obsolete contradictory text.
+    - Save the spec file AFTER each integration to minimize risk of context loss (atomic overwrite).
+    - Preserve formatting: do not reorder unrelated sections; keep heading hierarchy intact.
+    - Keep each inserted clarification minimal and testable (avoid narrative drift).
+
+6. Validation (performed after EACH write plus final pass):
+   - Clarifications session contains exactly one bullet per accepted answer (no duplicates).
+   - Total asked (accepted) questions ≤ 5.
+   - Updated sections contain no lingering vague placeholders the new answer was meant to resolve.
+   - No contradictory earlier statement remains (scan for now-invalid alternative choices removed).
+   - Markdown structure valid; only allowed new headings: `## Clarifications`, `### Session YYYY-MM-DD`.
+   - Terminology consistency: same canonical term used across all updated sections.
+
+7. Write the updated spec back to `FEATURE_SPEC`.
+
+8. Report completion (after questioning loop ends or early termination):
+   - Number of questions asked & answered.
+   - Path to updated spec.
+   - Sections touched (list names).
+   - Coverage summary table listing each taxonomy category with Status: Resolved (was Partial/Missing and addressed), Deferred (exceeds question quota or better suited for planning), Clear (already sufficient), Outstanding (still Partial/Missing but low impact).
+   - If any Outstanding or Deferred remain, recommend whether to proceed to `/speckit.plan` or run `/speckit.clarify` again later post-plan.
+   - Suggested next command.
+
+Behavior rules:
+
+- If no meaningful ambiguities found (or all potential questions would be low-impact), respond: "No critical ambiguities detected worth formal clarification." and suggest proceeding.
+- If spec file missing, instruct user to run `/speckit.specify` first (do not create a new spec here).
+- Never exceed 5 total asked questions (clarification retries for a single question do not count as new questions).
+- Avoid speculative tech stack questions unless the absence blocks functional clarity.
+- Respect user early termination signals ("stop", "done", "proceed").
+- If no questions asked due to full coverage, output a compact coverage summary (all categories Clear) then suggest advancing.
+- If quota reached with unresolved high-impact categories remaining, explicitly flag them under Deferred with rationale.
+
+Context for prioritization: $ARGUMENTS
+````
+
+## File: .claude/commands/speckit.constitution.md
+````markdown
+---
+description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync.
+handoffs: 
+  - label: Build Specification
+    agent: speckit.specify
+    prompt: Implement the feature specification based on the updated constitution. I want to build...
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+You are updating the project constitution at `.specify/memory/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
+
+Follow this execution flow:
+
+1. Load the existing constitution template at `.specify/memory/constitution.md`.
+   - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
+   **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
+
+2. Collect/derive values for placeholders:
+   - If user input (conversation) supplies a value, use it.
+   - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded).
+   - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
+   - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
+     - MAJOR: Backward incompatible governance/principle removals or redefinitions.
+     - MINOR: New principle/section added or materially expanded guidance.
+     - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
+   - If version bump type ambiguous, propose reasoning before finalizing.
+
+3. Draft the updated constitution content:
+   - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
+   - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
+   - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
+   - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
+
+4. Consistency propagation checklist (convert prior checklist into active validations):
+   - Read `.specify/templates/plan-template.md` and ensure any "Constitution Check" or rules align with updated principles.
+   - Read `.specify/templates/spec-template.md` for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
+   - Read `.specify/templates/tasks-template.md` and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
+   - Read each command file in `.specify/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required.
+   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
+
+5. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
+   - Version change: old → new
+   - List of modified principles (old title → new title if renamed)
+   - Added sections
+   - Removed sections
+   - Templates requiring updates (✅ updated / ⚠ pending) with file paths
+   - Follow-up TODOs if any placeholders intentionally deferred.
+
+6. Validation before final output:
+   - No remaining unexplained bracket tokens.
+   - Version line matches report.
+   - Dates ISO format YYYY-MM-DD.
+   - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
+
+7. Write the completed constitution back to `.specify/memory/constitution.md` (overwrite).
+
+8. Output a final summary to the user with:
+   - New version and bump rationale.
+   - Any files flagged for manual follow-up.
+   - Suggested commit message (e.g., `docs: amend constitution to vX.Y.Z (principle additions + governance update)`).
+
+Formatting & Style Requirements:
+
+- Use Markdown headings exactly as in the template (do not demote/promote levels).
+- Wrap long rationale lines to keep readability (<100 chars ideally) but do not hard enforce with awkward breaks.
+- Keep a single blank line between sections.
+- Avoid trailing whitespace.
+
+If the user supplies partial updates (e.g., only one principle revision), still perform validation and version decision steps.
+
+If critical info missing (e.g., ratification date truly unknown), insert `TODO(<FIELD_NAME>): explanation` and include in the Sync Impact Report under deferred items.
+
+Do not create a new template; always operate on the existing `.specify/memory/constitution.md` file.
+````
+
+## File: .claude/commands/speckit.implement.md
+````markdown
+---
+description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
+   - Scan all checklist files in the checklists/ directory
+   - For each checklist, count:
+     - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
+     - Completed items: Lines matching `- [X]` or `- [x]`
+     - Incomplete items: Lines matching `- [ ]`
+   - Create a status table:
+
+     ```text
+     | Checklist | Total | Completed | Incomplete | Status |
+     |-----------|-------|-----------|------------|--------|
+     | ux.md     | 12    | 12        | 0          | ✓ PASS |
+     | test.md   | 8     | 5         | 3          | ✗ FAIL |
+     | security.md | 6   | 6         | 0          | ✓ PASS |
+     ```
+
+   - Calculate overall status:
+     - **PASS**: All checklists have 0 incomplete items
+     - **FAIL**: One or more checklists have incomplete items
+
+   - **If any checklist is incomplete**:
+     - Display the table with incomplete item counts
+     - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
+     - Wait for user response before continuing
+     - If user says "no" or "wait" or "stop", halt execution
+     - If user says "yes" or "proceed" or "continue", proceed to step 3
+
+   - **If all checklists are complete**:
+     - Display the table showing all checklists passed
+     - Automatically proceed to step 3
+
+3. Load and analyze the implementation context:
+   - **REQUIRED**: Read tasks.md for the complete task list and execution plan
+   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
+   - **IF EXISTS**: Read data-model.md for entities and relationships
+   - **IF EXISTS**: Read contracts/ for API specifications and test requirements
+   - **IF EXISTS**: Read research.md for technical decisions and constraints
+   - **IF EXISTS**: Read quickstart.md for integration scenarios
+
+4. **Project Setup Verification**:
+   - **REQUIRED**: Create/verify ignore files based on actual project setup:
+
+   **Detection & Creation Logic**:
+   - Check if the following command succeeds to determine if the repository is a git repo (create/verify .gitignore if so):
+
+     ```sh
+     git rev-parse --git-dir 2>/dev/null
+     ```
+
+   - Check if Dockerfile* exists or Docker in plan.md → create/verify .dockerignore
+   - Check if .eslintrc* exists → create/verify .eslintignore
+   - Check if eslint.config.* exists → ensure the config's `ignores` entries cover required patterns
+   - Check if .prettierrc* exists → create/verify .prettierignore
+   - Check if .npmrc or package.json exists → create/verify .npmignore (if publishing)
+   - Check if terraform files (*.tf) exist → create/verify .terraformignore
+   - Check if .helmignore needed (helm charts present) → create/verify .helmignore
+
+   **If ignore file already exists**: Verify it contains essential patterns, append missing critical patterns only
+   **If ignore file missing**: Create with full pattern set for detected technology
+
+   **Common Patterns by Technology** (from plan.md tech stack):
+   - **Node.js/JavaScript/TypeScript**: `node_modules/`, `dist/`, `build/`, `*.log`, `.env*`
+   - **Python**: `__pycache__/`, `*.pyc`, `.venv/`, `venv/`, `dist/`, `*.egg-info/`
+   - **Java**: `target/`, `*.class`, `*.jar`, `.gradle/`, `build/`
+   - **C#/.NET**: `bin/`, `obj/`, `*.user`, `*.suo`, `packages/`
+   - **Go**: `*.exe`, `*.test`, `vendor/`, `*.out`
+   - **Ruby**: `.bundle/`, `log/`, `tmp/`, `*.gem`, `vendor/bundle/`
+   - **PHP**: `vendor/`, `*.log`, `*.cache`, `*.env`
+   - **Rust**: `target/`, `debug/`, `release/`, `*.rs.bk`, `*.rlib`, `*.prof*`, `.idea/`, `*.log`, `.env*`
+   - **Kotlin**: `build/`, `out/`, `.gradle/`, `.idea/`, `*.class`, `*.jar`, `*.iml`, `*.log`, `.env*`
+   - **C++**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.so`, `*.a`, `*.exe`, `*.dll`, `.idea/`, `*.log`, `.env*`
+   - **C**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.a`, `*.so`, `*.exe`, `Makefile`, `config.log`, `.idea/`, `*.log`, `.env*`
+   - **Swift**: `.build/`, `DerivedData/`, `*.swiftpm/`, `Packages/`
+   - **R**: `.Rproj.user/`, `.Rhistory`, `.RData`, `.Ruserdata`, `*.Rproj`, `packrat/`, `renv/`
+   - **Universal**: `.DS_Store`, `Thumbs.db`, `*.tmp`, `*.swp`, `.vscode/`, `.idea/`
+
+   **Tool-Specific Patterns**:
+   - **Docker**: `node_modules/`, `.git/`, `Dockerfile*`, `.dockerignore`, `*.log*`, `.env*`, `coverage/`
+   - **ESLint**: `node_modules/`, `dist/`, `build/`, `coverage/`, `*.min.js`
+   - **Prettier**: `node_modules/`, `dist/`, `build/`, `coverage/`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
+   - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
+   - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
+
+5. Parse tasks.md structure and extract:
+   - **Task phases**: Setup, Tests, Core, Integration, Polish
+   - **Task dependencies**: Sequential vs parallel execution rules
+   - **Task details**: ID, description, file paths, parallel markers [P]
+   - **Execution flow**: Order and dependency requirements
+
+6. Execute implementation following the task plan:
+   - **Phase-by-phase execution**: Complete each phase before moving to the next
+   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
+   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
+   - **File-based coordination**: Tasks affecting the same files must run sequentially
+   - **Validation checkpoints**: Verify each phase completion before proceeding
+
+7. Implementation execution rules:
+   - **Setup first**: Initialize project structure, dependencies, configuration
+   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
+   - **Core development**: Implement models, services, CLI commands, endpoints
+   - **Integration work**: Database connections, middleware, logging, external services
+   - **Polish and validation**: Unit tests, performance optimization, documentation
+
+8. Progress tracking and error handling:
+   - Report progress after each completed task
+   - Halt execution if any non-parallel task fails
+   - For parallel tasks [P], continue with successful tasks, report failed ones
+   - Provide clear error messages with context for debugging
+   - Suggest next steps if implementation cannot proceed
+   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+
+9. Completion validation:
+   - Verify all required tasks are completed
+   - Check that implemented features match the original specification
+   - Validate that tests pass and coverage meets requirements
+   - Confirm the implementation follows the technical plan
+   - Report final status with summary of completed work
+
+Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
+````
+
+## File: .claude/commands/speckit.plan.md
+````markdown
+---
+description: Execute the implementation planning workflow using the plan template to generate design artifacts.
+handoffs: 
+  - label: Create Tasks
+    agent: speckit.tasks
+    prompt: Break the plan into tasks
+    send: true
+  - label: Create Checklist
+    agent: speckit.checklist
+    prompt: Create a checklist for the following domain...
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+1. **Setup**: Run `.specify/scripts/bash/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+
+3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
+   - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
+   - Fill Constitution Check section from constitution
+   - Evaluate gates (ERROR if violations unjustified)
+   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
+   - Phase 1: Generate data-model.md, contracts/, quickstart.md
+   - Phase 1: Update agent context by running the agent script
+   - Re-evaluate Constitution Check post-design
+
+4. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+
+## Phases
+
+### Phase 0: Outline & Research
+
+1. **Extract unknowns from Technical Context** above:
+   - For each NEEDS CLARIFICATION → research task
+   - For each dependency → best practices task
+   - For each integration → patterns task
+
+2. **Generate and dispatch research agents**:
+
+   ```text
+   For each unknown in Technical Context:
+     Task: "Research {unknown} for {feature context}"
+   For each technology choice:
+     Task: "Find best practices for {tech} in {domain}"
+   ```
+
+3. **Consolidate findings** in `research.md` using format:
+   - Decision: [what was chosen]
+   - Rationale: [why chosen]
+   - Alternatives considered: [what else evaluated]
+
+**Output**: research.md with all NEEDS CLARIFICATION resolved
+
+### Phase 1: Design & Contracts
+
+**Prerequisites:** `research.md` complete
+
+1. **Extract entities from feature spec** → `data-model.md`:
+   - Entity name, fields, relationships
+   - Validation rules from requirements
+   - State transitions if applicable
+
+2. **Generate API contracts** from functional requirements:
+   - For each user action → endpoint
+   - Use standard REST/GraphQL patterns
+   - Output OpenAPI/GraphQL schema to `/contracts/`
+
+3. **Agent context update**:
+   - Run `.specify/scripts/bash/update-agent-context.sh claude`
+   - These scripts detect which AI agent is in use
+   - Update the appropriate agent-specific context file
+   - Add only new technology from current plan
+   - Preserve manual additions between markers
+
+**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+
+## Key rules
+
+- Use absolute paths
+- ERROR on gate failures or unresolved clarifications
+````
+
+## File: .claude/commands/speckit.specify.md
+````markdown
+---
+description: Create or update the feature specification from a natural language feature description.
+handoffs: 
+  - label: Build Technical Plan
+    agent: speckit.plan
+    prompt: Create a plan for the spec. I am building with...
+  - label: Clarify Spec Requirements
+    agent: speckit.clarify
+    prompt: Clarify specification requirements
+    send: true
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+
+Given that feature description, do this:
+
+1. **Generate a concise short name** (2-4 words) for the branch:
+   - Analyze the feature description and extract the most meaningful keywords
+   - Create a 2-4 word short name that captures the essence of the feature
+   - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
+   - Preserve technical terms and acronyms (OAuth2, API, JWT, etc.)
+   - Keep it concise but descriptive enough to understand the feature at a glance
+   - Examples:
+     - "I want to add user authentication" → "user-auth"
+     - "Implement OAuth2 integration for the API" → "oauth2-api-integration"
+     - "Create a dashboard for analytics" → "analytics-dashboard"
+     - "Fix payment processing timeout bug" → "fix-payment-timeout"
+
+2. **Check for existing branches before creating new one**:
+   
+   a. First, fetch all remote branches to ensure we have the latest information:
+      ```bash
+      git fetch --all --prune
+      ```
+   
+   b. Find the highest feature number across all sources for the short-name:
+      - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
+      - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
+      - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
+   
+   c. Determine the next available number:
+      - Extract all numbers from all three sources
+      - Find the highest number N
+      - Use N+1 for the new branch number
+   
+   d. Run the script `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS"` with the calculated number and short-name:
+      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
+      - Bash example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
+      - PowerShell example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
+   
+   **IMPORTANT**:
+   - Check all three sources (remote branches, local branches, specs directories) to find the highest number
+   - Only match branches/directories with the exact short-name pattern
+   - If no existing branches/directories found with this short-name, start with number 1
+   - You must only ever run this script once per feature
+   - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for
+   - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
+
+3. Load `.specify/templates/spec-template.md` to understand required sections.
+
+4. Follow this execution flow:
+
+    1. Parse user description from Input
+       If empty: ERROR "No feature description provided"
+    2. Extract key concepts from description
+       Identify: actors, actions, data, constraints
+    3. For unclear aspects:
+       - Make informed guesses based on context and industry standards
+       - Only mark with [NEEDS CLARIFICATION: specific question] if:
+         - The choice significantly impacts feature scope or user experience
+         - Multiple reasonable interpretations exist with different implications
+         - No reasonable default exists
+       - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
+       - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
+    4. Fill User Scenarios & Testing section
+       If no clear user flow: ERROR "Cannot determine user scenarios"
+    5. Generate Functional Requirements
+       Each requirement must be testable
+       Use reasonable defaults for unspecified details (document assumptions in Assumptions section)
+    6. Define Success Criteria
+       Create measurable, technology-agnostic outcomes
+       Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
+       Each criterion must be verifiable without implementation details
+    7. Identify Key Entities (if data involved)
+    8. Return: SUCCESS (spec ready for planning)
+
+5. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
+
+6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
+
+   a. **Create Spec Quality Checklist**: Generate a checklist file at `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
+
+      ```markdown
+      # Specification Quality Checklist: [FEATURE NAME]
+      
+      **Purpose**: Validate specification completeness and quality before proceeding to planning
+      **Created**: [DATE]
+      **Feature**: [Link to spec.md]
+      
+      ## Content Quality
+      
+      - [ ] No implementation details (languages, frameworks, APIs)
+      - [ ] Focused on user value and business needs
+      - [ ] Written for non-technical stakeholders
+      - [ ] All mandatory sections completed
+      
+      ## Requirement Completeness
+      
+      - [ ] No [NEEDS CLARIFICATION] markers remain
+      - [ ] Requirements are testable and unambiguous
+      - [ ] Success criteria are measurable
+      - [ ] Success criteria are technology-agnostic (no implementation details)
+      - [ ] All acceptance scenarios are defined
+      - [ ] Edge cases are identified
+      - [ ] Scope is clearly bounded
+      - [ ] Dependencies and assumptions identified
+      
+      ## Feature Readiness
+      
+      - [ ] All functional requirements have clear acceptance criteria
+      - [ ] User scenarios cover primary flows
+      - [ ] Feature meets measurable outcomes defined in Success Criteria
+      - [ ] No implementation details leak into specification
+      
+      ## Notes
+      
+      - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+      ```
+
+   b. **Run Validation Check**: Review the spec against each checklist item:
+      - For each item, determine if it passes or fails
+      - Document specific issues found (quote relevant spec sections)
+
+   c. **Handle Validation Results**:
+
+      - **If all items pass**: Mark checklist complete and proceed to step 6
+
+      - **If items fail (excluding [NEEDS CLARIFICATION])**:
+        1. List the failing items and specific issues
+        2. Update the spec to address each issue
+        3. Re-run validation until all items pass (max 3 iterations)
+        4. If still failing after 3 iterations, document remaining issues in checklist notes and warn user
+
+      - **If [NEEDS CLARIFICATION] markers remain**:
+        1. Extract all [NEEDS CLARIFICATION: ...] markers from the spec
+        2. **LIMIT CHECK**: If more than 3 markers exist, keep only the 3 most critical (by scope/security/UX impact) and make informed guesses for the rest
+        3. For each clarification needed (max 3), present options to user in this format:
+
+           ```markdown
+           ## Question [N]: [Topic]
+           
+           **Context**: [Quote relevant spec section]
+           
+           **What we need to know**: [Specific question from NEEDS CLARIFICATION marker]
+           
+           **Suggested Answers**:
+           
+           | Option | Answer | Implications |
+           |--------|--------|--------------|
+           | A      | [First suggested answer] | [What this means for the feature] |
+           | B      | [Second suggested answer] | [What this means for the feature] |
+           | C      | [Third suggested answer] | [What this means for the feature] |
+           | Custom | Provide your own answer | [Explain how to provide custom input] |
+           
+           **Your choice**: _[Wait for user response]_
+           ```
+
+        4. **CRITICAL - Table Formatting**: Ensure markdown tables are properly formatted:
+           - Use consistent spacing with pipes aligned
+           - Each cell should have spaces around content: `| Content |` not `|Content|`
+           - Header separator must have at least 3 dashes: `|--------|`
+           - Test that the table renders correctly in markdown preview
+        5. Number questions sequentially (Q1, Q2, Q3 - max 3 total)
+        6. Present all questions together before waiting for responses
+        7. Wait for user to respond with their choices for all questions (e.g., "Q1: A, Q2: Custom - [details], Q3: B")
+        8. Update the spec by replacing each [NEEDS CLARIFICATION] marker with the user's selected or provided answer
+        9. Re-run validation after all clarifications are resolved
+
+   d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
+
+7. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
+
+**NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
+
+## General Guidelines
+
+## Quick Guidelines
+
+- Focus on **WHAT** users need and **WHY**.
+- Avoid HOW to implement (no tech stack, APIs, code structure).
+- Written for business stakeholders, not developers.
+- DO NOT create any checklists that are embedded in the spec. That will be a separate command.
+
+### Section Requirements
+
+- **Mandatory sections**: Must be completed for every feature
+- **Optional sections**: Include only when relevant to the feature
+- When a section doesn't apply, remove it entirely (don't leave as "N/A")
+
+### For AI Generation
+
+When creating this spec from a user prompt:
+
+1. **Make informed guesses**: Use context, industry standards, and common patterns to fill gaps
+2. **Document assumptions**: Record reasonable defaults in the Assumptions section
+3. **Limit clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical decisions that:
+   - Significantly impact feature scope or user experience
+   - Have multiple reasonable interpretations with different implications
+   - Lack any reasonable default
+4. **Prioritize clarifications**: scope > security/privacy > user experience > technical details
+5. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
+6. **Common areas needing clarification** (only if no reasonable default exists):
+   - Feature scope and boundaries (include/exclude specific use cases)
+   - User types and permissions (if multiple conflicting interpretations possible)
+   - Security/compliance requirements (when legally/financially significant)
+
+**Examples of reasonable defaults** (don't ask about these):
+
+- Data retention: Industry-standard practices for the domain
+- Performance targets: Standard web/mobile app expectations unless specified
+- Error handling: User-friendly messages with appropriate fallbacks
+- Authentication method: Standard session-based or OAuth2 for web apps
+- Integration patterns: RESTful APIs unless specified otherwise
+
+### Success Criteria Guidelines
+
+Success criteria must be:
+
+1. **Measurable**: Include specific metrics (time, percentage, count, rate)
+2. **Technology-agnostic**: No mention of frameworks, languages, databases, or tools
+3. **User-focused**: Describe outcomes from user/business perspective, not system internals
+4. **Verifiable**: Can be tested/validated without knowing implementation details
+
+**Good examples**:
+
+- "Users can complete checkout in under 3 minutes"
+- "System supports 10,000 concurrent users"
+- "95% of searches return results in under 1 second"
+- "Task completion rate improves by 40%"
+
+**Bad examples** (implementation-focused):
+
+- "API response time is under 200ms" (too technical, use "Users see results instantly")
+- "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
+- "React components render efficiently" (framework-specific)
+- "Redis cache hit rate above 80%" (technology-specific)
+````
+
+## File: .claude/commands/speckit.tasks.md
+````markdown
+---
+description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+handoffs: 
+  - label: Analyze For Consistency
+    agent: speckit.analyze
+    prompt: Run a project analysis for consistency
+    send: true
+  - label: Implement Project
+    agent: speckit.implement
+    prompt: Start the implementation in phases
+    send: true
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+2. **Load design documents**: Read from FEATURE_DIR:
+   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
+   - **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions), quickstart.md (test scenarios)
+   - Note: Not all projects have all documents. Generate tasks based on what's available.
+
+3. **Execute task generation workflow**:
+   - Load plan.md and extract tech stack, libraries, project structure
+   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
+   - If data-model.md exists: Extract entities and map to user stories
+   - If contracts/ exists: Map endpoints to user stories
+   - If research.md exists: Extract decisions for setup tasks
+   - Generate tasks organized by user story (see Task Generation Rules below)
+   - Generate dependency graph showing user story completion order
+   - Create parallel execution examples per user story
+   - Validate task completeness (each user story has all needed tasks, independently testable)
+
+4. **Generate tasks.md**: Use `.specify.specify/templates/tasks-template.md` as structure, fill with:
+   - Correct feature name from plan.md
+   - Phase 1: Setup tasks (project initialization)
+   - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
+   - Phase 3+: One phase per user story (in priority order from spec.md)
+   - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
+   - Final Phase: Polish & cross-cutting concerns
+   - All tasks must follow the strict checklist format (see Task Generation Rules below)
+   - Clear file paths for each task
+   - Dependencies section showing story completion order
+   - Parallel execution examples per story
+   - Implementation strategy section (MVP first, incremental delivery)
+
+5. **Report**: Output path to generated tasks.md and summary:
+   - Total task count
+   - Task count per user story
+   - Parallel opportunities identified
+   - Independent test criteria for each story
+   - Suggested MVP scope (typically just User Story 1)
+   - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
+
+Context for task generation: $ARGUMENTS
+
+The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
+
+## Task Generation Rules
+
+**CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
+
+**Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
+
+### Checklist Format (REQUIRED)
+
+Every task MUST strictly follow this format:
+
+```text
+- [ ] [TaskID] [P?] [Story?] Description with file path
+```
+
+**Format Components**:
+
+1. **Checkbox**: ALWAYS start with `- [ ]` (markdown checkbox)
+2. **Task ID**: Sequential number (T001, T002, T003...) in execution order
+3. **[P] marker**: Include ONLY if task is parallelizable (different files, no dependencies on incomplete tasks)
+4. **[Story] label**: REQUIRED for user story phase tasks only
+   - Format: [US1], [US2], [US3], etc. (maps to user stories from spec.md)
+   - Setup phase: NO story label
+   - Foundational phase: NO story label  
+   - User Story phases: MUST have story label
+   - Polish phase: NO story label
+5. **Description**: Clear action with exact file path
+
+**Examples**:
+
+- ✅ CORRECT: `- [ ] T001 Create project structure per implementation plan`
+- ✅ CORRECT: `- [ ] T005 [P] Implement authentication middleware in src/middleware/auth.py`
+- ✅ CORRECT: `- [ ] T012 [P] [US1] Create User model in src/models/user.py`
+- ✅ CORRECT: `- [ ] T014 [US1] Implement UserService in src/services/user_service.py`
+- ❌ WRONG: `- [ ] Create User model` (missing ID and Story label)
+- ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
+- ❌ WRONG: `- [ ] [US1] Create User model` (missing Task ID)
+- ❌ WRONG: `- [ ] T001 [US1] Create model` (missing file path)
+
+### Task Organization
+
+1. **From User Stories (spec.md)** - PRIMARY ORGANIZATION:
+   - Each user story (P1, P2, P3...) gets its own phase
+   - Map all related components to their story:
+     - Models needed for that story
+     - Services needed for that story
+     - Endpoints/UI needed for that story
+     - If tests requested: Tests specific to that story
+   - Mark story dependencies (most stories should be independent)
+
+2. **From Contracts**:
+   - Map each contract/endpoint → to the user story it serves
+   - If tests requested: Each contract → contract test task [P] before implementation in that story's phase
+
+3. **From Data Model**:
+   - Map each entity to the user story(ies) that need it
+   - If entity serves multiple stories: Put in earliest story or Setup phase
+   - Relationships → service layer tasks in appropriate story phase
+
+4. **From Setup/Infrastructure**:
+   - Shared infrastructure → Setup phase (Phase 1)
+   - Foundational/blocking tasks → Foundational phase (Phase 2)
+   - Story-specific setup → within that story's phase
+
+### Phase Structure
+
+- **Phase 1**: Setup (project initialization)
+- **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
+- **Phase 3+**: User Stories in priority order (P1, P2, P3...)
+  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
+  - Each phase should be a complete, independently testable increment
+- **Final Phase**: Polish & Cross-Cutting Concerns
+````
+
+## File: .claude/commands/speckit.taskstoissues.md
+````markdown
+---
+description: Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
+tools: ['github/github-mcp-server/issue_write']
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Outline
+
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. From the executed script, extract the path to **tasks**.
+1. Get the Git remote by running:
+
+```bash
+git config --get remote.origin.url
+```
+
+**ONLY PROCEED TO NEXT STEPS IF THE REMOTE IS A GITHUB URL**
+
+1. For each task in the list, use the GitHub MCP server to create a new issue in the repository that is representative of the Git remote.
+
+**UNDER NO CIRCUMSTANCES EVER CREATE ISSUES IN REPOSITORIES THAT DO NOT MATCH THE REMOTE URL**
 ````
 
 ## File: .github/coldstart-prompts/01-create-automated-demo.md
@@ -4783,3066 +7748,6 @@ python scripts/backlog_to_issues.py --all
 **Source Backlog**: `BACKLOG.md`
 ````
 
-## File: docs/_config.yml
-````yaml
-# AgentReady Documentation Site Configuration
-
-# Site settings
-title: AgentReady
-tagline: Repository Quality Assessment for AI-Assisted Development
-description: >-
-  Assess repositories against 25 evidence-based attributes that make codebases
-  more effective for AI-assisted development. Generate actionable reports with
-  specific remediation guidance.
-
-# Repository information
-repository: yourusername/agentready
-github_username: yourusername
-
-# Build settings
-theme: jekyll-theme-minimal
-markdown: kramdown
-kramdown:
-  input: GFM
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    default_lang: python
-    css_class: 'highlight'
-
-# Plugins
-plugins:
-  - jekyll-feed
-  - jekyll-seo-tag
-  - jekyll-sitemap
-
-# Navigation
-navigation:
-  - title: Home
-    url: /
-  - title: User Guide
-    url: /user-guide
-  - title: Developer Guide
-    url: /developer-guide
-  - title: Attributes
-    url: /attributes
-  - title: API Reference
-    url: /api-reference
-  - title: Examples
-    url: /examples
-
-# Collections
-collections:
-  attributes:
-    output: true
-    permalink: /attributes/:name
-
-# Defaults
-defaults:
-  - scope:
-      path: ""
-      type: "pages"
-    values:
-      layout: "default"
-  - scope:
-      path: ""
-      type: "attributes"
-    values:
-      layout: "attribute"
-
-# Exclude from build
-exclude:
-  - Gemfile
-  - Gemfile.lock
-  - node_modules
-  - vendor
-  - .sass-cache
-  - .jekyll-cache
-  - README.md
-
-# Site metadata
-version: 1.0.0
-certification_levels:
-  platinum:
-    range: "90-100"
-    color: "#e5e4e2"
-    emoji: "🏆"
-  gold:
-    range: "75-89"
-    color: "#ffd700"
-    emoji: "🥇"
-  silver:
-    range: "60-74"
-    color: "#c0c0c0"
-    emoji: "🥈"
-  bronze:
-    range: "40-59"
-    color: "#cd7f32"
-    emoji: "🥉"
-  needs_improvement:
-    range: "0-39"
-    color: "#8b4513"
-    emoji: "📈"
-
-# URLs
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site
-
-# Analytics (optional - uncomment and add your ID)
-# google_analytics: UA-XXXXXXXXX-X
-````
-
-## File: scripts/backlog_to_issues.py
-````python
-#!/usr/bin/env python3
-"""
-Script to convert BACKLOG.md items into coldstart prompts.
-
-This script:
-1. Parses BACKLOG.md to extract individual items
-2. Generates comprehensive coldstart prompts for each item
-3. Saves prompts as markdown files in .github/coldstart-prompts/
-4. Optionally creates GitHub issues via gh CLI (if --create-issues flag set)
-5. Pauses after first item for user review
-"""
-
-import re
-import subprocess
-import sys
-from pathlib import Path
-from typing import List, Dict, Optional
-import json
-
-
-class BacklogItem:
-    """Represents a single backlog item."""
-
-    def __init__(self, title: str, priority: str, content: str, section_start: int):
-        self.title = title
-        self.priority = priority
-        self.content = content
-        self.section_start = section_start
-
-    def __repr__(self):
-        return f"BacklogItem(title={self.title}, priority={self.priority})"
-
-
-def parse_backlog(backlog_path: Path) -> List[BacklogItem]:
-    """Parse BACKLOG.md and extract all items."""
-
-    with open(backlog_path, 'r') as f:
-        content = f.read()
-
-    items = []
-
-    # Split into sections by ###
-    sections = re.split(r'\n### ', content)
-
-    for i, section in enumerate(sections[1:], 1):  # Skip first section (header)
-        lines = section.split('\n')
-        title = lines[0].strip()
-
-        # Find priority in next few lines
-        priority = "P4"  # default
-        for line in lines[1:5]:
-            if match := re.search(r'\*\*Priority\*\*:\s*(P\d)', line):
-                priority = match.group(1)
-                break
-
-        # Get full content until next ### or end
-        full_content = '\n'.join(lines)
-
-        items.append(BacklogItem(
-            title=title,
-            priority=priority,
-            content=full_content,
-            section_start=i
-        ))
-
-    return items
-
-
-def generate_coldstart_prompt(item: BacklogItem, repo_context: Dict) -> str:
-    """Generate a comprehensive coldstart prompt for implementing the backlog item."""
-
-    prompt = f"""# Coldstart Implementation Prompt: {item.title}
-
-**Priority**: {item.priority}
-**Repository**: agentready (https://github.com/{repo_context['owner']}/{repo_context['repo']})
-**Branch Strategy**: Create feature branch from main
-
----
-
-## Context
-
-You are implementing a feature for AgentReady, a repository quality assessment tool for AI-assisted development.
-
-### Repository Structure
-```
-agentready/
-├── src/agentready/          # Source code
-│   ├── models/              # Data models
-│   ├── services/            # Scanner orchestration
-│   ├── assessors/           # Attribute assessments
-│   ├── reporters/           # Report generation (HTML, Markdown, JSON)
-│   ├── templates/           # Jinja2 templates
-│   └── cli/                 # Click-based CLI
-├── tests/                   # Test suite (unit + integration)
-├── examples/                # Example reports
-└── specs/                   # Feature specifications
-```
-
-### Key Technologies
-- Python 3.11+
-- Click (CLI framework)
-- Jinja2 (templating)
-- Pytest (testing)
-- Black, isort, ruff (code quality)
-
-### Development Workflow
-1. Create feature branch: `git checkout -b NNN-feature-name`
-2. Implement changes with tests
-3. Run linters: `black . && isort . && ruff check .`
-4. Run tests: `pytest`
-5. Commit with conventional commits
-6. Create PR to main
-
----
-
-## Feature Requirements
-
-{item.content}
-
----
-
-## Implementation Checklist
-
-Before you begin:
-- [ ] Read CLAUDE.md for project context
-- [ ] Review existing similar features (if applicable)
-- [ ] Understand the data model (src/agentready/models/)
-- [ ] Check acceptance criteria in feature description
-
-Implementation steps:
-- [ ] Create feature branch
-- [ ] Implement core functionality
-- [ ] Add unit tests (target >80% coverage)
-- [ ] Add integration tests (if applicable)
-- [ ] Run linters and fix any issues
-- [ ] Update documentation (README.md, CLAUDE.md if needed)
-- [ ] Self-test the feature end-to-end
-- [ ] Create PR with descriptive title and body
-
-Code quality requirements:
-- [ ] All code formatted with black (88 char lines)
-- [ ] Imports sorted with isort
-- [ ] No ruff violations
-- [ ] All tests passing
-- [ ] Type hints where appropriate
-- [ ] Docstrings for public APIs
-
----
-
-## Key Files to Review
-
-Based on this feature, you should review:
-- `src/agentready/models/` - Understand Assessment, Finding, Attribute models
-- `src/agentready/services/scanner.py` - Scanner orchestration
-- `src/agentready/assessors/base.py` - BaseAssessor pattern
-- `src/agentready/reporters/` - Report generation
-- `CLAUDE.md` - Project overview and guidelines
-- `BACKLOG.md` - Full context of this feature
-
----
-
-## Testing Strategy
-
-For this feature, ensure:
-1. **Unit tests** for core logic (80%+ coverage)
-2. **Integration tests** for end-to-end workflows
-3. **Edge case tests** (empty inputs, missing files, errors)
-4. **Error handling tests** (graceful degradation)
-
-Run tests:
-```bash
-# All tests
-pytest
-
-# With coverage
-pytest --cov=src/agentready --cov-report=html
-
-# Specific test file
-pytest tests/unit/test_feature.py -v
-```
-
----
-
-## Success Criteria
-
-This feature is complete when:
-- ✅ All acceptance criteria from feature description are met
-- ✅ Tests passing with >80% coverage for new code
-- ✅ All linters passing (black, isort, ruff)
-- ✅ Documentation updated
-- ✅ PR created with clear description
-- ✅ Self-tested end-to-end
-
----
-
-## Questions to Clarify (if needed)
-
-If anything is unclear during implementation:
-1. Check CLAUDE.md for project patterns
-2. Review similar existing features
-3. Ask for clarification in PR comments
-4. Reference the original backlog item
-
----
-
-## Getting Started
-
-```bash
-# Clone and setup
-git clone https://github.com/{repo_context['owner']}/{repo_context['repo']}.git
-cd agentready
-
-# Create virtual environment
-uv venv && source .venv/bin/activate
-
-# Install dependencies
-uv pip install -e .
-uv pip install pytest black isort ruff
-
-# Create feature branch
-git checkout -b {item.section_start:03d}-{item.title.lower().replace(' ', '-')[:50]}
-
-# Start implementing!
-```
-
----
-
-**Note**: This is a coldstart prompt. You have all context needed to implement this feature independently. Read the linked files, follow the patterns, and deliver high-quality code with tests.
-"""
-
-    return prompt
-
-
-def create_github_issue(item: BacklogItem, prompt: str, repo_context: Dict, dry_run: bool = False) -> Optional[str]:
-    """Create GitHub issue via gh CLI and attach coldstart prompt as comment."""
-
-    # Prepare issue title
-    issue_title = f"[{item.priority}] {item.title}"
-
-    # Prepare issue body (extract description and requirements)
-    # Get content up to "Implementation" section or similar
-    body_parts = []
-    body_parts.append(f"**Priority**: {item.priority}\n")
-
-    # Extract description (first paragraph after Priority)
-    lines = item.content.split('\n')
-    in_description = False
-    description_lines = []
-
-    for line in lines:
-        if '**Description**:' in line:
-            in_description = True
-            continue
-        if in_description:
-            if line.startswith('**') and ':' in line:
-                break
-            description_lines.append(line)
-
-    if description_lines:
-        body_parts.append("## Description\n")
-        body_parts.append('\n'.join(description_lines))
-
-    # Add link to full context
-    body_parts.append("\n\n## Full Context\n")
-    body_parts.append(f"See [BACKLOG.md](https://github.com/{repo_context['owner']}/{repo_context['repo']}/blob/main/BACKLOG.md) for complete requirements.\n")
-
-    # Add acceptance criteria if present
-    if '**Acceptance Criteria**:' in item.content:
-        criteria_start = item.content.find('**Acceptance Criteria**:')
-        criteria_section = item.content[criteria_start:criteria_start+1000]
-        body_parts.append("\n## Acceptance Criteria\n")
-        body_parts.append(criteria_section.split('\n\n')[0])
-
-    issue_body = '\n'.join(body_parts)
-
-    # Determine labels
-    labels = [f"priority:{item.priority.lower()}"]
-
-    # Add category labels based on title/content
-    if 'security' in item.title.lower() or 'xss' in item.content.lower():
-        labels.append('security')
-    if 'bug' in item.title.lower() or 'fix' in item.title.lower():
-        labels.append('bug')
-    else:
-        labels.append('enhancement')
-    if 'test' in item.title.lower():
-        labels.append('testing')
-    if 'github' in item.title.lower():
-        labels.append('github-integration')
-    if 'report' in item.title.lower():
-        labels.append('reporting')
-
-    labels_str = ','.join(labels)
-
-    if dry_run:
-        print(f"\n{'='*80}")
-        print(f"DRY RUN: Would create issue:")
-        print(f"Title: {issue_title}")
-        print(f"Labels: {labels_str}")
-        print(f"Body preview:\n{issue_body[:500]}...")
-        print(f"\nColdstart prompt would be added as first comment")
-        print(f"{'='*80}\n")
-        return None
-
-    # Create issue using gh CLI
-    try:
-        # Create the issue
-        result = subprocess.run(
-            [
-                'gh', 'issue', 'create',
-                '--title', issue_title,
-                '--body', issue_body,
-                '--label', labels_str
-            ],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-
-        issue_url = result.stdout.strip()
-        print(f"✅ Created issue: {issue_url}")
-
-        # Extract issue number from URL
-        issue_number = issue_url.split('/')[-1]
-
-        # Add coldstart prompt as first comment
-        subprocess.run(
-            [
-                'gh', 'issue', 'comment', issue_number,
-                '--body', f"## 🤖 Coldstart Implementation Prompt\n\n{prompt}"
-            ],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-
-        print(f"✅ Added coldstart prompt as comment")
-
-        return issue_url
-
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to create issue: {e.stderr}")
-        return None
-
-
-def get_repo_context() -> Dict:
-    """Get repository context (owner, repo name) from git remote."""
-    try:
-        result = subprocess.run(
-            ['gh', 'repo', 'view', '--json', 'owner,name'],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        data = json.loads(result.stdout)
-        return {
-            'owner': data['owner']['login'],
-            'repo': data['name']
-        }
-    except Exception as e:
-        # No git remote - ask user or use default
-        print(f"⚠️  Warning: Could not get repo context from git remote")
-        print(f"    This is expected if repository not yet on GitHub")
-        print(f"    Using default values for now\n")
-        # For agentready, we know the intended location
-        return {'owner': 'redhat', 'repo': 'agentready'}
-
-
-def save_prompt_to_file(item: BacklogItem, prompt: str, output_dir: Path, item_number: int) -> Path:
-    """Save coldstart prompt to markdown file."""
-
-    # Create output directory if it doesn't exist
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Generate filename from item number and title
-    safe_title = re.sub(r'[^\w\s-]', '', item.title.lower())
-    safe_title = re.sub(r'[-\s]+', '-', safe_title)[:50]
-    filename = f"{item_number:02d}-{safe_title}.md"
-
-    filepath = output_dir / filename
-
-    # Write prompt to file
-    with open(filepath, 'w') as f:
-        f.write(prompt)
-
-    return filepath
-
-
-def main():
-    """Main script execution."""
-
-    # Parse command line args
-    create_issues = '--create-issues' in sys.argv
-    process_all = '--all' in sys.argv
-
-    # Get repository root
-    repo_root = Path(__file__).parent.parent
-    backlog_path = repo_root / 'BACKLOG.md'
-
-    if not backlog_path.exists():
-        print(f"❌ BACKLOG.md not found at {backlog_path}")
-        sys.exit(1)
-
-    # Create output directory
-    output_dir = repo_root / '.github' / 'coldstart-prompts'
-
-    # Get repo context
-    repo_context = get_repo_context()
-    print(f"📦 Repository: {repo_context['owner']}/{repo_context['repo']}\n")
-
-    # Parse backlog
-    print("📖 Parsing BACKLOG.md...")
-    items = parse_backlog(backlog_path)
-    print(f"Found {len(items)} backlog items\n")
-
-    # Show summary
-    print("Backlog Items:")
-    for i, item in enumerate(items, 1):
-        print(f"  {i:2d}. [{item.priority}] {item.title}")
-    print()
-
-    # Process first item (or all if --all flag)
-    items_to_process = items if process_all else [items[0]]
-
-    for idx, item in enumerate(items_to_process, 1):
-        print(f"{'='*80}")
-        print(f"Processing item {idx}/{len(items_to_process)}: {item.title}")
-        print(f"{'='*80}\n")
-
-        # Generate coldstart prompt
-        print("🤖 Generating coldstart prompt...")
-        prompt = generate_coldstart_prompt(item, repo_context)
-        print(f"✅ Generated {len(prompt)} character prompt\n")
-
-        # Save to file
-        print("💾 Saving prompt to file...")
-        filepath = save_prompt_to_file(item, prompt, output_dir, item.section_start)
-        print(f"✅ Saved to: {filepath}\n")
-
-        # Optionally create GitHub issue
-        if create_issues:
-            print("🐙 Creating GitHub issue...")
-            issue_url = create_github_issue(item, prompt, repo_context, dry_run=False)
-            if issue_url:
-                print(f"✅ Created issue: {issue_url}\n")
-            else:
-                print(f"❌ Failed to create issue\n")
-
-        # Pause after first item unless --all specified
-        if not process_all and idx == 1:
-            print(f"\n{'='*80}")
-            print(f"✅ FIRST PROMPT GENERATED")
-            print(f"{'='*80}\n")
-            print(f"Saved to: {filepath}")
-            print(f"\nPlease review the prompt file.")
-            print(f"Once approved, run with --all to process remaining {len(items) - 1} items:")
-            print(f"  python scripts/backlog_to_issues.py --all")
-            if not create_issues:
-                print(f"\nTo also create GitHub issues, add --create-issues flag:")
-                print(f"  python scripts/backlog_to_issues.py --all --create-issues")
-            return
-
-    # All items processed
-    print(f"\n{'='*80}")
-    print(f"✅ PROCESSED {len(items_to_process)} ITEMS")
-    print(f"{'='*80}\n")
-    print(f"Coldstart prompts saved to: {output_dir}/")
-    if create_issues:
-        print(f"GitHub issues created (check repository)")
-    print(f"\nNext steps:")
-    print(f"  1. Review generated prompts in {output_dir}/")
-    print(f"  2. Create GitHub issues manually, or run with --create-issues")
-    print(f"  3. Start implementing features using the coldstart prompts!")
-
-
-if __name__ == '__main__':
-    main()
-````
-
-## File: src/agentready/cli/bootstrap.py
-````python
-"""Bootstrap command for setting up GitHub infrastructure."""
-
-import sys
-from pathlib import Path
-
-import click
-
-from ..services.bootstrap import BootstrapGenerator
-
-
-@click.command()
-@click.argument("repository", type=click.Path(exists=True), default=".")
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Preview changes without creating files",
-)
-@click.option(
-    "--language",
-    type=click.Choice(["python", "javascript", "go", "auto"], case_sensitive=False),
-    default="auto",
-    help="Primary language (default: auto-detect)",
-)
-def bootstrap(repository, dry_run, language):
-    """Bootstrap repository with GitHub infrastructure and best practices.
-
-    Creates:
-    - GitHub Actions workflows (tests, AgentReady assessment, security)
-    - GitHub templates (issues, pull requests, CODEOWNERS)
-    - Pre-commit hooks configuration
-    - Dependabot configuration
-    - Contributing guidelines
-
-    REPOSITORY: Path to git repository (default: current directory)
-    """
-    repo_path = Path(repository).resolve()
-
-    # Validate git repository
-    if not (repo_path / ".git").exists():
-        click.echo("Error: Not a git repository", err=True)
-        sys.exit(1)
-
-    click.echo("🤖 AgentReady Bootstrap")
-    click.echo("=" * 50)
-    click.echo(f"\nRepository: {repo_path}")
-    click.echo(f"Language: {language}")
-    click.echo(f"Dry run: {dry_run}\n")
-
-    # Create generator
-    generator = BootstrapGenerator(repo_path, language)
-
-    # Generate all files
-    try:
-        created_files = generator.generate_all(dry_run=dry_run)
-    except Exception as e:
-        click.echo(f"\nError during bootstrap: {str(e)}", err=True)
-        sys.exit(1)
-
-    # Report results
-    click.echo("\n" + "=" * 50)
-    if dry_run:
-        click.echo("\nDry run complete! The following files would be created:")
-    else:
-        click.echo(f"\nBootstrap complete! Created {len(created_files)} files:")
-
-    for file_path in sorted(created_files):
-        rel_path = file_path.relative_to(repo_path)
-        click.echo(f"  ✓ {rel_path}")
-
-    if not dry_run:
-        click.echo("\n✅ Repository bootstrapped successfully!")
-        click.echo("\nNext steps:")
-        click.echo("  1. Review generated files")
-        click.echo("  2. Commit changes: git add . && git commit -m 'chore: Bootstrap repository infrastructure'")
-        click.echo("  3. Push to GitHub: git push")
-        click.echo("  4. Set up branch protection rules")
-        click.echo("  5. Enable GitHub Actions")
-    else:
-        click.echo("\nRun without --dry-run to create files")
-````
-
-## File: src/agentready/services/bootstrap.py
-````python
-"""Bootstrap generator for repository infrastructure."""
-
-from pathlib import Path
-from typing import List
-
-from jinja2 import Environment, PackageLoader, select_autoescape
-
-from .language_detector import LanguageDetector
-
-
-class BootstrapGenerator:
-    """Generates GitHub infrastructure files for repository."""
-
-    def __init__(self, repo_path: Path, language: str = "auto"):
-        """Initialize bootstrap generator.
-
-        Args:
-            repo_path: Path to repository
-            language: Primary language or "auto" to detect
-        """
-        self.repo_path = repo_path
-        self.language = self._detect_language(language)
-        self.env = Environment(
-            loader=PackageLoader("agentready", "templates/bootstrap"),
-            autoescape=select_autoescape(["html", "xml", "j2", "yaml", "yml"]),
-            trim_blocks=True,
-            lstrip_blocks=True,
-        )
-
-    def _detect_language(self, language: str) -> str:
-        """Detect primary language if auto."""
-        if language != "auto":
-            return language.lower()
-
-        # Use language detector
-        detector = LanguageDetector(self.repo_path)
-        languages = detector.detect_languages()
-
-        if not languages:
-            return "python"  # Default fallback
-
-        # Return most used language
-        return max(languages, key=languages.get).lower()
-
-    def generate_all(self, dry_run: bool = False) -> List[Path]:
-        """Generate all bootstrap files.
-
-        Args:
-            dry_run: If True, don't create files, just return paths
-
-        Returns:
-            List of created file paths
-        """
-        created_files = []
-
-        # GitHub Actions workflows
-        created_files.extend(self._generate_workflows(dry_run))
-
-        # GitHub templates
-        created_files.extend(self._generate_github_templates(dry_run))
-
-        # Pre-commit hooks
-        created_files.extend(self._generate_precommit_config(dry_run))
-
-        # Dependabot
-        created_files.extend(self._generate_dependabot(dry_run))
-
-        # Contributing guidelines
-        created_files.extend(self._generate_docs(dry_run))
-
-        return created_files
-
-    def _generate_workflows(self, dry_run: bool) -> List[Path]:
-        """Generate GitHub Actions workflows."""
-        workflows_dir = self.repo_path / ".github" / "workflows"
-        created = []
-
-        # AgentReady assessment workflow
-        agentready_workflow = workflows_dir / "agentready-assessment.yml"
-        template = self.env.get_template("workflows/agentready-assessment.yml.j2")
-        content = template.render(language=self.language)
-        created.append(self._write_file(agentready_workflow, content, dry_run))
-
-        # Tests workflow
-        tests_workflow = workflows_dir / "tests.yml"
-        template = self.env.get_template(f"workflows/tests-{self.language}.yml.j2")
-        content = template.render()
-        created.append(self._write_file(tests_workflow, content, dry_run))
-
-        # Security workflow
-        security_workflow = workflows_dir / "security.yml"
-        template = self.env.get_template("workflows/security.yml.j2")
-        content = template.render(language=self.language)
-        created.append(self._write_file(security_workflow, content, dry_run))
-
-        return created
-
-    def _generate_github_templates(self, dry_run: bool) -> List[Path]:
-        """Generate GitHub issue and PR templates."""
-        created = []
-
-        # Issue templates
-        issue_template_dir = self.repo_path / ".github" / "ISSUE_TEMPLATE"
-
-        bug_template = issue_template_dir / "bug_report.md"
-        template = self.env.get_template("issue_templates/bug_report.md.j2")
-        content = template.render()
-        created.append(self._write_file(bug_template, content, dry_run))
-
-        feature_template = issue_template_dir / "feature_request.md"
-        template = self.env.get_template("issue_templates/feature_request.md.j2")
-        content = template.render()
-        created.append(self._write_file(feature_template, content, dry_run))
-
-        # PR template
-        pr_template = self.repo_path / ".github" / "PULL_REQUEST_TEMPLATE.md"
-        template = self.env.get_template("PULL_REQUEST_TEMPLATE.md.j2")
-        content = template.render()
-        created.append(self._write_file(pr_template, content, dry_run))
-
-        # CODEOWNERS
-        codeowners = self.repo_path / ".github" / "CODEOWNERS"
-        template = self.env.get_template("CODEOWNERS.j2")
-        content = template.render()
-        created.append(self._write_file(codeowners, content, dry_run))
-
-        return created
-
-    def _generate_precommit_config(self, dry_run: bool) -> List[Path]:
-        """Generate pre-commit hooks configuration."""
-        precommit_file = self.repo_path / ".pre-commit-config.yaml"
-        template = self.env.get_template(f"precommit-{self.language}.yaml.j2")
-        content = template.render()
-        return [self._write_file(precommit_file, content, dry_run)]
-
-    def _generate_dependabot(self, dry_run: bool) -> List[Path]:
-        """Generate Dependabot configuration."""
-        dependabot_file = self.repo_path / ".github" / "dependabot.yml"
-        template = self.env.get_template("dependabot.yml.j2")
-        content = template.render(language=self.language)
-        return [self._write_file(dependabot_file, content, dry_run)]
-
-    def _generate_docs(self, dry_run: bool) -> List[Path]:
-        """Generate contributing guidelines and code of conduct."""
-        created = []
-
-        # CONTRIBUTING.md
-        contributing = self.repo_path / "CONTRIBUTING.md"
-        if not contributing.exists():  # Don't overwrite existing
-            template = self.env.get_template("CONTRIBUTING.md.j2")
-            content = template.render(language=self.language)
-            created.append(self._write_file(contributing, content, dry_run))
-
-        # CODE_OF_CONDUCT.md (Red Hat standard)
-        code_of_conduct = self.repo_path / "CODE_OF_CONDUCT.md"
-        if not code_of_conduct.exists():
-            template = self.env.get_template("CODE_OF_CONDUCT.md.j2")
-            content = template.render()
-            created.append(self._write_file(code_of_conduct, content, dry_run))
-
-        return created
-
-    def _write_file(self, path: Path, content: str, dry_run: bool) -> Path:
-        """Write file to disk or simulate for dry run."""
-        if dry_run:
-            return path
-
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
-
-        return path
-````
-
-## File: src/agentready/templates/bootstrap/issue_templates/bug_report.md.j2
-````
----
-name: Bug Report
-about: Create a report to help us improve
-title: '[BUG] '
-labels: bug
-assignees: ''
----
-
-## Bug Description
-
-A clear and concise description of what the bug is.
-
-## To Reproduce
-
-Steps to reproduce the behavior:
-
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
-
-## Expected Behavior
-
-A clear and concise description of what you expected to happen.
-
-## Actual Behavior
-
-A clear and concise description of what actually happened.
-
-## Environment
-
-- OS: [e.g. macOS 14.0, Ubuntu 22.04]
-- Version: [e.g. 1.0.0]
-- Python Version: [e.g. 3.11]
-
-## Additional Context
-
-Add any other context about the problem here. Include screenshots if applicable.
-
-## Possible Solution
-
-If you have suggestions on how to fix the bug, please describe them here.
-````
-
-## File: src/agentready/templates/bootstrap/issue_templates/feature_request.md.j2
-````
----
-name: Feature Request
-about: Suggest an idea for this project
-title: '[FEATURE] '
-labels: enhancement
-assignees: ''
----
-
-## Problem Statement
-
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
-
-## Proposed Solution
-
-A clear and concise description of what you want to happen.
-
-## Alternatives Considered
-
-A clear and concise description of any alternative solutions or features you've considered.
-
-## Use Cases
-
-Describe specific use cases where this feature would be valuable.
-
-1. Use case 1
-2. Use case 2
-3. Use case 3
-
-## Additional Context
-
-Add any other context, screenshots, or mockups about the feature request here.
-
-## Acceptance Criteria
-
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
-
-## Priority
-
-How important is this feature to you?
-
-- [ ] Critical (blocking my work)
-- [ ] High (significantly improves workflow)
-- [ ] Medium (nice to have)
-- [ ] Low (minor enhancement)
-````
-
-## File: src/agentready/templates/bootstrap/workflows/agentready-assessment.yml.j2
-````
-name: AgentReady Assessment
-
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main, master]
-  workflow_dispatch:
-
-jobs:
-  assess:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install AgentReady
-        run: |
-          pip install agentready
-
-      - name: Run AgentReady Assessment
-        run: |
-          agentready assess . --verbose
-
-      - name: Upload Assessment Reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: agentready-reports
-          path: .agentready/
-          retention-days: 30
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const reportPath = '.agentready/report-latest.md';
-
-            if (!fs.existsSync(reportPath)) {
-              console.log('No report found');
-              return;
-            }
-
-            const report = fs.readFileSync(reportPath, 'utf8');
-
-            // Post comment with assessment results
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: report
-            });
-````
-
-## File: src/agentready/templates/bootstrap/workflows/security.yml.j2
-````
-name: Security
-
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-  schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  security-events: write
-
-jobs:
-  codeql:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: {{ 'python' if language == 'python' else 'javascript' }}
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-{% if language == 'python' %}
-  safety:
-    name: Dependency Security Scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install safety
-
-      - name: Run safety check
-        run: |
-          safety check --json || true
-{% endif %}
-````
-
-## File: src/agentready/templates/bootstrap/workflows/tests-python.yml.j2
-````
-name: Tests
-
-on:
-  pull_request:
-  push:
-    branches: [main, master]
-  workflow_dispatch:
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12']
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python {{ '${{ matrix.python-version }}' }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: {{ '${{ matrix.python-version }}' }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Run black
-        run: |
-          black --check .
-
-      - name: Run isort
-        run: |
-          isort --check .
-
-      - name: Run ruff
-        run: |
-          ruff check .
-
-      - name: Run pytest
-        run: |
-          pytest --cov=src --cov-report=xml --cov-report=term
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.11'
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-````
-
-## File: src/agentready/templates/bootstrap/CODE_OF_CONDUCT.md.j2
-````
-# Code of Conduct
-
-## Our Commitment
-
-We are committed to providing a welcoming and inclusive environment for all contributors.
-
-## Standards
-
-Examples of behavior that contributes to a positive environment:
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints
-- Accepting constructive criticism gracefully
-- Focusing on what is best for the community
-
-Examples of unacceptable behavior:
-- Trolling or insulting comments
-- Public or private harassment
-- Publishing others' private information
-- Other conduct which could reasonably be considered inappropriate
-
-## Responsibilities
-
-Project maintainers are responsible for clarifying standards of acceptable behavior and will take appropriate action in response to unacceptable behavior.
-
-## Scope
-
-This Code of Conduct applies within all project spaces and when representing the project in public spaces.
-
-## Enforcement
-
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project team. All complaints will be reviewed and investigated promptly and fairly.
-
-## Attribution
-
-This Code of Conduct is adapted from common open source community standards.
-````
-
-## File: src/agentready/templates/bootstrap/CODEOWNERS.j2
-````
-# CODEOWNERS file
-# Define code ownership for automatic review requests
-
-# Global owners - these users are requested for review on all PRs
-# *       @owner
-
-# Specific paths can have different owners
-# /docs/  @documentation-team
-# /src/   @development-team
-# /.github/ @devops-team
-
-# Default: assign to repository owner
-*       @owner
-````
-
-## File: src/agentready/templates/bootstrap/CONTRIBUTING.md.j2
-````
-# Contributing Guidelines
-
-Thank you for your interest in contributing to this project! This document provides guidelines and instructions for contributing.
-
-## Code of Conduct
-
-Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## Getting Started
-
-### Prerequisites
-
-{% if language == 'python' %}
-- Python 3.11 or higher
-- pip or uv for package management
-- Git
-{% elif language == 'javascript' %}
-- Node.js 18 or higher
-- npm or yarn
-- Git
-{% elif language == 'go' %}
-- Go 1.21 or higher
-- Git
-{% endif %}
-
-### Development Setup
-
-1. Fork the repository
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/PROJECT_NAME.git
-   cd PROJECT_NAME
-   ```
-
-3. Set up your development environment:
-{% if language == 'python' %}
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -e ".[dev]"
-   ```
-{% elif language == 'javascript' %}
-   ```bash
-   npm install
-   ```
-{% elif language == 'go' %}
-   ```bash
-   go mod download
-   ```
-{% endif %}
-
-4. Install pre-commit hooks:
-   ```bash
-   pre-commit install
-   ```
-
-## Development Workflow
-
-### Creating a Feature Branch
-
-Always create a new branch for your work:
-
-```bash
-git checkout -b feature/your-feature-name
-```
-
-Use descriptive branch names:
-- `feature/add-new-api`
-- `fix/resolve-crash-on-startup`
-- `docs/improve-installation-guide`
-
-### Making Changes
-
-1. Write clear, concise code
-2. Follow the project's coding standards
-3. Add tests for new functionality
-4. Update documentation as needed
-5. Run linters and tests before committing
-
-### Running Tests
-
-{% if language == 'python' %}
-```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=src --cov-report=term
-
-# Run specific test file
-pytest tests/test_specific.py
-```
-{% elif language == 'javascript' %}
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test
-npm test -- tests/specific.test.js
-```
-{% elif language == 'go' %}
-```bash
-# Run all tests
-go test ./...
-
-# Run with coverage
-go test -cover ./...
-
-# Run specific test
-go test -run TestSpecific ./...
-```
-{% endif %}
-
-### Code Style
-
-{% if language == 'python' %}
-This project uses:
-- **black** for code formatting
-- **isort** for import sorting
-- **ruff** for linting
-
-Run formatters before committing:
-
-```bash
-black .
-isort .
-ruff check . --fix
-```
-
-Pre-commit hooks will automatically run these tools.
-{% elif language == 'javascript' %}
-This project uses:
-- **Prettier** for code formatting
-- **ESLint** for linting
-
-Run formatters before committing:
-
-```bash
-npm run format
-npm run lint
-```
-{% elif language == 'go' %}
-This project uses:
-- **gofmt** for code formatting
-- **golangci-lint** for linting
-
-Run formatters before committing:
-
-```bash
-go fmt ./...
-golangci-lint run
-```
-{% endif %}
-
-### Commit Messages
-
-We use [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-Types:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-
-Examples:
-```
-feat(api): add user authentication endpoint
-
-fix(parser): resolve crash when parsing empty files
-
-docs(readme): update installation instructions
-```
-
-### Pull Request Process
-
-1. **Update your branch** with the latest changes:
-   ```bash
-   git fetch upstream
-   git rebase upstream/main
-   ```
-
-2. **Push your changes**:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-3. **Create a Pull Request**:
-   - Use the PR template
-   - Provide a clear description
-   - Link related issues
-   - Request reviews from maintainers
-
-4. **Address feedback**:
-   - Respond to review comments
-   - Make requested changes
-   - Push updates to your branch
-
-5. **Wait for approval**:
-   - At least one maintainer approval required
-   - All CI checks must pass
-   - No merge conflicts
-
-## Testing Guidelines
-
-- Write tests for all new functionality
-- Maintain or improve code coverage
-- Include both positive and negative test cases
-- Test edge cases and error conditions
-
-## Documentation
-
-- Update README.md for user-facing changes
-- Add docstrings to new functions and classes
-- Update API documentation if applicable
-- Add examples for new features
-
-## Issue Reporting
-
-When reporting issues, please include:
-
-- Clear, descriptive title
-- Steps to reproduce
-- Expected vs. actual behavior
-- Environment details (OS, version, etc.)
-- Error messages or logs
-- Screenshots if applicable
-
-## Questions?
-
-If you have questions:
-- Check existing issues and discussions
-- Ask in pull request comments
-- Open a new discussion
-- Contact maintainers
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the same license as the project.
-
-Thank you for contributing! 🎉
-````
-
-## File: src/agentready/templates/bootstrap/dependabot.yml.j2
-````
-version: 2
-updates:
-{% if language == 'python' %}
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "python"
-{% elif language == 'javascript' %}
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "javascript"
-{% elif language == 'go' %}
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "go"
-{% endif %}
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "github-actions"
-````
-
-## File: src/agentready/templates/bootstrap/precommit-python.yaml.j2
-````
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-      - id: check-merge-conflict
-      - id: check-toml
-      - id: check-json
-      - id: detect-private-key
-
-  - repo: https://github.com/psf/black
-    rev: 24.1.1
-    hooks:
-      - id: black
-        language_version: python3.11
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.14
-    hooks:
-      - id: ruff
-        args: ["--fix"]
-
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v3.0.0
-    hooks:
-      - id: conventional-pre-commit
-        stages: [commit-msg]
-````
-
-## File: src/agentready/templates/bootstrap/PULL_REQUEST_TEMPLATE.md.j2
-````
-## Description
-
-<!-- Provide a brief description of the changes in this PR -->
-
-## Type of Change
-
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-- [ ] Refactoring (no functional changes)
-- [ ] Performance improvement
-- [ ] Test coverage improvement
-
-## Related Issues
-
-<!-- Link related issues here using #issue_number -->
-
-Fixes #
-Relates to #
-
-## Changes Made
-
-<!-- Detailed list of changes made in this PR -->
-
--
--
--
-
-## Testing
-
-<!-- Describe the tests you ran to verify your changes -->
-
-- [ ] Unit tests pass (`pytest`)
-- [ ] Integration tests pass
-- [ ] Manual testing performed
-- [ ] No new warnings or errors
-
-## Checklist
-
-- [ ] My code follows the project's code style
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published
-
-## Screenshots (if applicable)
-
-<!-- Add screenshots to help explain your changes -->
-
-## Additional Notes
-
-<!-- Any additional information that reviewers should know -->
-````
-
-## File: .repomixignore
-````
-# Add patterns to ignore here, one per line
-# Example:
-# *.log
-# tmp/
-````
-
-## File: repomix.config.json
-````json
-{
-  "$schema": "https://repomix.com/schemas/latest/schema.json",
-  "input": {
-    "maxFileSize": 52428800
-  },
-  "output": {
-    "filePath": "repomix-output.md",
-    "style": "markdown",
-    "parsableStyle": false,
-    "fileSummary": true,
-    "directoryStructure": true,
-    "files": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
-    "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "truncateBase64": false,
-    "copyToClipboard": false,
-    "includeFullDirectoryStructure": false,
-    "tokenCountTree": false,
-    "git": {
-      "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
-      "includeDiffs": false,
-      "includeLogs": false,
-      "includeLogsCount": 50
-    }
-  },
-  "include": [],
-  "ignore": {
-    "useGitignore": true,
-    "useDotIgnore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": []
-  },
-  "security": {
-    "enableSecurityCheck": true
-  },
-  "tokenCount": {
-    "encoding": "o200k_base"
-  }
-}
-````
-
-## File: .claude/commands/speckit.analyze.md
-````markdown
----
-description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Goal
-
-Identify inconsistencies, duplications, ambiguities, and underspecified items across the three core artifacts (`spec.md`, `plan.md`, `tasks.md`) before implementation. This command MUST run only after `/speckit.tasks` has successfully produced a complete `tasks.md`.
-
-## Operating Constraints
-
-**STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
-
-**Constitution Authority**: The project constitution (`.specify/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
-
-## Execution Steps
-
-### 1. Initialize Analysis Context
-
-Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS. Derive absolute paths:
-
-- SPEC = FEATURE_DIR/spec.md
-- PLAN = FEATURE_DIR/plan.md
-- TASKS = FEATURE_DIR/tasks.md
-
-Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
-For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-### 2. Load Artifacts (Progressive Disclosure)
-
-Load only the minimal necessary context from each artifact:
-
-**From spec.md:**
-
-- Overview/Context
-- Functional Requirements
-- Non-Functional Requirements
-- User Stories
-- Edge Cases (if present)
-
-**From plan.md:**
-
-- Architecture/stack choices
-- Data Model references
-- Phases
-- Technical constraints
-
-**From tasks.md:**
-
-- Task IDs
-- Descriptions
-- Phase grouping
-- Parallel markers [P]
-- Referenced file paths
-
-**From constitution:**
-
-- Load `.specify/memory/constitution.md` for principle validation
-
-### 3. Build Semantic Models
-
-Create internal representations (do not include raw artifacts in output):
-
-- **Requirements inventory**: Each functional + non-functional requirement with a stable key (derive slug based on imperative phrase; e.g., "User can upload file" → `user-can-upload-file`)
-- **User story/action inventory**: Discrete user actions with acceptance criteria
-- **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
-- **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
-
-### 4. Detection Passes (Token-Efficient Analysis)
-
-Focus on high-signal findings. Limit to 50 findings total; aggregate remainder in overflow summary.
-
-#### A. Duplication Detection
-
-- Identify near-duplicate requirements
-- Mark lower-quality phrasing for consolidation
-
-#### B. Ambiguity Detection
-
-- Flag vague adjectives (fast, scalable, secure, intuitive, robust) lacking measurable criteria
-- Flag unresolved placeholders (TODO, TKTK, ???, `<placeholder>`, etc.)
-
-#### C. Underspecification
-
-- Requirements with verbs but missing object or measurable outcome
-- User stories missing acceptance criteria alignment
-- Tasks referencing files or components not defined in spec/plan
-
-#### D. Constitution Alignment
-
-- Any requirement or plan element conflicting with a MUST principle
-- Missing mandated sections or quality gates from constitution
-
-#### E. Coverage Gaps
-
-- Requirements with zero associated tasks
-- Tasks with no mapped requirement/story
-- Non-functional requirements not reflected in tasks (e.g., performance, security)
-
-#### F. Inconsistency
-
-- Terminology drift (same concept named differently across files)
-- Data entities referenced in plan but absent in spec (or vice versa)
-- Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
-- Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
-
-### 5. Severity Assignment
-
-Use this heuristic to prioritize findings:
-
-- **CRITICAL**: Violates constitution MUST, missing core spec artifact, or requirement with zero coverage that blocks baseline functionality
-- **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion
-- **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case
-- **LOW**: Style/wording improvements, minor redundancy not affecting execution order
-
-### 6. Produce Compact Analysis Report
-
-Output a Markdown report (no file writes) with the following structure:
-
-## Specification Analysis Report
-
-| ID | Category | Severity | Location(s) | Summary | Recommendation |
-|----|----------|----------|-------------|---------|----------------|
-| A1 | Duplication | HIGH | spec.md:L120-134 | Two similar requirements ... | Merge phrasing; keep clearer version |
-
-(Add one row per finding; generate stable IDs prefixed by category initial.)
-
-**Coverage Summary Table:**
-
-| Requirement Key | Has Task? | Task IDs | Notes |
-|-----------------|-----------|----------|-------|
-
-**Constitution Alignment Issues:** (if any)
-
-**Unmapped Tasks:** (if any)
-
-**Metrics:**
-
-- Total Requirements
-- Total Tasks
-- Coverage % (requirements with >=1 task)
-- Ambiguity Count
-- Duplication Count
-- Critical Issues Count
-
-### 7. Provide Next Actions
-
-At end of report, output a concise Next Actions block:
-
-- If CRITICAL issues exist: Recommend resolving before `/speckit.implement`
-- If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run /speckit.specify with refinement", "Run /speckit.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
-
-### 8. Offer Remediation
-
-Ask the user: "Would you like me to suggest concrete remediation edits for the top N issues?" (Do NOT apply them automatically.)
-
-## Operating Principles
-
-### Context Efficiency
-
-- **Minimal high-signal tokens**: Focus on actionable findings, not exhaustive documentation
-- **Progressive disclosure**: Load artifacts incrementally; don't dump all content into analysis
-- **Token-efficient output**: Limit findings table to 50 rows; summarize overflow
-- **Deterministic results**: Rerunning without changes should produce consistent IDs and counts
-
-### Analysis Guidelines
-
-- **NEVER modify files** (this is read-only analysis)
-- **NEVER hallucinate missing sections** (if absent, report them accurately)
-- **Prioritize constitution violations** (these are always CRITICAL)
-- **Use examples over exhaustive rules** (cite specific instances, not generic patterns)
-- **Report zero issues gracefully** (emit success report with coverage statistics)
-
-## Context
-
-$ARGUMENTS
-````
-
-## File: .claude/commands/speckit.checklist.md
-````markdown
----
-description: Generate a custom checklist for the current feature based on user requirements.
----
-
-## Checklist Purpose: "Unit Tests for English"
-
-**CRITICAL CONCEPT**: Checklists are **UNIT TESTS FOR REQUIREMENTS WRITING** - they validate the quality, clarity, and completeness of requirements in a given domain.
-
-**NOT for verification/testing**:
-
-- ❌ NOT "Verify the button clicks correctly"
-- ❌ NOT "Test error handling works"
-- ❌ NOT "Confirm the API returns 200"
-- ❌ NOT checking if code/implementation matches the spec
-
-**FOR requirements quality validation**:
-
-- ✅ "Are visual hierarchy requirements defined for all card types?" (completeness)
-- ✅ "Is 'prominent display' quantified with specific sizing/positioning?" (clarity)
-- ✅ "Are hover state requirements consistent across all interactive elements?" (consistency)
-- ✅ "Are accessibility requirements defined for keyboard navigation?" (coverage)
-- ✅ "Does the spec define what happens when logo image fails to load?" (edge cases)
-
-**Metaphor**: If your spec is code written in English, the checklist is its unit test suite. You're testing whether the requirements are well-written, complete, unambiguous, and ready for implementation - NOT whether the implementation works.
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Execution Steps
-
-1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
-   - All file paths must be absolute.
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-2. **Clarify intent (dynamic)**: Derive up to THREE initial contextual clarifying questions (no pre-baked catalog). They MUST:
-   - Be generated from the user's phrasing + extracted signals from spec/plan/tasks
-   - Only ask about information that materially changes checklist content
-   - Be skipped individually if already unambiguous in `$ARGUMENTS`
-   - Prefer precision over breadth
-
-   Generation algorithm:
-   1. Extract signals: feature domain keywords (e.g., auth, latency, UX, API), risk indicators ("critical", "must", "compliance"), stakeholder hints ("QA", "review", "security team"), and explicit deliverables ("a11y", "rollback", "contracts").
-   2. Cluster signals into candidate focus areas (max 4) ranked by relevance.
-   3. Identify probable audience & timing (author, reviewer, QA, release) if not explicit.
-   4. Detect missing dimensions: scope breadth, depth/rigor, risk emphasis, exclusion boundaries, measurable acceptance criteria.
-   5. Formulate questions chosen from these archetypes:
-      - Scope refinement (e.g., "Should this include integration touchpoints with X and Y or stay limited to local module correctness?")
-      - Risk prioritization (e.g., "Which of these potential risk areas should receive mandatory gating checks?")
-      - Depth calibration (e.g., "Is this a lightweight pre-commit sanity list or a formal release gate?")
-      - Audience framing (e.g., "Will this be used by the author only or peers during PR review?")
-      - Boundary exclusion (e.g., "Should we explicitly exclude performance tuning items this round?")
-      - Scenario class gap (e.g., "No recovery flows detected—are rollback / partial failure paths in scope?")
-
-   Question formatting rules:
-   - If presenting options, generate a compact table with columns: Option | Candidate | Why It Matters
-   - Limit to A–E options maximum; omit table if a free-form answer is clearer
-   - Never ask the user to restate what they already said
-   - Avoid speculative categories (no hallucination). If uncertain, ask explicitly: "Confirm whether X belongs in scope."
-
-   Defaults when interaction impossible:
-   - Depth: Standard
-   - Audience: Reviewer (PR) if code-related; Author otherwise
-   - Focus: Top 2 relevance clusters
-
-   Output the questions (label Q1/Q2/Q3). After answers: if ≥2 scenario classes (Alternate / Exception / Recovery / Non-Functional domain) remain unclear, you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk"). Do not exceed five total questions. Skip escalation if user explicitly declines more.
-
-3. **Understand user request**: Combine `$ARGUMENTS` + clarifying answers:
-   - Derive checklist theme (e.g., security, review, deploy, ux)
-   - Consolidate explicit must-have items mentioned by user
-   - Map focus selections to category scaffolding
-   - Infer any missing context from spec/plan/tasks (do NOT hallucinate)
-
-4. **Load feature context**: Read from FEATURE_DIR:
-   - spec.md: Feature requirements and scope
-   - plan.md (if exists): Technical details, dependencies
-   - tasks.md (if exists): Implementation tasks
-
-   **Context Loading Strategy**:
-   - Load only necessary portions relevant to active focus areas (avoid full-file dumping)
-   - Prefer summarizing long sections into concise scenario/requirement bullets
-   - Use progressive disclosure: add follow-on retrieval only if gaps detected
-   - If source docs are large, generate interim summary items instead of embedding raw text
-
-5. **Generate checklist** - Create "Unit Tests for Requirements":
-   - Create `FEATURE_DIR/checklists/` directory if it doesn't exist
-   - Generate unique checklist filename:
-     - Use short, descriptive name based on domain (e.g., `ux.md`, `api.md`, `security.md`)
-     - Format: `[domain].md`
-     - If file exists, append to existing file
-   - Number items sequentially starting from CHK001
-   - Each `/speckit.checklist` run creates a NEW file (never overwrites existing checklists)
-
-   **CORE PRINCIPLE - Test the Requirements, Not the Implementation**:
-   Every checklist item MUST evaluate the REQUIREMENTS THEMSELVES for:
-   - **Completeness**: Are all necessary requirements present?
-   - **Clarity**: Are requirements unambiguous and specific?
-   - **Consistency**: Do requirements align with each other?
-   - **Measurability**: Can requirements be objectively verified?
-   - **Coverage**: Are all scenarios/edge cases addressed?
-
-   **Category Structure** - Group items by requirement quality dimensions:
-   - **Requirement Completeness** (Are all necessary requirements documented?)
-   - **Requirement Clarity** (Are requirements specific and unambiguous?)
-   - **Requirement Consistency** (Do requirements align without conflicts?)
-   - **Acceptance Criteria Quality** (Are success criteria measurable?)
-   - **Scenario Coverage** (Are all flows/cases addressed?)
-   - **Edge Case Coverage** (Are boundary conditions defined?)
-   - **Non-Functional Requirements** (Performance, Security, Accessibility, etc. - are they specified?)
-   - **Dependencies & Assumptions** (Are they documented and validated?)
-   - **Ambiguities & Conflicts** (What needs clarification?)
-
-   **HOW TO WRITE CHECKLIST ITEMS - "Unit Tests for English"**:
-
-   ❌ **WRONG** (Testing implementation):
-   - "Verify landing page displays 3 episode cards"
-   - "Test hover states work on desktop"
-   - "Confirm logo click navigates home"
-
-   ✅ **CORRECT** (Testing requirements quality):
-   - "Are the exact number and layout of featured episodes specified?" [Completeness]
-   - "Is 'prominent display' quantified with specific sizing/positioning?" [Clarity]
-   - "Are hover state requirements consistent across all interactive elements?" [Consistency]
-   - "Are keyboard navigation requirements defined for all interactive UI?" [Coverage]
-   - "Is the fallback behavior specified when logo image fails to load?" [Edge Cases]
-   - "Are loading states defined for asynchronous episode data?" [Completeness]
-   - "Does the spec define visual hierarchy for competing UI elements?" [Clarity]
-
-   **ITEM STRUCTURE**:
-   Each item should follow this pattern:
-   - Question format asking about requirement quality
-   - Focus on what's WRITTEN (or not written) in the spec/plan
-   - Include quality dimension in brackets [Completeness/Clarity/Consistency/etc.]
-   - Reference spec section `[Spec §X.Y]` when checking existing requirements
-   - Use `[Gap]` marker when checking for missing requirements
-
-   **EXAMPLES BY QUALITY DIMENSION**:
-
-   Completeness:
-   - "Are error handling requirements defined for all API failure modes? [Gap]"
-   - "Are accessibility requirements specified for all interactive elements? [Completeness]"
-   - "Are mobile breakpoint requirements defined for responsive layouts? [Gap]"
-
-   Clarity:
-   - "Is 'fast loading' quantified with specific timing thresholds? [Clarity, Spec §NFR-2]"
-   - "Are 'related episodes' selection criteria explicitly defined? [Clarity, Spec §FR-5]"
-   - "Is 'prominent' defined with measurable visual properties? [Ambiguity, Spec §FR-4]"
-
-   Consistency:
-   - "Do navigation requirements align across all pages? [Consistency, Spec §FR-10]"
-   - "Are card component requirements consistent between landing and detail pages? [Consistency]"
-
-   Coverage:
-   - "Are requirements defined for zero-state scenarios (no episodes)? [Coverage, Edge Case]"
-   - "Are concurrent user interaction scenarios addressed? [Coverage, Gap]"
-   - "Are requirements specified for partial data loading failures? [Coverage, Exception Flow]"
-
-   Measurability:
-   - "Are visual hierarchy requirements measurable/testable? [Acceptance Criteria, Spec §FR-1]"
-   - "Can 'balanced visual weight' be objectively verified? [Measurability, Spec §FR-2]"
-
-   **Scenario Classification & Coverage** (Requirements Quality Focus):
-   - Check if requirements exist for: Primary, Alternate, Exception/Error, Recovery, Non-Functional scenarios
-   - For each scenario class, ask: "Are [scenario type] requirements complete, clear, and consistent?"
-   - If scenario class missing: "Are [scenario type] requirements intentionally excluded or missing? [Gap]"
-   - Include resilience/rollback when state mutation occurs: "Are rollback requirements defined for migration failures? [Gap]"
-
-   **Traceability Requirements**:
-   - MINIMUM: ≥80% of items MUST include at least one traceability reference
-   - Each item should reference: spec section `[Spec §X.Y]`, or use markers: `[Gap]`, `[Ambiguity]`, `[Conflict]`, `[Assumption]`
-   - If no ID system exists: "Is a requirement & acceptance criteria ID scheme established? [Traceability]"
-
-   **Surface & Resolve Issues** (Requirements Quality Problems):
-   Ask questions about the requirements themselves:
-   - Ambiguities: "Is the term 'fast' quantified with specific metrics? [Ambiguity, Spec §NFR-1]"
-   - Conflicts: "Do navigation requirements conflict between §FR-10 and §FR-10a? [Conflict]"
-   - Assumptions: "Is the assumption of 'always available podcast API' validated? [Assumption]"
-   - Dependencies: "Are external podcast API requirements documented? [Dependency, Gap]"
-   - Missing definitions: "Is 'visual hierarchy' defined with measurable criteria? [Gap]"
-
-   **Content Consolidation**:
-   - Soft cap: If raw candidate items > 40, prioritize by risk/impact
-   - Merge near-duplicates checking the same requirement aspect
-   - If >5 low-impact edge cases, create one item: "Are edge cases X, Y, Z addressed in requirements? [Coverage]"
-
-   **🚫 ABSOLUTELY PROHIBITED** - These make it an implementation test, not a requirements test:
-   - ❌ Any item starting with "Verify", "Test", "Confirm", "Check" + implementation behavior
-   - ❌ References to code execution, user actions, system behavior
-   - ❌ "Displays correctly", "works properly", "functions as expected"
-   - ❌ "Click", "navigate", "render", "load", "execute"
-   - ❌ Test cases, test plans, QA procedures
-   - ❌ Implementation details (frameworks, APIs, algorithms)
-
-   **✅ REQUIRED PATTERNS** - These test requirements quality:
-   - ✅ "Are [requirement type] defined/specified/documented for [scenario]?"
-   - ✅ "Is [vague term] quantified/clarified with specific criteria?"
-   - ✅ "Are requirements consistent between [section A] and [section B]?"
-   - ✅ "Can [requirement] be objectively measured/verified?"
-   - ✅ "Are [edge cases/scenarios] addressed in requirements?"
-   - ✅ "Does the spec define [missing aspect]?"
-
-6. **Structure Reference**: Generate the checklist following the canonical template in `.specify/templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs starting at CHK001.
-
-7. **Report**: Output full path to created checklist, item count, and remind user that each run creates a new file. Summarize:
-   - Focus areas selected
-   - Depth level
-   - Actor/timing
-   - Any explicit user-specified must-have items incorporated
-
-**Important**: Each `/speckit.checklist` command invocation creates a checklist file using short, descriptive names unless file already exists. This allows:
-
-- Multiple checklists of different types (e.g., `ux.md`, `test.md`, `security.md`)
-- Simple, memorable filenames that indicate checklist purpose
-- Easy identification and navigation in the `checklists/` folder
-
-To avoid clutter, use descriptive types and clean up obsolete checklists when done.
-
-## Example Checklist Types & Sample Items
-
-**UX Requirements Quality:** `ux.md`
-
-Sample items (testing the requirements, NOT the implementation):
-
-- "Are visual hierarchy requirements defined with measurable criteria? [Clarity, Spec §FR-1]"
-- "Is the number and positioning of UI elements explicitly specified? [Completeness, Spec §FR-1]"
-- "Are interaction state requirements (hover, focus, active) consistently defined? [Consistency]"
-- "Are accessibility requirements specified for all interactive elements? [Coverage, Gap]"
-- "Is fallback behavior defined when images fail to load? [Edge Case, Gap]"
-- "Can 'prominent display' be objectively measured? [Measurability, Spec §FR-4]"
-
-**API Requirements Quality:** `api.md`
-
-Sample items:
-
-- "Are error response formats specified for all failure scenarios? [Completeness]"
-- "Are rate limiting requirements quantified with specific thresholds? [Clarity]"
-- "Are authentication requirements consistent across all endpoints? [Consistency]"
-- "Are retry/timeout requirements defined for external dependencies? [Coverage, Gap]"
-- "Is versioning strategy documented in requirements? [Gap]"
-
-**Performance Requirements Quality:** `performance.md`
-
-Sample items:
-
-- "Are performance requirements quantified with specific metrics? [Clarity]"
-- "Are performance targets defined for all critical user journeys? [Coverage]"
-- "Are performance requirements under different load conditions specified? [Completeness]"
-- "Can performance requirements be objectively measured? [Measurability]"
-- "Are degradation requirements defined for high-load scenarios? [Edge Case, Gap]"
-
-**Security Requirements Quality:** `security.md`
-
-Sample items:
-
-- "Are authentication requirements specified for all protected resources? [Coverage]"
-- "Are data protection requirements defined for sensitive information? [Completeness]"
-- "Is the threat model documented and requirements aligned to it? [Traceability]"
-- "Are security requirements consistent with compliance obligations? [Consistency]"
-- "Are security failure/breach response requirements defined? [Gap, Exception Flow]"
-
-## Anti-Examples: What NOT To Do
-
-**❌ WRONG - These test implementation, not requirements:**
-
-```markdown
-- [ ] CHK001 - Verify landing page displays 3 episode cards [Spec §FR-001]
-- [ ] CHK002 - Test hover states work correctly on desktop [Spec §FR-003]
-- [ ] CHK003 - Confirm logo click navigates to home page [Spec §FR-010]
-- [ ] CHK004 - Check that related episodes section shows 3-5 items [Spec §FR-005]
-```
-
-**✅ CORRECT - These test requirements quality:**
-
-```markdown
-- [ ] CHK001 - Are the number and layout of featured episodes explicitly specified? [Completeness, Spec §FR-001]
-- [ ] CHK002 - Are hover state requirements consistently defined for all interactive elements? [Consistency, Spec §FR-003]
-- [ ] CHK003 - Are navigation requirements clear for all clickable brand elements? [Clarity, Spec §FR-010]
-- [ ] CHK004 - Is the selection criteria for related episodes documented? [Gap, Spec §FR-005]
-- [ ] CHK005 - Are loading state requirements defined for asynchronous episode data? [Gap]
-- [ ] CHK006 - Can "visual hierarchy" requirements be objectively measured? [Measurability, Spec §FR-001]
-```
-
-**Key Differences:**
-
-- Wrong: Tests if the system works correctly
-- Correct: Tests if the requirements are written correctly
-- Wrong: Verification of behavior
-- Correct: Validation of requirement quality
-- Wrong: "Does it do X?"
-- Correct: "Is X clearly specified?"
-````
-
-## File: .claude/commands/speckit.clarify.md
-````markdown
----
-description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
-handoffs: 
-  - label: Build Technical Plan
-    agent: speckit.plan
-    prompt: Create a plan for the spec. I am building with...
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-Goal: Detect and reduce ambiguity or missing decision points in the active feature specification and record the clarifications directly in the spec file.
-
-Note: This clarification workflow is expected to run (and be completed) BEFORE invoking `/speckit.plan`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
-
-Execution steps:
-
-1. Run `.specify/scripts/bash/check-prerequisites.sh --json --paths-only` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
-   - `FEATURE_DIR`
-   - `FEATURE_SPEC`
-   - (Optionally capture `IMPL_PLAN`, `TASKS` for future chained flows.)
-   - If JSON parsing fails, abort and instruct user to re-run `/speckit.specify` or verify feature branch environment.
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-2. Load the current spec file. Perform a structured ambiguity & coverage scan using this taxonomy. For each category, mark status: Clear / Partial / Missing. Produce an internal coverage map used for prioritization (do not output raw map unless no questions will be asked).
-
-   Functional Scope & Behavior:
-   - Core user goals & success criteria
-   - Explicit out-of-scope declarations
-   - User roles / personas differentiation
-
-   Domain & Data Model:
-   - Entities, attributes, relationships
-   - Identity & uniqueness rules
-   - Lifecycle/state transitions
-   - Data volume / scale assumptions
-
-   Interaction & UX Flow:
-   - Critical user journeys / sequences
-   - Error/empty/loading states
-   - Accessibility or localization notes
-
-   Non-Functional Quality Attributes:
-   - Performance (latency, throughput targets)
-   - Scalability (horizontal/vertical, limits)
-   - Reliability & availability (uptime, recovery expectations)
-   - Observability (logging, metrics, tracing signals)
-   - Security & privacy (authN/Z, data protection, threat assumptions)
-   - Compliance / regulatory constraints (if any)
-
-   Integration & External Dependencies:
-   - External services/APIs and failure modes
-   - Data import/export formats
-   - Protocol/versioning assumptions
-
-   Edge Cases & Failure Handling:
-   - Negative scenarios
-   - Rate limiting / throttling
-   - Conflict resolution (e.g., concurrent edits)
-
-   Constraints & Tradeoffs:
-   - Technical constraints (language, storage, hosting)
-   - Explicit tradeoffs or rejected alternatives
-
-   Terminology & Consistency:
-   - Canonical glossary terms
-   - Avoided synonyms / deprecated terms
-
-   Completion Signals:
-   - Acceptance criteria testability
-   - Measurable Definition of Done style indicators
-
-   Misc / Placeholders:
-   - TODO markers / unresolved decisions
-   - Ambiguous adjectives ("robust", "intuitive") lacking quantification
-
-   For each category with Partial or Missing status, add a candidate question opportunity unless:
-   - Clarification would not materially change implementation or validation strategy
-   - Information is better deferred to planning phase (note internally)
-
-3. Generate (internally) a prioritized queue of candidate clarification questions (maximum 5). Do NOT output them all at once. Apply these constraints:
-    - Maximum of 10 total questions across the whole session.
-    - Each question must be answerable with EITHER:
-       - A short multiple‑choice selection (2–5 distinct, mutually exclusive options), OR
-       - A one-word / short‑phrase answer (explicitly constrain: "Answer in <=5 words").
-    - Only include questions whose answers materially impact architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
-    - Ensure category coverage balance: attempt to cover the highest impact unresolved categories first; avoid asking two low-impact questions when a single high-impact area (e.g., security posture) is unresolved.
-    - Exclude questions already answered, trivial stylistic preferences, or plan-level execution details (unless blocking correctness).
-    - Favor clarifications that reduce downstream rework risk or prevent misaligned acceptance tests.
-    - If more than 5 categories remain unresolved, select the top 5 by (Impact * Uncertainty) heuristic.
-
-4. Sequential questioning loop (interactive):
-    - Present EXACTLY ONE question at a time.
-    - For multiple‑choice questions:
-       - **Analyze all options** and determine the **most suitable option** based on:
-          - Best practices for the project type
-          - Common patterns in similar implementations
-          - Risk reduction (security, performance, maintainability)
-          - Alignment with any explicit project goals or constraints visible in the spec
-       - Present your **recommended option prominently** at the top with clear reasoning (1-2 sentences explaining why this is the best choice).
-       - Format as: `**Recommended:** Option [X] - <reasoning>`
-       - Then render all options as a Markdown table:
-
-       | Option | Description |
-       |--------|-------------|
-       | A | <Option A description> |
-       | B | <Option B description> |
-       | C | <Option C description> (add D/E as needed up to 5) |
-       | Short | Provide a different short answer (<=5 words) (Include only if free-form alternative is appropriate) |
-
-       - After the table, add: `You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.`
-    - For short‑answer style (no meaningful discrete options):
-       - Provide your **suggested answer** based on best practices and context.
-       - Format as: `**Suggested:** <your proposed answer> - <brief reasoning>`
-       - Then output: `Format: Short answer (<=5 words). You can accept the suggestion by saying "yes" or "suggested", or provide your own answer.`
-    - After the user answers:
-       - If the user replies with "yes", "recommended", or "suggested", use your previously stated recommendation/suggestion as the answer.
-       - Otherwise, validate the answer maps to one option or fits the <=5 word constraint.
-       - If ambiguous, ask for a quick disambiguation (count still belongs to same question; do not advance).
-       - Once satisfactory, record it in working memory (do not yet write to disk) and move to the next queued question.
-    - Stop asking further questions when:
-       - All critical ambiguities resolved early (remaining queued items become unnecessary), OR
-       - User signals completion ("done", "good", "no more"), OR
-       - You reach 5 asked questions.
-    - Never reveal future queued questions in advance.
-    - If no valid questions exist at start, immediately report no critical ambiguities.
-
-5. Integration after EACH accepted answer (incremental update approach):
-    - Maintain in-memory representation of the spec (loaded once at start) plus the raw file contents.
-    - For the first integrated answer in this session:
-       - Ensure a `## Clarifications` section exists (create it just after the highest-level contextual/overview section per the spec template if missing).
-       - Under it, create (if not present) a `### Session YYYY-MM-DD` subheading for today.
-    - Append a bullet line immediately after acceptance: `- Q: <question> → A: <final answer>`.
-    - Then immediately apply the clarification to the most appropriate section(s):
-       - Functional ambiguity → Update or add a bullet in Functional Requirements.
-       - User interaction / actor distinction → Update User Stories or Actors subsection (if present) with clarified role, constraint, or scenario.
-       - Data shape / entities → Update Data Model (add fields, types, relationships) preserving ordering; note added constraints succinctly.
-       - Non-functional constraint → Add/modify measurable criteria in Non-Functional / Quality Attributes section (convert vague adjective to metric or explicit target).
-       - Edge case / negative flow → Add a new bullet under Edge Cases / Error Handling (or create such subsection if template provides placeholder for it).
-       - Terminology conflict → Normalize term across spec; retain original only if necessary by adding `(formerly referred to as "X")` once.
-    - If the clarification invalidates an earlier ambiguous statement, replace that statement instead of duplicating; leave no obsolete contradictory text.
-    - Save the spec file AFTER each integration to minimize risk of context loss (atomic overwrite).
-    - Preserve formatting: do not reorder unrelated sections; keep heading hierarchy intact.
-    - Keep each inserted clarification minimal and testable (avoid narrative drift).
-
-6. Validation (performed after EACH write plus final pass):
-   - Clarifications session contains exactly one bullet per accepted answer (no duplicates).
-   - Total asked (accepted) questions ≤ 5.
-   - Updated sections contain no lingering vague placeholders the new answer was meant to resolve.
-   - No contradictory earlier statement remains (scan for now-invalid alternative choices removed).
-   - Markdown structure valid; only allowed new headings: `## Clarifications`, `### Session YYYY-MM-DD`.
-   - Terminology consistency: same canonical term used across all updated sections.
-
-7. Write the updated spec back to `FEATURE_SPEC`.
-
-8. Report completion (after questioning loop ends or early termination):
-   - Number of questions asked & answered.
-   - Path to updated spec.
-   - Sections touched (list names).
-   - Coverage summary table listing each taxonomy category with Status: Resolved (was Partial/Missing and addressed), Deferred (exceeds question quota or better suited for planning), Clear (already sufficient), Outstanding (still Partial/Missing but low impact).
-   - If any Outstanding or Deferred remain, recommend whether to proceed to `/speckit.plan` or run `/speckit.clarify` again later post-plan.
-   - Suggested next command.
-
-Behavior rules:
-
-- If no meaningful ambiguities found (or all potential questions would be low-impact), respond: "No critical ambiguities detected worth formal clarification." and suggest proceeding.
-- If spec file missing, instruct user to run `/speckit.specify` first (do not create a new spec here).
-- Never exceed 5 total asked questions (clarification retries for a single question do not count as new questions).
-- Avoid speculative tech stack questions unless the absence blocks functional clarity.
-- Respect user early termination signals ("stop", "done", "proceed").
-- If no questions asked due to full coverage, output a compact coverage summary (all categories Clear) then suggest advancing.
-- If quota reached with unresolved high-impact categories remaining, explicitly flag them under Deferred with rationale.
-
-Context for prioritization: $ARGUMENTS
-````
-
-## File: .claude/commands/speckit.constitution.md
-````markdown
----
-description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync.
-handoffs: 
-  - label: Build Specification
-    agent: speckit.specify
-    prompt: Implement the feature specification based on the updated constitution. I want to build...
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-You are updating the project constitution at `.specify/memory/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
-
-Follow this execution flow:
-
-1. Load the existing constitution template at `.specify/memory/constitution.md`.
-   - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
-   **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
-
-2. Collect/derive values for placeholders:
-   - If user input (conversation) supplies a value, use it.
-   - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded).
-   - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
-   - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
-     - MAJOR: Backward incompatible governance/principle removals or redefinitions.
-     - MINOR: New principle/section added or materially expanded guidance.
-     - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
-   - If version bump type ambiguous, propose reasoning before finalizing.
-
-3. Draft the updated constitution content:
-   - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
-   - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
-   - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
-   - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
-
-4. Consistency propagation checklist (convert prior checklist into active validations):
-   - Read `.specify/templates/plan-template.md` and ensure any "Constitution Check" or rules align with updated principles.
-   - Read `.specify/templates/spec-template.md` for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
-   - Read `.specify/templates/tasks-template.md` and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
-   - Read each command file in `.specify/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required.
-   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
-
-5. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
-   - Version change: old → new
-   - List of modified principles (old title → new title if renamed)
-   - Added sections
-   - Removed sections
-   - Templates requiring updates (✅ updated / ⚠ pending) with file paths
-   - Follow-up TODOs if any placeholders intentionally deferred.
-
-6. Validation before final output:
-   - No remaining unexplained bracket tokens.
-   - Version line matches report.
-   - Dates ISO format YYYY-MM-DD.
-   - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
-
-7. Write the completed constitution back to `.specify/memory/constitution.md` (overwrite).
-
-8. Output a final summary to the user with:
-   - New version and bump rationale.
-   - Any files flagged for manual follow-up.
-   - Suggested commit message (e.g., `docs: amend constitution to vX.Y.Z (principle additions + governance update)`).
-
-Formatting & Style Requirements:
-
-- Use Markdown headings exactly as in the template (do not demote/promote levels).
-- Wrap long rationale lines to keep readability (<100 chars ideally) but do not hard enforce with awkward breaks.
-- Keep a single blank line between sections.
-- Avoid trailing whitespace.
-
-If the user supplies partial updates (e.g., only one principle revision), still perform validation and version decision steps.
-
-If critical info missing (e.g., ratification date truly unknown), insert `TODO(<FIELD_NAME>): explanation` and include in the Sync Impact Report under deferred items.
-
-Do not create a new template; always operate on the existing `.specify/memory/constitution.md` file.
-````
-
-## File: .claude/commands/speckit.implement.md
-````markdown
----
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
-   - Scan all checklist files in the checklists/ directory
-   - For each checklist, count:
-     - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
-     - Completed items: Lines matching `- [X]` or `- [x]`
-     - Incomplete items: Lines matching `- [ ]`
-   - Create a status table:
-
-     ```text
-     | Checklist | Total | Completed | Incomplete | Status |
-     |-----------|-------|-----------|------------|--------|
-     | ux.md     | 12    | 12        | 0          | ✓ PASS |
-     | test.md   | 8     | 5         | 3          | ✗ FAIL |
-     | security.md | 6   | 6         | 0          | ✓ PASS |
-     ```
-
-   - Calculate overall status:
-     - **PASS**: All checklists have 0 incomplete items
-     - **FAIL**: One or more checklists have incomplete items
-
-   - **If any checklist is incomplete**:
-     - Display the table with incomplete item counts
-     - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
-     - Wait for user response before continuing
-     - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 3
-
-   - **If all checklists are complete**:
-     - Display the table showing all checklists passed
-     - Automatically proceed to step 3
-
-3. Load and analyze the implementation context:
-   - **REQUIRED**: Read tasks.md for the complete task list and execution plan
-   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
-   - **IF EXISTS**: Read data-model.md for entities and relationships
-   - **IF EXISTS**: Read contracts/ for API specifications and test requirements
-   - **IF EXISTS**: Read research.md for technical decisions and constraints
-   - **IF EXISTS**: Read quickstart.md for integration scenarios
-
-4. **Project Setup Verification**:
-   - **REQUIRED**: Create/verify ignore files based on actual project setup:
-
-   **Detection & Creation Logic**:
-   - Check if the following command succeeds to determine if the repository is a git repo (create/verify .gitignore if so):
-
-     ```sh
-     git rev-parse --git-dir 2>/dev/null
-     ```
-
-   - Check if Dockerfile* exists or Docker in plan.md → create/verify .dockerignore
-   - Check if .eslintrc* exists → create/verify .eslintignore
-   - Check if eslint.config.* exists → ensure the config's `ignores` entries cover required patterns
-   - Check if .prettierrc* exists → create/verify .prettierignore
-   - Check if .npmrc or package.json exists → create/verify .npmignore (if publishing)
-   - Check if terraform files (*.tf) exist → create/verify .terraformignore
-   - Check if .helmignore needed (helm charts present) → create/verify .helmignore
-
-   **If ignore file already exists**: Verify it contains essential patterns, append missing critical patterns only
-   **If ignore file missing**: Create with full pattern set for detected technology
-
-   **Common Patterns by Technology** (from plan.md tech stack):
-   - **Node.js/JavaScript/TypeScript**: `node_modules/`, `dist/`, `build/`, `*.log`, `.env*`
-   - **Python**: `__pycache__/`, `*.pyc`, `.venv/`, `venv/`, `dist/`, `*.egg-info/`
-   - **Java**: `target/`, `*.class`, `*.jar`, `.gradle/`, `build/`
-   - **C#/.NET**: `bin/`, `obj/`, `*.user`, `*.suo`, `packages/`
-   - **Go**: `*.exe`, `*.test`, `vendor/`, `*.out`
-   - **Ruby**: `.bundle/`, `log/`, `tmp/`, `*.gem`, `vendor/bundle/`
-   - **PHP**: `vendor/`, `*.log`, `*.cache`, `*.env`
-   - **Rust**: `target/`, `debug/`, `release/`, `*.rs.bk`, `*.rlib`, `*.prof*`, `.idea/`, `*.log`, `.env*`
-   - **Kotlin**: `build/`, `out/`, `.gradle/`, `.idea/`, `*.class`, `*.jar`, `*.iml`, `*.log`, `.env*`
-   - **C++**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.so`, `*.a`, `*.exe`, `*.dll`, `.idea/`, `*.log`, `.env*`
-   - **C**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.a`, `*.so`, `*.exe`, `Makefile`, `config.log`, `.idea/`, `*.log`, `.env*`
-   - **Swift**: `.build/`, `DerivedData/`, `*.swiftpm/`, `Packages/`
-   - **R**: `.Rproj.user/`, `.Rhistory`, `.RData`, `.Ruserdata`, `*.Rproj`, `packrat/`, `renv/`
-   - **Universal**: `.DS_Store`, `Thumbs.db`, `*.tmp`, `*.swp`, `.vscode/`, `.idea/`
-
-   **Tool-Specific Patterns**:
-   - **Docker**: `node_modules/`, `.git/`, `Dockerfile*`, `.dockerignore`, `*.log*`, `.env*`, `coverage/`
-   - **ESLint**: `node_modules/`, `dist/`, `build/`, `coverage/`, `*.min.js`
-   - **Prettier**: `node_modules/`, `dist/`, `build/`, `coverage/`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
-   - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
-   - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
-
-5. Parse tasks.md structure and extract:
-   - **Task phases**: Setup, Tests, Core, Integration, Polish
-   - **Task dependencies**: Sequential vs parallel execution rules
-   - **Task details**: ID, description, file paths, parallel markers [P]
-   - **Execution flow**: Order and dependency requirements
-
-6. Execute implementation following the task plan:
-   - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
-   - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
-
-7. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
-   - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
-
-8. Progress tracking and error handling:
-   - Report progress after each completed task
-   - Halt execution if any non-parallel task fails
-   - For parallel tasks [P], continue with successful tasks, report failed ones
-   - Provide clear error messages with context for debugging
-   - Suggest next steps if implementation cannot proceed
-   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
-
-9. Completion validation:
-   - Verify all required tasks are completed
-   - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
-   - Report final status with summary of completed work
-
-Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
-````
-
-## File: .claude/commands/speckit.plan.md
-````markdown
----
-description: Execute the implementation planning workflow using the plan template to generate design artifacts.
-handoffs: 
-  - label: Create Tasks
-    agent: speckit.tasks
-    prompt: Break the plan into tasks
-    send: true
-  - label: Create Checklist
-    agent: speckit.checklist
-    prompt: Create a checklist for the following domain...
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-1. **Setup**: Run `.specify/scripts/bash/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
-
-3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
-   - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
-   - Fill Constitution Check section from constitution
-   - Evaluate gates (ERROR if violations unjustified)
-   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
-   - Phase 1: Generate data-model.md, contracts/, quickstart.md
-   - Phase 1: Update agent context by running the agent script
-   - Re-evaluate Constitution Check post-design
-
-4. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
-
-## Phases
-
-### Phase 0: Outline & Research
-
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION → research task
-   - For each dependency → best practices task
-   - For each integration → patterns task
-
-2. **Generate and dispatch research agents**:
-
-   ```text
-   For each unknown in Technical Context:
-     Task: "Research {unknown} for {feature context}"
-   For each technology choice:
-     Task: "Find best practices for {tech} in {domain}"
-   ```
-
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
-
-**Output**: research.md with all NEEDS CLARIFICATION resolved
-
-### Phase 1: Design & Contracts
-
-**Prerequisites:** `research.md` complete
-
-1. **Extract entities from feature spec** → `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
-
-2. **Generate API contracts** from functional requirements:
-   - For each user action → endpoint
-   - Use standard REST/GraphQL patterns
-   - Output OpenAPI/GraphQL schema to `/contracts/`
-
-3. **Agent context update**:
-   - Run `.specify/scripts/bash/update-agent-context.sh claude`
-   - These scripts detect which AI agent is in use
-   - Update the appropriate agent-specific context file
-   - Add only new technology from current plan
-   - Preserve manual additions between markers
-
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
-
-## Key rules
-
-- Use absolute paths
-- ERROR on gate failures or unresolved clarifications
-````
-
-## File: .claude/commands/speckit.specify.md
-````markdown
----
-description: Create or update the feature specification from a natural language feature description.
-handoffs: 
-  - label: Build Technical Plan
-    agent: speckit.plan
-    prompt: Create a plan for the spec. I am building with...
-  - label: Clarify Spec Requirements
-    agent: speckit.clarify
-    prompt: Clarify specification requirements
-    send: true
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
-
-Given that feature description, do this:
-
-1. **Generate a concise short name** (2-4 words) for the branch:
-   - Analyze the feature description and extract the most meaningful keywords
-   - Create a 2-4 word short name that captures the essence of the feature
-   - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
-   - Preserve technical terms and acronyms (OAuth2, API, JWT, etc.)
-   - Keep it concise but descriptive enough to understand the feature at a glance
-   - Examples:
-     - "I want to add user authentication" → "user-auth"
-     - "Implement OAuth2 integration for the API" → "oauth2-api-integration"
-     - "Create a dashboard for analytics" → "analytics-dashboard"
-     - "Fix payment processing timeout bug" → "fix-payment-timeout"
-
-2. **Check for existing branches before creating new one**:
-   
-   a. First, fetch all remote branches to ensure we have the latest information:
-      ```bash
-      git fetch --all --prune
-      ```
-   
-   b. Find the highest feature number across all sources for the short-name:
-      - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
-      - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
-      - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
-   
-   c. Determine the next available number:
-      - Extract all numbers from all three sources
-      - Find the highest number N
-      - Use N+1 for the new branch number
-   
-   d. Run the script `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS"` with the calculated number and short-name:
-      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
-      - Bash example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
-      - PowerShell example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
-   
-   **IMPORTANT**:
-   - Check all three sources (remote branches, local branches, specs directories) to find the highest number
-   - Only match branches/directories with the exact short-name pattern
-   - If no existing branches/directories found with this short-name, start with number 1
-   - You must only ever run this script once per feature
-   - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for
-   - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
-
-3. Load `.specify/templates/spec-template.md` to understand required sections.
-
-4. Follow this execution flow:
-
-    1. Parse user description from Input
-       If empty: ERROR "No feature description provided"
-    2. Extract key concepts from description
-       Identify: actors, actions, data, constraints
-    3. For unclear aspects:
-       - Make informed guesses based on context and industry standards
-       - Only mark with [NEEDS CLARIFICATION: specific question] if:
-         - The choice significantly impacts feature scope or user experience
-         - Multiple reasonable interpretations exist with different implications
-         - No reasonable default exists
-       - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
-       - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
-    4. Fill User Scenarios & Testing section
-       If no clear user flow: ERROR "Cannot determine user scenarios"
-    5. Generate Functional Requirements
-       Each requirement must be testable
-       Use reasonable defaults for unspecified details (document assumptions in Assumptions section)
-    6. Define Success Criteria
-       Create measurable, technology-agnostic outcomes
-       Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
-       Each criterion must be verifiable without implementation details
-    7. Identify Key Entities (if data involved)
-    8. Return: SUCCESS (spec ready for planning)
-
-5. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
-
-6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
-
-   a. **Create Spec Quality Checklist**: Generate a checklist file at `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
-
-      ```markdown
-      # Specification Quality Checklist: [FEATURE NAME]
-      
-      **Purpose**: Validate specification completeness and quality before proceeding to planning
-      **Created**: [DATE]
-      **Feature**: [Link to spec.md]
-      
-      ## Content Quality
-      
-      - [ ] No implementation details (languages, frameworks, APIs)
-      - [ ] Focused on user value and business needs
-      - [ ] Written for non-technical stakeholders
-      - [ ] All mandatory sections completed
-      
-      ## Requirement Completeness
-      
-      - [ ] No [NEEDS CLARIFICATION] markers remain
-      - [ ] Requirements are testable and unambiguous
-      - [ ] Success criteria are measurable
-      - [ ] Success criteria are technology-agnostic (no implementation details)
-      - [ ] All acceptance scenarios are defined
-      - [ ] Edge cases are identified
-      - [ ] Scope is clearly bounded
-      - [ ] Dependencies and assumptions identified
-      
-      ## Feature Readiness
-      
-      - [ ] All functional requirements have clear acceptance criteria
-      - [ ] User scenarios cover primary flows
-      - [ ] Feature meets measurable outcomes defined in Success Criteria
-      - [ ] No implementation details leak into specification
-      
-      ## Notes
-      
-      - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
-      ```
-
-   b. **Run Validation Check**: Review the spec against each checklist item:
-      - For each item, determine if it passes or fails
-      - Document specific issues found (quote relevant spec sections)
-
-   c. **Handle Validation Results**:
-
-      - **If all items pass**: Mark checklist complete and proceed to step 6
-
-      - **If items fail (excluding [NEEDS CLARIFICATION])**:
-        1. List the failing items and specific issues
-        2. Update the spec to address each issue
-        3. Re-run validation until all items pass (max 3 iterations)
-        4. If still failing after 3 iterations, document remaining issues in checklist notes and warn user
-
-      - **If [NEEDS CLARIFICATION] markers remain**:
-        1. Extract all [NEEDS CLARIFICATION: ...] markers from the spec
-        2. **LIMIT CHECK**: If more than 3 markers exist, keep only the 3 most critical (by scope/security/UX impact) and make informed guesses for the rest
-        3. For each clarification needed (max 3), present options to user in this format:
-
-           ```markdown
-           ## Question [N]: [Topic]
-           
-           **Context**: [Quote relevant spec section]
-           
-           **What we need to know**: [Specific question from NEEDS CLARIFICATION marker]
-           
-           **Suggested Answers**:
-           
-           | Option | Answer | Implications |
-           |--------|--------|--------------|
-           | A      | [First suggested answer] | [What this means for the feature] |
-           | B      | [Second suggested answer] | [What this means for the feature] |
-           | C      | [Third suggested answer] | [What this means for the feature] |
-           | Custom | Provide your own answer | [Explain how to provide custom input] |
-           
-           **Your choice**: _[Wait for user response]_
-           ```
-
-        4. **CRITICAL - Table Formatting**: Ensure markdown tables are properly formatted:
-           - Use consistent spacing with pipes aligned
-           - Each cell should have spaces around content: `| Content |` not `|Content|`
-           - Header separator must have at least 3 dashes: `|--------|`
-           - Test that the table renders correctly in markdown preview
-        5. Number questions sequentially (Q1, Q2, Q3 - max 3 total)
-        6. Present all questions together before waiting for responses
-        7. Wait for user to respond with their choices for all questions (e.g., "Q1: A, Q2: Custom - [details], Q3: B")
-        8. Update the spec by replacing each [NEEDS CLARIFICATION] marker with the user's selected or provided answer
-        9. Re-run validation after all clarifications are resolved
-
-   d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
-
-7. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
-
-**NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
-
-## General Guidelines
-
-## Quick Guidelines
-
-- Focus on **WHAT** users need and **WHY**.
-- Avoid HOW to implement (no tech stack, APIs, code structure).
-- Written for business stakeholders, not developers.
-- DO NOT create any checklists that are embedded in the spec. That will be a separate command.
-
-### Section Requirements
-
-- **Mandatory sections**: Must be completed for every feature
-- **Optional sections**: Include only when relevant to the feature
-- When a section doesn't apply, remove it entirely (don't leave as "N/A")
-
-### For AI Generation
-
-When creating this spec from a user prompt:
-
-1. **Make informed guesses**: Use context, industry standards, and common patterns to fill gaps
-2. **Document assumptions**: Record reasonable defaults in the Assumptions section
-3. **Limit clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical decisions that:
-   - Significantly impact feature scope or user experience
-   - Have multiple reasonable interpretations with different implications
-   - Lack any reasonable default
-4. **Prioritize clarifications**: scope > security/privacy > user experience > technical details
-5. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
-6. **Common areas needing clarification** (only if no reasonable default exists):
-   - Feature scope and boundaries (include/exclude specific use cases)
-   - User types and permissions (if multiple conflicting interpretations possible)
-   - Security/compliance requirements (when legally/financially significant)
-
-**Examples of reasonable defaults** (don't ask about these):
-
-- Data retention: Industry-standard practices for the domain
-- Performance targets: Standard web/mobile app expectations unless specified
-- Error handling: User-friendly messages with appropriate fallbacks
-- Authentication method: Standard session-based or OAuth2 for web apps
-- Integration patterns: RESTful APIs unless specified otherwise
-
-### Success Criteria Guidelines
-
-Success criteria must be:
-
-1. **Measurable**: Include specific metrics (time, percentage, count, rate)
-2. **Technology-agnostic**: No mention of frameworks, languages, databases, or tools
-3. **User-focused**: Describe outcomes from user/business perspective, not system internals
-4. **Verifiable**: Can be tested/validated without knowing implementation details
-
-**Good examples**:
-
-- "Users can complete checkout in under 3 minutes"
-- "System supports 10,000 concurrent users"
-- "95% of searches return results in under 1 second"
-- "Task completion rate improves by 40%"
-
-**Bad examples** (implementation-focused):
-
-- "API response time is under 200ms" (too technical, use "Users see results instantly")
-- "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
-- "React components render efficiently" (framework-specific)
-- "Redis cache hit rate above 80%" (technology-specific)
-````
-
-## File: .claude/commands/speckit.tasks.md
-````markdown
----
-description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
-handoffs: 
-  - label: Analyze For Consistency
-    agent: speckit.analyze
-    prompt: Run a project analysis for consistency
-    send: true
-  - label: Implement Project
-    agent: speckit.implement
-    prompt: Start the implementation in phases
-    send: true
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
-   - **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions), quickstart.md (test scenarios)
-   - Note: Not all projects have all documents. Generate tasks based on what's available.
-
-3. **Execute task generation workflow**:
-   - Load plan.md and extract tech stack, libraries, project structure
-   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
-   - If data-model.md exists: Extract entities and map to user stories
-   - If contracts/ exists: Map endpoints to user stories
-   - If research.md exists: Extract decisions for setup tasks
-   - Generate tasks organized by user story (see Task Generation Rules below)
-   - Generate dependency graph showing user story completion order
-   - Create parallel execution examples per user story
-   - Validate task completeness (each user story has all needed tasks, independently testable)
-
-4. **Generate tasks.md**: Use `.specify.specify/templates/tasks-template.md` as structure, fill with:
-   - Correct feature name from plan.md
-   - Phase 1: Setup tasks (project initialization)
-   - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
-   - Phase 3+: One phase per user story (in priority order from spec.md)
-   - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
-   - Final Phase: Polish & cross-cutting concerns
-   - All tasks must follow the strict checklist format (see Task Generation Rules below)
-   - Clear file paths for each task
-   - Dependencies section showing story completion order
-   - Parallel execution examples per story
-   - Implementation strategy section (MVP first, incremental delivery)
-
-5. **Report**: Output path to generated tasks.md and summary:
-   - Total task count
-   - Task count per user story
-   - Parallel opportunities identified
-   - Independent test criteria for each story
-   - Suggested MVP scope (typically just User Story 1)
-   - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
-
-Context for task generation: $ARGUMENTS
-
-The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
-
-## Task Generation Rules
-
-**CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
-
-**Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
-
-### Checklist Format (REQUIRED)
-
-Every task MUST strictly follow this format:
-
-```text
-- [ ] [TaskID] [P?] [Story?] Description with file path
-```
-
-**Format Components**:
-
-1. **Checkbox**: ALWAYS start with `- [ ]` (markdown checkbox)
-2. **Task ID**: Sequential number (T001, T002, T003...) in execution order
-3. **[P] marker**: Include ONLY if task is parallelizable (different files, no dependencies on incomplete tasks)
-4. **[Story] label**: REQUIRED for user story phase tasks only
-   - Format: [US1], [US2], [US3], etc. (maps to user stories from spec.md)
-   - Setup phase: NO story label
-   - Foundational phase: NO story label  
-   - User Story phases: MUST have story label
-   - Polish phase: NO story label
-5. **Description**: Clear action with exact file path
-
-**Examples**:
-
-- ✅ CORRECT: `- [ ] T001 Create project structure per implementation plan`
-- ✅ CORRECT: `- [ ] T005 [P] Implement authentication middleware in src/middleware/auth.py`
-- ✅ CORRECT: `- [ ] T012 [P] [US1] Create User model in src/models/user.py`
-- ✅ CORRECT: `- [ ] T014 [US1] Implement UserService in src/services/user_service.py`
-- ❌ WRONG: `- [ ] Create User model` (missing ID and Story label)
-- ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
-- ❌ WRONG: `- [ ] [US1] Create User model` (missing Task ID)
-- ❌ WRONG: `- [ ] T001 [US1] Create model` (missing file path)
-
-### Task Organization
-
-1. **From User Stories (spec.md)** - PRIMARY ORGANIZATION:
-   - Each user story (P1, P2, P3...) gets its own phase
-   - Map all related components to their story:
-     - Models needed for that story
-     - Services needed for that story
-     - Endpoints/UI needed for that story
-     - If tests requested: Tests specific to that story
-   - Mark story dependencies (most stories should be independent)
-
-2. **From Contracts**:
-   - Map each contract/endpoint → to the user story it serves
-   - If tests requested: Each contract → contract test task [P] before implementation in that story's phase
-
-3. **From Data Model**:
-   - Map each entity to the user story(ies) that need it
-   - If entity serves multiple stories: Put in earliest story or Setup phase
-   - Relationships → service layer tasks in appropriate story phase
-
-4. **From Setup/Infrastructure**:
-   - Shared infrastructure → Setup phase (Phase 1)
-   - Foundational/blocking tasks → Foundational phase (Phase 2)
-   - Story-specific setup → within that story's phase
-
-### Phase Structure
-
-- **Phase 1**: Setup (project initialization)
-- **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
-- **Phase 3+**: User Stories in priority order (P1, P2, P3...)
-  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
-  - Each phase should be a complete, independently testable increment
-- **Final Phase**: Polish & Cross-Cutting Concerns
-````
-
-## File: .claude/commands/speckit.taskstoissues.md
-````markdown
----
-description: Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
-tools: ['github/github-mcp-server/issue_write']
----
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding (if not empty).
-
-## Outline
-
-1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-1. From the executed script, extract the path to **tasks**.
-1. Get the Git remote by running:
-
-```bash
-git config --get remote.origin.url
-```
-
-**ONLY PROCEED TO NEXT STEPS IF THE REMOTE IS A GITHUB URL**
-
-1. For each task in the list, use the GitHub MCP server to create a new issue in the repository that is representative of the Git remote.
-
-**UNDER NO CIRCUMSTANCES EVER CREATE ISSUES IN REPOSITORIES THAT DO NOT MATCH THE REMOTE URL**
-````
-
 ## File: .specify/scripts/bash/check-prerequisites.sh
 ````bash
 #!/usr/bin/env bash
@@ -9885,6 +9790,360 @@ With multiple developers:
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+````
+
+## File: docs/_config.yml
+````yaml
+# AgentReady Documentation Site Configuration
+
+# Site settings
+title: AgentReady
+tagline: Repository Quality Assessment for AI-Assisted Development
+description: >-
+  Assess repositories against 25 evidence-based attributes that make codebases
+  more effective for AI-assisted development. Generate actionable reports with
+  specific remediation guidance.
+
+# Repository information
+repository: yourusername/agentready
+github_username: yourusername
+
+# Build settings
+theme: jekyll-theme-minimal
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    default_lang: python
+    css_class: 'highlight'
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: User Guide
+    url: /user-guide
+  - title: Developer Guide
+    url: /developer-guide
+  - title: Attributes
+    url: /attributes
+  - title: API Reference
+    url: /api-reference
+  - title: Examples
+    url: /examples
+
+# Collections
+collections:
+  attributes:
+    output: true
+    permalink: /attributes/:name
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "attributes"
+    values:
+      layout: "attribute"
+
+# Exclude from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .sass-cache
+  - .jekyll-cache
+  - README.md
+
+# Site metadata
+version: 1.0.0
+certification_levels:
+  platinum:
+    range: "90-100"
+    color: "#e5e4e2"
+    emoji: "🏆"
+  gold:
+    range: "75-89"
+    color: "#ffd700"
+    emoji: "🥇"
+  silver:
+    range: "60-74"
+    color: "#c0c0c0"
+    emoji: "🥈"
+  bronze:
+    range: "40-59"
+    color: "#cd7f32"
+    emoji: "🥉"
+  needs_improvement:
+    range: "0-39"
+    color: "#8b4513"
+    emoji: "📈"
+
+# URLs
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site
+
+# Analytics (optional - uncomment and add your ID)
+# google_analytics: UA-XXXXXXXXX-X
+````
+
+## File: docs/index.md
+````markdown
+---
+layout: home
+title: Home
+---
+
+# AgentReady
+
+**Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness.**
+
+<div class="hero">
+  <p class="hero-tagline">Transform your codebase into an AI-friendly powerhouse. Get actionable insights in seconds.</p>
+  <div class="hero-buttons">
+    <a href="/user-guide#installation" class="button button-primary">Get Started</a>
+    <a href="/examples" class="button button-secondary">View Examples</a>
+  </div>
+</div>
+
+## Why AgentReady?
+
+AI-assisted development tools like Claude Code, GitHub Copilot, and Cursor AI work best with well-structured, documented codebases. AgentReady evaluates your repository across **25 research-backed attributes** and provides specific, actionable guidance to improve AI effectiveness.
+
+<div class="feature-grid">
+  <div class="feature">
+    <h3>📊 Comprehensive Assessment</h3>
+    <p>Evaluate 25 attributes across documentation, code quality, testing, structure, and security.</p>
+  </div>
+  <div class="feature">
+    <h3>🎯 Actionable Guidance</h3>
+    <p>Get specific tools, commands, and examples to improve each attribute—not generic advice.</p>
+  </div>
+  <div class="feature">
+    <h3>📈 Track Progress</h3>
+    <p>Version-control-friendly Markdown reports let you track improvements over time.</p>
+  </div>
+  <div class="feature">
+    <h3>🏆 Earn Certifications</h3>
+    <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality.</p>
+  </div>
+  <div class="feature">
+    <h3>⚡ Fast & Lightweight</h3>
+    <p>Complete assessments in seconds. No external dependencies or cloud services required.</p>
+  </div>
+  <div class="feature">
+    <h3>🔬 Research-Backed</h3>
+    <p>Every attribute is backed by 50+ citations from Anthropic, Microsoft, Google, and academic research.</p>
+  </div>
+</div>
+
+## Quick Start
+
+```bash
+# Install AgentReady
+pip install agentready
+
+# Assess your repository
+cd /path/to/your/repo
+agentready assess .
+
+# View interactive HTML report
+open .agentready/report-latest.html
+```
+
+**That's it!** In under a minute, you'll have:
+- Overall score and certification level (Platinum/Gold/Silver/Bronze)
+- Detailed findings for all 25 attributes
+- Specific remediation steps with tools and examples
+- Three report formats (HTML, Markdown, JSON)
+
+[See full installation guide →](/user-guide#installation)
+
+## Certification Levels
+
+AgentReady scores repositories on a 0-100 scale with tier-weighted attributes:
+
+<div class="certification-ladder">
+  <div class="cert-level platinum">
+    <div class="cert-badge">🏆 Platinum</div>
+    <div class="cert-range">90-100</div>
+    <div class="cert-desc">Exemplary agent-ready codebase</div>
+  </div>
+  <div class="cert-level gold">
+    <div class="cert-badge">🥇 Gold</div>
+    <div class="cert-range">75-89</div>
+    <div class="cert-desc">Highly optimized for AI agents</div>
+  </div>
+  <div class="cert-level silver">
+    <div class="cert-badge">🥈 Silver</div>
+    <div class="cert-range">60-74</div>
+    <div class="cert-desc">Well-suited for AI development</div>
+  </div>
+  <div class="cert-level bronze">
+    <div class="cert-badge">🥉 Bronze</div>
+    <div class="cert-range">40-59</div>
+    <div class="cert-desc">Basic agent compatibility</div>
+  </div>
+  <div class="cert-level needs-improvement">
+    <div class="cert-badge">📈 Needs Improvement</div>
+    <div class="cert-range">0-39</div>
+    <div class="cert-desc">Significant friction for AI agents</div>
+  </div>
+</div>
+
+**AgentReady itself scores 75.4/100 (Gold)** — see our [self-assessment report](/examples/self-assessment).
+
+## What Gets Assessed?
+
+AgentReady evaluates 25 attributes organized into four weighted tiers:
+
+### Tier 1: Essential (50% of score)
+The fundamentals that enable basic AI agent functionality:
+- **CLAUDE.md File** — Project context for AI agents
+- **README Structure** — Clear documentation entry point
+- **Type Annotations** — Static typing for better code understanding
+- **Standard Project Layout** — Predictable directory structure
+- **Lock Files** — Reproducible dependency management
+
+### Tier 2: Critical (30% of score)
+Major quality improvements and safety nets:
+- **Test Coverage** — Confidence for AI-assisted refactoring
+- **Pre-commit Hooks** — Automated quality enforcement
+- **Conventional Commits** — Structured git history
+- **Gitignore Completeness** — Clean repository navigation
+- **One-Command Setup** — Easy environment reproduction
+
+### Tier 3: Important (15% of score)
+Significant improvements in specific areas:
+- **Cyclomatic Complexity** — Code comprehension metrics
+- **Structured Logging** — Machine-parseable debugging
+- **API Documentation** — OpenAPI/GraphQL specifications
+- **Architecture Decision Records** — Historical design context
+- **Semantic Naming** — Clear, descriptive identifiers
+
+### Tier 4: Advanced (5% of score)
+Refinement and optimization:
+- **Security Scanning** — Automated vulnerability detection
+- **Performance Benchmarks** — Regression tracking
+- **Code Smell Elimination** — Quality baseline maintenance
+- **PR/Issue Templates** — Consistent contribution workflow
+- **Container Setup** — Portable development environments
+
+[View complete attribute reference →](/attributes)
+
+## Report Formats
+
+AgentReady generates three complementary report formats:
+
+### Interactive HTML Report
+- Color-coded findings with visual score indicators
+- Search, filter, and sort capabilities
+- Collapsible sections for detailed analysis
+- Works offline (no CDN dependencies)
+- **Use case**: Share with stakeholders, detailed exploration
+
+### Version-Control Markdown
+- GitHub-Flavored Markdown with tables and emojis
+- Git-diffable format for tracking progress
+- Certification ladder and next steps
+- **Use case**: Commit to repository, track improvements over time
+
+### Machine-Readable JSON
+- Complete assessment data structure
+- Timestamps and metadata
+- Structured findings with evidence
+- **Use case**: CI/CD integration, programmatic analysis
+
+[See example reports →](/examples)
+
+## Evidence-Based Research
+
+All 25 attributes are derived from authoritative sources:
+
+- **Anthropic** — Claude Code best practices and engineering blog
+- **Microsoft** — Code metrics and Azure DevOps guidance
+- **Google** — SRE handbook and style guides
+- **ArXiv** — Software engineering research papers
+- **IEEE/ACM** — Academic publications on code quality
+
+Every attribute includes specific citations and measurable criteria. No subjective opinions—just proven practices that improve AI effectiveness.
+
+[Read the research document →](https://github.com/yourusername/agentready/blob/main/agent-ready-codebase-attributes.md)
+
+## Use Cases
+
+<div class="use-case-grid">
+  <div class="use-case">
+    <h4>🚀 New Projects</h4>
+    <p>Start with best practices from day one. Use AgentReady's guidance to structure your repository for AI-assisted development from the beginning.</p>
+  </div>
+  <div class="use-case">
+    <h4>🔄 Legacy Modernization</h4>
+    <p>Identify high-impact improvements to make legacy codebases more AI-friendly. Prioritize changes with tier-based scoring.</p>
+  </div>
+  <div class="use-case">
+    <h4>📊 Team Standards</h4>
+    <p>Establish organization-wide quality baselines. Track adherence across multiple repositories with consistent, objective metrics.</p>
+  </div>
+  <div class="use-case">
+    <h4>🎓 Education & Onboarding</h4>
+    <p>Teach developers what makes code AI-ready. Use assessments as learning tools to understand best practices.</p>
+  </div>
+</div>
+
+## What Users Are Saying
+
+> "Running AgentReady on our codebase identified 5 quick wins that immediately improved Claude Code's suggestions. The actionable remediation made it easy to implement changes in under an hour."
+> — *Engineering Team Lead*
+
+> "The research backing each attribute gave me confidence these weren't arbitrary rules. Every recommendation is cited and measurable."
+> — *Principal Engineer*
+
+> "We use AgentReady in CI to prevent regression. It's become part of our definition of done for new features."
+> — *DevOps Engineer*
+
+## Ready to Get Started?
+
+<div class="cta-section">
+  <h3>Assess your repository in 60 seconds</h3>
+  <pre><code>pip install agentready
+agentready assess .
+</code></pre>
+  <a href="/user-guide" class="button button-primary button-large">Read the User Guide</a>
+</div>
+
+---
+
+## Latest News
+
+**Version 1.0.0 Released** (2025-11-21)
+Initial release with 10 implemented assessors, interactive HTML reports, and comprehensive documentation. AgentReady achieves Gold certification (75.4/100) on its own codebase.
+
+[View changelog →](https://github.com/yourusername/agentready/releases)
+
+## Community
+
+- **GitHub**: [github.com/yourusername/agentready](https://github.com/yourusername/agentready)
+- **Issues**: Report bugs or request features
+- **Discussions**: Ask questions and share experiences
+- **Contributing**: See the [Developer Guide](/developer-guide)
+
+## License
+
+AgentReady is open source under the [MIT License](https://github.com/yourusername/agentready/blob/main/LICENSE).
 ````
 
 ## File: examples/self-assessment/assessment-20251121.json
@@ -12682,6 +12941,487 @@ repos:
 - **Assessment Duration**: 0.2s
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
+````
+
+## File: scripts/backlog_to_issues.py
+````python
+#!/usr/bin/env python3
+"""
+Script to convert BACKLOG.md items into coldstart prompts.
+
+This script:
+1. Parses BACKLOG.md to extract individual items
+2. Generates comprehensive coldstart prompts for each item
+3. Saves prompts as markdown files in .github/coldstart-prompts/
+4. Optionally creates GitHub issues via gh CLI (if --create-issues flag set)
+5. Pauses after first item for user review
+"""
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import List, Dict, Optional
+import json
+
+
+class BacklogItem:
+    """Represents a single backlog item."""
+
+    def __init__(self, title: str, priority: str, content: str, section_start: int):
+        self.title = title
+        self.priority = priority
+        self.content = content
+        self.section_start = section_start
+
+    def __repr__(self):
+        return f"BacklogItem(title={self.title}, priority={self.priority})"
+
+
+def parse_backlog(backlog_path: Path) -> List[BacklogItem]:
+    """Parse BACKLOG.md and extract all items."""
+
+    with open(backlog_path, 'r') as f:
+        content = f.read()
+
+    items = []
+
+    # Split into sections by ###
+    sections = re.split(r'\n### ', content)
+
+    for i, section in enumerate(sections[1:], 1):  # Skip first section (header)
+        lines = section.split('\n')
+        title = lines[0].strip()
+
+        # Find priority in next few lines
+        priority = "P4"  # default
+        for line in lines[1:5]:
+            if match := re.search(r'\*\*Priority\*\*:\s*(P\d)', line):
+                priority = match.group(1)
+                break
+
+        # Get full content until next ### or end
+        full_content = '\n'.join(lines)
+
+        items.append(BacklogItem(
+            title=title,
+            priority=priority,
+            content=full_content,
+            section_start=i
+        ))
+
+    return items
+
+
+def generate_coldstart_prompt(item: BacklogItem, repo_context: Dict) -> str:
+    """Generate a comprehensive coldstart prompt for implementing the backlog item."""
+
+    prompt = f"""# Coldstart Implementation Prompt: {item.title}
+
+**Priority**: {item.priority}
+**Repository**: agentready (https://github.com/{repo_context['owner']}/{repo_context['repo']})
+**Branch Strategy**: Create feature branch from main
+
+---
+
+## Context
+
+You are implementing a feature for AgentReady, a repository quality assessment tool for AI-assisted development.
+
+### Repository Structure
+```
+agentready/
+├── src/agentready/          # Source code
+│   ├── models/              # Data models
+│   ├── services/            # Scanner orchestration
+│   ├── assessors/           # Attribute assessments
+│   ├── reporters/           # Report generation (HTML, Markdown, JSON)
+│   ├── templates/           # Jinja2 templates
+│   └── cli/                 # Click-based CLI
+├── tests/                   # Test suite (unit + integration)
+├── examples/                # Example reports
+└── specs/                   # Feature specifications
+```
+
+### Key Technologies
+- Python 3.11+
+- Click (CLI framework)
+- Jinja2 (templating)
+- Pytest (testing)
+- Black, isort, ruff (code quality)
+
+### Development Workflow
+1. Create feature branch: `git checkout -b NNN-feature-name`
+2. Implement changes with tests
+3. Run linters: `black . && isort . && ruff check .`
+4. Run tests: `pytest`
+5. Commit with conventional commits
+6. Create PR to main
+
+---
+
+## Feature Requirements
+
+{item.content}
+
+---
+
+## Implementation Checklist
+
+Before you begin:
+- [ ] Read CLAUDE.md for project context
+- [ ] Review existing similar features (if applicable)
+- [ ] Understand the data model (src/agentready/models/)
+- [ ] Check acceptance criteria in feature description
+
+Implementation steps:
+- [ ] Create feature branch
+- [ ] Implement core functionality
+- [ ] Add unit tests (target >80% coverage)
+- [ ] Add integration tests (if applicable)
+- [ ] Run linters and fix any issues
+- [ ] Update documentation (README.md, CLAUDE.md if needed)
+- [ ] Self-test the feature end-to-end
+- [ ] Create PR with descriptive title and body
+
+Code quality requirements:
+- [ ] All code formatted with black (88 char lines)
+- [ ] Imports sorted with isort
+- [ ] No ruff violations
+- [ ] All tests passing
+- [ ] Type hints where appropriate
+- [ ] Docstrings for public APIs
+
+---
+
+## Key Files to Review
+
+Based on this feature, you should review:
+- `src/agentready/models/` - Understand Assessment, Finding, Attribute models
+- `src/agentready/services/scanner.py` - Scanner orchestration
+- `src/agentready/assessors/base.py` - BaseAssessor pattern
+- `src/agentready/reporters/` - Report generation
+- `CLAUDE.md` - Project overview and guidelines
+- `BACKLOG.md` - Full context of this feature
+
+---
+
+## Testing Strategy
+
+For this feature, ensure:
+1. **Unit tests** for core logic (80%+ coverage)
+2. **Integration tests** for end-to-end workflows
+3. **Edge case tests** (empty inputs, missing files, errors)
+4. **Error handling tests** (graceful degradation)
+
+Run tests:
+```bash
+# All tests
+pytest
+
+# With coverage
+pytest --cov=src/agentready --cov-report=html
+
+# Specific test file
+pytest tests/unit/test_feature.py -v
+```
+
+---
+
+## Success Criteria
+
+This feature is complete when:
+- ✅ All acceptance criteria from feature description are met
+- ✅ Tests passing with >80% coverage for new code
+- ✅ All linters passing (black, isort, ruff)
+- ✅ Documentation updated
+- ✅ PR created with clear description
+- ✅ Self-tested end-to-end
+
+---
+
+## Questions to Clarify (if needed)
+
+If anything is unclear during implementation:
+1. Check CLAUDE.md for project patterns
+2. Review similar existing features
+3. Ask for clarification in PR comments
+4. Reference the original backlog item
+
+---
+
+## Getting Started
+
+```bash
+# Clone and setup
+git clone https://github.com/{repo_context['owner']}/{repo_context['repo']}.git
+cd agentready
+
+# Create virtual environment
+uv venv && source .venv/bin/activate
+
+# Install dependencies
+uv pip install -e .
+uv pip install pytest black isort ruff
+
+# Create feature branch
+git checkout -b {item.section_start:03d}-{item.title.lower().replace(' ', '-')[:50]}
+
+# Start implementing!
+```
+
+---
+
+**Note**: This is a coldstart prompt. You have all context needed to implement this feature independently. Read the linked files, follow the patterns, and deliver high-quality code with tests.
+"""
+
+    return prompt
+
+
+def create_github_issue(item: BacklogItem, prompt: str, repo_context: Dict, dry_run: bool = False) -> Optional[str]:
+    """Create GitHub issue via gh CLI and attach coldstart prompt as comment."""
+
+    # Prepare issue title
+    issue_title = f"[{item.priority}] {item.title}"
+
+    # Prepare issue body (extract description and requirements)
+    # Get content up to "Implementation" section or similar
+    body_parts = []
+    body_parts.append(f"**Priority**: {item.priority}\n")
+
+    # Extract description (first paragraph after Priority)
+    lines = item.content.split('\n')
+    in_description = False
+    description_lines = []
+
+    for line in lines:
+        if '**Description**:' in line:
+            in_description = True
+            continue
+        if in_description:
+            if line.startswith('**') and ':' in line:
+                break
+            description_lines.append(line)
+
+    if description_lines:
+        body_parts.append("## Description\n")
+        body_parts.append('\n'.join(description_lines))
+
+    # Add link to full context
+    body_parts.append("\n\n## Full Context\n")
+    body_parts.append(f"See [BACKLOG.md](https://github.com/{repo_context['owner']}/{repo_context['repo']}/blob/main/BACKLOG.md) for complete requirements.\n")
+
+    # Add acceptance criteria if present
+    if '**Acceptance Criteria**:' in item.content:
+        criteria_start = item.content.find('**Acceptance Criteria**:')
+        criteria_section = item.content[criteria_start:criteria_start+1000]
+        body_parts.append("\n## Acceptance Criteria\n")
+        body_parts.append(criteria_section.split('\n\n')[0])
+
+    issue_body = '\n'.join(body_parts)
+
+    # Determine labels
+    labels = [f"priority:{item.priority.lower()}"]
+
+    # Add category labels based on title/content
+    if 'security' in item.title.lower() or 'xss' in item.content.lower():
+        labels.append('security')
+    if 'bug' in item.title.lower() or 'fix' in item.title.lower():
+        labels.append('bug')
+    else:
+        labels.append('enhancement')
+    if 'test' in item.title.lower():
+        labels.append('testing')
+    if 'github' in item.title.lower():
+        labels.append('github-integration')
+    if 'report' in item.title.lower():
+        labels.append('reporting')
+
+    labels_str = ','.join(labels)
+
+    if dry_run:
+        print(f"\n{'='*80}")
+        print(f"DRY RUN: Would create issue:")
+        print(f"Title: {issue_title}")
+        print(f"Labels: {labels_str}")
+        print(f"Body preview:\n{issue_body[:500]}...")
+        print(f"\nColdstart prompt would be added as first comment")
+        print(f"{'='*80}\n")
+        return None
+
+    # Create issue using gh CLI
+    try:
+        # Create the issue
+        result = subprocess.run(
+            [
+                'gh', 'issue', 'create',
+                '--title', issue_title,
+                '--body', issue_body,
+                '--label', labels_str
+            ],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        issue_url = result.stdout.strip()
+        print(f"✅ Created issue: {issue_url}")
+
+        # Extract issue number from URL
+        issue_number = issue_url.split('/')[-1]
+
+        # Add coldstart prompt as first comment
+        subprocess.run(
+            [
+                'gh', 'issue', 'comment', issue_number,
+                '--body', f"## 🤖 Coldstart Implementation Prompt\n\n{prompt}"
+            ],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        print(f"✅ Added coldstart prompt as comment")
+
+        return issue_url
+
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to create issue: {e.stderr}")
+        return None
+
+
+def get_repo_context() -> Dict:
+    """Get repository context (owner, repo name) from git remote."""
+    try:
+        result = subprocess.run(
+            ['gh', 'repo', 'view', '--json', 'owner,name'],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        data = json.loads(result.stdout)
+        return {
+            'owner': data['owner']['login'],
+            'repo': data['name']
+        }
+    except Exception as e:
+        # No git remote - ask user or use default
+        print(f"⚠️  Warning: Could not get repo context from git remote")
+        print(f"    This is expected if repository not yet on GitHub")
+        print(f"    Using default values for now\n")
+        # For agentready, we know the intended location
+        return {'owner': 'redhat', 'repo': 'agentready'}
+
+
+def save_prompt_to_file(item: BacklogItem, prompt: str, output_dir: Path, item_number: int) -> Path:
+    """Save coldstart prompt to markdown file."""
+
+    # Create output directory if it doesn't exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate filename from item number and title
+    safe_title = re.sub(r'[^\w\s-]', '', item.title.lower())
+    safe_title = re.sub(r'[-\s]+', '-', safe_title)[:50]
+    filename = f"{item_number:02d}-{safe_title}.md"
+
+    filepath = output_dir / filename
+
+    # Write prompt to file
+    with open(filepath, 'w') as f:
+        f.write(prompt)
+
+    return filepath
+
+
+def main():
+    """Main script execution."""
+
+    # Parse command line args
+    create_issues = '--create-issues' in sys.argv
+    process_all = '--all' in sys.argv
+
+    # Get repository root
+    repo_root = Path(__file__).parent.parent
+    backlog_path = repo_root / 'BACKLOG.md'
+
+    if not backlog_path.exists():
+        print(f"❌ BACKLOG.md not found at {backlog_path}")
+        sys.exit(1)
+
+    # Create output directory
+    output_dir = repo_root / '.github' / 'coldstart-prompts'
+
+    # Get repo context
+    repo_context = get_repo_context()
+    print(f"📦 Repository: {repo_context['owner']}/{repo_context['repo']}\n")
+
+    # Parse backlog
+    print("📖 Parsing BACKLOG.md...")
+    items = parse_backlog(backlog_path)
+    print(f"Found {len(items)} backlog items\n")
+
+    # Show summary
+    print("Backlog Items:")
+    for i, item in enumerate(items, 1):
+        print(f"  {i:2d}. [{item.priority}] {item.title}")
+    print()
+
+    # Process first item (or all if --all flag)
+    items_to_process = items if process_all else [items[0]]
+
+    for idx, item in enumerate(items_to_process, 1):
+        print(f"{'='*80}")
+        print(f"Processing item {idx}/{len(items_to_process)}: {item.title}")
+        print(f"{'='*80}\n")
+
+        # Generate coldstart prompt
+        print("🤖 Generating coldstart prompt...")
+        prompt = generate_coldstart_prompt(item, repo_context)
+        print(f"✅ Generated {len(prompt)} character prompt\n")
+
+        # Save to file
+        print("💾 Saving prompt to file...")
+        filepath = save_prompt_to_file(item, prompt, output_dir, item.section_start)
+        print(f"✅ Saved to: {filepath}\n")
+
+        # Optionally create GitHub issue
+        if create_issues:
+            print("🐙 Creating GitHub issue...")
+            issue_url = create_github_issue(item, prompt, repo_context, dry_run=False)
+            if issue_url:
+                print(f"✅ Created issue: {issue_url}\n")
+            else:
+                print(f"❌ Failed to create issue\n")
+
+        # Pause after first item unless --all specified
+        if not process_all and idx == 1:
+            print(f"\n{'='*80}")
+            print(f"✅ FIRST PROMPT GENERATED")
+            print(f"{'='*80}\n")
+            print(f"Saved to: {filepath}")
+            print(f"\nPlease review the prompt file.")
+            print(f"Once approved, run with --all to process remaining {len(items) - 1} items:")
+            print(f"  python scripts/backlog_to_issues.py --all")
+            if not create_issues:
+                print(f"\nTo also create GitHub issues, add --create-issues flag:")
+                print(f"  python scripts/backlog_to_issues.py --all --create-issues")
+            return
+
+    # All items processed
+    print(f"\n{'='*80}")
+    print(f"✅ PROCESSED {len(items_to_process)} ITEMS")
+    print(f"{'='*80}\n")
+    print(f"Coldstart prompts saved to: {output_dir}/")
+    if create_issues:
+        print(f"GitHub issues created (check repository)")
+    print(f"\nNext steps:")
+    print(f"  1. Review generated prompts in {output_dir}/")
+    print(f"  2. Create GitHub issues manually, or run with --create-issues")
+    print(f"  3. Start implementing features using the coldstart prompts!")
+
+
+if __name__ == '__main__':
+    main()
 ````
 
 ## File: specs/001-agentready-scorer/.remediation/A1-proportional-scoring.md
@@ -18465,6 +19205,89 @@ repos:
         )
 ````
 
+## File: src/agentready/cli/bootstrap.py
+````python
+"""Bootstrap command for setting up GitHub infrastructure."""
+
+import sys
+from pathlib import Path
+
+import click
+
+from ..services.bootstrap import BootstrapGenerator
+
+
+@click.command()
+@click.argument("repository", type=click.Path(exists=True), default=".")
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Preview changes without creating files",
+)
+@click.option(
+    "--language",
+    type=click.Choice(["python", "javascript", "go", "auto"], case_sensitive=False),
+    default="auto",
+    help="Primary language (default: auto-detect)",
+)
+def bootstrap(repository, dry_run, language):
+    """Bootstrap repository with GitHub infrastructure and best practices.
+
+    Creates:
+    - GitHub Actions workflows (tests, AgentReady assessment, security)
+    - GitHub templates (issues, pull requests, CODEOWNERS)
+    - Pre-commit hooks configuration
+    - Dependabot configuration
+    - Contributing guidelines
+
+    REPOSITORY: Path to git repository (default: current directory)
+    """
+    repo_path = Path(repository).resolve()
+
+    # Validate git repository
+    if not (repo_path / ".git").exists():
+        click.echo("Error: Not a git repository", err=True)
+        sys.exit(1)
+
+    click.echo("🤖 AgentReady Bootstrap")
+    click.echo("=" * 50)
+    click.echo(f"\nRepository: {repo_path}")
+    click.echo(f"Language: {language}")
+    click.echo(f"Dry run: {dry_run}\n")
+
+    # Create generator
+    generator = BootstrapGenerator(repo_path, language)
+
+    # Generate all files
+    try:
+        created_files = generator.generate_all(dry_run=dry_run)
+    except Exception as e:
+        click.echo(f"\nError during bootstrap: {str(e)}", err=True)
+        sys.exit(1)
+
+    # Report results
+    click.echo("\n" + "=" * 50)
+    if dry_run:
+        click.echo("\nDry run complete! The following files would be created:")
+    else:
+        click.echo(f"\nBootstrap complete! Created {len(created_files)} files:")
+
+    for file_path in sorted(created_files):
+        rel_path = file_path.relative_to(repo_path)
+        click.echo(f"  ✓ {rel_path}")
+
+    if not dry_run:
+        click.echo("\n✅ Repository bootstrapped successfully!")
+        click.echo("\nNext steps:")
+        click.echo("  1. Review generated files")
+        click.echo("  2. Commit changes: git add . && git commit -m 'chore: Bootstrap repository infrastructure'")
+        click.echo("  3. Push to GitHub: git push")
+        click.echo("  4. Set up branch protection rules")
+        click.echo("  5. Enable GitHub Actions")
+    else:
+        click.echo("\nRun without --dry-run to create files")
+````
+
 ## File: src/agentready/data/agent-ready-codebase-attributes.md
 ````markdown
 # Agent-Ready Codebase Attributes: Comprehensive Research
@@ -21134,6 +21957,182 @@ class MarkdownReporter(BaseReporter):
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"""
 ````
 
+## File: src/agentready/services/bootstrap.py
+````python
+"""Bootstrap generator for repository infrastructure."""
+
+from pathlib import Path
+from typing import List
+
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+from .language_detector import LanguageDetector
+
+
+class BootstrapGenerator:
+    """Generates GitHub infrastructure files for repository."""
+
+    def __init__(self, repo_path: Path, language: str = "auto"):
+        """Initialize bootstrap generator.
+
+        Args:
+            repo_path: Path to repository
+            language: Primary language or "auto" to detect
+        """
+        self.repo_path = repo_path
+        self.language = self._detect_language(language)
+        self.env = Environment(
+            loader=PackageLoader("agentready", "templates/bootstrap"),
+            autoescape=select_autoescape(["html", "xml", "j2", "yaml", "yml"]),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+
+    def _detect_language(self, language: str) -> str:
+        """Detect primary language if auto."""
+        if language != "auto":
+            return language.lower()
+
+        # Use language detector
+        detector = LanguageDetector(self.repo_path)
+        languages = detector.detect_languages()
+
+        if not languages:
+            return "python"  # Default fallback
+
+        # Return most used language
+        return max(languages, key=languages.get).lower()
+
+    def generate_all(self, dry_run: bool = False) -> List[Path]:
+        """Generate all bootstrap files.
+
+        Args:
+            dry_run: If True, don't create files, just return paths
+
+        Returns:
+            List of created file paths
+        """
+        created_files = []
+
+        # GitHub Actions workflows
+        created_files.extend(self._generate_workflows(dry_run))
+
+        # GitHub templates
+        created_files.extend(self._generate_github_templates(dry_run))
+
+        # Pre-commit hooks
+        created_files.extend(self._generate_precommit_config(dry_run))
+
+        # Dependabot
+        created_files.extend(self._generate_dependabot(dry_run))
+
+        # Contributing guidelines
+        created_files.extend(self._generate_docs(dry_run))
+
+        return created_files
+
+    def _generate_workflows(self, dry_run: bool) -> List[Path]:
+        """Generate GitHub Actions workflows."""
+        workflows_dir = self.repo_path / ".github" / "workflows"
+        created = []
+
+        # AgentReady assessment workflow
+        agentready_workflow = workflows_dir / "agentready-assessment.yml"
+        template = self.env.get_template("workflows/agentready-assessment.yml.j2")
+        content = template.render(language=self.language)
+        created.append(self._write_file(agentready_workflow, content, dry_run))
+
+        # Tests workflow
+        tests_workflow = workflows_dir / "tests.yml"
+        template = self.env.get_template(f"workflows/tests-{self.language}.yml.j2")
+        content = template.render()
+        created.append(self._write_file(tests_workflow, content, dry_run))
+
+        # Security workflow
+        security_workflow = workflows_dir / "security.yml"
+        template = self.env.get_template("workflows/security.yml.j2")
+        content = template.render(language=self.language)
+        created.append(self._write_file(security_workflow, content, dry_run))
+
+        return created
+
+    def _generate_github_templates(self, dry_run: bool) -> List[Path]:
+        """Generate GitHub issue and PR templates."""
+        created = []
+
+        # Issue templates
+        issue_template_dir = self.repo_path / ".github" / "ISSUE_TEMPLATE"
+
+        bug_template = issue_template_dir / "bug_report.md"
+        template = self.env.get_template("issue_templates/bug_report.md.j2")
+        content = template.render()
+        created.append(self._write_file(bug_template, content, dry_run))
+
+        feature_template = issue_template_dir / "feature_request.md"
+        template = self.env.get_template("issue_templates/feature_request.md.j2")
+        content = template.render()
+        created.append(self._write_file(feature_template, content, dry_run))
+
+        # PR template
+        pr_template = self.repo_path / ".github" / "PULL_REQUEST_TEMPLATE.md"
+        template = self.env.get_template("PULL_REQUEST_TEMPLATE.md.j2")
+        content = template.render()
+        created.append(self._write_file(pr_template, content, dry_run))
+
+        # CODEOWNERS
+        codeowners = self.repo_path / ".github" / "CODEOWNERS"
+        template = self.env.get_template("CODEOWNERS.j2")
+        content = template.render()
+        created.append(self._write_file(codeowners, content, dry_run))
+
+        return created
+
+    def _generate_precommit_config(self, dry_run: bool) -> List[Path]:
+        """Generate pre-commit hooks configuration."""
+        precommit_file = self.repo_path / ".pre-commit-config.yaml"
+        template = self.env.get_template(f"precommit-{self.language}.yaml.j2")
+        content = template.render()
+        return [self._write_file(precommit_file, content, dry_run)]
+
+    def _generate_dependabot(self, dry_run: bool) -> List[Path]:
+        """Generate Dependabot configuration."""
+        dependabot_file = self.repo_path / ".github" / "dependabot.yml"
+        template = self.env.get_template("dependabot.yml.j2")
+        content = template.render(language=self.language)
+        return [self._write_file(dependabot_file, content, dry_run)]
+
+    def _generate_docs(self, dry_run: bool) -> List[Path]:
+        """Generate contributing guidelines and code of conduct."""
+        created = []
+
+        # CONTRIBUTING.md
+        contributing = self.repo_path / "CONTRIBUTING.md"
+        if not contributing.exists():  # Don't overwrite existing
+            template = self.env.get_template("CONTRIBUTING.md.j2")
+            content = template.render(language=self.language)
+            created.append(self._write_file(contributing, content, dry_run))
+
+        # CODE_OF_CONDUCT.md (Red Hat standard)
+        code_of_conduct = self.repo_path / "CODE_OF_CONDUCT.md"
+        if not code_of_conduct.exists():
+            template = self.env.get_template("CODE_OF_CONDUCT.md.j2")
+            content = template.render()
+            created.append(self._write_file(code_of_conduct, content, dry_run))
+
+        return created
+
+    def _write_file(self, path: Path, content: str, dry_run: bool) -> Path:
+        """Write file to disk or simulate for dry run."""
+        if dry_run:
+            return path
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        return path
+````
+
 ## File: src/agentready/services/language_detector.py
 ````python
 """Language detection service using file extension analysis."""
@@ -21917,6 +22916,740 @@ class Scorer:
             Certification level string
         """
         return Assessment.determine_certification_level(score)
+````
+
+## File: src/agentready/templates/bootstrap/issue_templates/bug_report.md.j2
+````
+---
+name: Bug Report
+about: Create a report to help us improve
+title: '[BUG] '
+labels: bug
+assignees: ''
+---
+
+## Bug Description
+
+A clear and concise description of what the bug is.
+
+## To Reproduce
+
+Steps to reproduce the behavior:
+
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+## Expected Behavior
+
+A clear and concise description of what you expected to happen.
+
+## Actual Behavior
+
+A clear and concise description of what actually happened.
+
+## Environment
+
+- OS: [e.g. macOS 14.0, Ubuntu 22.04]
+- Version: [e.g. 1.0.0]
+- Python Version: [e.g. 3.11]
+
+## Additional Context
+
+Add any other context about the problem here. Include screenshots if applicable.
+
+## Possible Solution
+
+If you have suggestions on how to fix the bug, please describe them here.
+````
+
+## File: src/agentready/templates/bootstrap/issue_templates/feature_request.md.j2
+````
+---
+name: Feature Request
+about: Suggest an idea for this project
+title: '[FEATURE] '
+labels: enhancement
+assignees: ''
+---
+
+## Problem Statement
+
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+
+## Proposed Solution
+
+A clear and concise description of what you want to happen.
+
+## Alternatives Considered
+
+A clear and concise description of any alternative solutions or features you've considered.
+
+## Use Cases
+
+Describe specific use cases where this feature would be valuable.
+
+1. Use case 1
+2. Use case 2
+3. Use case 3
+
+## Additional Context
+
+Add any other context, screenshots, or mockups about the feature request here.
+
+## Acceptance Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Priority
+
+How important is this feature to you?
+
+- [ ] Critical (blocking my work)
+- [ ] High (significantly improves workflow)
+- [ ] Medium (nice to have)
+- [ ] Low (minor enhancement)
+````
+
+## File: src/agentready/templates/bootstrap/workflows/agentready-assessment.yml.j2
+````
+name: AgentReady Assessment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install AgentReady
+        run: |
+          pip install agentready
+
+      - name: Run AgentReady Assessment
+        run: |
+          agentready assess . --verbose
+
+      - name: Upload Assessment Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agentready-reports
+          path: .agentready/
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = '.agentready/report-latest.md';
+
+            if (!fs.existsSync(reportPath)) {
+              console.log('No report found');
+              return;
+            }
+
+            const report = fs.readFileSync(reportPath, 'utf8');
+
+            // Post comment with assessment results
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+````
+
+## File: src/agentready/templates/bootstrap/workflows/security.yml.j2
+````
+name: Security
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: {{ 'python' if language == 'python' else 'javascript' }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+{% if language == 'python' %}
+  safety:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install safety
+
+      - name: Run safety check
+        run: |
+          safety check --json || true
+{% endif %}
+````
+
+## File: src/agentready/templates/bootstrap/workflows/tests-python.yml.j2
+````
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python {{ '${{ matrix.python-version }}' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: {{ '${{ matrix.python-version }}' }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run black
+        run: |
+          black --check .
+
+      - name: Run isort
+        run: |
+          isort --check .
+
+      - name: Run ruff
+        run: |
+          ruff check .
+
+      - name: Run pytest
+        run: |
+          pytest --cov=src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.11'
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+````
+
+## File: src/agentready/templates/bootstrap/CODE_OF_CONDUCT.md.j2
+````
+# Code of Conduct
+
+## Our Commitment
+
+We are committed to providing a welcoming and inclusive environment for all contributors.
+
+## Standards
+
+Examples of behavior that contributes to a positive environment:
+- Using welcoming and inclusive language
+- Being respectful of differing viewpoints
+- Accepting constructive criticism gracefully
+- Focusing on what is best for the community
+
+Examples of unacceptable behavior:
+- Trolling or insulting comments
+- Public or private harassment
+- Publishing others' private information
+- Other conduct which could reasonably be considered inappropriate
+
+## Responsibilities
+
+Project maintainers are responsible for clarifying standards of acceptable behavior and will take appropriate action in response to unacceptable behavior.
+
+## Scope
+
+This Code of Conduct applies within all project spaces and when representing the project in public spaces.
+
+## Enforcement
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project team. All complaints will be reviewed and investigated promptly and fairly.
+
+## Attribution
+
+This Code of Conduct is adapted from common open source community standards.
+````
+
+## File: src/agentready/templates/bootstrap/CODEOWNERS.j2
+````
+# CODEOWNERS file
+# Define code ownership for automatic review requests
+
+# Global owners - these users are requested for review on all PRs
+# *       @owner
+
+# Specific paths can have different owners
+# /docs/  @documentation-team
+# /src/   @development-team
+# /.github/ @devops-team
+
+# Default: assign to repository owner
+*       @owner
+````
+
+## File: src/agentready/templates/bootstrap/CONTRIBUTING.md.j2
+````
+# Contributing Guidelines
+
+Thank you for your interest in contributing to this project! This document provides guidelines and instructions for contributing.
+
+## Code of Conduct
+
+Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Getting Started
+
+### Prerequisites
+
+{% if language == 'python' %}
+- Python 3.11 or higher
+- pip or uv for package management
+- Git
+{% elif language == 'javascript' %}
+- Node.js 18 or higher
+- npm or yarn
+- Git
+{% elif language == 'go' %}
+- Go 1.21 or higher
+- Git
+{% endif %}
+
+### Development Setup
+
+1. Fork the repository
+2. Clone your fork:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/PROJECT_NAME.git
+   cd PROJECT_NAME
+   ```
+
+3. Set up your development environment:
+{% if language == 'python' %}
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -e ".[dev]"
+   ```
+{% elif language == 'javascript' %}
+   ```bash
+   npm install
+   ```
+{% elif language == 'go' %}
+   ```bash
+   go mod download
+   ```
+{% endif %}
+
+4. Install pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
+
+## Development Workflow
+
+### Creating a Feature Branch
+
+Always create a new branch for your work:
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+Use descriptive branch names:
+- `feature/add-new-api`
+- `fix/resolve-crash-on-startup`
+- `docs/improve-installation-guide`
+
+### Making Changes
+
+1. Write clear, concise code
+2. Follow the project's coding standards
+3. Add tests for new functionality
+4. Update documentation as needed
+5. Run linters and tests before committing
+
+### Running Tests
+
+{% if language == 'python' %}
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=term
+
+# Run specific test file
+pytest tests/test_specific.py
+```
+{% elif language == 'javascript' %}
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run specific test
+npm test -- tests/specific.test.js
+```
+{% elif language == 'go' %}
+```bash
+# Run all tests
+go test ./...
+
+# Run with coverage
+go test -cover ./...
+
+# Run specific test
+go test -run TestSpecific ./...
+```
+{% endif %}
+
+### Code Style
+
+{% if language == 'python' %}
+This project uses:
+- **black** for code formatting
+- **isort** for import sorting
+- **ruff** for linting
+
+Run formatters before committing:
+
+```bash
+black .
+isort .
+ruff check . --fix
+```
+
+Pre-commit hooks will automatically run these tools.
+{% elif language == 'javascript' %}
+This project uses:
+- **Prettier** for code formatting
+- **ESLint** for linting
+
+Run formatters before committing:
+
+```bash
+npm run format
+npm run lint
+```
+{% elif language == 'go' %}
+This project uses:
+- **gofmt** for code formatting
+- **golangci-lint** for linting
+
+Run formatters before committing:
+
+```bash
+go fmt ./...
+golangci-lint run
+```
+{% endif %}
+
+### Commit Messages
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+
+Examples:
+```
+feat(api): add user authentication endpoint
+
+fix(parser): resolve crash when parsing empty files
+
+docs(readme): update installation instructions
+```
+
+### Pull Request Process
+
+1. **Update your branch** with the latest changes:
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   ```
+
+2. **Push your changes**:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+3. **Create a Pull Request**:
+   - Use the PR template
+   - Provide a clear description
+   - Link related issues
+   - Request reviews from maintainers
+
+4. **Address feedback**:
+   - Respond to review comments
+   - Make requested changes
+   - Push updates to your branch
+
+5. **Wait for approval**:
+   - At least one maintainer approval required
+   - All CI checks must pass
+   - No merge conflicts
+
+## Testing Guidelines
+
+- Write tests for all new functionality
+- Maintain or improve code coverage
+- Include both positive and negative test cases
+- Test edge cases and error conditions
+
+## Documentation
+
+- Update README.md for user-facing changes
+- Add docstrings to new functions and classes
+- Update API documentation if applicable
+- Add examples for new features
+
+## Issue Reporting
+
+When reporting issues, please include:
+
+- Clear, descriptive title
+- Steps to reproduce
+- Expected vs. actual behavior
+- Environment details (OS, version, etc.)
+- Error messages or logs
+- Screenshots if applicable
+
+## Questions?
+
+If you have questions:
+- Check existing issues and discussions
+- Ask in pull request comments
+- Open a new discussion
+- Contact maintainers
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the same license as the project.
+
+Thank you for contributing! 🎉
+````
+
+## File: src/agentready/templates/bootstrap/dependabot.yml.j2
+````
+version: 2
+updates:
+{% if language == 'python' %}
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+{% elif language == 'javascript' %}
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+{% elif language == 'go' %}
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "go"
+{% endif %}
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+````
+
+## File: src/agentready/templates/bootstrap/precommit-python.yaml.j2
+````
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-json
+      - id: detect-private-key
+
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.14
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+````
+
+## File: src/agentready/templates/bootstrap/PULL_REQUEST_TEMPLATE.md.j2
+````
+## Description
+
+<!-- Provide a brief description of the changes in this PR -->
+
+## Type of Change
+
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Refactoring (no functional changes)
+- [ ] Performance improvement
+- [ ] Test coverage improvement
+
+## Related Issues
+
+<!-- Link related issues here using #issue_number -->
+
+Fixes #
+Relates to #
+
+## Changes Made
+
+<!-- Detailed list of changes made in this PR -->
+
+-
+-
+-
+
+## Testing
+
+<!-- Describe the tests you ran to verify your changes -->
+
+- [ ] Unit tests pass (`pytest`)
+- [ ] Integration tests pass
+- [ ] Manual testing performed
+- [ ] No new warnings or errors
+
+## Checklist
+
+- [ ] My code follows the project's code style
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
+
+## Screenshots (if applicable)
+
+<!-- Add screenshots to help explain your changes -->
+
+## Additional Notes
+
+<!-- Any additional information that reviewers should know -->
 ````
 
 ## File: tests/integration/__init__.py
@@ -22783,6 +24516,64 @@ coverage.xml
 # Configuration (exclude example)
 .agentready-config.yaml
 !.agentready-config.example.yaml
+````
+
+## File: .repomixignore
+````
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.hypothesis/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated reports (keep examples/ for reference)
+.agentready/*.html
+.agentready/*.json
+.agentready/*.md
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Git internal files
+.git/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Large generated documentation
+repomix-output.md
 ````
 
 ## File: agent-ready-codebase-attributes.md
@@ -24605,104 +26396,6 @@ Where each category is 0.0-1.0 based on attribute completion.
 **Methodology:** Evidence-based, cited research from authoritative sources
 ````
 
-## File: pyproject.toml
-````toml
-[project]
-name = "agentready"
-version = "1.0.0"
-description = "Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness"
-authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
-readme = "README.md"
-license = {text = "MIT"}
-requires-python = ">=3.11"
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Quality Assurance",
-]
-
-dependencies = [
-    "click>=8.1.0",
-    "jinja2>=3.1.0",
-    "pyyaml>=6.0",
-    "gitpython>=3.1.0",
-    "radon>=6.0.0",
-    "lizard>=1.17.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
-]
-
-[project.scripts]
-agentready = "agentready.cli.main:cli"
-
-[build-system]
-requires = ["setuptools>=68.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-packages = ["agentready", "agentready.cli", "agentready.assessors", "agentready.models", "agentready.services", "agentready.reporters"]
-
-[tool.setuptools.package-data]
-agentready = ["data/*.md", "data/*.yaml", "templates/*.j2"]
-
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-extend-exclude = '''
-/(
-  \.eggs
-  | \.git
-  | \.venv
-  | venv
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 88
-skip_gitignore = true
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html"
-
-[tool.coverage.run]
-source = ["src/agentready"]
-omit = [
-    "*/tests/*",
-    "*/__pycache__/*",
-    "*/.venv/*",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "if TYPE_CHECKING:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
-````
-
 ## File: README.md
 ````markdown
 # AgentReady Repository Scorer
@@ -24947,6 +26640,53 @@ Contributions welcome! Please ensure:
 ---
 
 **Quick Start**: `pip install -e ".[dev]" && agentready .` - Ready in <5 minutes!
+````
+
+## File: repomix.config.json
+````json
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "repomix-output.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "truncateBase64": false,
+    "copyToClipboard": false,
+    "includeFullDirectoryStructure": false,
+    "tokenCountTree": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false,
+      "includeLogsCount": 50
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDotIgnore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
 ````
 
 ## File: repos.txt
@@ -27314,6 +29054,112 @@ Create these labels in GitHub:
 - Issue #7: Schema Versioning
 - Issue #8: Development Agent
 - Issue #9-11: Enhancements
+````
+
+## File: pyproject.toml
+````toml
+[project]
+name = "agentready"
+version = "1.0.0"
+description = "Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness"
+authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+dependencies = [
+    "click>=8.1.0",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0",
+    "gitpython>=3.1.0",
+    "radon>=6.0.0",
+    "lizard>=1.17.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]
+
+[project.scripts]
+agentready = "agentready.cli.main:cli"
+
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["agentready", "agentready.cli", "agentready.assessors", "agentready.models", "agentready.services", "agentready.reporters"]
+
+[tool.setuptools.package-data]
+agentready = [
+    "data/*.md",
+    "data/*.yaml",
+    "templates/*.j2",
+    "templates/**/*.j2",
+    "templates/**/*.yml.j2",
+    "templates/**/*.yaml.j2",
+    "templates/**/*.md.j2"
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+extend-exclude = '''
+/(
+  \.eggs
+  | \.git
+  | \.venv
+  | venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_gitignore = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html"
+
+[tool.coverage.run]
+source = ["src/agentready"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
 ````
 
 ## File: src/agentready/cli/main.py

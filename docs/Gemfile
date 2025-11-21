@@ -1,0 +1,17 @@
+source "https://rubygems.org"
+
+# GitHub Pages gem includes Jekyll and all GitHub-supported plugins
+gem "github-pages", group: :jekyll_plugins
+
+# Additional plugins
+gem "jekyll-seo-tag"
+gem "jekyll-sitemap"
+gem "jekyll-feed"
+
+# Required for Ruby 3.0+
+gem "webrick"
+
+# Development dependencies (optional)
+group :development do
+  gem "html-proofer"
+end

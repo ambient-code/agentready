@@ -5,68 +5,114 @@ title: Home
 
 # AgentReady
 
-**Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness.**
+**Build and maintain agent-ready codebases with automated infrastructure generation and continuous quality assessment.**
 
 <div class="hero">
-  <p class="hero-tagline">Transform your codebase into an AI-friendly powerhouse. Get actionable insights in seconds.</p>
+  <p class="hero-tagline">One command to agent-ready infrastructure. Transform your repository with automated GitHub setup, pre-commit hooks, CI/CD workflows, and continuous quality tracking.</p>
   <div class="hero-buttons">
-    <a href="/user-guide#installation" class="button button-primary">Get Started</a>
-    <a href="/examples" class="button button-secondary">View Examples</a>
+    <a href="/user-guide#bootstrap-your-repository" class="button button-primary">Bootstrap Your Repo</a>
+    <a href="/user-guide#running-assessments" class="button button-secondary">Run Assessment</a>
   </div>
 </div>
 
 ## Why AgentReady?
 
-AI-assisted development tools like Claude Code, GitHub Copilot, and Cursor AI work best with well-structured, documented codebases. AgentReady evaluates your repository across **25 research-backed attributes** and provides specific, actionable guidance to improve AI effectiveness.
+AI-assisted development tools like Claude Code, GitHub Copilot, and Cursor AI work best with well-structured, documented codebases. AgentReady **builds the infrastructure** you need and **continuously assesses** your repository across **25 research-backed attributes** to ensure lasting AI effectiveness.
+
+### Two Powerful Modes
 
 <div class="feature-grid">
   <div class="feature">
-    <h3>📊 Comprehensive Assessment</h3>
-    <p>Evaluate 25 attributes across documentation, code quality, testing, structure, and security.</p>
+    <h3>⚡ Bootstrap (Automated)</h3>
+    <p><strong>One command to complete infrastructure.</strong> Generates GitHub Actions workflows, pre-commit hooks, issue/PR templates, Dependabot config, and development standards tailored to your language.</p>
+    <p><strong>When to use:</strong> New projects, repositories missing automation, or when you want instant best practices.</p>
   </div>
   <div class="feature">
-    <h3>🎯 Actionable Guidance</h3>
-    <p>Get specific tools, commands, and examples to improve each attribute—not generic advice.</p>
+    <h3>📊 Assess (Diagnostic)</h3>
+    <p><strong>Deep analysis of 25 attributes.</strong> Evaluates documentation, code quality, testing, structure, and security. Provides actionable remediation guidance with specific tools and commands.</p>
+    <p><strong>When to use:</strong> Understanding current state, tracking improvements over time, or validating manual changes.</p>
+  </div>
+</div>
+
+## Key Features
+
+<div class="feature-grid">
+  <div class="feature">
+    <h3>🤖 Automated Infrastructure</h3>
+    <p>Bootstrap generates complete GitHub setup: Actions workflows, issue/PR templates, pre-commit hooks, Dependabot config, and security scanning—all language-aware.</p>
   </div>
   <div class="feature">
-    <h3>📈 Track Progress</h3>
-    <p>Version-control-friendly Markdown reports let you track improvements over time.</p>
+    <h3>🎯 Language-Specific</h3>
+    <p>Auto-detects your primary language (Python, JavaScript, Go) and generates appropriate workflows, linters, and test configurations.</p>
   </div>
   <div class="feature">
-    <h3>🏆 Earn Certifications</h3>
-    <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality.</p>
+    <h3>📈 Continuous Assessment</h3>
+    <p>Generated GitHub Actions run AgentReady on every PR, posting results as comments. Track improvements over time with Markdown reports.</p>
   </div>
   <div class="feature">
-    <h3>⚡ Fast & Lightweight</h3>
-    <p>Complete assessments in seconds. No external dependencies or cloud services required.</p>
+    <h3>🏆 Certification Levels</h3>
+    <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality. Bootstrap helps you achieve Gold (75+) immediately.</p>
+  </div>
+  <div class="feature">
+    <h3>⚡ One Command Setup</h3>
+    <p>From zero to production-ready infrastructure in seconds. Review generated files with --dry-run before committing.</p>
   </div>
   <div class="feature">
     <h3>🔬 Research-Backed</h3>
-    <p>Every attribute is backed by 50+ citations from Anthropic, Microsoft, Google, and academic research.</p>
+    <p>Every generated file and assessed attribute is backed by 50+ citations from Anthropic, Microsoft, Google, and academic research.</p>
   </div>
 </div>
 
 ## Quick Start
 
+### Bootstrap-First Workflow (Recommended)
+
 ```bash
 # Install AgentReady
 pip install agentready
 
-# Assess your repository
+# Bootstrap your repository (generates all infrastructure)
 cd /path/to/your/repo
+agentready bootstrap .
+
+# Review generated files
+ls -la .github/workflows/
+ls -la .github/ISSUE_TEMPLATE/
+cat .pre-commit-config.yaml
+
+# Commit and push
+git add .
+git commit -m "build: Bootstrap agent-ready infrastructure"
+git push
+
+# Assessment runs automatically on next PR!
+```
+
+**What you get in <60 seconds:**
+- ✅ GitHub Actions workflows (tests, security, AgentReady assessment)
+- ✅ Pre-commit hooks (formatters, linters, language-specific)
+- ✅ Issue & PR templates (bug reports, feature requests, CODEOWNERS)
+- ✅ Dependabot automation (weekly dependency updates)
+- ✅ Contributing guidelines and Code of Conduct
+- ✅ Automatic AgentReady assessment on every PR
+
+### Manual Assessment Workflow
+
+```bash
+# Or run one-time assessment without infrastructure changes
 agentready assess .
 
 # View interactive HTML report
 open .agentready/report-latest.html
 ```
 
-**That's it!** In under a minute, you'll have:
+**Assessment output:**
 - Overall score and certification level (Platinum/Gold/Silver/Bronze)
 - Detailed findings for all 25 attributes
 - Specific remediation steps with tools and examples
 - Three report formats (HTML, Markdown, JSON)
 
-[See full installation guide →](/user-guide#installation)
+[Read the complete user guide →](/user-guide)
 
 ## Certification Levels
 
@@ -223,12 +269,68 @@ agentready assess .
 
 ---
 
+## What Bootstrap Generates
+
+AgentReady Bootstrap creates production-ready infrastructure tailored to your language:
+
+### GitHub Actions Workflows
+
+**`agentready-assessment.yml`** — Runs assessment on every PR and push
+- Posts interactive results as PR comments
+- Tracks score progression over time
+- Fails if score drops below configured threshold
+
+**`tests.yml`** — Language-specific test automation
+- Python: pytest with coverage reporting
+- JavaScript: jest with coverage
+- Go: go test with race detection
+
+**`security.yml`** — Comprehensive security scanning
+- CodeQL analysis for vulnerability detection
+- Dependency scanning with GitHub Advisory Database
+- SAST (Static Application Security Testing)
+
+### GitHub Templates
+
+**Issue Templates** — Structured bug reports and feature requests
+- Bug report with reproduction steps template
+- Feature request with use case template
+- Auto-labeling and assignment
+
+**PR Template** — Checklist-driven pull requests
+- Testing verification checklist
+- Documentation update requirements
+- Breaking change indicators
+
+**CODEOWNERS** — Automated code review assignments
+
+### Development Infrastructure
+
+**`.pre-commit-config.yaml`** — Language-specific quality gates
+- Python: black, isort, ruff, mypy
+- JavaScript: prettier, eslint
+- Go: gofmt, golint
+
+**`.github/dependabot.yml`** — Automated dependency management
+- Weekly update checks
+- Automatic PR creation for updates
+- Security vulnerability patching
+
+**`CONTRIBUTING.md`** — Contributing guidelines (if missing)
+
+**`CODE_OF_CONDUCT.md`** — Red Hat standard code of conduct (if missing)
+
+[See generated file examples →](/examples#bootstrap-examples)
+
 ## Latest News
+
+**Version 1.1.0 - Bootstrap Released** (2025-11-21)
+Major release introducing automated infrastructure generation! Bootstrap command creates complete GitHub setup (Actions, templates, pre-commit hooks, Dependabot) tailored to your language. Transform any repository to agent-ready in <60 seconds.
 
 **Version 1.0.0 Released** (2025-11-21)
 Initial release with 10 implemented assessors, interactive HTML reports, and comprehensive documentation. AgentReady achieves Gold certification (75.4/100) on its own codebase.
 
-[View changelog →](https://github.com/yourusername/agentready/releases)
+[View full changelog →](https://github.com/yourusername/agentready/releases)
 
 ## Community
 
