@@ -1,6 +1,6 @@
 [project]
 name = "agentready"
-version = "1.1.1"
+version = "1.1.2"
 description = "Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness"
 authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
 readme = "README.md"

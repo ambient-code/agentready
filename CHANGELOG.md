@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/ambient-code/agentready/compare/v1.1.1...v1.1.2) (2025-11-21)
+
+
+### Bug Fixes
+
+* correct GitHub repository link in site navigation ([5492278](https://github.com/ambient-code/agentready/commit/5492278a0743c634e33528bcdb8819614d725d0e))
+
 ## [1.1.1](https://github.com/ambient-code/agentready/compare/v1.1.0...v1.1.1) (2025-11-21)
 
 
