@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/ambient-code/agentready/compare/v1.0.0...v1.0.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* correct Liquid syntax in developer-guide (elif -> elsif) ([75f3b1d](https://github.com/ambient-code/agentready/commit/75f3b1d23f87c5294086f78e81ad62a8ad47af7e))
+
 # 1.0.0 (2025-11-21)
 
 
