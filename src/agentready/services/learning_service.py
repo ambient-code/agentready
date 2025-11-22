@@ -254,15 +254,25 @@ class LearningService:
 
         from agentready.learners.llm_enricher import LLMEnricher
 
-        # Get API key
+        # Security: Get API key from environment
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             logger.warning("LLM enrichment enabled but ANTHROPIC_API_KEY not set")
             return skills
 
+        # Security: Clear API key from environment to prevent exposure
+        # API keys should not persist in os.environ where they could be logged
+        try:
+            del os.environ["ANTHROPIC_API_KEY"]
+        except KeyError:
+            pass  # Already removed or never existed
+
         # Initialize LLM enricher
         client = Anthropic(api_key=api_key)
         enricher = LLMEnricher(client)
+
+        # Security: Clear API key from local scope after client creation
+        api_key = None
 
         # Enrich top N skills
         enriched_skills = []

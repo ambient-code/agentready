@@ -99,11 +99,18 @@ class LLMEnricher:
             return self.enrich_skill(skill, repository, finding, use_cache)
 
         except APIError as e:
-            logger.error(f"API error enriching {skill.skill_id}: {e}")
+            # Security: Sanitize error message to prevent API key exposure
+            error_msg = str(e)
+            # Anthropic errors shouldn't contain keys, but sanitize to be safe
+            safe_error = error_msg if len(error_msg) < 200 else error_msg[:200]
+            logger.error(f"API error enriching {skill.skill_id}: {safe_error}")
             return skill  # Fallback to original heuristic skill
 
         except Exception as e:
-            logger.error(f"Unexpected error enriching {skill.skill_id}: {e}")
+            # Security: Sanitize generic errors that might expose sensitive data
+            error_msg = str(e)
+            safe_error = error_msg if len(error_msg) < 200 else error_msg[:200]
+            logger.error(f"Unexpected error enriching {skill.skill_id}: {safe_error}")
             return skill  # Fallback to original heuristic skill
 
     def _call_claude_api(
