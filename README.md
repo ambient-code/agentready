@@ -162,9 +162,12 @@ agentready --validate-config FILE        # Validate configuration
 agentready --generate-config             # Create example config
 
 # Research report management
-agentready --research-version            # Show bundled research version
-agentready --update-research             # Update to latest research
-agentready --restore-bundled-research    # Restore original research
+agentready research-version              # Show bundled research version
+agentready research validate FILE        # Validate research report
+agentready research init                 # Generate new research report
+agentready research add-attribute FILE   # Add attribute to report
+agentready research bump-version FILE    # Update version
+agentready research format FILE          # Format research report
 
 # Utility commands
 agentready --version                     # Show tool version

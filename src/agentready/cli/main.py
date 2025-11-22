@@ -37,6 +37,7 @@ from .bootstrap import bootstrap
 from .demo import demo
 from .learn import learn
 from .repomix import repomix_generate
+from .research import research
 
 
 def get_agentready_version() -> str:
@@ -345,6 +346,7 @@ cli.add_command(bootstrap)
 cli.add_command(demo)
 cli.add_command(learn)
 cli.add_command(repomix_generate)
+cli.add_command(research)
 
 
 def show_version():

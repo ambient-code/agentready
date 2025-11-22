@@ -114,6 +114,66 @@ agentready learn . --enable-llm --output-format all
 
 ---
 
+## Research Report Management (NEW)
+
+**NEW in v1.1**: Utilities for maintaining the research report (agent-ready-codebase-attributes.md)
+
+The `research` command group provides tools to validate, update, and format research reports following the schema defined in `contracts/research-report-schema.md`.
+
+### Commands
+
+```bash
+# Validate research report against schema
+agentready research validate agent-ready-codebase-attributes.md
+
+# Generate new research report from template
+agentready research init --output new-research.md
+
+# Add new attribute to research report
+agentready research add-attribute research.md \
+  --attribute-id "1.4" \
+  --name "New Attribute" \
+  --tier 2 \
+  --category "Documentation"
+
+# Update version (major.minor.patch)
+agentready research bump-version research.md --type minor
+
+# Set explicit version
+agentready research bump-version research.md --version 2.0.0
+
+# Lint and format research report
+agentready research format research.md
+
+# Check formatting without changes
+agentready research format research.md --check
+```
+
+### Validation Rules
+
+**Errors** (block usage):
+- Missing metadata header (version, date)
+- Incorrect attribute count (not 25)
+- Missing "Measurable Criteria" sections
+- Fewer than 4 tiers defined
+- Invalid version/date format
+
+**Warnings** (non-critical):
+- Missing "Impact on Agent Behavior" sections
+- Fewer than 20 references
+- Unbalanced tier distribution
+- Non-sequential attribute numbering
+
+### Use Cases
+
+1. **Maintain consistency**: Validate before committing changes
+2. **Add new attributes**: Use `add-attribute` for proper structure
+3. **Version tracking**: Bump version after significant updates
+4. **Code quality**: Format ensures consistent markdown style
+5. **Pre-commit integration**: Run `validate` in pre-commit hooks
+
+---
+
 ## Architecture
 
 ### Core Components
@@ -122,7 +182,9 @@ agentready learn . --enable-llm --output-format all
 src/agentready/
 ├── models/          # Data models (Repository, Attribute, Finding, Assessment)
 ├── services/        # Scanner orchestration and language detection
-│   └── llm_cache.py # LLM response caching (7-day TTL)
+│   ├── llm_cache.py         # LLM response caching (7-day TTL)
+│   ├── research_loader.py   # Research report loading and validation
+│   └── research_formatter.py # Research report formatting utilities
 ├── assessors/       # Attribute assessment implementations
 │   ├── base.py      # BaseAssessor abstract class
 │   ├── documentation.py   # CLAUDE.md, README assessors
@@ -143,7 +205,8 @@ src/agentready/
 │   └── report.html.j2  # Self-contained HTML report (73KB)
 └── cli/             # Click-based CLI
     ├── main.py      # assess, research-version, generate-config commands
-    └── learn.py     # Continuous learning loop with LLM enrichment
+    ├── learn.py     # Continuous learning loop with LLM enrichment
+    └── research.py  # Research report management commands
 ```
 
 ### Data Flow
