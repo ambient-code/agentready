@@ -713,11 +713,12 @@
     </div>
 
     <script>
-        // Embedded assessment data (properly escaped to prevent XSS)
-        const ASSESSMENT = JSON.parse({{ assessment_json|tojson }});
+        // Security: Using Jinja2's tojson filter for proper XSS prevention
+        // tojson creates JavaScript objects directly, no JSON.parse() needed
+        const ASSESSMENT = {{ assessment_dict|tojson }};
 
-        // Embedded theme data
-        const THEMES = JSON.parse({{ available_themes_json|tojson }});
+        // Embedded theme data (properly escaped)
+        const THEMES = {{ available_themes_dict|tojson }};
         const DEFAULT_THEME = {{ theme_name|tojson }};
 
         // Theme management with localStorage persistence

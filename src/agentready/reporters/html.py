@@ -1,6 +1,5 @@
 """HTML reporter for generating interactive assessment reports."""
 
-import json
 from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -68,13 +67,15 @@ class HTMLReporter(BaseReporter):
             "duration_seconds": assessment.duration_seconds,
             "config": assessment.config,
             "metadata": assessment.metadata,
-            # Embed assessment JSON for JavaScript
-            "assessment_json": json.dumps(assessment.to_dict()),
+            # Security: Pass dict directly, Jinja2's tojson filter handles escaping
+            # Prevents XSS by avoiding double JSON encoding
+            "assessment_dict": assessment.to_dict(),
             # Theme data
             "theme": theme,
             "theme_name": theme.name,
             "available_themes": available_themes,
-            "available_themes_json": json.dumps(available_themes),
+            # Security: Pass dict, not pre-serialized JSON
+            "available_themes_dict": available_themes,
         }
 
         # Render template
