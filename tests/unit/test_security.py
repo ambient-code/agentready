@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-
 from agentready.models.assessment import Assessment
 from agentready.models.attribute import Attribute
 from agentready.models.finding import Finding
