@@ -163,7 +163,14 @@ class Scanner:
         # Git metadata
         repo = git.Repo(self.repository_path)
         name = self.repository_path.name
-        branch = repo.active_branch.name
+
+        # Handle detached HEAD state (e.g., in CI/CD)
+        try:
+            branch = repo.active_branch.name
+        except TypeError:
+            # Detached HEAD - use commit hash or "HEAD"
+            branch = "HEAD"
+
         commit_hash = repo.head.commit.hexsha
 
         # Get remote URL (if available)
