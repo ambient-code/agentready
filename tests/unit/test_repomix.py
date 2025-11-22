@@ -112,7 +112,7 @@ class TestRepomixService:
         service = RepomixService(tmp_path)
         is_fresh, message = service.check_freshness()
         assert is_fresh is False
-        assert "not found" in message.lower()
+        assert "files found" in message.lower()
 
     def test_check_freshness_fresh_file(self, tmp_path):
         """Test freshness check with recent file."""
@@ -173,7 +173,18 @@ class TestRepomixConfigAssessor:
 
     def test_assess_no_config(self, tmp_path):
         """Test assessment when Repomix not configured."""
-        repo = Repository(path=tmp_path, languages={})
+        # Create .git directory to make it a valid repo
+        (tmp_path / ".git").mkdir()
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={},
+            total_files=0,
+            total_lines=0,
+        )
         assessor = RepomixConfigAssessor()
         finding = assessor.assess(repo)
 
@@ -184,26 +195,46 @@ class TestRepomixConfigAssessor:
 
     def test_assess_config_but_no_output(self, tmp_path):
         """Test assessment with config but no output."""
-        # Create config file
+        # Create .git directory and config file
+        (tmp_path / ".git").mkdir()
         config_path = tmp_path / "repomix.config.json"
         config_path.write_text("{}")
 
-        repo = Repository(path=tmp_path, languages={})
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={},
+            total_files=0,
+            total_lines=0,
+        )
         assessor = RepomixConfigAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
         assert finding.score == 50
         assert "exists" in finding.evidence[0].lower()
-        assert "not found" in finding.evidence[1].lower()
+        assert "files found" in finding.evidence[1].lower()
 
     def test_assess_fresh_output(self, tmp_path):
         """Test assessment with fresh output."""
-        # Create config and output
+        # Create .git directory, config and output
+        (tmp_path / ".git").mkdir()
         (tmp_path / "repomix.config.json").write_text("{}")
         (tmp_path / "repomix-output.md").write_text("content")
 
-        repo = Repository(path=tmp_path, languages={})
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={},
+            total_files=0,
+            total_lines=0,
+        )
         assessor = RepomixConfigAssessor()
         finding = assessor.assess(repo)
 
