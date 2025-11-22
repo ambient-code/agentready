@@ -1,13 +1,16 @@
 """Code quality assessors for complexity, file length, type annotations, and code smells."""
 
 import ast
-import subprocess
+import logging
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from ..services.scanner import MissingToolError
+from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
+
+logger = logging.getLogger(__name__)
 
 
 class TypeAnnotationsAssessor(BaseAssessor):
@@ -71,7 +74,8 @@ class TypeAnnotationsAssessor(BaseAssessor):
         """Assess Python type annotations using AST parsing."""
         # Use AST parsing to accurately detect type annotations
         try:
-            result = subprocess.run(
+            # Security: Use safe_subprocess_run for validation and limits
+            result = safe_subprocess_run(
                 ["git", "ls-files", "*.py"],
                 cwd=repository.path,
                 capture_output=True,
@@ -80,7 +84,7 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 check=True,
             )
             python_files = [f for f in result.stdout.strip().split("\n") if f]
-        except (subprocess.SubprocessError, FileNotFoundError):
+        except Exception:
             python_files = [
                 str(f.relative_to(repository.path))
                 for f in repository.path.rglob("*.py")
@@ -295,7 +299,8 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         """Assess Python complexity using radon."""
         try:
             # Check if radon is available
-            result = subprocess.run(
+            # Security: Use safe_subprocess_run for validation and limits
+            result = safe_subprocess_run(
                 ["radon", "cc", str(repository.path), "-s", "-a"],
                 capture_output=True,
                 text=True,
@@ -351,7 +356,8 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_with_lizard(self, repository: Repository) -> Finding:
         """Assess complexity using lizard (multi-language)."""
         try:
-            result = subprocess.run(
+            # Security: Use safe_subprocess_run for validation and limits
+            result = safe_subprocess_run(
                 ["lizard", str(repository.path)],
                 capture_output=True,
                 text=True,

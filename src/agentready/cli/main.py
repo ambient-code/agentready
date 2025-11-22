@@ -32,6 +32,7 @@ from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
+from ..utils.subprocess_utils import safe_subprocess_run
 from .align import align
 from .bootstrap import bootstrap
 from .demo import demo
@@ -151,9 +152,8 @@ def run_assessment(repository_path, verbose, output_dir, config_path):
     # Performance: Warn for large repositories
     try:
         # Quick file count using git ls-files (if it's a git repo) or fallback
-        import subprocess
-
-        result = subprocess.run(
+        # Security: Use safe_subprocess_run for validation and limits
+        result = safe_subprocess_run(
             ["git", "ls-files"],
             cwd=repo_path,
             capture_output=True,
@@ -172,7 +172,7 @@ def run_assessment(repository_path, verbose, output_dir, config_path):
                 "Assessment may take several minutes. Continue?",
                 abort=True,
             )
-    except (subprocess.TimeoutExpired, Exception):
+    except Exception:
         # If we can't count files quickly, just continue
         pass
 

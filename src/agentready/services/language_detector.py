@@ -1,8 +1,12 @@
 """Language detection service using file extension analysis."""
 
-import subprocess
+import logging
 from collections import defaultdict
 from pathlib import Path
+
+from ..utils.subprocess_utils import safe_subprocess_run
+
+logger = logging.getLogger(__name__)
 
 
 class LanguageDetector:
@@ -75,7 +79,8 @@ class LanguageDetector:
 
         # Try git ls-files first (respects .gitignore)
         try:
-            result = subprocess.run(
+            # Security: Use safe_subprocess_run for validation and limits
+            result = safe_subprocess_run(
                 ["git", "ls-files"],
                 cwd=self.repository_path,
                 capture_output=True,
@@ -84,7 +89,7 @@ class LanguageDetector:
                 check=True,
             )
             files = result.stdout.strip().split("\n")
-        except (subprocess.SubprocessError, FileNotFoundError):
+        except Exception:
             # Fall back to pathlib walk (less accurate)
             files = [
                 str(f.relative_to(self.repository_path))
@@ -118,7 +123,8 @@ class LanguageDetector:
             Total file count
         """
         try:
-            result = subprocess.run(
+            # Security: Use safe_subprocess_run for validation and limits
+            result = safe_subprocess_run(
                 ["git", "ls-files"],
                 cwd=self.repository_path,
                 capture_output=True,
@@ -128,7 +134,7 @@ class LanguageDetector:
             )
             files = result.stdout.strip().split("\n")
             return len([f for f in files if f.strip()])
-        except (subprocess.SubprocessError, FileNotFoundError):
+        except Exception:
             # Fall back to pathlib
             return sum(1 for _ in self.repository_path.rglob("*") if _.is_file())
 
@@ -144,7 +150,8 @@ class LanguageDetector:
         total_lines = 0
 
         try:
-            result = subprocess.run(
+            # Security: Use safe_subprocess_run for validation and limits
+            result = safe_subprocess_run(
                 ["git", "ls-files"],
                 cwd=self.repository_path,
                 capture_output=True,
@@ -153,7 +160,7 @@ class LanguageDetector:
                 check=True,
             )
             files = result.stdout.strip().split("\n")
-        except (subprocess.SubprocessError, FileNotFoundError):
+        except Exception:
             files = [
                 str(f.relative_to(self.repository_path))
                 for f in self.repository_path.rglob("*")

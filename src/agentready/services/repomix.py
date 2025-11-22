@@ -1,11 +1,15 @@
 """Repomix integration service for generating AI-friendly repository context."""
 
 import json
+import logging
 import shutil
-import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from ..utils.subprocess_utils import safe_subprocess_run, sanitize_subprocess_error
+
+logger = logging.getLogger(__name__)
 
 
 class RepomixService:
@@ -214,8 +218,15 @@ class RepomixService:
             cmd.append("--verbose")
 
         try:
-            result = subprocess.run(
-                cmd, cwd=self.repo_path, capture_output=True, text=True, check=False
+            # Security: Use safe_subprocess_run with extended timeout for Repomix
+            # Repomix can be slow on large repos, allow 5 minutes
+            result = safe_subprocess_run(
+                cmd,
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=300,  # 5 minutes for large repos
             )
 
             if result.returncode == 0:
@@ -225,7 +236,10 @@ class RepomixService:
                 return False, f"Repomix failed: {error_msg}"
 
         except Exception as e:
-            return False, f"Error running repomix: {str(e)}"
+            # Security: Sanitize error messages
+            safe_msg = sanitize_subprocess_error(e, self.repo_path)
+            logger.error(f"Repomix error: {safe_msg}")
+            return False, f"Error running repomix: {safe_msg}"
 
     def get_output_files(self) -> List[Path]:
         """Get list of existing Repomix output files.
