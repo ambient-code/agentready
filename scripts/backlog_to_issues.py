@@ -297,11 +297,11 @@ def create_github_issue(
 
     if dry_run:
         print(f"\n{'='*80}")
-        print(f"DRY RUN: Would create issue:")
+        print("DRY RUN: Would create issue:")
         print(f"Title: {issue_title}")
         print(f"Labels: {labels_str}")
         print(f"Body preview:\n{issue_body[:500]}...")
-        print(f"\nColdstart prompt would be added as first comment")
+        print("\nColdstart prompt would be added as first comment")
         print(f"{'='*80}\n")
         return None
 
@@ -346,7 +346,7 @@ def create_github_issue(
             check=True,
         )
 
-        print(f"✅ Added coldstart prompt as comment")
+        print("✅ Added coldstart prompt as comment")
 
         return issue_url
 
@@ -366,11 +366,11 @@ def get_repo_context() -> Dict:
         )
         data = json.loads(result.stdout)
         return {"owner": data["owner"]["login"], "repo": data["name"]}
-    except Exception as e:
+    except Exception:
         # No git remote - ask user or use default
-        print(f"⚠️  Warning: Could not get repo context from git remote")
-        print(f"    This is expected if repository not yet on GitHub")
-        print(f"    Using default values for now\n")
+        print("⚠️  Warning: Could not get repo context from git remote")
+        print("    This is expected if repository not yet on GitHub")
+        print("    Using default values for now\n")
         # For agentready, we know the intended location
         return {"owner": "redhat", "repo": "agentready"}
 
@@ -455,22 +455,22 @@ def main():
             if issue_url:
                 print(f"✅ Created issue: {issue_url}\n")
             else:
-                print(f"❌ Failed to create issue\n")
+                print("❌ Failed to create issue\n")
 
         # Pause after first item unless --all specified
         if not process_all and idx == 1:
             print(f"\n{'='*80}")
-            print(f"✅ FIRST PROMPT GENERATED")
+            print("✅ FIRST PROMPT GENERATED")
             print(f"{'='*80}\n")
             print(f"Saved to: {filepath}")
-            print(f"\nPlease review the prompt file.")
+            print("\nPlease review the prompt file.")
             print(
                 f"Once approved, run with --all to process remaining {len(items) - 1} items:"
             )
-            print(f"  python scripts/backlog_to_issues.py --all")
+            print("  python scripts/backlog_to_issues.py --all")
             if not create_issues:
-                print(f"\nTo also create GitHub issues, add --create-issues flag:")
-                print(f"  python scripts/backlog_to_issues.py --all --create-issues")
+                print("\nTo also create GitHub issues, add --create-issues flag:")
+                print("  python scripts/backlog_to_issues.py --all --create-issues")
             return
 
     # All items processed
@@ -479,11 +479,11 @@ def main():
     print(f"{'='*80}\n")
     print(f"Coldstart prompts saved to: {output_dir}/")
     if create_issues:
-        print(f"GitHub issues created (check repository)")
-    print(f"\nNext steps:")
+        print("GitHub issues created (check repository)")
+    print("\nNext steps:")
     print(f"  1. Review generated prompts in {output_dir}/")
-    print(f"  2. Create GitHub issues manually, or run with --create-issues")
-    print(f"  3. Start implementing features using the coldstart prompts!")
+    print("  2. Create GitHub issues manually, or run with --create-issues")
+    print("  3. Start implementing features using the coldstart prompts!")
 
 
 if __name__ == "__main__":

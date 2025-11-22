@@ -4,10 +4,9 @@ These are simplified implementations to get the MVP working. Each can be
 enhanced later with more sophisticated detection and scoring logic.
 """
 
-from pathlib import Path
 
 from ..models.attribute import Attribute
-from ..models.finding import Citation, Finding, Remediation
+from ..models.finding import Finding, Remediation
 from ..models.repository import Repository
 from .base import BaseAssessor
 

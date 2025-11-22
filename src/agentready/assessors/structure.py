@@ -1,6 +1,5 @@
 """Structure assessors for project layout and separation of concerns."""
 
-from pathlib import Path
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation

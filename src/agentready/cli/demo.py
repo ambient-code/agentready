@@ -463,9 +463,9 @@ def demo(language, no_browser, keep_repo):
             if overall_score >= 75
             else "yellow" if overall_score >= 60 else "red"
         )
-        click.echo(f"  Overall Score: ", nl=False)
+        click.echo("  Overall Score: ", nl=False)
         click.secho(f"{overall_score:.1f}/100", fg=score_color, bold=True)
-        click.echo(f"  Certification: ", nl=False)
+        click.echo("  Certification: ", nl=False)
         click.secho(certification_level, fg=score_color, bold=True)
         click.echo(f"  Assessed:      {assessed}/25 attributes")
         click.echo(f"  Skipped:       {skipped} attributes")
@@ -541,7 +541,7 @@ def demo(language, no_browser, keep_repo):
         click.echo("Next steps:")
         click.echo(f"  • View HTML report: {html_file}")
         click.echo(f"  • View Markdown report: {md_file}")
-        click.echo(f"  • Assess your own repo: agentready assess /path/to/repo")
+        click.echo("  • Assess your own repo: agentready assess /path/to/repo")
         click.echo()
 
         if keep_repo:
