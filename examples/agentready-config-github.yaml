@@ -1,0 +1,59 @@
+# Example AgentReady configuration with GitHub integration
+#
+# Place this file at the root of your repository as:
+# .agentready-config.yaml
+#
+# This example shows all available GitHub integration options
+
+github:
+  # Badge configuration
+  badge:
+    enabled: true
+    style: flat-square  # Options: flat, flat-square, plastic, for-the-badge, social
+    label: AgentReady   # Text shown on left side of badge
+
+  # GitHub Actions integration
+  actions:
+    enabled: true
+    trigger_on:
+      - pull_request  # Run on PR events
+      - push          # Run on pushes to main branches
+    post_comment: true        # Post assessment results as PR comment
+    update_status: true       # Update commit status/checks
+    upload_artifacts: true    # Upload reports as workflow artifacts
+    retention_days: 30        # Keep artifacts for 30 days
+
+  # Status checks configuration
+  status_checks:
+    enabled: true
+    min_score: 75.0           # Minimum score to pass (Gold level)
+    require_improvement: false # Fail if score decreased
+    use_checks_api: true       # Use Checks API (vs Status API)
+
+  # PR comments configuration
+  comments:
+    enabled: true
+    show_delta: true          # Show score change from previous assessment
+    show_trend: false         # Show ASCII trend chart (requires historical data)
+    collapse_details: true    # Collapse detailed findings in expandable section
+    compact_mode: false       # Use compact one-line format
+
+# Assessment configuration (optional)
+weights:
+  # Custom attribute weights (must sum to 1.0)
+  # Example: give more weight to documentation
+  claude_md: 0.06
+  readme: 0.05
+
+excluded_attributes:
+  # Skip specific attributes
+  # - dependency_freshness
+  # - security_scanning
+
+language_overrides:
+  # Force language detection
+  python:
+    - "*.py"
+    - "scripts/*"
+
+output_dir: .agentready  # Custom output directory (default: .agentready)

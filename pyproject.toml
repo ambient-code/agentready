@@ -23,6 +23,7 @@ dependencies = [
     "radon>=6.0.0",
     "lizard>=1.17.0",
     "anthropic>=0.74.0",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
@@ -44,7 +45,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["agentready", "agentready.cli", "agentready.assessors", "agentready.models", "agentready.services", "agentready.reporters", "agentready.learners"]
+packages = ["agentready", "agentready.cli", "agentready.assessors", "agentready.models", "agentready.services", "agentready.reporters", "agentready.learners", "agentready.integrations", "agentready.fixers"]
 
 [tool.setuptools.package-data]
 agentready = [

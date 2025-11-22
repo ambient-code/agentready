@@ -1,0 +1,39 @@
+name: AgentReady Assessment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [{{ main_branch | default('main') }}]
+  workflow_dispatch:
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '{{ python_version | default("3.11") }}'
+
+      - name: Install AgentReady
+        run: |
+          pip install agentready
+
+      - name: Run AgentReady Assessment
+        run: |
+          agentready assess . {% if verbose %}--verbose{% endif %}
+
+      - name: Upload Assessment Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agentready-reports
+          path: .agentready/
+          retention-days: {{ retention_days | default(30) }}

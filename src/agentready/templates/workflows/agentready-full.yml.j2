@@ -1,0 +1,141 @@
+name: AgentReady Assessment with GitHub Integration
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+      statuses: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for trend analysis
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install AgentReady
+        run: |
+          pip install agentready
+
+      - name: Run AgentReady Assessment
+        id: assessment
+        run: |
+          agentready assess . --verbose --output-dir .agentready
+
+          # Extract score from JSON report
+          SCORE=$(python -c "import json; print(json.load(open('.agentready/assessment-latest.json'))['score'])")
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+
+          # Extract certification level
+          LEVEL=$(python -c "import json; print(json.load(open('.agentready/assessment-latest.json'))['certification_level'])")
+          echo "level=$LEVEL" >> $GITHUB_OUTPUT
+
+      - name: Upload Assessment Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agentready-reports-{% raw %}${{ github.sha }}{% endraw %}
+          path: .agentready/
+          retention-days: 30
+
+      - name: Create Status Check
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          SCORE: {% raw %}${{ steps.assessment.outputs.score }}{% endraw %}
+          LEVEL: {% raw %}${{ steps.assessment.outputs.level }}{% endraw %}
+        with:
+          script: |
+            const score = parseFloat(process.env.SCORE || '0');
+            const level = process.env.LEVEL || 'unknown';
+
+            // Determine status state based on score
+            let state = 'success';
+            if (score < 60) state = 'failure';
+            else if (score < 75) state = 'error';
+
+            // Create commit status
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: state,
+              description: `Score: ${score.toFixed(1)}/100 (${level})`,
+              context: 'AgentReady Assessment',
+              target_url: `{% raw %}${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}{% endraw %}`
+            });
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          SCORE: {% raw %}${{ steps.assessment.outputs.score }}{% endraw %}
+          LEVEL: {% raw %}${{ steps.assessment.outputs.level }}{% endraw %}
+        with:
+          script: |
+            const fs = require('fs');
+            const score = parseFloat(process.env.SCORE || '0');
+            const level = process.env.LEVEL || 'unknown';
+
+            // Read markdown report
+            let report = '';
+            try {
+              report = fs.readFileSync('.agentready/report-latest.md', 'utf8');
+            } catch (err) {
+              console.log('No markdown report found');
+              report = `## AgentReady Assessment\n\nScore: ${score.toFixed(1)}/100 (${level})`;
+            }
+
+            // Add link to artifacts
+            const artifactUrl = `{% raw %}${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}{% endraw %}`;
+            report += `\n\n---\n[📊 View Full Report (Artifacts)](${artifactUrl})`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('AgentReady Assessment')
+            );
+
+            // Create or update comment
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }
+
+      - name: Check Score Threshold
+        if: {% raw %}${{ steps.assessment.outputs.score < 75 }}{% endraw %}
+        run: |
+          echo "⚠️ AgentReady score below threshold: {% raw %}${{ steps.assessment.outputs.score }}{% endraw %}/100"
+          echo "Consider improving your repository to reach Gold certification (75+)"
+          # Uncomment to fail the workflow if score is too low:
+          # exit 1
