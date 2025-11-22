@@ -32,6 +32,7 @@ from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
+from .align import align
 from .bootstrap import bootstrap
 from .demo import demo
 from .learn import learn
@@ -303,6 +304,7 @@ def generate_config():
 
 
 # Register commands
+cli.add_command(align)
 cli.add_command(bootstrap)
 cli.add_command(demo)
 cli.add_command(learn)

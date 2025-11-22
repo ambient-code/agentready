@@ -6,6 +6,13 @@ from agentready.models.citation import Citation
 from agentready.models.config import Config
 from agentready.models.discovered_skill import DiscoveredSkill
 from agentready.models.finding import Finding
+from agentready.models.fix import (
+    CommandFix,
+    FileCreationFix,
+    FileModificationFix,
+    Fix,
+    MultiStepFix,
+)
 from agentready.models.metadata import AssessmentMetadata
 from agentready.models.repository import Repository
 
@@ -14,8 +21,13 @@ __all__ = [
     "AssessmentMetadata",
     "Attribute",
     "Citation",
+    "CommandFix",
     "Config",
     "DiscoveredSkill",
+    "FileCreationFix",
+    "FileModificationFix",
     "Finding",
+    "Fix",
+    "MultiStepFix",
     "Repository",
 ]
