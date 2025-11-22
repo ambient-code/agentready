@@ -1,3 +1,24 @@
+# [1.10.0](https://github.com/ambient-code/agentready/compare/v1.9.0...v1.10.0) (2025-11-22)
+
+
+### Features
+
+* Add customizable HTML report themes with runtime switching ([#46](https://github.com/ambient-code/agentready/issues/46)) ([7eeaf84](https://github.com/ambient-code/agentready/commit/7eeaf84388d1b02bac16bf4249c5e16f9e312580)), closes [hi#contrast](https://github.com/hi/issues/contrast) [#10](https://github.com/ambient-code/agentready/issues/10)
+
+# [1.9.0](https://github.com/ambient-code/agentready/compare/v1.8.0...v1.9.0) (2025-11-22)
+
+
+### Features
+
+* add agentready-dev Claude agent specification ([#44](https://github.com/ambient-code/agentready/issues/44)) ([0f61f5c](https://github.com/ambient-code/agentready/commit/0f61f5cc1b1fb56e51ac26d374310f07216183b3))
+
+# [1.8.0](https://github.com/ambient-code/agentready/compare/v1.7.1...v1.8.0) (2025-11-22)
+
+
+### Features
+
+* implement report schema versioning ([#43](https://github.com/ambient-code/agentready/issues/43)) ([4c4752c](https://github.com/ambient-code/agentready/commit/4c4752cb465cd20e1a97cc16507b7a50c1dd52be))
+
 ## [1.7.1](https://github.com/ambient-code/agentready/compare/v1.7.0...v1.7.1) (2025-11-22)
 
 

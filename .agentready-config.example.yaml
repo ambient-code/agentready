@@ -57,6 +57,29 @@ language_overrides: {}
 # Custom output directory (default: .agentready/)
 # output_dir: ./custom-reports
 
+# HTML Report Theme (default: 'default')
+# Available themes: default, light, dark, high-contrast, solarized-dark, dracula
+report_theme: default
+
+# Custom Theme Colors (optional - overrides report_theme if provided)
+# All fields required if custom_theme is specified
+# custom_theme:
+#   background: "#0a0e27"
+#   surface: "#1a1f3a"
+#   surface_elevated: "#252b4a"
+#   primary: "#8b5cf6"
+#   primary_light: "#a78bfa"
+#   primary_dark: "#6d28d9"
+#   text_primary: "#f8fafc"
+#   text_secondary: "#cbd5e1"
+#   text_muted: "#94a3b8"
+#   success: "#10b981"
+#   warning: "#f59e0b"
+#   danger: "#ef4444"
+#   neutral: "#64748b"
+#   border: "#334155"
+#   shadow: "rgba(0, 0, 0, 0.5)"
+
 # Example: Increase weight for CLAUDE.md and tests
 # This increases CLAUDE.md from 10% to 15% and test_coverage from 3% to 5%
 # Other attributes are automatically rescaled to maintain sum of 1.0

@@ -37,7 +37,11 @@ from .bootstrap import bootstrap
 from .demo import demo
 from .learn import learn
 from .repomix import repomix_generate
+<<<<<<< HEAD
 from .research import research
+=======
+from .schema import migrate_report, validate_report
+>>>>>>> origin/main
 
 
 def get_agentready_version() -> str:
@@ -345,8 +349,13 @@ cli.add_command(align)
 cli.add_command(bootstrap)
 cli.add_command(demo)
 cli.add_command(learn)
+cli.add_command(migrate_report)
 cli.add_command(repomix_generate)
+<<<<<<< HEAD
 cli.add_command(research)
+=======
+cli.add_command(validate_report)
+>>>>>>> origin/main
 
 
 def show_version():

@@ -13,12 +13,16 @@ class Config:
         excluded_attributes: Attributes to skip
         language_overrides: Force language detection (lang → [patterns])
         output_dir: Custom output directory (None uses default .agentready/)
+        report_theme: Theme name for HTML reports (default, dark, light, etc.)
+        custom_theme: Custom theme colors (overrides report_theme if provided)
     """
 
     weights: dict[str, float]
     excluded_attributes: list[str]
     language_overrides: dict[str, list[str]]
     output_dir: Path | None
+    report_theme: str = "default"
+    custom_theme: dict[str, str] | None = None
 
     def __post_init__(self):
         """Validate config data after initialization."""
@@ -46,6 +50,8 @@ class Config:
             "excluded_attributes": self.excluded_attributes,
             "language_overrides": self.language_overrides,
             "output_dir": str(self.output_dir) if self.output_dir else None,
+            "report_theme": self.report_theme,
+            "custom_theme": self.custom_theme,
         }
 
     def get_weight(self, attribute_id: str, default: float) -> float:

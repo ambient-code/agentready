@@ -15,6 +15,7 @@ from agentready.models.fix import (
 )
 from agentready.models.metadata import AssessmentMetadata
 from agentready.models.repository import Repository
+from agentready.models.theme import Theme, validate_theme_contrast
 
 __all__ = [
     "Assessment",
@@ -30,4 +31,6 @@ __all__ = [
     "Fix",
     "MultiStepFix",
     "Repository",
+    "Theme",
+    "validate_theme_contrast",
 ]

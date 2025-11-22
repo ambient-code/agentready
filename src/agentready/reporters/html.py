@@ -6,6 +6,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from ..models.assessment import Assessment
+from ..models.theme import Theme
 from .base import BaseReporter
 
 
@@ -45,6 +46,15 @@ class HTMLReporter(BaseReporter):
         # Load template
         template = self.env.get_template("report.html.j2")
 
+        # Determine theme to use
+        theme = self._resolve_theme(assessment.config)
+
+        # Get all available themes for theme switcher
+        available_themes = {
+            name: Theme.get_theme(name).to_dict()
+            for name in Theme.get_available_themes()
+        }
+
         # Prepare data for template
         template_data = {
             "repository": assessment.repository,
@@ -60,6 +70,11 @@ class HTMLReporter(BaseReporter):
             "metadata": assessment.metadata,
             # Embed assessment JSON for JavaScript
             "assessment_json": json.dumps(assessment.to_dict()),
+            # Theme data
+            "theme": theme,
+            "theme_name": theme.name,
+            "available_themes": available_themes,
+            "available_themes_json": json.dumps(available_themes),
         }
 
         # Render template
@@ -71,3 +86,34 @@ class HTMLReporter(BaseReporter):
             f.write(html_content)
 
         return output_path
+
+    def _resolve_theme(self, config) -> Theme:
+        """Resolve theme from config.
+
+        Args:
+            config: Assessment config (may be None)
+
+        Returns:
+            Resolved Theme object
+        """
+        # No config or no custom theme → use default or configured theme
+        if not config:
+            return Theme.get_theme("default")
+
+        # Custom theme provided → build from custom_theme dict
+        if config.custom_theme:
+            return Theme.from_dict(
+                {
+                    "name": "custom",
+                    "display_name": "Custom",
+                    **config.custom_theme,
+                }
+            )
+
+        # Use configured theme name
+        theme_name = getattr(config, "report_theme", "default")
+        try:
+            return Theme.get_theme(theme_name)
+        except KeyError:
+            # Fall back to default if theme not found
+            return Theme.get_theme("default")
