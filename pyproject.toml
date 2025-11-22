@@ -23,6 +23,7 @@ dependencies = [
     "radon>=6.0.0",
     "lizard>=1.17.0",
     "anthropic>=0.74.0",
+    "jsonschema>=4.17.0",
 ]
 
 [project.optional-dependencies]

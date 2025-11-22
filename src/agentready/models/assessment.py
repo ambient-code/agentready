@@ -27,6 +27,7 @@ class Assessment:
         duration_seconds: Time taken for assessment
         discovered_skills: Patterns extracted from this assessment (optional)
         metadata: Execution context (version, user, command, timestamp)
+        schema_version: Report schema version for backwards compatibility
     """
 
     repository: Repository
@@ -41,8 +42,10 @@ class Assessment:
     duration_seconds: float
     discovered_skills: list[DiscoveredSkill] = field(default_factory=list)
     metadata: AssessmentMetadata | None = None
+    schema_version: str = "1.0.0"
 
     VALID_LEVELS = {"Platinum", "Gold", "Silver", "Bronze", "Needs Improvement"}
+    CURRENT_SCHEMA_VERSION = "1.0.0"
 
     def __post_init__(self):
         """Validate assessment data after initialization."""
@@ -73,6 +76,7 @@ class Assessment:
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
+            "schema_version": self.schema_version,
             "metadata": self.metadata.to_dict() if self.metadata else None,
             "repository": self.repository.to_dict(),
             "timestamp": self.timestamp.isoformat(),

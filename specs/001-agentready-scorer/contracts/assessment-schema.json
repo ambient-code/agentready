@@ -1,9 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "AgentReady Assessment",
+  "title": "AgentReady Assessment v1.0.0",
   "description": "Complete repository assessment result with findings and scores",
   "type": "object",
   "required": [
+    "schema_version",
     "repository",
     "timestamp",
     "overall_score",
@@ -15,6 +16,11 @@
     "duration_seconds"
   ],
   "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the schema (e.g., 1.0.0)"
+    },
     "repository": {
       "type": "object",
       "required": ["name", "path", "languages", "total_files"],

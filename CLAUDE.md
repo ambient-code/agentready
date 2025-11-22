@@ -10,7 +10,7 @@
 
 AgentReady is a Python CLI tool that evaluates repositories against 25 carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v1.0.0 - Core assessment engine complete, 10/25 attributes implemented
+**Current Status**: v1.0.0 - Core assessment engine complete, 10/25 attributes implemented, report schema versioning enabled
 
 **Self-Assessment Score**: 75.4/100 (Gold) - See `examples/self-assessment/`
 
@@ -31,10 +31,16 @@ agentready assess . --verbose
 
 # Assess different repository
 agentready assess /path/to/repo --output-dir ./reports
+
+# Validate assessment report
+agentready validate-report .agentready/assessment-latest.json
+
+# Migrate report to new schema version
+agentready migrate-report old-report.json --to 2.0.0
 ```
 
 **Outputs**:
-- `.agentready/assessment-YYYYMMDD-HHMMSS.json` - Machine-readable results
+- `.agentready/assessment-YYYYMMDD-HHMMSS.json` - Machine-readable results (with schema version)
 - `.agentready/report-YYYYMMDD-HHMMSS.html` - Interactive web report
 - `.agentready/report-YYYYMMDD-HHMMSS.md` - Git-friendly markdown report
 
@@ -353,7 +359,7 @@ chore: Update dependencies
 - Improve test coverage to >80%
 
 ### v2.0 - Enterprise Features
-- Report schema versioning
+- ✅ Report schema versioning (v1.0.0)
 - Customizable HTML themes with dark/light toggle
 - Organization-wide dashboards
 - Historical trend analysis
