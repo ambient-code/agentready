@@ -290,6 +290,23 @@ ruff check src/ tests/
 black src/ tests/ && isort src/ tests/ && ruff check src/ tests/
 ```
 
+### Cold-Start Prompts Pattern
+
+**Gitignored Planning Directory**: `.plans/`
+
+When creating cold-start prompts for features or assessors:
+- Store in `.plans/` directory (gitignored, never committed)
+- Each prompt is self-contained for implementation handoff
+- Prompts include: requirements, implementation approach, code patterns, test guidance
+- Use for creating GitHub issues with full context
+- Allows LLM agents to pick up work without conversation history
+
+**Example workflow**:
+1. Generate cold-start prompt → `.plans/assessor-name.md`
+2. Create GitHub issue with prompt content as body
+3. Future agent reads issue → implements feature
+4. Prompt stays in `.plans/` for local reference only
+
 ### Adding New Assessors
 
 1. **Expand a stub assessor** in `src/agentready/assessors/stub_assessors.py`

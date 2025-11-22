@@ -51,6 +51,7 @@ coverage.xml
 .agentready/
 *.log
 *.tmp
+.plans/
 
 # Build artifacts
 *.whl
