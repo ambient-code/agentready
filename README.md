@@ -12,6 +12,7 @@ AgentReady evaluates your repository across multiple dimensions of code quality,
 - **Interactive HTML Reports**: Filter, sort, and explore findings with embedded guidance
 - **Version-Control-Friendly Markdown**: Track progress over time with git-diffable reports
 - **Actionable Remediation**: Specific tools, commands, and examples to improve each attribute
+- **Schema Versioning**: Backwards-compatible report format with validation and migration tools
 
 ## Quick Start
 
