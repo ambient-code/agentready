@@ -140,25 +140,39 @@ class CommandFix(Fix):
     repository_path: Path
 
     def apply(self, dry_run: bool = False) -> bool:
-        """Execute the command."""
+        """Execute the command.
+
+        Security: Uses shlex.split() to safely parse commands without shell=True,
+        preventing command injection attacks.
+        """
         if dry_run:
             return True
 
+        import shlex
         import subprocess
 
         cwd = self.working_dir or self.repository_path
 
         try:
+            # Security: Parse command safely without shell interpretation
+            # This prevents injection via shell metacharacters (;, |, &&, etc.)
+            cmd_list = shlex.split(self.command)
+
+            # Validate that we have a command to run
+            if not cmd_list:
+                return False
+
             subprocess.run(
-                self.command,
-                shell=True,
+                cmd_list,
                 cwd=cwd,
                 check=True,
                 capture_output=True,
                 text=True,
+                # Security: Never use shell=True - explicitly removed
             )
             return True
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, ValueError):
+            # ValueError can be raised by shlex.split() on malformed input
             return False
 
     def preview(self) -> str:
