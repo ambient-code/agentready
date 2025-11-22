@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ theme_name }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,22 +14,10 @@
         }
 
         :root {
-            /* Dark professional color scheme */
-            --background: #0a0e27;           /* Almost black with blue tint */
-            --surface: #1a1f3a;              /* Dark blue surface */
-            --surface-elevated: #252b4a;     /* Slightly lighter surface */
-            --primary: #8b5cf6;              /* Purple (accent) */
-            --primary-light: #a78bfa;        /* Light purple */
-            --primary-dark: #6d28d9;         /* Dark purple */
-            --text-primary: #f8fafc;         /* Almost white */
-            --text-secondary: #cbd5e1;       /* Light gray */
-            --text-muted: #94a3b8;           /* Muted gray */
-            --success: #10b981;              /* Green (pass) */
-            --warning: #f59e0b;              /* Amber (warning) */
-            --danger: #ef4444;               /* Red (fail) */
-            --neutral: #64748b;              /* Gray (skipped) */
-            --border: #334155;               /* Dark border */
-            --shadow: rgba(0, 0, 0, 0.5);    /* Deep shadows */
+            /* Default theme colors - will be overridden by active theme */
+            {% for var, value in theme.to_css_vars().items() %}
+            {{ var }}: {{ value }};
+            {% endfor %}
         }
 
         body {
@@ -480,9 +468,67 @@
         .hidden {
             display: none !important;
         }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .theme-switcher label {
+            font-size: 17px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .theme-select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 17px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .theme-select:hover {
+            border-color: var(--primary);
+        }
+
+        .theme-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .theme-switcher {
+                position: static;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Theme Switcher -->
+    <div class="theme-switcher">
+        <label for="theme-select">Theme:</label>
+        <select id="theme-select" class="theme-select">
+            {% for theme_key, theme_data in available_themes.items() %}
+            <option value="{{ theme_key }}" {% if theme_key == theme_name %}selected{% endif %}>
+                {{ theme_data.display_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
     <div class="container">
         <header>
             <h1>🤖 AgentReady Assessment Report</h1>
@@ -669,6 +715,83 @@
     <script>
         // Embedded assessment data (properly escaped to prevent XSS)
         const ASSESSMENT = JSON.parse({{ assessment_json|tojson }});
+
+        // Embedded theme data
+        const THEMES = JSON.parse({{ available_themes_json|tojson }});
+        const DEFAULT_THEME = {{ theme_name|tojson }};
+
+        // Theme management with localStorage persistence
+        function applyTheme(themeName) {
+            const theme = THEMES[themeName];
+            if (!theme) {
+                console.warn(`Theme ${themeName} not found, using default`);
+                themeName = DEFAULT_THEME;
+            }
+
+            const themeData = THEMES[themeName];
+            const root = document.documentElement;
+
+            // Apply CSS custom properties
+            root.style.setProperty('--background', themeData.background);
+            root.style.setProperty('--surface', themeData.surface);
+            root.style.setProperty('--surface-elevated', themeData.surface_elevated);
+            root.style.setProperty('--primary', themeData.primary);
+            root.style.setProperty('--primary-light', themeData.primary_light);
+            root.style.setProperty('--primary-dark', themeData.primary_dark);
+            root.style.setProperty('--text-primary', themeData.text_primary);
+            root.style.setProperty('--text-secondary', themeData.text_secondary);
+            root.style.setProperty('--text-muted', themeData.text_muted);
+            root.style.setProperty('--success', themeData.success);
+            root.style.setProperty('--warning', themeData.warning);
+            root.style.setProperty('--danger', themeData.danger);
+            root.style.setProperty('--neutral', themeData.neutral);
+            root.style.setProperty('--border', themeData.border);
+            root.style.setProperty('--shadow', themeData.shadow);
+
+            // Update data attribute for potential CSS targeting
+            root.setAttribute('data-theme', themeName);
+
+            // Save preference to localStorage
+            try {
+                localStorage.setItem('agentready-theme', themeName);
+            } catch (e) {
+                console.warn('Could not save theme preference to localStorage:', e);
+            }
+        }
+
+        // Load theme from localStorage on page load
+        function loadSavedTheme() {
+            try {
+                const savedTheme = localStorage.getItem('agentready-theme');
+                if (savedTheme && THEMES[savedTheme]) {
+                    return savedTheme;
+                }
+            } catch (e) {
+                console.warn('Could not load theme preference from localStorage:', e);
+            }
+            return DEFAULT_THEME;
+        }
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = loadSavedTheme();
+            const themeSelect = document.getElementById('theme-select');
+
+            // Apply saved theme if different from default
+            if (savedTheme !== DEFAULT_THEME) {
+                applyTheme(savedTheme);
+                if (themeSelect) {
+                    themeSelect.value = savedTheme;
+                }
+            }
+
+            // Set up theme switcher
+            if (themeSelect) {
+                themeSelect.addEventListener('change', (e) => {
+                    applyTheme(e.target.value);
+                });
+            }
+        });
 
         // Toggle finding expansion
         function toggleFinding(header) {
