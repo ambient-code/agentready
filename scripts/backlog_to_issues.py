@@ -10,12 +10,12 @@ This script:
 5. Pauses after first item for user review
 """
 
+import json
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Dict, Optional
-import json
+from typing import Dict, List, Optional
 
 
 class BacklogItem:
@@ -34,34 +34,33 @@ class BacklogItem:
 def parse_backlog(backlog_path: Path) -> List[BacklogItem]:
     """Parse BACKLOG.md and extract all items."""
 
-    with open(backlog_path, 'r') as f:
+    with open(backlog_path, "r") as f:
         content = f.read()
 
     items = []
 
     # Split into sections by ###
-    sections = re.split(r'\n### ', content)
+    sections = re.split(r"\n### ", content)
 
     for i, section in enumerate(sections[1:], 1):  # Skip first section (header)
-        lines = section.split('\n')
+        lines = section.split("\n")
         title = lines[0].strip()
 
         # Find priority in next few lines
         priority = "P4"  # default
         for line in lines[1:5]:
-            if match := re.search(r'\*\*Priority\*\*:\s*(P\d)', line):
+            if match := re.search(r"\*\*Priority\*\*:\s*(P\d)", line):
                 priority = match.group(1)
                 break
 
         # Get full content until next ### or end
-        full_content = '\n'.join(lines)
+        full_content = "\n".join(lines)
 
-        items.append(BacklogItem(
-            title=title,
-            priority=priority,
-            content=full_content,
-            section_start=i
-        ))
+        items.append(
+            BacklogItem(
+                title=title, priority=priority, content=full_content, section_start=i
+            )
+        )
 
     return items
 
@@ -231,7 +230,9 @@ git checkout -b {item.section_start:03d}-{item.title.lower().replace(' ', '-')[:
     return prompt
 
 
-def create_github_issue(item: BacklogItem, prompt: str, repo_context: Dict, dry_run: bool = False) -> Optional[str]:
+def create_github_issue(
+    item: BacklogItem, prompt: str, repo_context: Dict, dry_run: bool = False
+) -> Optional[str]:
     """Create GitHub issue via gh CLI and attach coldstart prompt as comment."""
 
     # Prepare issue title
@@ -243,54 +244,56 @@ def create_github_issue(item: BacklogItem, prompt: str, repo_context: Dict, dry_
     body_parts.append(f"**Priority**: {item.priority}\n")
 
     # Extract description (first paragraph after Priority)
-    lines = item.content.split('\n')
+    lines = item.content.split("\n")
     in_description = False
     description_lines = []
 
     for line in lines:
-        if '**Description**:' in line:
+        if "**Description**:" in line:
             in_description = True
             continue
         if in_description:
-            if line.startswith('**') and ':' in line:
+            if line.startswith("**") and ":" in line:
                 break
             description_lines.append(line)
 
     if description_lines:
         body_parts.append("## Description\n")
-        body_parts.append('\n'.join(description_lines))
+        body_parts.append("\n".join(description_lines))
 
     # Add link to full context
     body_parts.append("\n\n## Full Context\n")
-    body_parts.append(f"See [BACKLOG.md](https://github.com/{repo_context['owner']}/{repo_context['repo']}/blob/main/BACKLOG.md) for complete requirements.\n")
+    body_parts.append(
+        f"See [BACKLOG.md](https://github.com/{repo_context['owner']}/{repo_context['repo']}/blob/main/BACKLOG.md) for complete requirements.\n"
+    )
 
     # Add acceptance criteria if present
-    if '**Acceptance Criteria**:' in item.content:
-        criteria_start = item.content.find('**Acceptance Criteria**:')
-        criteria_section = item.content[criteria_start:criteria_start+1000]
+    if "**Acceptance Criteria**:" in item.content:
+        criteria_start = item.content.find("**Acceptance Criteria**:")
+        criteria_section = item.content[criteria_start : criteria_start + 1000]
         body_parts.append("\n## Acceptance Criteria\n")
-        body_parts.append(criteria_section.split('\n\n')[0])
+        body_parts.append(criteria_section.split("\n\n")[0])
 
-    issue_body = '\n'.join(body_parts)
+    issue_body = "\n".join(body_parts)
 
     # Determine labels
     labels = [f"priority:{item.priority.lower()}"]
 
     # Add category labels based on title/content
-    if 'security' in item.title.lower() or 'xss' in item.content.lower():
-        labels.append('security')
-    if 'bug' in item.title.lower() or 'fix' in item.title.lower():
-        labels.append('bug')
+    if "security" in item.title.lower() or "xss" in item.content.lower():
+        labels.append("security")
+    if "bug" in item.title.lower() or "fix" in item.title.lower():
+        labels.append("bug")
     else:
-        labels.append('enhancement')
-    if 'test' in item.title.lower():
-        labels.append('testing')
-    if 'github' in item.title.lower():
-        labels.append('github-integration')
-    if 'report' in item.title.lower():
-        labels.append('reporting')
+        labels.append("enhancement")
+    if "test" in item.title.lower():
+        labels.append("testing")
+    if "github" in item.title.lower():
+        labels.append("github-integration")
+    if "report" in item.title.lower():
+        labels.append("reporting")
 
-    labels_str = ','.join(labels)
+    labels_str = ",".join(labels)
 
     if dry_run:
         print(f"\n{'='*80}")
@@ -307,31 +310,40 @@ def create_github_issue(item: BacklogItem, prompt: str, repo_context: Dict, dry_
         # Create the issue
         result = subprocess.run(
             [
-                'gh', 'issue', 'create',
-                '--title', issue_title,
-                '--body', issue_body,
-                '--label', labels_str
+                "gh",
+                "issue",
+                "create",
+                "--title",
+                issue_title,
+                "--body",
+                issue_body,
+                "--label",
+                labels_str,
             ],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         issue_url = result.stdout.strip()
         print(f"✅ Created issue: {issue_url}")
 
         # Extract issue number from URL
-        issue_number = issue_url.split('/')[-1]
+        issue_number = issue_url.split("/")[-1]
 
         # Add coldstart prompt as first comment
         subprocess.run(
             [
-                'gh', 'issue', 'comment', issue_number,
-                '--body', f"## 🤖 Coldstart Implementation Prompt\n\n{prompt}"
+                "gh",
+                "issue",
+                "comment",
+                issue_number,
+                "--body",
+                f"## 🤖 Coldstart Implementation Prompt\n\n{prompt}",
             ],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         print(f"✅ Added coldstart prompt as comment")
@@ -347,40 +359,39 @@ def get_repo_context() -> Dict:
     """Get repository context (owner, repo name) from git remote."""
     try:
         result = subprocess.run(
-            ['gh', 'repo', 'view', '--json', 'owner,name'],
+            ["gh", "repo", "view", "--json", "owner,name"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
         data = json.loads(result.stdout)
-        return {
-            'owner': data['owner']['login'],
-            'repo': data['name']
-        }
+        return {"owner": data["owner"]["login"], "repo": data["name"]}
     except Exception as e:
         # No git remote - ask user or use default
         print(f"⚠️  Warning: Could not get repo context from git remote")
         print(f"    This is expected if repository not yet on GitHub")
         print(f"    Using default values for now\n")
         # For agentready, we know the intended location
-        return {'owner': 'redhat', 'repo': 'agentready'}
+        return {"owner": "redhat", "repo": "agentready"}
 
 
-def save_prompt_to_file(item: BacklogItem, prompt: str, output_dir: Path, item_number: int) -> Path:
+def save_prompt_to_file(
+    item: BacklogItem, prompt: str, output_dir: Path, item_number: int
+) -> Path:
     """Save coldstart prompt to markdown file."""
 
     # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Generate filename from item number and title
-    safe_title = re.sub(r'[^\w\s-]', '', item.title.lower())
-    safe_title = re.sub(r'[-\s]+', '-', safe_title)[:50]
+    safe_title = re.sub(r"[^\w\s-]", "", item.title.lower())
+    safe_title = re.sub(r"[-\s]+", "-", safe_title)[:50]
     filename = f"{item_number:02d}-{safe_title}.md"
 
     filepath = output_dir / filename
 
     # Write prompt to file
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         f.write(prompt)
 
     return filepath
@@ -390,19 +401,19 @@ def main():
     """Main script execution."""
 
     # Parse command line args
-    create_issues = '--create-issues' in sys.argv
-    process_all = '--all' in sys.argv
+    create_issues = "--create-issues" in sys.argv
+    process_all = "--all" in sys.argv
 
     # Get repository root
     repo_root = Path(__file__).parent.parent
-    backlog_path = repo_root / 'BACKLOG.md'
+    backlog_path = repo_root / "BACKLOG.md"
 
     if not backlog_path.exists():
         print(f"❌ BACKLOG.md not found at {backlog_path}")
         sys.exit(1)
 
     # Create output directory
-    output_dir = repo_root / '.github' / 'coldstart-prompts'
+    output_dir = repo_root / ".github" / "coldstart-prompts"
 
     # Get repo context
     repo_context = get_repo_context()
@@ -453,7 +464,9 @@ def main():
             print(f"{'='*80}\n")
             print(f"Saved to: {filepath}")
             print(f"\nPlease review the prompt file.")
-            print(f"Once approved, run with --all to process remaining {len(items) - 1} items:")
+            print(
+                f"Once approved, run with --all to process remaining {len(items) - 1} items:"
+            )
             print(f"  python scripts/backlog_to_issues.py --all")
             if not create_issues:
                 print(f"\nTo also create GitHub issues, add --create-issues flag:")
@@ -473,5 +486,5 @@ def main():
     print(f"  3. Start implementing features using the coldstart prompts!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

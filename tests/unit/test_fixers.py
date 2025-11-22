@@ -183,7 +183,9 @@ class TestGitignoreFixer:
         result = fix.apply(dry_run=False)
         assert result is False  # File doesn't exist
 
-    def test_apply_fix_to_existing_gitignore(self, temp_repo, gitignore_failing_finding):
+    def test_apply_fix_to_existing_gitignore(
+        self, temp_repo, gitignore_failing_finding
+    ):
         """Test applying fix to existing .gitignore."""
         # Create existing .gitignore
         gitignore_path = temp_repo.path / ".gitignore"

@@ -458,7 +458,11 @@ def demo(language, no_browser, keep_repo):
         click.echo()
 
         # Display score with color based on level
-        score_color = "green" if overall_score >= 75 else "yellow" if overall_score >= 60 else "red"
+        score_color = (
+            "green"
+            if overall_score >= 75
+            else "yellow" if overall_score >= 60 else "red"
+        )
         click.echo(f"  Overall Score: ", nl=False)
         click.secho(f"{overall_score:.1f}/100", fg=score_color, bold=True)
         click.echo(f"  Certification: ", nl=False)
