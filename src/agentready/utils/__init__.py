@@ -1,5 +1,12 @@
 """Utility modules for AgentReady."""
 
+from .privacy import (
+    sanitize_command_args,
+    sanitize_error_message,
+    sanitize_metadata,
+    sanitize_path,
+    shorten_commit_hash,
+)
 from .subprocess_utils import (
     SUBPROCESS_TIMEOUT,
     SubprocessSecurityError,
@@ -14,4 +21,9 @@ __all__ = [
     "validate_repository_path",
     "SubprocessSecurityError",
     "SUBPROCESS_TIMEOUT",
+    "sanitize_path",
+    "sanitize_command_args",
+    "sanitize_error_message",
+    "sanitize_metadata",
+    "shorten_commit_hash",
 ]

@@ -54,9 +54,15 @@ class HTMLReporter(BaseReporter):
             for name in Theme.get_available_themes()
         }
 
+        # Security: Sanitize repository path and commit hash for display
+        repository_display_path = assessment.repository.get_sanitized_path()
+        commit_hash_short = assessment.repository.get_short_commit_hash()
+
         # Prepare data for template
         template_data = {
             "repository": assessment.repository,
+            "repository_display_path": repository_display_path,
+            "commit_hash_short": commit_hash_short,
             "timestamp": assessment.timestamp,
             "overall_score": assessment.overall_score,
             "certification_level": assessment.certification_level,
