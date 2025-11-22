@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/ambient-code/agentready/compare/v1.7.0...v1.7.1) (2025-11-22)
+
+
+### Bug Fixes
+
+* correct Assessment field name in demo command ([#41](https://github.com/ambient-code/agentready/issues/41)) ([b48622d](https://github.com/ambient-code/agentready/commit/b48622da20df17ee2a037693ca3427eca61c1214)), closes [#12](https://github.com/ambient-code/agentready/issues/12)
+
 # [1.7.0](https://github.com/ambient-code/agentready/compare/v1.6.3...v1.7.0) (2025-11-22)
 
 
