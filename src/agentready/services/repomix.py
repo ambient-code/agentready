@@ -1,9 +1,9 @@
 """Repomix integration service for generating AI-friendly repository context."""
 
-import datetime
 import json
 import shutil
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -257,7 +257,7 @@ class RepomixService:
 
         # Check most recent file
         newest_file = max(output_files, key=lambda p: p.stat().st_mtime)
-        age_seconds = datetime.datetime.now().timestamp() - newest_file.stat().st_mtime
+        age_seconds = datetime.now().timestamp() - newest_file.stat().st_mtime
         age_days = age_seconds / (24 * 3600)
 
         if age_days > max_age_days:
