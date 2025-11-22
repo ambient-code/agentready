@@ -1,5 +1,8 @@
 # AgentReady Repository Scorer
 
+[![codecov](https://codecov.io/gh/ambient-code/agentready/branch/main/graph/badge.svg)](https://codecov.io/gh/ambient-code/agentready)
+[![Tests](https://github.com/ambient-code/agentready/workflows/Tests/badge.svg)](https://github.com/ambient-code/agentready/actions/workflows/tests.yml)
+
 Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness.
 
 > **📚 Research-Based Assessment**: AgentReady's 25 attributes are derived from [comprehensive research](agent-ready-codebase-attributes.md) analyzing 50+ authoritative sources including **Anthropic**, **Microsoft**, **Google**, **ArXiv**, and **IEEE/ACM**. Each attribute is backed by peer-reviewed research and industry best practices. [View full research report →](agent-ready-codebase-attributes.md)
