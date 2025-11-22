@@ -15,6 +15,29 @@ AgentReady evaluates your repository across multiple dimensions of code quality,
 
 ## Quick Start
 
+### Bootstrap (Recommended)
+
+Transform your repository with one command:
+
+```bash
+cd /path/to/your/repo
+agentready bootstrap .
+git add . && git commit -m "build: Bootstrap agent-ready infrastructure"
+git push
+```
+
+**What you get:**
+
+- ✅ GitHub Actions workflows (tests, security, AgentReady assessment)
+- ✅ Pre-commit hooks (formatters, linters)
+- ✅ Issue/PR templates
+- ✅ Dependabot configuration
+- ✅ Automated assessment on every PR
+
+**Duration**: <60 seconds
+
+[See detailed Bootstrap tutorial →](docs/user-guide.md#bootstrap-your-repository)
+
 ### Installation
 
 ```bash
@@ -30,7 +53,9 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-### Basic Usage
+### Assessment Only
+
+For one-time analysis without infrastructure changes:
 
 ```bash
 # Assess current repository
