@@ -4,7 +4,6 @@ These are simplified implementations to get the MVP working. Each can be
 enhanced later with more sophisticated detection and scoring logic.
 """
 
-
 from ..models.attribute import Attribute
 from ..models.finding import Finding, Remediation
 from ..models.repository import Repository

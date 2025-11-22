@@ -1,6 +1,5 @@
 """Testing assessors for test coverage, naming conventions, and pre-commit hooks."""
 
-
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository

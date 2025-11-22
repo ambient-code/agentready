@@ -1,7 +1,5 @@
 """Tests for structure assessors."""
 
-
-
 from agentready.assessors.structure import StandardLayoutAssessor
 from agentready.models.repository import Repository
 

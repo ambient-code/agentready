@@ -1,6 +1,5 @@
 """Structure assessors for project layout and separation of concerns."""
 
-
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository

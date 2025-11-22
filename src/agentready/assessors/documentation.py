@@ -1,6 +1,5 @@
 """Documentation assessor for CLAUDE.md, README, docstrings, and ADRs."""
 
-
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
