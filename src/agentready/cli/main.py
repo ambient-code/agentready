@@ -21,6 +21,7 @@ from ..assessors.code_quality import (
 from ..assessors.documentation import (
     ArchitectureDecisionsAssessor,
     CLAUDEmdAssessor,
+    ConciseDocumentationAssessor,
     READMEAssessor,
 )
 from ..assessors.structure import (
@@ -76,13 +77,14 @@ def create_all_assessors():
         TypeAnnotationsAssessor(),
         StandardLayoutAssessor(),
         LockFilesAssessor(),
-        # Tier 2 Critical (10 assessors - 4 implemented, 6 stubs)
+        # Tier 2 Critical (10 assessors - 5 implemented, 5 stubs)
         TestCoverageAssessor(),
         PreCommitHooksAssessor(),
         ConventionalCommitsAssessor(),
         GitignoreAssessor(),
         OneCommandSetupAssessor(),
         SeparationOfConcernsAssessor(),
+        ConciseDocumentationAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
         # Tier 3 Important (4 implemented)
         ArchitectureDecisionsAssessor(),

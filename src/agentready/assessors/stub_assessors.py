@@ -277,13 +277,6 @@ def create_stub_assessors():
             0.03,
         ),
         StubAssessor(
-            "concise_documentation",
-            "Concise Structured Documentation",
-            "Context Window Optimization",
-            2,
-            0.03,
-        ),
-        StubAssessor(
             "inline_documentation",
             "Inline Documentation",
             "Documentation Standards",

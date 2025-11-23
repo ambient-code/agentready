@@ -543,3 +543,280 @@ Use PostgreSQL 15+ as primary database.
                 ),
             ],
         )
+
+
+class ConciseDocumentationAssessor(BaseAssessor):
+    """Assesses documentation conciseness and structure.
+
+    Tier 2 Critical (3% weight) - Concise documentation improves LLM
+    performance by reducing context window pollution and improving
+    information retrieval speed.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "concise_documentation"
+
+    @property
+    def tier(self) -> int:
+        return 2  # Critical
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Concise Documentation",
+            category="Documentation",
+            tier=self.tier,
+            description="Documentation maximizes information density while minimizing token consumption",
+            criteria="README <500 lines with clear structure, bullet points over prose",
+            default_weight=0.03,
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check README for conciseness and structure.
+
+        Scoring:
+        - README length (30%): <300 excellent, 300-500 good, 500-750 acceptable, >750 poor
+        - Markdown structure (40%): Heading density (target 3-5 per 100 lines)
+        - Concise formatting (30%): Bullet points, code blocks, no walls of text
+        """
+        readme_path = repository.path / "README.md"
+
+        if not readme_path.exists():
+            return Finding.not_applicable(
+                self.attribute, reason="No README.md found in repository"
+            )
+
+        try:
+            content = readme_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as e:
+            return Finding.error(
+                self.attribute, reason=f"Could not read README.md: {e}"
+            )
+
+        # Analyze README
+        lines = content.splitlines()
+        line_count = len(lines)
+
+        # Check 1: README length (30%)
+        length_score = self._calculate_length_score(line_count)
+
+        # Check 2: Markdown structure (40%)
+        headings = re.findall(r"^#{1,6} .+$", content, re.MULTILINE)
+        heading_count = len(headings)
+        structure_score = self._calculate_structure_score(heading_count, line_count)
+
+        # Check 3: Concise formatting (30%)
+        bullets = len(re.findall(r"^[\-\*] .+$", content, re.MULTILINE))
+        code_blocks = len(re.findall(r"```", content)) // 2  # Pairs of backticks
+        long_paragraphs = self._count_long_paragraphs(content)
+        formatting_score = self._calculate_formatting_score(
+            bullets, code_blocks, long_paragraphs
+        )
+
+        # Calculate total score
+        score = (
+            (length_score * 0.3) + (structure_score * 0.4) + (formatting_score * 0.3)
+        )
+
+        status = "pass" if score >= 75 else "fail"
+
+        # Build evidence
+        evidence = []
+
+        # Length evidence
+        if line_count < 300:
+            evidence.append(f"README length: {line_count} lines (excellent)")
+        elif line_count < 500:
+            evidence.append(f"README length: {line_count} lines (good)")
+        elif line_count < 750:
+            evidence.append(f"README length: {line_count} lines (acceptable)")
+        else:
+            evidence.append(f"README length: {line_count} lines (excessive)")
+
+        # Structure evidence
+        heading_density = (heading_count / max(line_count, 1)) * 100
+        if 3 <= heading_density <= 5:
+            evidence.append(
+                f"Heading density: {heading_density:.1f} per 100 lines (good structure)"
+            )
+        else:
+            evidence.append(
+                f"Heading density: {heading_density:.1f} per 100 lines (target: 3-5)"
+            )
+
+        # Formatting evidence
+        if bullets > 10 and long_paragraphs == 0:
+            evidence.append(
+                f"{bullets} bullet points, {code_blocks} code blocks (concise formatting)"
+            )
+        elif long_paragraphs > 0:
+            evidence.append(
+                f"{long_paragraphs} paragraphs exceed 10 lines (walls of text)"
+            )
+        else:
+            evidence.append(f"Only {bullets} bullet points (prefer bullets over prose)")
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{line_count} lines, {heading_count} headings, {bullets} bullets",
+            threshold="<500 lines, structured format",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _calculate_length_score(self, line_count: int) -> float:
+        """Calculate score based on README length.
+
+        <300 lines: 100%
+        300-500: 80%
+        500-750: 60%
+        >750: 0%
+        """
+        if line_count < 300:
+            return 100.0
+        elif line_count < 500:
+            return 80.0
+        elif line_count < 750:
+            return 60.0
+        else:
+            return 0.0
+
+    def _calculate_structure_score(self, heading_count: int, line_count: int) -> float:
+        """Calculate score based on heading density.
+
+        Target: 3-5 headings per 100 lines
+        """
+        if line_count == 0:
+            return 0.0
+
+        density = (heading_count / line_count) * 100
+
+        # Optimal range: 3-5 headings per 100 lines
+        if 3 <= density <= 5:
+            return 100.0
+        elif 2 <= density < 3 or 5 < density <= 7:
+            return 80.0
+        elif 1 <= density < 2 or 7 < density <= 10:
+            return 60.0
+        else:
+            return 40.0
+
+    def _calculate_formatting_score(
+        self, bullets: int, code_blocks: int, long_paragraphs: int
+    ) -> float:
+        """Calculate score based on formatting style.
+
+        Rewards: bullet points, code blocks
+        Penalizes: long paragraphs (walls of text)
+        """
+        score = 50.0  # Base score
+
+        # Reward bullet points
+        if bullets > 20:
+            score += 30
+        elif bullets > 10:
+            score += 20
+        elif bullets > 5:
+            score += 10
+
+        # Reward code blocks
+        if code_blocks > 5:
+            score += 20
+        elif code_blocks > 2:
+            score += 10
+
+        # Penalize long paragraphs
+        if long_paragraphs == 0:
+            score += 0  # No penalty
+        elif long_paragraphs <= 3:
+            score -= 20
+        else:
+            score -= 40
+
+        return max(0, min(100, score))
+
+    def _count_long_paragraphs(self, content: str) -> int:
+        """Count paragraphs exceeding 10 lines (walls of text)."""
+        # Split by double newlines to find paragraphs
+        paragraphs = re.split(r"\n\n+", content)
+
+        long_count = 0
+        for para in paragraphs:
+            # Skip code blocks and lists
+            if para.strip().startswith("```") or para.strip().startswith("-"):
+                continue
+
+            lines = para.count("\n") + 1
+            if lines > 10:
+                long_count += 1
+
+        return long_count
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for verbose documentation."""
+        return Remediation(
+            summary="Make documentation more concise and structured",
+            steps=[
+                "Break long README into multiple documents (docs/ directory)",
+                "Add clear Markdown headings (##, ###) for structure",
+                "Convert prose paragraphs to bullet points where possible",
+                "Add table of contents for documents >100 lines",
+                "Use code blocks instead of describing commands in prose",
+                "Move detailed content to wiki or docs/, keep README focused",
+            ],
+            tools=[],
+            commands=[
+                "# Check README length",
+                "wc -l README.md",
+                "",
+                "# Count headings",
+                "grep -c '^#' README.md",
+            ],
+            examples=[
+                """# Good: Concise with structure
+
+## Quick Start
+```bash
+pip install -e .
+agentready assess .
+```
+
+## Features
+- Fast repository scanning
+- HTML and Markdown reports
+- 25 agent-ready attributes
+
+## Documentation
+See [docs/](docs/) for detailed guides.
+""",
+                """# Bad: Verbose prose
+
+This project is a tool that helps you assess your repository
+against best practices for AI-assisted development. It works by
+scanning your codebase and checking for various attributes that
+make repositories more effective when working with AI coding
+assistants like Claude Code...
+
+[Many more paragraphs of prose...]
+""",
+            ],
+            citations=[
+                Citation(
+                    source="ArXiv",
+                    title="LongCodeBench: Evaluating Coding LLMs at 1M Context Windows",
+                    url="https://arxiv.org/abs/2501.00343",
+                    relevance="Research showing performance degradation with long contexts",
+                ),
+                Citation(
+                    source="Markdown Guide",
+                    title="Basic Syntax",
+                    url="https://www.markdownguide.org/basic-syntax/",
+                    relevance="Best practices for Markdown formatting",
+                ),
+            ],
+        )
