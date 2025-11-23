@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/ambient-code/agentready/compare/v1.21.0...v1.22.0) (2025-11-23)
+
+
+### Features
+
+* Implement OpenAPISpecsAssessor (fixes [#80](https://github.com/ambient-code/agentready/issues/80)) ([#97](https://github.com/ambient-code/agentready/issues/97)) ([45ae36e](https://github.com/ambient-code/agentready/commit/45ae36edc279aebf947d4cf5f31d70b26abc4d0a))
+
 # [1.21.0](https://github.com/ambient-code/agentready/compare/v1.20.0...v1.21.0) (2025-11-23)
 
 
