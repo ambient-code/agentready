@@ -76,22 +76,27 @@ def align(repository, dry_run, attributes, interactive):
     # Step 1: Run assessment
     click.echo("📊 Running assessment...")
     try:
-        # Create repository model
-        detector = LanguageDetector(repo_path)
-        languages = detector.detect_languages()
-
-        repo = Repository(
-            path=repo_path,
-            languages=languages,
-            metadata={},
-        )
-
         # Load config
         config = Config.load_default()
 
+        # Create scanner
+        scanner = Scanner(repo_path, config)
+
+        # Create assessors
+        from agentready.assessors import create_all_assessors
+
+        assessors = create_all_assessors()
+
+        # Filter assessors if specific attributes requested
+        if attributes:
+            attr_set = set(attributes.split(","))
+            assessors = [a for a in assessors if a.attribute_id in attr_set]
+
         # Run assessment
-        scanner = Scanner(config=config)
-        assessment = scanner.scan(repo)
+        from agentready.cli.main import get_agentready_version
+
+        version = get_agentready_version()
+        assessment = scanner.scan(assessors, verbose=False, version=version)
 
         current_level, current_emoji = get_certification_level(assessment.overall_score)
 

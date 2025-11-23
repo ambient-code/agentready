@@ -1,36 +1,6 @@
 {
-  "generated_at": "2025-11-21T14:17:47.941871",
-  "skill_count": 2,
+  "generated_at": "2025-11-23T00:18:53.479358",
+  "skill_count": 0,
   "min_confidence": 70,
-  "discovered_skills": [
-    {
-      "skill_id": "setup-claude-md",
-      "name": "Setup CLAUDE.md Configuration",
-      "description": "Create comprehensive CLAUDE.md files with tech stack, standard commands, repository structure, and boundaries to optimize repositories for AI-assisted development",
-      "confidence": 100.0,
-      "source_attribute_id": "claude_md_file",
-      "reusability_score": 100.0,
-      "impact_score": 50.0,
-      "pattern_summary": "Project-specific configuration for Claude Code",
-      "code_examples": [
-        "CLAUDE.md found at /Users/jeder/repos/agentready/CLAUDE.md"
-      ],
-      "citations": []
-    },
-    {
-      "skill_id": "implement-type-annotations",
-      "name": "Implement Type Annotations",
-      "description": "Add comprehensive type hints to Python/TypeScript code to improve IDE support, catch errors early, and enable better AI code understanding",
-      "confidence": 100.0,
-      "source_attribute_id": "type_annotations",
-      "reusability_score": 100.0,
-      "impact_score": 50.0,
-      "pattern_summary": "Type hints in function signatures",
-      "code_examples": [
-        "Typed functions: 180/186",
-        "Coverage: 96.8%"
-      ],
-      "citations": []
-    }
-  ]
+  "discovered_skills": []
 }

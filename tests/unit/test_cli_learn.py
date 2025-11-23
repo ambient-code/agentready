@@ -9,6 +9,7 @@ import pytest
 from click.testing import CliRunner
 
 from agentready.cli.learn import learn
+from tests.fixtures.assessment_fixtures import create_test_assessment_json
 
 
 @pytest.fixture
@@ -24,46 +25,13 @@ def temp_repo():
         agentready_dir = repo_path / ".agentready"
         agentready_dir.mkdir()
 
-        # Create sample assessment
-        assessment_data = {
-            "schema_version": "1.0.0",
-            "timestamp": "2025-11-22T06:00:00",
-            "repository": {
-                "name": "test-repo",
-                "path": str(repo_path),
-                "url": None,
-                "branch": "main",
-                "commit_hash": "abc123",
-                "languages": {"Python": 100},
-                "total_files": 5,
-                "total_lines": 100,
-            },
-            "overall_score": 85.0,
-            "certification_level": "Gold",
-            "attributes_assessed": 2,
-            "attributes_not_assessed": 0,
-            "attributes_total": 2,
-            "findings": [
-                {
-                    "attribute": {
-                        "id": "claude_md_file",
-                        "name": "CLAUDE.md File",
-                        "category": "Documentation",
-                        "tier": 1,
-                        "description": "Test attribute",
-                        "criteria": "Must exist",
-                        "default_weight": 1.0,
-                    },
-                    "status": "pass",
-                    "score": 100.0,
-                    "measured_value": "present",
-                    "threshold": "present",
-                    "evidence": ["CLAUDE.md exists"],
-                    "error_message": None,
-                }
-            ],
-            "duration_seconds": 1.5,
-        }
+        # Create sample assessment using shared fixture
+        assessment_data = create_test_assessment_json(
+            overall_score=85.0,
+            num_findings=2,
+            repo_path=str(repo_path),
+            repo_name="test-repo",
+        )
 
         assessment_file = agentready_dir / "assessment-latest.json"
         with open(assessment_file, "w") as f:
@@ -301,25 +269,13 @@ class TestLearnCommand:
             agentready_dir = Path(".agentready")
             agentready_dir.mkdir()
 
-            # Create minimal assessment
-            assessment_data = {
-                "schema_version": "1.0.0",
-                "timestamp": "2025-11-22T06:00:00",
-                "repository": {
-                    "name": "test",
-                    "path": ".",
-                    "languages": {"Python": 100},
-                    "total_files": 1,
-                    "total_lines": 10,
-                },
-                "overall_score": 75.0,
-                "certification_level": "Gold",
-                "attributes_assessed": 1,
-                "attributes_not_assessed": 0,
-                "attributes_total": 1,
-                "findings": [],
-                "duration_seconds": 1.0,
-            }
+            # Create minimal assessment using shared fixture
+            assessment_data = create_test_assessment_json(
+                overall_score=75.0,
+                num_findings=1,
+                repo_path=".",
+                repo_name="test",
+            )
 
             with open(agentready_dir / "assessment-latest.json", "w") as f:
                 json.dump(assessment_data, f)
