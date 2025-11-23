@@ -642,3 +642,41 @@ jobs:
                 ),
             ],
         )
+
+
+class BranchProtectionAssessor(BaseAssessor):
+    """Assesses branch protection rules on main/production branches.
+
+    Tier 4 Advanced (0.5% weight) - Requires GitHub API access to check
+    branch protection settings. This is a stub implementation that will
+    return not_applicable until GitHub API integration is implemented.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "branch_protection"
+
+    @property
+    def tier(self) -> int:
+        return 4  # Advanced
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Branch Protection Rules",
+            category="Git & Version Control",
+            tier=self.tier,
+            description="Required status checks and review approvals before merging",
+            criteria="Branch protection enabled with status checks and required reviews",
+            default_weight=0.005,
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        """Stub implementation - requires GitHub API integration."""
+        return Finding.not_applicable(
+            self.attribute,
+            reason="Requires GitHub API integration for branch protection checks. "
+            "Future implementation will verify: required status checks, "
+            "required reviews, force push prevention, and branch update requirements.",
+        )

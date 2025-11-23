@@ -41,6 +41,7 @@ from ..assessors.stub_assessors import (
     create_stub_assessors,
 )
 from ..assessors.testing import (
+    BranchProtectionAssessor,
     CICDPipelineVisibilityAssessor,
     PreCommitHooksAssessor,
     TestCoverageAssessor,
@@ -98,6 +99,8 @@ def create_all_assessors():
         SemanticNamingAssessor(),
         StructuredLoggingAssessor(),
         OpenAPISpecsAssessor(),
+        # Tier 4 Advanced (1 stub)
+        BranchProtectionAssessor(),
     ]
 
     # Add remaining stub assessors
