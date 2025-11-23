@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/ambient-code/agentready/compare/v1.26.0...v1.27.0) (2025-11-23)
+
+
+### Features
+
+* Add comprehensive unit tests for utility modules (privacy.py and subprocess_utils.py) ([#111](https://github.com/ambient-code/agentready/issues/111)) ([9d3dece](https://github.com/ambient-code/agentready/commit/9d3dece88389e78a8efe4cf278a42210bc920175))
+
 # [1.26.0](https://github.com/ambient-code/agentready/compare/v1.25.0...v1.26.0) (2025-11-23)
 
 
