@@ -282,6 +282,21 @@ def _generate_multi_reports(
     help="Repository URLs/paths (can be specified multiple times)",
 )
 @click.option(
+    "--github-org",
+    help="GitHub organization name to scan",
+)
+@click.option(
+    "--include-private",
+    is_flag=True,
+    help="Include private repos from GitHub org (requires GITHUB_TOKEN)",
+)
+@click.option(
+    "--max-repos",
+    type=int,
+    default=100,
+    help="Maximum repos to assess from GitHub org (default: 100)",
+)
+@click.option(
     "--verbose",
     "-v",
     is_flag=True,
@@ -316,6 +331,9 @@ def _generate_multi_reports(
 def assess_batch(
     repos_file: Optional[str],
     repos: tuple,
+    github_org: Optional[str],
+    include_private: bool,
+    max_repos: int,
     verbose: bool,
     output_dir: Optional[str],
     config: Optional[str],
@@ -324,13 +342,17 @@ def assess_batch(
 ):
     """Assess multiple repositories in a batch operation.
 
-    Supports two input methods:
+    Supports three input methods:
 
     1. File-based input:
         agentready assess-batch --repos-file repos.txt
 
     2. Inline arguments:
         agentready assess-batch --repos https://github.com/user/repo1 --repos https://github.com/user/repo2
+
+    3. GitHub organization:
+        agentready assess-batch --github-org anthropics
+        agentready assess-batch --github-org myorg --include-private --max-repos 50
 
     Output files are saved to .agentready/batch/ by default.
     """
@@ -351,9 +373,54 @@ def assess_batch(
     if repos:
         repository_urls.extend(repos)
 
+    # NEW: GitHub org scanning
+    if github_org:
+        try:
+            from ..services.github_scanner import (
+                GitHubAPIError,
+                GitHubAuthError,
+                GitHubOrgScanner,
+            )
+
+            scanner = GitHubOrgScanner()
+            org_repos = scanner.get_org_repos(
+                org_name=github_org,
+                include_private=include_private,
+                max_repos=max_repos,
+            )
+            repository_urls.extend(org_repos)
+
+            if verbose:
+                click.echo(f"Found {len(org_repos)} repositories in {github_org}")
+
+        except GitHubAuthError as e:
+            click.echo(f"GitHub authentication error: {e}", err=True)
+            sys.exit(1)
+
+        except GitHubAPIError as e:
+            click.echo(f"GitHub API error: {e}", err=True)
+            sys.exit(1)
+
+        except ValueError as e:
+            click.echo(f"Invalid input: {e}", err=True)
+            sys.exit(1)
+
+    # Remove duplicates while preserving order
+    if repository_urls:
+        seen = set()
+        unique_repos = []
+        for url in repository_urls:
+            if url not in seen:
+                seen.add(url)
+                unique_repos.append(url)
+        repository_urls = unique_repos
+
     # Validate we have repositories
     if not repository_urls:
-        click.echo("Error: No repositories specified. Use --repos-file or --repos", err=True)
+        click.echo(
+            "Error: No repositories specified. Use --repos-file, --repos, or --github-org",
+            err=True,
+        )
         sys.exit(1)
 
     if verbose:

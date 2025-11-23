@@ -46,6 +46,76 @@ agentready migrate-report old-report.json --to 2.0.0
 
 ---
 
+## Batch Assessment & GitHub Integration
+
+**Feature**: Assess multiple repositories in a single operation, including scanning entire GitHub organizations.
+
+The `assess-batch` command enables bulk repository assessment with support for file-based lists, inline arguments, and direct GitHub organization scanning.
+
+### Basic Usage
+
+```bash
+# Assess repositories from a file
+agentready assess-batch --repos-file repos.txt
+
+# Assess specific repositories
+agentready assess-batch \
+  --repos https://github.com/user/repo1 \
+  --repos https://github.com/user/repo2
+
+# Combine multiple sources
+agentready assess-batch \
+  --repos-file my-repos.txt \
+  --repos https://github.com/user/extra-repo
+```
+
+### GitHub Organization Scanning
+
+Assess all repositories in a GitHub organization:
+
+```bash
+# Set GitHub token
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Scan public repos only (default)
+agentready assess-batch --github-org anthropics
+
+# Include private repos
+agentready assess-batch --github-org myorg --include-private
+
+# Limit number of repos
+agentready assess-batch --github-org myorg --max-repos 50
+
+# Combine with other sources
+agentready assess-batch \
+  --github-org myorg \
+  --repos-file additional-repos.txt \
+  --verbose
+```
+
+**Token Setup**:
+1. Create personal access token: https://github.com/settings/tokens
+2. Required scopes: `repo:status`, `public_repo`
+3. For private repos: `repo` (full control)
+4. Set environment variable: `export GITHUB_TOKEN=ghp_...`
+
+**Security Features**:
+- Token stored in environment only (never in files)
+- Token redacted in all logs and errors
+- Public repos scanned by default (safe)
+- Private repos require explicit `--include-private` flag
+- Organization name validated to prevent injection attacks
+- Repository limit enforced (default: 100)
+- Rate limiting implemented (0.2s between API requests)
+
+**Output**:
+- Batch reports saved to `.agentready/batch/` by default
+- Individual repository assessments cached
+- Summary statistics across all repositories
+- Aggregate scoring and failure analysis
+
+---
+
 ## Continuous Learning Loop (LLM-Powered)
 
 **Feature**: Extract high-quality skills from assessments using Claude API
