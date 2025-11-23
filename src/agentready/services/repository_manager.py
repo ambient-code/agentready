@@ -44,31 +44,36 @@ class RepositoryManager:
         """
         url = url.strip()
 
-        # Local paths are allowed (for local assessment)
-        if not url.startswith(("http://", "https://", "git://")):
+        # Empty URL is invalid
+        if not url:
+            return False, "URL cannot be empty"
+
+        # Check if it looks like a URL with protocol
+        if "://" in url:
+            # For URLs, require HTTPS (git:// also allowed but prefer HTTPS)
+            try:
+                parsed = urlparse(url)
+                if parsed.scheme == "http":
+                    return (
+                        False,
+                        f"HTTP is not secure; use HTTPS instead: {url}",
+                    )
+                if parsed.scheme not in self.ALLOWED_PROTOCOLS:
+                    return False, f"Unsupported protocol: {parsed.scheme}"
+
+                # Basic hostname validation
+                if not parsed.netloc:
+                    return False, f"Invalid URL format: {url}"
+
+                return True, None
+            except Exception as e:
+                return False, f"Invalid URL: {url} ({str(e)})"
+        else:
+            # Treat as local path
             path = Path(url).resolve()
             if path.exists() and (path / ".git").exists():
                 return True, None
             return False, f"Local path does not exist or is not a git repository: {url}"
-
-        # For URLs, require HTTPS (git:// also allowed but prefer HTTPS)
-        try:
-            parsed = urlparse(url)
-            if parsed.scheme == "http":
-                return (
-                    False,
-                    f"HTTP is not secure; use HTTPS instead: {url}",
-                )
-            if parsed.scheme not in self.ALLOWED_PROTOCOLS:
-                return False, f"Unsupported protocol: {parsed.scheme}"
-
-            # Basic hostname validation
-            if not parsed.netloc:
-                return False, f"Invalid URL format: {url}"
-
-            return True, None
-        except Exception as e:
-            return False, f"Invalid URL: {url} ({str(e)})"
 
     def get_repository_name_from_url(self, url: str) -> str:
         """Extract repository name from URL.
@@ -211,7 +216,11 @@ class RepositoryManager:
                 text=True,
                 timeout=10,
             )
-            branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "HEAD"
+            branch = (
+                branch_result.stdout.strip()
+                if branch_result.returncode == 0
+                else "HEAD"
+            )
 
             commit_cmd = ["git", "-C", str(repo_path), "rev-parse", "HEAD"]
             commit_result = subprocess.run(
@@ -220,7 +229,11 @@ class RepositoryManager:
                 text=True,
                 timeout=10,
             )
-            commit_hash = commit_result.stdout.strip() if commit_result.returncode == 0 else "unknown"
+            commit_hash = (
+                commit_result.stdout.strip()
+                if commit_result.returncode == 0
+                else "unknown"
+            )
 
             # Build Repository model (Scanner will handle language detection, etc.)
             repository = Repository(

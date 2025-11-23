@@ -1,7 +1,10 @@
 """Unit tests for batch assessment models."""
 
-import pytest
+import tempfile
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from agentready.models import (
     BatchAssessment,
@@ -10,6 +13,66 @@ from agentready.models import (
     RepositoryResult,
 )
 from agentready.models.assessment import Assessment
+from agentready.models.attribute import Attribute
+from agentready.models.finding import Finding
+from agentready.models.repository import Repository
+
+
+@pytest.fixture
+def sample_repository():
+    """Create a sample repository for testing."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        repo_path = Path(tmpdir)
+        # Create .git directory to make it a valid repo
+        (repo_path / ".git").mkdir()
+        yield Repository(
+            path=repo_path,
+            name="test-repo",
+            url="https://github.com/user/test-repo",
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=500,
+        )
+
+
+@pytest.fixture
+def sample_assessment(sample_repository):
+    """Create a sample assessment for testing."""
+    attribute = Attribute(
+        id="claude_md_file",
+        name="CLAUDE.md File",
+        description="Repository has CLAUDE.md",
+        category="Documentation",
+        tier=1,
+        criteria="File exists",
+        default_weight=0.10,
+    )
+
+    finding = Finding(
+        attribute=attribute,
+        status="pass",
+        score=100.0,
+        measured_value="present",
+        threshold="present",
+        evidence=["CLAUDE.md exists"],
+        remediation=None,
+        error_message=None,
+    )
+
+    return Assessment(
+        repository=sample_repository,
+        timestamp=datetime.now(),
+        overall_score=85.0,
+        certification_level="Gold",
+        attributes_assessed=1,
+        attributes_not_assessed=0,
+        attributes_total=1,
+        findings=[finding],
+        config=None,
+        duration_seconds=5.0,
+    )
 
 
 class TestRepositoryResult:
