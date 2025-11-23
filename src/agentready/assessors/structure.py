@@ -307,3 +307,172 @@ make test   # Run tests to verify setup
                 ),
             ],
         )
+
+
+class IssuePRTemplatesAssessor(BaseAssessor):
+    """Assesses presence of GitHub issue and PR templates.
+
+    Tier 3 Important (1.5% weight) - Templates provide structure for AI
+    when creating issues/PRs and ensure consistent formatting.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "issue_pr_templates"
+
+    @property
+    def tier(self) -> int:
+        return 3  # Important
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Issue & Pull Request Templates",
+            category="Repository Structure",
+            tier=self.tier,
+            description="Standardized templates for issues and PRs",
+            criteria="PR template and issue templates in .github/",
+            default_weight=0.015,
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check for GitHub issue and PR templates.
+
+        Scoring:
+        - PR template exists (50%)
+        - Issue templates exist (50%, requires ≥2 templates)
+        """
+        score = 0
+        evidence = []
+
+        # Check for PR template (50%)
+        pr_template_paths = [
+            repository.path / ".github" / "PULL_REQUEST_TEMPLATE.md",
+            repository.path / "PULL_REQUEST_TEMPLATE.md",
+            repository.path / ".github" / "pull_request_template.md",
+        ]
+
+        pr_template_found = any(p.exists() for p in pr_template_paths)
+
+        if pr_template_found:
+            score += 50
+            evidence.append("PR template found")
+        else:
+            evidence.append("No PR template found")
+
+        # Check for issue templates (50%)
+        issue_template_dir = repository.path / ".github" / "ISSUE_TEMPLATE"
+
+        if issue_template_dir.exists() and issue_template_dir.is_dir():
+            try:
+                # Count .md and .yml files (both formats supported)
+                md_templates = list(issue_template_dir.glob("*.md"))
+                yml_templates = list(issue_template_dir.glob("*.yml")) + list(
+                    issue_template_dir.glob("*.yaml")
+                )
+                template_count = len(md_templates) + len(yml_templates)
+
+                if template_count >= 2:
+                    score += 50
+                    evidence.append(
+                        f"Issue templates found: {template_count} templates"
+                    )
+                elif template_count == 1:
+                    score += 25
+                    evidence.append(
+                        "Issue template directory exists with 1 template (need ≥2)"
+                    )
+                else:
+                    evidence.append("Issue template directory exists but is empty")
+            except OSError:
+                evidence.append("Could not read issue template directory")
+        else:
+            evidence.append("No issue template directory found")
+
+        status = "pass" if score >= 75 else "fail"
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"PR:{pr_template_found}, Issues:{template_count if issue_template_dir.exists() else 0}",
+            threshold="PR template + ≥2 issue templates",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for missing templates."""
+        return Remediation(
+            summary="Create GitHub issue and PR templates in .github/ directory",
+            steps=[
+                "Create .github/ directory if it doesn't exist",
+                "Add PULL_REQUEST_TEMPLATE.md for PRs",
+                "Create .github/ISSUE_TEMPLATE/ directory",
+                "Add bug_report.md for bug reports",
+                "Add feature_request.md for feature requests",
+                "Optionally add config.yml to configure template chooser",
+            ],
+            tools=["gh"],
+            commands=[
+                "# Create directories",
+                "mkdir -p .github/ISSUE_TEMPLATE",
+                "",
+                "# Create PR template",
+                "cat > .github/PULL_REQUEST_TEMPLATE.md << 'EOF'",
+                "## Summary",
+                "<!-- Describe the changes in this PR -->",
+                "",
+                "## Related Issues",
+                "Fixes #",
+                "",
+                "## Testing",
+                "- [ ] Tests added/updated",
+                "- [ ] All tests pass",
+                "",
+                "## Checklist",
+                "- [ ] Documentation updated",
+                "- [ ] CHANGELOG.md updated",
+                "EOF",
+            ],
+            examples=[
+                """# Bug Report Template (.github/ISSUE_TEMPLATE/bug_report.md)
+
+```markdown
+---
+name: Bug Report
+about: Create a report to help us improve
+title: '[BUG] '
+labels: bug
+assignees: ''
+---
+
+**Describe the bug**
+A clear description of what the bug is.
+
+**To Reproduce**
+Steps to reproduce:
+1. Go to '...'
+2. Click on '....'
+3. See error
+
+**Expected behavior**
+What you expected to happen.
+
+**Environment**
+- OS: [e.g. macOS 13.0]
+- Version: [e.g. 1.0.0]
+```
+""",
+            ],
+            citations=[
+                Citation(
+                    source="GitHub Docs",
+                    title="About issue and pull request templates",
+                    url="https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates",
+                    relevance="Official GitHub guide for templates",
+                ),
+            ],
+        )

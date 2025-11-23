@@ -23,7 +23,11 @@ from ..assessors.documentation import (
     CLAUDEmdAssessor,
     READMEAssessor,
 )
-from ..assessors.structure import OneCommandSetupAssessor, StandardLayoutAssessor
+from ..assessors.structure import (
+    IssuePRTemplatesAssessor,
+    OneCommandSetupAssessor,
+    StandardLayoutAssessor,
+)
 from ..assessors.stub_assessors import (
     ConventionalCommitsAssessor,
     GitignoreAssessor,
@@ -74,8 +78,9 @@ def create_all_assessors():
         GitignoreAssessor(),
         OneCommandSetupAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
-        # Tier 3 Important (1 implemented)
+        # Tier 3 Important (2 implemented)
         ArchitectureDecisionsAssessor(),
+        IssuePRTemplatesAssessor(),
     ]
 
     # Add remaining stub assessors
