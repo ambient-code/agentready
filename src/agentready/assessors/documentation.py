@@ -1,10 +1,12 @@
 """Documentation assessor for CLAUDE.md, README, docstrings, and ADRs."""
 
+import ast
 import re
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
+from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
 
 
@@ -817,6 +819,227 @@ assistants like Claude Code...
                     title="Basic Syntax",
                     url="https://www.markdownguide.org/basic-syntax/",
                     relevance="Best practices for Markdown formatting",
+                ),
+            ],
+        )
+
+
+class InlineDocumentationAssessor(BaseAssessor):
+    """Assesses inline documentation (docstrings) coverage.
+
+    Tier 2 Critical (3% weight) - Docstrings provide function-level
+    context that helps LLMs understand code without reading implementation.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "inline_documentation"
+
+    @property
+    def tier(self) -> int:
+        return 2  # Critical
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Inline Documentation",
+            category="Documentation",
+            tier=self.tier,
+            description="Function, class, and module-level documentation using language-specific conventions",
+            criteria="≥80% of public functions/classes have docstrings",
+            default_weight=0.03,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        """Only applicable to languages with docstring conventions."""
+        applicable_languages = {"Python", "JavaScript", "TypeScript"}
+        return bool(set(repository.languages.keys()) & applicable_languages)
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check docstring coverage for public functions and classes.
+
+        Currently supports Python only. JavaScript/TypeScript can be added later.
+        """
+        if "Python" in repository.languages:
+            return self._assess_python_docstrings(repository)
+        else:
+            return Finding.not_applicable(
+                self.attribute,
+                reason=f"Docstring check not implemented for {list(repository.languages.keys())}",
+            )
+
+    def _assess_python_docstrings(self, repository: Repository) -> Finding:
+        """Assess Python docstring coverage using AST parsing."""
+        # Get list of Python files
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files", "*.py"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
+            python_files = [f for f in result.stdout.strip().split("\n") if f]
+        except Exception:
+            python_files = [
+                str(f.relative_to(repository.path))
+                for f in repository.path.rglob("*.py")
+            ]
+
+        total_public_items = 0
+        documented_items = 0
+
+        for file_path in python_files:
+            full_path = repository.path / file_path
+            try:
+                with open(full_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                # Parse the file with AST
+                tree = ast.parse(content, filename=str(file_path))
+
+                # Check module-level docstring
+                module_doc = ast.get_docstring(tree)
+                if module_doc:
+                    documented_items += 1
+                total_public_items += 1
+
+                # Walk the AST and count functions/classes with docstrings
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+                        # Skip private functions/classes (starting with _)
+                        if node.name.startswith("_"):
+                            continue
+
+                        total_public_items += 1
+                        docstring = ast.get_docstring(node)
+                        if docstring:
+                            documented_items += 1
+
+            except (OSError, UnicodeDecodeError, SyntaxError):
+                # Skip files that can't be read or parsed
+                continue
+
+        if total_public_items == 0:
+            return Finding.not_applicable(
+                self.attribute,
+                reason="No public Python functions or classes found",
+            )
+
+        coverage_percent = (documented_items / total_public_items) * 100
+        score = self.calculate_proportional_score(
+            measured_value=coverage_percent,
+            threshold=80.0,
+            higher_is_better=True,
+        )
+
+        status = "pass" if score >= 75 else "fail"
+
+        # Build evidence
+        evidence = [
+            f"Documented items: {documented_items}/{total_public_items}",
+            f"Coverage: {coverage_percent:.1f}%",
+        ]
+
+        if coverage_percent >= 80:
+            evidence.append("Good docstring coverage")
+        elif coverage_percent >= 60:
+            evidence.append("Moderate docstring coverage")
+        else:
+            evidence.append("Many public functions/classes lack docstrings")
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{coverage_percent:.1f}%",
+            threshold="≥80%",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for missing docstrings."""
+        return Remediation(
+            summary="Add docstrings to public functions and classes",
+            steps=[
+                "Identify functions/classes without docstrings",
+                "Add PEP 257 compliant docstrings for Python",
+                "Add JSDoc comments for JavaScript/TypeScript",
+                "Include: description, parameters, return values, exceptions",
+                "Add examples for complex functions",
+                "Run pydocstyle to validate docstring format",
+            ],
+            tools=["pydocstyle", "jsdoc"],
+            commands=[
+                "# Install pydocstyle",
+                "pip install pydocstyle",
+                "",
+                "# Check docstring coverage",
+                "pydocstyle src/",
+                "",
+                "# Generate documentation",
+                "pip install sphinx",
+                "sphinx-apidoc -o docs/ src/",
+            ],
+            examples=[
+                '''# Python - Good docstring
+def calculate_discount(price: float, discount_percent: float) -> float:
+    """Calculate discounted price.
+
+    Args:
+        price: Original price in USD
+        discount_percent: Discount percentage (0-100)
+
+    Returns:
+        Discounted price
+
+    Raises:
+        ValueError: If discount_percent not in 0-100 range
+
+    Example:
+        >>> calculate_discount(100.0, 20.0)
+        80.0
+    """
+    if not 0 <= discount_percent <= 100:
+        raise ValueError("Discount must be 0-100")
+    return price * (1 - discount_percent / 100)
+''',
+                """// JavaScript - Good JSDoc
+/**
+ * Calculate discounted price
+ *
+ * @param {number} price - Original price in USD
+ * @param {number} discountPercent - Discount percentage (0-100)
+ * @returns {number} Discounted price
+ * @throws {Error} If discountPercent not in 0-100 range
+ * @example
+ * calculateDiscount(100.0, 20.0)
+ * // Returns: 80.0
+ */
+function calculateDiscount(price, discountPercent) {
+    if (discountPercent < 0 || discountPercent > 100) {
+        throw new Error("Discount must be 0-100");
+    }
+    return price * (1 - discountPercent / 100);
+}
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Python.org",
+                    title="PEP 257 - Docstring Conventions",
+                    url="https://peps.python.org/pep-0257/",
+                    relevance="Python docstring standards",
+                ),
+                Citation(
+                    source="TypeScript",
+                    title="TSDoc Reference",
+                    url="https://tsdoc.org/",
+                    relevance="TypeScript documentation standard",
                 ),
             ],
         )

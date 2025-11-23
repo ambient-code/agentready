@@ -277,13 +277,6 @@ def create_stub_assessors():
             0.03,
         ),
         StubAssessor(
-            "inline_documentation",
-            "Inline Documentation",
-            "Documentation Standards",
-            2,
-            0.03,
-        ),
-        StubAssessor(
             "file_size_limits",
             "File Size Limits",
             "Context Window Optimization",
