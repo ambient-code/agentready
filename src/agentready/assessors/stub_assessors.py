@@ -299,9 +299,6 @@ def create_stub_assessors():
         ),
         # Tier 3 Important
         StubAssessor(
-            "structured_logging", "Structured Logging", "Error Handling", 3, 0.03
-        ),
-        StubAssessor(
             "openapi_specs",
             "OpenAPI/Swagger Specifications",
             "API Documentation",

@@ -627,3 +627,167 @@ class userservice:  # Should be PascalCase
                 ),
             ],
         )
+
+
+class StructuredLoggingAssessor(BaseAssessor):
+    """Assesses use of structured logging libraries.
+
+    Tier 3 Important (1.5% weight) - Structured logs are machine-parseable
+    and enable AI to analyze logs for debugging and optimization.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "structured_logging"
+
+    @property
+    def tier(self) -> int:
+        return 3  # Important
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Structured Logging",
+            category="Code Quality",
+            tier=self.tier,
+            description="Logging in structured format (JSON) with consistent fields",
+            criteria="Structured logging library configured (structlog, winston, zap)",
+            default_weight=0.015,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        """Applicable to any code repository."""
+        return len(repository.languages) > 0
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check for structured logging library usage."""
+        # Check Python dependencies
+        if "Python" in repository.languages:
+            return self._assess_python_logging(repository)
+        else:
+            return Finding.not_applicable(
+                self.attribute,
+                reason=f"Structured logging check not implemented for {list(repository.languages.keys())}",
+            )
+
+    def _assess_python_logging(self, repository: Repository) -> Finding:
+        """Check for Python structured logging libraries."""
+        # Libraries to check for
+        structured_libs = ["structlog", "python-json-logger", "structlog-sentry"]
+
+        # Check dependency files
+        dep_files = [
+            repository.path / "pyproject.toml",
+            repository.path / "requirements.txt",
+            repository.path / "setup.py",
+        ]
+
+        found_libs = []
+        checked_files = []
+
+        for dep_file in dep_files:
+            if not dep_file.exists():
+                continue
+
+            checked_files.append(dep_file.name)
+            try:
+                content = dep_file.read_text(encoding="utf-8")
+                for lib in structured_libs:
+                    if lib in content:
+                        found_libs.append(lib)
+            except (OSError, UnicodeDecodeError):
+                continue
+
+        if not checked_files:
+            return Finding.not_applicable(
+                self.attribute, reason="No Python dependency files found"
+            )
+
+        # Score: Binary - either has structured logging or not
+        if found_libs:
+            score = 100.0
+            status = "pass"
+            evidence = [
+                f"Structured logging library found: {', '.join(set(found_libs))}",
+                f"Checked files: {', '.join(checked_files)}",
+            ]
+            remediation = None
+        else:
+            score = 0.0
+            status = "fail"
+            evidence = [
+                "No structured logging library found",
+                f"Checked files: {', '.join(checked_files)}",
+                "Using built-in logging module (unstructured)",
+            ]
+            remediation = self._create_remediation()
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value="configured" if found_libs else "not configured",
+            threshold="structured logging library",
+            evidence=evidence,
+            remediation=remediation,
+            error_message=None,
+        )
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for structured logging."""
+        return Remediation(
+            summary="Add structured logging library for machine-parseable logs",
+            steps=[
+                "Choose structured logging library (structlog for Python, winston for Node.js)",
+                "Install library and configure JSON formatter",
+                "Add standard fields: timestamp, level, message, context",
+                "Include request context: request_id, user_id, session_id",
+                "Use consistent field naming (snake_case for Python)",
+                "Never log sensitive data (passwords, tokens, PII)",
+                "Configure different formats for dev (pretty) and prod (JSON)",
+            ],
+            tools=["structlog", "winston", "zap"],
+            commands=[
+                "# Install structlog",
+                "pip install structlog",
+                "",
+                "# Configure structlog",
+                "# See examples for configuration",
+            ],
+            examples=[
+                """# Python with structlog
+import structlog
+
+# Configure structlog
+structlog.configure(
+    processors=[
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer()
+    ]
+)
+
+logger = structlog.get_logger()
+
+# Good: Structured logging
+logger.info(
+    "user_login",
+    user_id="123",
+    email="user@example.com",
+    ip_address="192.168.1.1"
+)
+
+# Bad: Unstructured logging
+logger.info(f"User {user_id} logged in from {ip}")
+""",
+            ],
+            citations=[
+                Citation(
+                    source="structlog",
+                    title="structlog Documentation",
+                    url="https://www.structlog.org/en/stable/",
+                    relevance="Python structured logging library",
+                ),
+            ],
+        )
