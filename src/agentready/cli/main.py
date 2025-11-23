@@ -34,7 +34,11 @@ from ..assessors.stub_assessors import (
     LockFilesAssessor,
     create_stub_assessors,
 )
-from ..assessors.testing import PreCommitHooksAssessor, TestCoverageAssessor
+from ..assessors.testing import (
+    CICDPipelineVisibilityAssessor,
+    PreCommitHooksAssessor,
+    TestCoverageAssessor,
+)
 from ..models.config import Config
 from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
@@ -78,9 +82,10 @@ def create_all_assessors():
         GitignoreAssessor(),
         OneCommandSetupAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
-        # Tier 3 Important (2 implemented)
+        # Tier 3 Important (4 implemented)
         ArchitectureDecisionsAssessor(),
         IssuePRTemplatesAssessor(),
+        CICDPipelineVisibilityAssessor(),
     ]
 
     # Add remaining stub assessors

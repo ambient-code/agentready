@@ -175,22 +175,30 @@ def test_enrich_skill_no_cache(
     enricher = LLMEnricher(mock_anthropic_client, cache_dir=cache_dir)
 
     # First call with use_cache=False
-    enricher.enrich_skill(basic_skill, sample_repository, sample_finding, use_cache=False)
+    enricher.enrich_skill(
+        basic_skill, sample_repository, sample_finding, use_cache=False
+    )
     first_count = mock_anthropic_client.messages.create.call_count
 
     # Second call with use_cache=False (should call API again)
-    enricher.enrich_skill(basic_skill, sample_repository, sample_finding, use_cache=False)
+    enricher.enrich_skill(
+        basic_skill, sample_repository, sample_finding, use_cache=False
+    )
     second_count = mock_anthropic_client.messages.create.call_count
 
     # Should have called API twice
     assert second_count == first_count + 1
 
 
-def test_enrich_skill_custom_model(basic_skill, sample_repository, sample_finding, tmp_path):
+def test_enrich_skill_custom_model(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
     """Test enricher with custom model."""
     client = Mock(spec=Anthropic)
     mock_response = Mock()
-    mock_response.content = [Mock(text='{"skill_description": "Test", "instructions": []}')]
+    mock_response.content = [
+        Mock(text='{"skill_description": "Test", "instructions": []}')
+    ]
     client.messages.create.return_value = mock_response
 
     cache_dir = tmp_path / "cache"
@@ -273,10 +281,13 @@ def test_enrich_skill_none_evidence(
     assert enriched is not None
 
 
-def test_enrich_skill_rate_limit_retry(basic_skill, sample_repository, sample_finding, tmp_path):
+def test_enrich_skill_rate_limit_retry(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
     """Test rate limit error with retry."""
-    from anthropic import RateLimitError
     from unittest.mock import patch
+
+    from anthropic import RateLimitError
 
     client = Mock(spec=Anthropic)
 
@@ -304,7 +315,9 @@ def test_enrich_skill_rate_limit_retry(basic_skill, sample_repository, sample_fi
     assert client.messages.create.call_count == 2
 
 
-def test_enrich_skill_api_error_specific(basic_skill, sample_repository, sample_finding, tmp_path):
+def test_enrich_skill_api_error_specific(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
     """Test specific API error handling."""
     from anthropic import APIError
 
@@ -320,7 +333,9 @@ def test_enrich_skill_api_error_specific(basic_skill, sample_repository, sample_
     assert enriched == basic_skill
 
 
-def test_enrich_skill_invalid_json_response(basic_skill, sample_repository, sample_finding, tmp_path):
+def test_enrich_skill_invalid_json_response(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
     """Test handling of invalid JSON in response."""
     client = Mock(spec=Anthropic)
     mock_response = Mock()
@@ -379,7 +394,9 @@ def test_merge_enrichment(mock_anthropic_client, basic_skill, tmp_path):
     enrichment_data = {
         "skill_description": "Enhanced description",
         "instructions": ["Step 1", "Step 2"],
-        "code_examples": [{"file_path": "test.py", "code": "code", "explanation": "ex"}],
+        "code_examples": [
+            {"file_path": "test.py", "code": "code", "explanation": "ex"}
+        ],
         "best_practices": ["Practice 1"],
         "anti_patterns": ["AntiPattern 1"],
     }
@@ -387,7 +404,9 @@ def test_merge_enrichment(mock_anthropic_client, basic_skill, tmp_path):
     enriched = enricher._merge_enrichment(basic_skill, enrichment_data)
 
     assert enriched.description == "Enhanced description"
-    assert "Step 1" in str(enriched.code_examples) or "Step 1" in str(enriched.citations)
+    assert "Step 1" in str(enriched.code_examples) or "Step 1" in str(
+        enriched.citations
+    )
 
 
 def test_call_claude_api_builds_prompt(

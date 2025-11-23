@@ -114,7 +114,9 @@ class TestGenerateTemplate:
 class TestAddAttribute:
     """Tests for add_attribute method."""
 
-    def test_adds_attribute_to_existing_category(self, formatter, sample_research_report):
+    def test_adds_attribute_to_existing_category(
+        self, formatter, sample_research_report
+    ):
         """Test adding attribute to existing category."""
         result = formatter.add_attribute(
             sample_research_report,
@@ -149,7 +151,11 @@ class TestAddAttribute:
     def test_adds_to_correct_tier(self, formatter, sample_research_report):
         """Test attribute is added to correct tier section."""
         result = formatter.add_attribute(
-            sample_research_report, "2.1", "Tier 3 Attribute", tier=3, category="Testing"
+            sample_research_report,
+            "2.1",
+            "Tier 3 Attribute",
+            tier=3,
+            category="Testing",
         )
 
         # Find Tier 3 section and verify attribute is listed
@@ -296,7 +302,9 @@ class TestValidateAttributeNumbering:
 
     def test_validates_correct_numbering(self, formatter, sample_research_report):
         """Test validation passes for correct numbering."""
-        is_valid, errors = formatter.validate_attribute_numbering(sample_research_report)
+        is_valid, errors = formatter.validate_attribute_numbering(
+            sample_research_report
+        )
 
         assert is_valid
         assert errors == []

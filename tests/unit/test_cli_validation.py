@@ -1,6 +1,5 @@
 """Tests for CLI input validation and warnings."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest

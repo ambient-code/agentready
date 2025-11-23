@@ -154,12 +154,8 @@ def init(output, template):
 @click.argument("report_path", type=click.Path(exists=True))
 @click.option("--attribute-id", required=True, help="Attribute ID (e.g., '1.3')")
 @click.option("--name", required=True, help="Attribute name")
-@click.option(
-    "--tier", type=int, required=True, help="Tier assignment (1-4)"
-)
-@click.option(
-    "--category", default="Uncategorized", help="Category name"
-)
+@click.option("--tier", type=int, required=True, help="Tier assignment (1-4)")
+@click.option("--category", default="Uncategorized", help="Category name")
 def add_attribute(report_path, attribute_id, name, tier, category):
     """Add new attribute to research report.
 
@@ -251,9 +247,7 @@ def bump_version(report_path, bump_type, new_version):
 
 @research.command()
 @click.argument("report_path", type=click.Path(exists=True))
-@click.option(
-    "--check", is_flag=True, help="Check formatting without making changes"
-)
+@click.option("--check", is_flag=True, help="Check formatting without making changes")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed output")
 def format(report_path, check, verbose):
     """Lint and format research report.

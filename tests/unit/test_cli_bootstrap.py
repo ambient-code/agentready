@@ -70,9 +70,7 @@ class TestBootstrapCommand:
 
     def test_bootstrap_with_javascript_language(self, runner, temp_repo):
         """Test bootstrap command with JavaScript language."""
-        result = runner.invoke(
-            bootstrap, [str(temp_repo), "--language", "javascript"]
-        )
+        result = runner.invoke(bootstrap, [str(temp_repo), "--language", "javascript"])
 
         # Should succeed
         assert result.exit_code == 0
@@ -163,9 +161,7 @@ class TestBootstrapCommand:
         assert "✓" in result.output or ".github" in result.output
 
     @patch("agentready.cli.bootstrap.BootstrapGenerator")
-    def test_bootstrap_handles_generator_error(
-        self, mock_generator, runner, temp_repo
-    ):
+    def test_bootstrap_handles_generator_error(self, mock_generator, runner, temp_repo):
         """Test bootstrap command handles generator errors."""
         mock_generator.return_value.generate_all.side_effect = Exception(
             "Generator error"

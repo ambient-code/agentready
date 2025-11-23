@@ -1,10 +1,10 @@
 """Unit tests for schema validator service."""
 
 import json
-import pytest
-from pathlib import Path
 
-from agentready.services.schema_validator import SchemaValidator, SchemaValidationError
+import pytest
+
+from agentready.services.schema_validator import SchemaValidator
 
 
 @pytest.fixture

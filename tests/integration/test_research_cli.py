@@ -131,7 +131,10 @@ date: 2025-11-20
             result = cli_runner.invoke(research, ["validate", temp_path])
 
             # Should show errors about incorrect attribute count
-            assert "❌ ERRORS" in result.output or "Expected 25 attributes" in result.output
+            assert (
+                "❌ ERRORS" in result.output
+                or "Expected 25 attributes" in result.output
+            )
             assert result.exit_code == 1  # Should fail validation
         finally:
             Path(temp_path).unlink(missing_ok=True)
@@ -145,9 +148,7 @@ class TestInitCommand:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "new-research.md"
 
-            result = cli_runner.invoke(
-                research, ["init", "--output", str(output_path)]
-            )
+            result = cli_runner.invoke(research, ["init", "--output", str(output_path)])
 
             assert result.exit_code == 0
             assert "✅ Created" in result.output
@@ -161,9 +162,7 @@ class TestInitCommand:
 
     def test_init_prompts_on_overwrite(self, cli_runner):
         """Test init prompts when file exists."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
             f.write("existing content")
             temp_path = f.name
 

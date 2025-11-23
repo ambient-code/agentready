@@ -2,13 +2,14 @@
 
 import json
 import tempfile
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
-from agentready.models import Assessment, Attribute, DiscoveredSkill, Finding, Repository
+from agentready.models import (
+    DiscoveredSkill,
+)
 from agentready.services.learning_service import LearningService
 
 

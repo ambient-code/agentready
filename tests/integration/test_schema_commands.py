@@ -1,8 +1,8 @@
 """Integration tests for schema CLI commands."""
 
 import json
+
 import pytest
-from pathlib import Path
 from click.testing import CliRunner
 
 from agentready.cli.main import cli
@@ -149,9 +149,7 @@ def test_migrate_report_same_version(runner, sample_report, tmp_path):
 
 def test_migrate_report_default_output(runner, sample_report):
     """Test migrate-report with default output path."""
-    result = runner.invoke(
-        cli, ["migrate-report", str(sample_report), "--to", "1.0.0"]
-    )
+    result = runner.invoke(cli, ["migrate-report", str(sample_report), "--to", "1.0.0"])
 
     assert result.exit_code == 0
 

@@ -251,7 +251,10 @@ class TestAlignCommand:
         mock_assessment2.overall_score = 85.0
         mock_assessment2.findings = []
 
-        mock_scanner.return_value.scan.side_effect = [mock_assessment1, mock_assessment2]
+        mock_scanner.return_value.scan.side_effect = [
+            mock_assessment1,
+            mock_assessment2,
+        ]
 
         mock_fix = MagicMock()
         mock_fixer.return_value.generate_fixes.return_value = [mock_fix]
@@ -281,11 +284,15 @@ class TestAlignCommand:
             # Create minimal git repo
             Path(".git").mkdir()
 
-            with patch("agentready.cli.align.Scanner") as mock_scanner, \
-                 patch("agentready.cli.align.LanguageDetector") as mock_detector, \
-                 patch("agentready.cli.align.FixerService") as mock_fixer:
+            with (
+                patch("agentready.cli.align.Scanner") as mock_scanner,
+                patch("agentready.cli.align.LanguageDetector") as mock_detector,
+                patch("agentready.cli.align.FixerService") as mock_fixer,
+            ):
 
-                mock_detector.return_value.detect_languages.return_value = {"Python": 100}
+                mock_detector.return_value.detect_languages.return_value = {
+                    "Python": 100
+                }
 
                 mock_assessment = MagicMock()
                 mock_assessment.overall_score = 75.0

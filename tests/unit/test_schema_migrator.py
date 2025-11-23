@@ -1,8 +1,8 @@
 """Unit tests for schema migrator service."""
 
 import json
+
 import pytest
-from pathlib import Path
 
 from agentready.services.schema_migrator import SchemaMigrationError, SchemaMigrator
 

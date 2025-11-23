@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
@@ -143,7 +143,10 @@ class TestRepomixCommand:
     def test_repomix_check_fresh(self, mock_service, runner, temp_repo):
         """Test repomix check when output is fresh."""
         mock_service.return_value.has_config.return_value = True
-        mock_service.return_value.check_freshness.return_value = (True, "Output is fresh")
+        mock_service.return_value.check_freshness.return_value = (
+            True,
+            "Output is fresh",
+        )
         mock_service.return_value.get_output_files.return_value = [
             temp_repo / "repomix-output.md"
         ]
@@ -158,7 +161,10 @@ class TestRepomixCommand:
     def test_repomix_check_stale(self, mock_service, runner, temp_repo):
         """Test repomix check when output is stale."""
         mock_service.return_value.has_config.return_value = True
-        mock_service.return_value.check_freshness.return_value = (False, "Output is stale")
+        mock_service.return_value.check_freshness.return_value = (
+            False,
+            "Output is stale",
+        )
 
         result = runner.invoke(repomix_generate, [str(temp_repo), "--check"])
 
@@ -229,7 +235,9 @@ class TestRepomixCommand:
 
     def test_repomix_invalid_format(self, runner, temp_repo):
         """Test repomix generate with invalid format."""
-        result = runner.invoke(repomix_generate, [str(temp_repo), "--format", "invalid"])
+        result = runner.invoke(
+            repomix_generate, [str(temp_repo), "--format", "invalid"]
+        )
 
         # Should fail with validation error
         assert result.exit_code != 0
@@ -294,9 +302,7 @@ class TestRepomixCommandEdgeCases:
 
         formats = ["markdown", "xml", "json", "plain"]
         for fmt in formats:
-            result = runner.invoke(
-                repomix_generate, [str(temp_repo), "--format", fmt]
-            )
+            result = runner.invoke(repomix_generate, [str(temp_repo), "--format", fmt])
             assert result.exit_code == 0
 
             # Verify format was passed correctly

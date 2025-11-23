@@ -264,7 +264,9 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
             Formatted content
         """
         # Ensure consistent spacing after headings
-        content = re.sub(r"(^#+\s+.+)(\n)([^\n])", r"\1\n\n\3", content, flags=re.MULTILINE)
+        content = re.sub(
+            r"(^#+\s+.+)(\n)([^\n])", r"\1\n\n\3", content, flags=re.MULTILINE
+        )
 
         # Ensure consistent spacing between sections (3 dashes become separator)
         content = re.sub(r"\n---\n", "\n\n---\n\n", content)

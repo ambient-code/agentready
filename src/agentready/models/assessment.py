@@ -60,7 +60,10 @@ class Assessment:
                 f"{self.certification_level}"
             )
 
-        if self.attributes_assessed + self.attributes_not_assessed != self.attributes_total:
+        if (
+            self.attributes_assessed + self.attributes_not_assessed
+            != self.attributes_total
+        ):
             raise ValueError(
                 f"Assessed ({self.attributes_assessed}) + not assessed "
                 f"({self.attributes_not_assessed}) must equal total "

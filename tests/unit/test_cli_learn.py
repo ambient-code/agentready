@@ -3,13 +3,12 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
 
 from agentready.cli.learn import learn
-from agentready.models import Assessment, Attribute, DiscoveredSkill, Finding, Repository
 
 
 @pytest.fixture
@@ -97,9 +96,7 @@ class TestLearnCommand:
     def test_learn_command_json_output(self, runner, temp_repo):
         """Test learn command with JSON output."""
         with runner.isolated_filesystem(temp_dir=temp_repo.parent):
-            result = runner.invoke(
-                learn, [str(temp_repo), "--output-format", "json"]
-            )
+            result = runner.invoke(learn, [str(temp_repo), "--output-format", "json"])
 
             assert result.exit_code == 0
 
@@ -139,9 +136,7 @@ class TestLearnCommand:
     def test_learn_command_all_output_formats(self, runner, temp_repo):
         """Test learn command with all output formats."""
         with runner.isolated_filesystem(temp_dir=temp_repo.parent):
-            result = runner.invoke(
-                learn, [str(temp_repo), "--output-format", "all"]
-            )
+            result = runner.invoke(learn, [str(temp_repo), "--output-format", "all"])
 
             assert result.exit_code == 0
 
@@ -226,7 +221,10 @@ class TestLearnCommand:
 
                 # Should fail gracefully
                 assert result.exit_code != 0
-                assert "assessment" in result.output.lower() or "not found" in result.output.lower()
+                assert (
+                    "assessment" in result.output.lower()
+                    or "not found" in result.output.lower()
+                )
 
     def test_learn_command_invalid_repository(self, runner):
         """Test learn command with non-existent repository."""
@@ -236,10 +234,13 @@ class TestLearnCommand:
         assert result.exit_code != 0
 
     @patch("agentready.cli.learn.LearningService")
-    def test_learn_command_enable_llm_without_api_key(self, mock_service, runner, temp_repo):
+    def test_learn_command_enable_llm_without_api_key(
+        self, mock_service, runner, temp_repo
+    ):
         """Test learn command with LLM enabled but no API key."""
         # Remove ANTHROPIC_API_KEY if present
         import os
+
         old_key = os.environ.pop("ANTHROPIC_API_KEY", None)
 
         try:
@@ -258,7 +259,9 @@ class TestLearnCommand:
                 os.environ["ANTHROPIC_API_KEY"] = old_key
 
     @patch("agentready.cli.learn.LearningService")
-    def test_learn_command_enable_llm_with_budget(self, mock_service, runner, temp_repo):
+    def test_learn_command_enable_llm_with_budget(
+        self, mock_service, runner, temp_repo
+    ):
         """Test learn command with LLM enabled and custom budget."""
         with runner.isolated_filesystem(temp_dir=temp_repo.parent):
             result = runner.invoke(

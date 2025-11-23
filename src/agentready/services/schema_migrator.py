@@ -44,14 +44,10 @@ class SchemaMigrator:
 
         # For now, we only support 1.0.0
         if from_version not in self.SUPPORTED_VERSIONS:
-            raise SchemaMigrationError(
-                f"Unsupported source version: {from_version}"
-            )
+            raise SchemaMigrationError(f"Unsupported source version: {from_version}")
 
         if to_version not in self.SUPPORTED_VERSIONS:
-            raise SchemaMigrationError(
-                f"Unsupported target version: {to_version}"
-            )
+            raise SchemaMigrationError(f"Unsupported target version: {to_version}")
 
         # Simple direct migration for now
         migration_key = (from_version, to_version)

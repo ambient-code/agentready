@@ -29,7 +29,9 @@ def temp_repo():
         (src_dir / "main.py").write_text(
             "def hello(name: str) -> str:\n    return f'Hello {name}'"
         )
-        (src_dir / "utils.py").write_text("def add(a: int, b: int) -> int:\n    return a + b")
+        (src_dir / "utils.py").write_text(
+            "def add(a: int, b: int) -> int:\n    return a + b"
+        )
 
         # Create tests directory
         tests_dir = repo_path / "tests"
@@ -37,7 +39,9 @@ def temp_repo():
         (tests_dir / "test_main.py").write_text("def test_hello():\n    pass")
 
         # Create config files
-        (repo_path / "pyproject.toml").write_text("[tool.pytest.ini_options]\ntestpaths = ['tests']")
+        (repo_path / "pyproject.toml").write_text(
+            "[tool.pytest.ini_options]\ntestpaths = ['tests']"
+        )
         (repo_path / ".pre-commit-config.yaml").write_text("repos:\n  - repo: test")
 
         # Create github workflows
@@ -442,5 +446,7 @@ class TestCodeSamplerEdgeCases:
         # Tree should exist but not include .hidden directory
         assert isinstance(tree, dict)
         if tree and "children" in tree:
-            hidden_dirs = [c for c in tree["children"] if c.get("name", "").startswith(".")]
+            hidden_dirs = [
+                c for c in tree["children"] if c.get("name", "").startswith(".")
+            ]
             assert len(hidden_dirs) == 0

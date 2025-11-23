@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 
 from ..services.schema_migrator import SchemaMigrationError, SchemaMigrator
-from ..services.schema_validator import SchemaValidationError, SchemaValidator
+from ..services.schema_validator import SchemaValidator
 
 
 @click.command(name="validate-report")
@@ -37,9 +37,7 @@ def validate_report(report, strict):
         validator = SchemaValidator()
     except ImportError as e:
         click.echo(f"Error: {str(e)}", err=True)
-        click.echo(
-            "\nInstall jsonschema to use report validation:", err=True
-        )
+        click.echo("\nInstall jsonschema to use report validation:", err=True)
         click.echo("  pip install jsonschema", err=True)
         sys.exit(1)
 
