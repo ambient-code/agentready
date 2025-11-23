@@ -312,7 +312,6 @@ def create_stub_assessors():
         StubAssessor(
             "performance_benchmarks", "Performance Benchmarks", "Performance", 4, 0.01
         ),
-        StubAssessor("code_smells", "Code Smell Elimination", "Code Quality", 4, 0.01),
         StubAssessor(
             "issue_pr_templates",
             "Issue & Pull Request Templates",

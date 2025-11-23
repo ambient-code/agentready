@@ -791,3 +791,44 @@ logger.info(f"User {user_id} logged in from {ip}")
                 ),
             ],
         )
+
+
+class CodeSmellsAssessor(BaseAssessor):
+    """Assesses code smells: long methods, large classes, duplicate code.
+
+    Tier 4 Advanced (0.5% weight) - Requires advanced static analysis tools
+    like SonarQube, PMD, or sophisticated AST parsing for accurate detection.
+    This is a stub implementation that will return not_applicable until full
+    code smell detection is implemented.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "code_smells"
+
+    @property
+    def tier(self) -> int:
+        return 4  # Advanced
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Code Smell Elimination",
+            category="Code Quality",
+            tier=self.tier,
+            description="Removing indicators of deeper problems: long methods, large classes, duplicate code",
+            criteria="<5 major code smells per 1000 lines, zero critical smells",
+            default_weight=0.005,
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        """Stub implementation - requires advanced static analysis."""
+        return Finding.not_applicable(
+            self.attribute,
+            reason="Requires advanced static analysis tools for comprehensive code smell detection. "
+            "Future implementation will analyze: long methods (>50 lines), "
+            "large classes (>500 lines), long parameter lists (>5 params), "
+            "duplicate code blocks, magic numbers, and divergent change patterns. "
+            "Consider using SonarQube, PMD, pylint, or similar tools.",
+        )

@@ -13,6 +13,7 @@ except ImportError:
     from importlib_metadata import version as get_version
 
 from ..assessors.code_quality import (
+    CodeSmellsAssessor,
     CyclomaticComplexityAssessor,
     SemanticNamingAssessor,
     StructuredLoggingAssessor,
@@ -99,8 +100,9 @@ def create_all_assessors():
         SemanticNamingAssessor(),
         StructuredLoggingAssessor(),
         OpenAPISpecsAssessor(),
-        # Tier 4 Advanced (1 stub)
+        # Tier 4 Advanced (2 stubs)
         BranchProtectionAssessor(),
+        CodeSmellsAssessor(),
     ]
 
     # Add remaining stub assessors
