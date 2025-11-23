@@ -86,7 +86,7 @@ agentready/
 │   │   ├── testing.py       # Test coverage, pre-commit hooks
 │   │   ├── structure.py     # Standard layout, gitignore
 │   │   ├── repomix.py       # Repomix configuration assessor
-│   │   └── stub_assessors.py # 15 stub assessors (to be implemented)
+│   │   └── stub_assessors.py # 9 stub assessors (22 implemented)
 │   ├── reporters/           # Report generators
 │   │   ├── html.py          # Interactive HTML with Jinja2
 │   │   ├── markdown.py      # GitHub-Flavored Markdown

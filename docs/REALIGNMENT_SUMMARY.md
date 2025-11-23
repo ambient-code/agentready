@@ -25,7 +25,7 @@
 
 ### developer-guide.md
 
-- ✅ Updated assessor counts (10/25 implemented, 15 stubs)
+- ✅ Updated assessor counts (22/31 implemented, 9 stubs)
 - ✅ Added recent test infrastructure improvements section
 - ✅ Documented shared test fixtures and model validation enhancements
 - ✅ Updated project structure to include repomix.py assessor
@@ -46,7 +46,7 @@
 ### attributes.md
 
 - ✅ Updated version reference to v1.27.1
-- ✅ Verified implementation status (10/25)
+- ✅ Verified implementation status (22/31)
 
 ### examples.md
 
@@ -111,13 +111,13 @@ Generates:
 
 ### 2. developer-guide.md
 **Current Issues**:
-- States "10/25 assessors implemented" but should be "10/25" (confirm actual count)
-- References "15 stub assessors" but actual count from CLAUDE.md is unclear
+- States "10/25 assessors implemented" but actual count is 22/31 (9 stubs)
+- References "15 stub assessors" but actual count is 9
 - Missing batch assessment architecture
 - No coverage of report schema versioning system
 
 **Required Changes**:
-- Update assessor count: Line 88 says "15 not-yet-implemented" - verify against codebase
+- Update assessor count: Should be 22/31 implemented (9 stubs remaining)
 - Add section: "Batch Assessment Architecture" under Architecture Overview
 - Add section: "Report Schema Versioning" explaining validation/migration
 - Update project structure to show current state
@@ -316,7 +316,7 @@ Before committing documentation updates:
 - ✅ Test improvements documented in developer-guide.md
 - ✅ Schema versioning documented
 - ✅ All examples use current CLI syntax
-- ✅ Assessor counts verified against codebase (10/25)
+- ✅ Assessor counts verified against codebase (22/31)
 - ✅ Links between docs pages remain valid
 - ⚠️  Markdown linting pending (recommended before commit)
 
@@ -338,7 +338,7 @@ Before committing documentation updates:
 
 All updates must align with:
 
-1. **CLAUDE.md** (v1.27.1, 80.0/100 Gold, 10/25 assessors, batch assessment)
+1. **CLAUDE.md** (v1.27.1, 80.0/100 Gold, 22/31 assessors, batch assessment)
 2. **README.md** (user-facing quick start)
 3. **pyproject.toml** (version 1.27.1)
 4. **agent-ready-codebase-attributes.md** (25 attributes, tier system)
@@ -350,7 +350,7 @@ All updates must align with:
 
 - **Version**: 1.27.1
 - **Self-Assessment**: 80.0/100 (Gold certification)
-- **Assessors**: 10/25 implemented (15 stubs remaining)
+- **Assessors**: 22/31 implemented (9 stubs remaining)
 - **Test Coverage**: Significantly improved (35 failures resolved)
 - **Features**: Core assessment, LLM learning, research commands, batch assessment, schema versioning
 - **Python Support**: 3.11+ (N and N-1 versions)

@@ -10,7 +10,7 @@
 
 AgentReady is a Python CLI tool that evaluates repositories against 25 carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v1.27.1 - Core assessment engine complete, 13/25 attributes implemented, LLM-powered learning, research report management
+**Current Status**: v1.27.1 - Core assessment engine complete, 22/31 attributes implemented (9 stubs), LLM-powered learning, research report management
 
 **Self-Assessment Score**: 80.0/100 (Gold) - See `examples/self-assessment/`
 
@@ -198,7 +198,7 @@ src/agentready/
 │   ├── testing.py         # Test coverage, pre-commit hooks
 │   ├── structure.py       # Standard layout, gitignore
 │   ├── repomix.py         # Repomix configuration assessor
-│   └── stub_assessors.py  # 9 remaining stub assessors (12 implemented)
+│   └── stub_assessors.py  # 9 stub assessors (22 implemented)
 ├── learners/        # Pattern extraction and LLM enrichment
 │   ├── pattern_extractor.py  # Heuristic skill extraction
 │   ├── skill_generator.py    # SKILL.md generation
@@ -415,7 +415,7 @@ chore: Update dependencies
 
 ## Known Issues & Limitations
 
-1. **Stub Assessors**: 9/25 assessors still return "not_applicable" - need implementation
+1. **Stub Assessors**: 9/31 assessors still return "not_applicable" - need implementation
 2. **No Lock File**: Intentionally excluded for library project (assessed as deliberate choice)
 3. **Test Coverage**: Currently at ~37%, targeting >80% for production readiness
 
@@ -428,7 +428,7 @@ chore: Update dependencies
 - ✅ Research report management commands
 - ✅ Lock files, conventional commits, gitignore assessors
 - ✅ Repomix configuration assessor
-- **In Progress**: Expand remaining 9 stub assessors
+- **In Progress**: Expand remaining 9 stub assessors (22/31 currently implemented)
 - **In Progress**: Improve test coverage to >80%
 
 ### v2.0 - Automation & Integration (Next)
