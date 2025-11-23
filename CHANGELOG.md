@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/ambient-code/agentready/compare/v1.20.0...v1.21.0) (2025-11-23)
+
+
+### Features
+
+* Implement StructuredLoggingAssessor (fixes [#79](https://github.com/ambient-code/agentready/issues/79)) ([#96](https://github.com/ambient-code/agentready/issues/96)) ([2b87ca7](https://github.com/ambient-code/agentready/commit/2b87ca7e6898d6aa43349bca78ff5d566b4d9026))
+
 # [1.20.0](https://github.com/ambient-code/agentready/compare/v1.19.0...v1.20.0) (2025-11-23)
 
 
