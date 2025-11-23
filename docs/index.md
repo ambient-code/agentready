@@ -344,7 +344,7 @@ AgentReady Bootstrap creates production-ready infrastructure tailored to your la
 
 ## Latest News
 
-**Version 1.27.1 Released** (2025-11-23)
+**Version 1.27.2 Released** (2025-11-23)
 Stability improvements with comprehensive pytest fixes! Resolved 35 test failures through enhanced model validation and path sanitization. Added shared test fixtures and improved Assessment schema handling. Significantly improved test coverage with comprehensive CLI and service module tests.
 
 **Version 1.0.0 Released** (2025-11-21)

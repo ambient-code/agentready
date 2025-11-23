@@ -1,7 +1,7 @@
 # Documentation Realignment Summary
 
 **Date**: 2025-11-23
-**AgentReady Version**: 1.27.1
+**AgentReady Version**: 1.27.2
 **Realignment Scope**: Complete alignment of docs/ with current codebase state
 
 ---
@@ -11,7 +11,7 @@
 ### index.md
 
 - ✅ Updated self-assessment score: 75.4/100 → **80.0/100 (Gold)**
-- ✅ Updated Latest News section with v1.27.1 release notes
+- ✅ Updated Latest News section with v1.27.2 release notes
 - ✅ Highlighted test improvements and stability enhancements
 
 ### user-guide.md
@@ -21,7 +21,7 @@
 - ✅ Added Report Validation & Migration section
 - ✅ Documented validate-report and migrate-report commands
 - ✅ Added schema compatibility information
-- ✅ Updated all references to v1.27.1
+- ✅ Updated all references to v1.27.2
 
 ### developer-guide.md
 
@@ -33,7 +33,7 @@
 
 ### roadmaps.md
 
-- ✅ Updated current status to v1.27.1
+- ✅ Updated current status to v1.27.2
 - ✅ Noted LLM-powered learning, research commands, batch assessment
 
 ### api-reference.md
@@ -45,14 +45,14 @@
 
 ### attributes.md
 
-- ✅ Updated version reference to v1.27.1
+- ✅ Updated version reference to v1.27.2
 - ✅ Verified implementation status (22/31)
 
 ### examples.md
 
 - ✅ Updated self-assessment score to 80.0/100
 - ✅ Updated date to 2025-11-23
-- ✅ Added v1.27.1 version marker
+- ✅ Added v1.27.2 version marker
 - ✅ Added comprehensive Batch Assessment Example
 - ✅ Included comparison table, aggregate stats, action plan
 
@@ -70,13 +70,13 @@
 
 **Current Issues**:
 
-- References "v1.1.0" and "Bootstrap Released" but current version is v1.27.1
+- References "v1.1.0" and "Bootstrap Released" but current version is v1.27.2
 - Missing batch assessment feature documentation
 - No coverage of validate-report/migrate-report commands
 
 **Required Changes**:
 
-- Update version references to v1.27.1 throughout
+- Update version references to v1.27.2 throughout
 - Add section: "Batch Assessment" with `agentready batch` examples
 - Add section: "Report Validation" with validate-report/migrate-report commands
 - Update LLM learning section to match CLAUDE.md (7-day cache, budget controls)
@@ -127,7 +127,7 @@ Generates:
 ```markdown
 ## Recent Test Infrastructure Improvements
 
-v1.27.1 introduced significant testing enhancements:
+v1.27.2 introduced significant testing enhancements:
 
 1. **Shared Test Fixtures** (`tests/conftest.py`):
    - Reusable repository fixtures
@@ -149,14 +149,14 @@ v1.27.1 introduced significant testing enhancements:
 
 **Current Issues**:
 
-- States "Current Status: v1.0.0" but should be v1.27.1
+- States "Current Status: v1.0.0" but should be v1.27.2
 - Roadmap 1 items need marking as completed (LLM learning, research commands)
 - Missing batch assessment as completed feature
 - Timeline references outdated
 
 **Required Changes**:
 
-- Update "Current Status" to v1.27.1
+- Update "Current Status" to v1.27.2
 - Mark completed in Roadmap 1:
   - ✅ LLM-powered learning
   - ✅ Research report management
@@ -170,7 +170,7 @@ v1.27.1 introduced significant testing enhancements:
 
 - No coverage of batch assessment APIs
 - Missing validate-report/migrate-report functions
-- Examples don't reflect v1.27.1 features
+- Examples don't reflect v1.27.2 features
 
 **Required Changes**:
 
@@ -242,7 +242,7 @@ for assessment in assessments:
 
 **Required Changes**:
 - Update AgentReady self-assessment example to 80.0/100
-- Ensure all example outputs match v1.27.1 format
+- Ensure all example outputs match v1.27.2 format
 - Add batch assessment example
 
 ### 7. schema-versioning.md
@@ -310,7 +310,7 @@ agentready migrate-report old.json --to 2.0.0 --output new.json
 
 Before committing documentation updates:
 
-- ✅ All version numbers updated to 1.27.1
+- ✅ All version numbers updated to 1.27.2
 - ✅ Self-assessment score updated to 80.0/100 (Gold)
 - ✅ Batch assessment documented across relevant files
 - ✅ Test improvements documented in developer-guide.md
@@ -338,9 +338,9 @@ Before committing documentation updates:
 
 All updates must align with:
 
-1. **CLAUDE.md** (v1.27.1, 80.0/100 Gold, 22/31 assessors, batch assessment)
+1. **CLAUDE.md** (v1.27.2, 80.0/100 Gold, 22/31 assessors, batch assessment)
 2. **README.md** (user-facing quick start)
-3. **pyproject.toml** (version 1.27.1)
+3. **pyproject.toml** (version 1.27.2)
 4. **agent-ready-codebase-attributes.md** (25 attributes, tier system)
 5. **examples/self-assessment/report-latest.md** (80.0/100 actual score)
 
@@ -348,7 +348,7 @@ All updates must align with:
 
 ## Key Statistics to Propagate
 
-- **Version**: 1.27.1
+- **Version**: 1.27.2
 - **Self-Assessment**: 80.0/100 (Gold certification)
 - **Assessors**: 22/31 implemented (9 stubs remaining)
 - **Test Coverage**: Significantly improved (35 failures resolved)
@@ -361,4 +361,4 @@ All updates must align with:
 1. Use this summary to systematically update each documentation file
 2. Run markdown linter on updated files
 3. Build docs locally to verify rendering
-4. Commit with message: "docs: Realign documentation with v1.27.1 codebase state"
+4. Commit with message: "docs: Realign documentation with v1.27.2 codebase state"

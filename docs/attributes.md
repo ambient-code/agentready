@@ -1067,7 +1067,7 @@ cr src/**/*.js
 | **Tier 4** | 1 | 4 | 5 |
 | **Total** | **10** | **15** | **25** |
 
-**Current version (v1.27.1)**: 10 assessors fully implemented, 15 return "not_applicable" (stub implementations).
+**Current version (v1.27.2)**: 10 assessors fully implemented, 15 return "not_applicable" (stub implementations).
 
 **Roadmap**: Future versions will expand stub assessors to provide complete 25-attribute coverage.
 

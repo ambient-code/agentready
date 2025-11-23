@@ -1,3 +1,10 @@
+## [1.27.2](https://github.com/ambient-code/agentready/compare/v1.27.1...v1.27.2) (2025-11-23)
+
+
+### Bug Fixes
+
+* Resolve 35 pytest failures through model validation and path sanitization improvements ([#115](https://github.com/ambient-code/agentready/issues/115)) ([4fbfee0](https://github.com/ambient-code/agentready/commit/4fbfee058d28ab0d3f71dc7bdbca494832d66109))
+
 ## [1.27.1](https://github.com/ambient-code/agentready/compare/v1.27.0...v1.27.1) (2025-11-23)
 
 

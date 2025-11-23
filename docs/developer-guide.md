@@ -148,7 +148,7 @@ pytest -s
 pytest -x
 ```
 
-**Recent Test Infrastructure Improvements (v1.27.1)**:
+**Recent Test Infrastructure Improvements (v1.27.2)**:
 
 1. **Shared Test Fixtures** (`tests/conftest.py`):
    - Reusable repository fixtures for consistent test data

@@ -967,7 +967,7 @@ agentready batch repos/* --output-dir ./assessments/2025-11
 
 ## Report Validation & Migration
 
-AgentReady v1.27.1 includes schema versioning for backwards compatibility and evolution.
+AgentReady v1.27.2 includes schema versioning for backwards compatibility and evolution.
 
 ### Validate Reports
 
