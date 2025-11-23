@@ -2,6 +2,7 @@
 
 import ast
 import logging
+import re
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -410,5 +411,219 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     url="https://learn.microsoft.com/en-us/visualstudio/code-quality/code-metrics-cyclomatic-complexity",
                     relevance="Explanation of cyclomatic complexity and thresholds",
                 )
+            ],
+        )
+
+
+class SemanticNamingAssessor(BaseAssessor):
+    """Assesses naming conventions and semantic clarity.
+
+    Tier 3 Important (1.5% weight) - Consistent naming improves code
+    readability and helps LLMs understand intent.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "semantic_naming"
+
+    @property
+    def tier(self) -> int:
+        return 3  # Important
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Semantic Naming",
+            category="Code Quality",
+            tier=self.tier,
+            description="Systematic naming patterns following language conventions",
+            criteria="Language conventions followed, avoid generic names",
+            default_weight=0.015,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        """Only applicable to code repositories."""
+        return len(repository.languages) > 0
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check naming conventions and patterns."""
+        if "Python" in repository.languages:
+            return self._assess_python_naming(repository)
+        else:
+            return Finding.not_applicable(
+                self.attribute,
+                reason=f"Naming check not implemented for {list(repository.languages.keys())}",
+            )
+
+    def _assess_python_naming(self, repository: Repository) -> Finding:
+        """Assess Python naming conventions using AST parsing."""
+        # Get list of Python files
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files", "*.py"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
+            python_files = [f for f in result.stdout.strip().split("\n") if f]
+        except Exception:
+            python_files = [
+                str(f.relative_to(repository.path))
+                for f in repository.path.rglob("*.py")
+            ]
+
+        # Sample files for large repositories (max 50 files)
+        if len(python_files) > 50:
+            import random
+
+            python_files = random.sample(python_files, 50)
+
+        total_functions = 0
+        compliant_functions = 0
+        total_classes = 0
+        compliant_classes = 0
+        generic_names_count = 0
+
+        # Patterns
+        snake_case_pattern = re.compile(r"^[a-z_][a-z0-9_]*$")
+        pascal_case_pattern = re.compile(r"^[A-Z][a-zA-Z0-9]*$")
+        generic_names = {"temp", "data", "info", "obj", "var", "tmp", "x", "y", "z"}
+
+        for file_path in python_files:
+            full_path = repository.path / file_path
+            try:
+                with open(full_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                tree = ast.parse(content, filename=str(file_path))
+
+                for node in ast.walk(tree):
+                    # Check function names
+                    if isinstance(node, ast.FunctionDef):
+                        # Skip private/magic methods
+                        if node.name.startswith("_"):
+                            continue
+
+                        total_functions += 1
+                        if snake_case_pattern.match(node.name):
+                            compliant_functions += 1
+
+                        # Check for generic names
+                        if node.name.lower() in generic_names:
+                            generic_names_count += 1
+
+                    # Check class names
+                    elif isinstance(node, ast.ClassDef):
+                        # Skip private classes
+                        if node.name.startswith("_"):
+                            continue
+
+                        total_classes += 1
+                        if pascal_case_pattern.match(node.name):
+                            compliant_classes += 1
+
+            except (OSError, UnicodeDecodeError, SyntaxError):
+                continue
+
+        if total_functions == 0 and total_classes == 0:
+            return Finding.not_applicable(
+                self.attribute, reason="No Python functions or classes found"
+            )
+
+        # Calculate scores
+        function_compliance = (
+            (compliant_functions / total_functions * 100)
+            if total_functions > 0
+            else 100
+        )
+        class_compliance = (
+            (compliant_classes / total_classes * 100) if total_classes > 0 else 100
+        )
+
+        # Overall score: 60% functions, 40% classes
+        naming_score = (function_compliance * 0.6) + (class_compliance * 0.4)
+
+        # Penalize generic names
+        if generic_names_count > 0:
+            penalty = min(20, generic_names_count * 5)
+            naming_score = max(0, naming_score - penalty)
+
+        status = "pass" if naming_score >= 75 else "fail"
+
+        # Build evidence
+        evidence = [
+            f"Functions: {compliant_functions}/{total_functions} follow snake_case ({function_compliance:.1f}%)",
+            f"Classes: {compliant_classes}/{total_classes} follow PascalCase ({class_compliance:.1f}%)",
+        ]
+
+        if generic_names_count > 0:
+            evidence.append(
+                f"Generic names detected: {generic_names_count} occurrences"
+            )
+        else:
+            evidence.append("No generic names (temp, data, obj) detected")
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=naming_score,
+            measured_value=f"functions:{function_compliance:.0f}%, classes:{class_compliance:.0f}%",
+            threshold="≥75% compliance",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for naming issues."""
+        return Remediation(
+            summary="Improve naming consistency and semantic clarity",
+            steps=[
+                "Follow language naming conventions (PEP 8 for Python)",
+                "Use snake_case for functions/variables in Python",
+                "Use PascalCase for classes in Python",
+                "Use descriptive names (>3 characters, no abbreviations)",
+                "Avoid generic names: temp, data, obj, var, info",
+                "Use verbs for functions: get_user, calculate_total",
+                "Use nouns for classes: User, OrderService",
+                "Enforce with linters: pylint --enable=invalid-name",
+            ],
+            tools=["pylint", "black"],
+            commands=[
+                "# Check naming conventions",
+                "pylint --disable=all --enable=invalid-name src/",
+            ],
+            examples=[
+                """# Good naming
+class UserService:
+    MAX_LOGIN_ATTEMPTS = 5
+
+    def create_user(self, email: str) -> User:
+        pass
+
+    def delete_user(self, user_id: str) -> None:
+        pass
+
+# Bad naming
+class userservice:  # Should be PascalCase
+    maxLoginAttempts = 5  # Should be UPPER_CASE
+
+    def CreateUser(self, e: str) -> User:  # Should be snake_case
+        pass
+
+    def data(self, temp):  # Generic names
+        pass
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Python.org",
+                    title="PEP 8 - Style Guide for Python Code",
+                    url="https://peps.python.org/pep-0008/#naming-conventions",
+                    relevance="Official Python naming conventions",
+                ),
             ],
         )

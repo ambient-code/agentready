@@ -14,6 +14,7 @@ except ImportError:
 
 from ..assessors.code_quality import (
     CyclomaticComplexityAssessor,
+    SemanticNamingAssessor,
     TypeAnnotationsAssessor,
 )
 
@@ -88,10 +89,11 @@ def create_all_assessors():
         ConciseDocumentationAssessor(),
         InlineDocumentationAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
-        # Tier 3 Important (4 implemented)
+        # Tier 3 Important (5 implemented)
         ArchitectureDecisionsAssessor(),
         IssuePRTemplatesAssessor(),
         CICDPipelineVisibilityAssessor(),
+        SemanticNamingAssessor(),
     ]
 
     # Add remaining stub assessors

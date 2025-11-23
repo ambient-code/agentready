@@ -315,9 +315,6 @@ def create_stub_assessors():
             3,
             0.03,
         ),
-        StubAssessor(
-            "semantic_naming", "Semantic File & Directory Naming", "Modularity", 3, 0.03
-        ),
         # Tier 4 Advanced
         StubAssessor(
             "security_scanning", "Security Scanning Automation", "Security", 4, 0.01
