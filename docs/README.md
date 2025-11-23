@@ -73,6 +73,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
 ### Adding New Pages
 
 1. Create new `.md` file in `docs/`:
+
    ```markdown
    ---
    layout: page
@@ -85,6 +86,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
    ```
 
 2. Add to navigation in `_config.yml`:
+
    ```yaml
    navigation:
      - title: Page Title
@@ -119,6 +121,7 @@ Custom styles in `assets/css/style.css` using CSS variables for:
 - Components (buttons, grids, tables)
 
 **Design system**:
+
 - Primary color: `#2563eb` (blue)
 - Font: System fonts for speed
 - Responsive: Mobile-first design
@@ -177,9 +180,9 @@ htmlproofer ./_site --external_only --http-status-ignore "999"
 
 ## Support
 
-- **Jekyll Docs**: https://jekyllrb.com/docs/
-- **GitHub Pages**: https://docs.github.com/en/pages
-- **Markdown Guide**: https://www.markdownguide.org/
+- **Jekyll Docs**: <https://jekyllrb.com/docs/>
+- **GitHub Pages**: <https://docs.github.com/en/pages>
+- **Markdown Guide**: <https://www.markdownguide.org/>
 
 ## Contributing
 

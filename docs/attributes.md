@@ -36,6 +36,7 @@ AgentReady evaluates repositories against **25 evidence-based attributes** that 
 - **Weighted**: Importance reflected in tier-based scoring (50/30/15/5 distribution)
 
 **Every attribute includes**:
+
 - Definition and importance for AI agents
 - Impact on agent behavior
 - Measurable criteria
@@ -89,6 +90,7 @@ CLAUDE.md files provide **immediate project context** without repeated explanati
 #### Measurable Criteria
 
 **Passes if**:
+
 - File exists at `CLAUDE.md` or `.claude/CLAUDE.md`
 - File size: <1000 lines (concise, focused)
 - Contains essential sections:
@@ -100,6 +102,7 @@ CLAUDE.md files provide **immediate project context** without repeated explanati
   - Branch/PR workflow
 
 **Bonus points** (not required for pass):
+
 - "Do not touch" zones documented
 - Security/compliance notes included
 - Common gotchas and edge cases
@@ -150,6 +153,7 @@ CLAUDE.md files provide **immediate project context** without repeated explanati
 **Time**: 15-30 minutes for initial creation
 
 **Citations**:
+
 - Anthropic Engineering Blog: "Claude Code Best Practices" (2025)
 - AgentReady Research: "Context Window Optimization"
 
@@ -180,6 +184,7 @@ Repositories with well-structured READMEs receive more engagement (GitHub data).
 #### Measurable Criteria
 
 **Passes if README.md contains (in order)**:
+
 1. Project title and description
 2. Installation/setup instructions
 3. Quick start/usage examples
@@ -190,6 +195,7 @@ Repositories with well-structured READMEs receive more engagement (GitHub data).
 8. License
 
 **Bonus sections**:
+
 - Table of contents (for longer READMEs)
 - Badges (build status, coverage, version)
 - Screenshots or demos
@@ -263,6 +269,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 **Tools**: Any text editor, Markdown linters
 
 **Commands**:
+
 ```bash
 # Validate Markdown syntax
 markdownlint README.md
@@ -272,6 +279,7 @@ npx markdown-link-check README.md
 ```
 
 **Citations**:
+
 - GitHub Blog: "How to write a great README"
 - Make a README project documentation
 
@@ -304,20 +312,24 @@ Type hints **significantly improve LLM code understanding**. Research shows high
 #### Measurable Criteria
 
 **Python**:
+
 - All public functions have parameter and return type hints
 - Generic types from `typing` module used appropriately
 - Coverage: >80% of functions typed
 - Tools: mypy, pyright
 
 **TypeScript**:
+
 - `strict` mode enabled in tsconfig.json
 - No `any` types (use `unknown` if needed)
 - Interfaces for complex objects
 
 **Go**:
+
 - Inherently typed (always passes)
 
 **JavaScript**:
+
 - JSDoc type annotations OR migrate to TypeScript
 
 #### Example: Good Type Annotations (Python)
@@ -376,11 +388,13 @@ def create_user(email, role):
 **Python**:
 
 1. **Install type checker**:
+
    ```bash
    pip install mypy
    ```
 
 2. **Add type hints** to public functions:
+
    ```bash
    # Use tool to auto-generate hints
    pip install monkeytype
@@ -389,6 +403,7 @@ def create_user(email, role):
    ```
 
 3. **Run type checker**:
+
    ```bash
    mypy src/
    ```
@@ -398,6 +413,7 @@ def create_user(email, role):
 **TypeScript**:
 
 1. **Enable strict mode** in `tsconfig.json`:
+
    ```json
    {
      "compilerOptions": {
@@ -408,6 +424,7 @@ def create_user(email, role):
    ```
 
 2. **Fix type errors**:
+
    ```bash
    tsc --noEmit
    ```
@@ -415,6 +432,7 @@ def create_user(email, role):
 **Tools**: mypy, pyright, pytype (Python); tsc (TypeScript)
 
 **Citations**:
+
 - Medium: "LLM Coding Concepts: Static Typing"
 - ArXiv: "Automated Type Annotation in Python Using LLMs"
 - Dropbox: "Our journey to type checking 4 million lines of Python"
@@ -446,6 +464,7 @@ Standard layouts reduce cognitive overhead. AI models trained on open-source cod
 #### Measurable Criteria
 
 **Python (src/ layout)**:
+
 ```
 project/
 ├── src/
@@ -460,6 +479,7 @@ project/
 ```
 
 **Go**:
+
 ```
 project/
 ├── cmd/           # Main applications
@@ -472,6 +492,7 @@ project/
 ```
 
 **JavaScript/TypeScript**:
+
 ```
 project/
 ├── src/
@@ -483,6 +504,7 @@ project/
 ```
 
 **Java (Maven)**:
+
 ```
 project/
 ├── src/
@@ -499,6 +521,7 @@ project/
 1. **Identify target layout** for your language
 2. **Create migration plan** (avoid breaking changes)
 3. **Move files incrementally**:
+
    ```bash
    # Python: Migrate to src/ layout
    mkdir -p src/mypackage
@@ -512,6 +535,7 @@ project/
 **Tools**: IDE refactoring tools, git mv
 
 **Citations**:
+
 - Real Python: "Python Application Layouts"
 - GitHub: golang-standards/project-layout
 - Maven standard directory layout
@@ -543,6 +567,7 @@ Lock files ensure **reproducible builds** across environments. Without them, "wo
 #### Measurable Criteria
 
 **Passes if lock file exists and committed**:
+
 - **npm**: `package-lock.json` or `yarn.lock`
 - **Python**: `poetry.lock`, `Pipfile.lock`, or `requirements.txt` from `pip freeze` (or `uv.lock`)
 - **Go**: `go.sum` (automatically managed)
@@ -550,6 +575,7 @@ Lock files ensure **reproducible builds** across environments. Without them, "wo
 - **Rust**: `Cargo.lock`
 
 **Additional requirements**:
+
 - Lock file updated with every dependency change
 - CI/CD uses lock file for installation
 - Lock file not in `.gitignore`
@@ -559,6 +585,7 @@ Lock files ensure **reproducible builds** across environments. Without them, "wo
 #### Remediation
 
 **Python (poetry)**:
+
 ```bash
 # Install poetry
 pip install poetry
@@ -571,6 +598,7 @@ poetry install
 ```
 
 **Python (pip)**:
+
 ```bash
 # Create requirements with exact versions
 pip freeze > requirements.txt
@@ -580,6 +608,7 @@ pip install -r requirements.txt
 ```
 
 **npm**:
+
 ```bash
 # Generate lock file
 npm install
@@ -589,6 +618,7 @@ git add package-lock.json
 ```
 
 **Go**:
+
 ```bash
 # Lock file auto-generated
 go mod download
@@ -596,6 +626,7 @@ go mod tidy
 ```
 
 **Citations**:
+
 - npm Blog: "Why Keep package-lock.json?"
 - Python Packaging User Guide
 - Go Modules documentation
@@ -624,6 +655,7 @@ High test coverage enables **confident AI modifications**. Research shows AI too
 #### Measurable Criteria
 
 **Minimum thresholds**:
+
 - 70% line coverage (Bronze)
 - 80% line coverage (Silver/Gold)
 - 90% line coverage (Platinum)
@@ -631,6 +663,7 @@ High test coverage enables **confident AI modifications**. Research shows AI too
 **Critical paths**: 100% coverage for core business logic
 
 **Measured via**:
+
 - pytest-cov (Python)
 - Jest/Istanbul (JavaScript/TypeScript)
 - go test -cover (Go)
@@ -654,6 +687,7 @@ go tool cover -html=coverage.out
 ```
 
 **Citations**:
+
 - Salesforce Engineering: "How Cursor AI Cut Legacy Code Coverage Time by 85%"
 
 ---
@@ -678,6 +712,7 @@ Pre-commit hooks provide immediate feedback. Running same checks in CI/CD ensure
 #### Measurable Criteria
 
 **Passes if**:
+
 - `.pre-commit-config.yaml` exists
 - Hooks include formatters (black, prettier) and linters (flake8, eslint)
 - Same checks run in CI/CD (GitHub Actions, GitLab CI, etc.)
@@ -686,12 +721,14 @@ Pre-commit hooks provide immediate feedback. Running same checks in CI/CD ensure
 #### Remediation
 
 **Automated** (recommended):
+
 ```bash
 agentready bootstrap .  # Generates .pre-commit-config.yaml + GitHub Actions
 pre-commit install      # Install git hooks locally
 ```
 
 **Manual**:
+
 ```bash
 # Install pre-commit
 pip install pre-commit
@@ -723,6 +760,7 @@ pre-commit run --all-files
 ```
 
 **Citations**:
+
 - Memfault: "Automatically format and lint code with pre-commit"
 - GitHub: pre-commit/pre-commit
 
@@ -752,6 +790,7 @@ Conventional commits enable **automated semantic versioning**, changelog generat
 **Enforcement**: commitlint in pre-commit hooks or CI
 
 **Examples**:
+
 - ✅ `feat(auth): add OAuth2 login support`
 - ✅ `fix(api): handle null values in user response`
 - ✅ `docs(readme): update installation instructions`
@@ -778,6 +817,7 @@ EOF
 ```
 
 **Citations**:
+
 - Conventional Commits specification v1.0.0
 - Medium: "GIT — Semantic versioning and conventional commits"
 
@@ -801,6 +841,7 @@ Incomplete `.gitignore` pollutes repository with irrelevant files, consuming con
 #### Measurable Criteria
 
 **Must exclude**:
+
 - Build artifacts (`dist/`, `build/`, `*.pyc`, `*.class`)
 - Dependencies (`node_modules/`, `venv/`, `vendor/`)
 - IDE files (`.vscode/`, `.idea/`, `*.swp`)
@@ -826,6 +867,7 @@ echo "*.log" >> .gitignore
 ```
 
 **Citations**:
+
 - GitHub: github/gitignore
 - Medium: "Mastering .gitignore"
 
@@ -849,6 +891,7 @@ One-command setup enables AI to quickly reproduce environments and test changes.
 #### Measurable Criteria
 
 **Passes if**:
+
 - Single command documented in README
 - Command handles:
   - Dependency installation
@@ -864,12 +907,12 @@ One-command setup enables AI to quickly reproduce environments and test changes.
 ```makefile
 .PHONY: setup
 setup:
-	python -m venv venv
-	. venv/bin/activate && pip install -r requirements.txt
-	pre-commit install
-	cp .env.example .env
-	python manage.py migrate
-	@echo "✓ Setup complete! Run 'make test' to verify."
+ python -m venv venv
+ . venv/bin/activate && pip install -r requirements.txt
+ pre-commit install
+ cp .env.example .env
+ python manage.py migrate
+ @echo "✓ Setup complete! Run 'make test' to verify."
 ```
 
 #### Remediation
@@ -880,6 +923,7 @@ setup:
 4. **Automate common setup steps**
 
 **Citations**:
+
 - freeCodeCamp: "Using Make as a Build Tool"
 
 ---
@@ -898,6 +942,7 @@ Clear documentation of prerequisites, environment variables, and configuration r
 #### Measurable Criteria
 
 **Must document**:
+
 - Language/runtime version (Python 3.11+, Node.js 18+)
 - System dependencies (PostgreSQL, Redis, etc.)
 - Environment variables (`.env.example` with all variables)
@@ -921,6 +966,7 @@ ENABLE_FEATURE_X=false
 ```
 
 **Citations**:
+
 - Medium: "Creating Reproducible Development Environments"
 
 ---
@@ -951,6 +997,7 @@ High complexity confuses both humans and AI. Functions with complexity >25 are e
 - Error: 25
 
 **Tools**:
+
 - radon (Python)
 - complexity-report (JavaScript)
 - gocyclo (Go)
@@ -974,6 +1021,7 @@ cr src/**/*.js
 ```
 
 **Citations**:
+
 - Microsoft Learn: "Code metrics - Cyclomatic complexity"
 
 ---
@@ -1019,7 +1067,7 @@ cr src/**/*.js
 | **Tier 4** | 1 | 4 | 5 |
 | **Total** | **10** | **15** | **25** |
 
-**Current version (1.0.0)**: 10 assessors fully implemented, 15 return "not_applicable" (stub implementations).
+**Current version (v1.27.1)**: 10 assessors fully implemented, 15 return "not_applicable" (stub implementations).
 
 **Roadmap**: Future versions will expand stub assessors to provide complete 25-attribute coverage.
 

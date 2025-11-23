@@ -42,6 +42,7 @@ agentready validate-report --no-strict assessment-20251122-061500.json
 ```
 
 **Features**:
+
 - JSON Schema Draft 7 validation
 - Automatic version detection
 - Strict/lenient validation modes
@@ -60,6 +61,7 @@ agentready migrate-report old-report.json --to 2.0.0 --output new-report.json
 ```
 
 **Features**:
+
 - Automatic migration path resolution
 - Multi-step migrations
 - Data transformation
@@ -72,7 +74,9 @@ agentready migrate-report old-report.json --to 2.0.0 --output new-report.json
 Schema versions follow semantic versioning:
 
 ### MAJOR version (X.0.0)
+
 **Breaking changes** - Incompatible schema modifications:
+
 - Removing required fields
 - Changing field types
 - Renaming fields
@@ -81,7 +85,9 @@ Schema versions follow semantic versioning:
 **Example**: Removing `attributes_skipped` field
 
 ### MINOR version (1.X.0)
+
 **Backward-compatible additions** - New optional features:
+
 - Adding optional fields
 - Adding new enum values
 - Relaxing validation rules
@@ -89,7 +95,9 @@ Schema versions follow semantic versioning:
 **Example**: Adding optional `ai_suggestions` field
 
 ### PATCH version (1.0.X)
+
 **Non-functional changes** - No schema modifications:
+
 - Documentation updates
 - Example clarifications
 - Bug fixes in descriptions
@@ -103,11 +111,13 @@ Schema versions follow semantic versioning:
 Schemas are stored in `specs/001-agentready-scorer/contracts/`:
 
 ### assessment-schema.json
+
 JSON Schema for assessment reports (Draft 7)
 
 **Location**: `specs/001-agentready-scorer/contracts/assessment-schema.json`
 
 **Usage**:
+
 ```python
 from agentready.services.schema_validator import SchemaValidator
 
@@ -116,22 +126,26 @@ is_valid, errors = validator.validate_report(report_data)
 ```
 
 ### report-html-schema.md
+
 HTML report structure specification
 
 **Location**: `specs/001-agentready-scorer/contracts/report-html-schema.md`
 
 Defines:
+
 - HTML document structure
 - Required sections
 - Interactivity requirements
 - Self-contained design
 
 ### report-markdown-schema.md
+
 Markdown report format specification
 
 **Location**: `specs/001-agentready-scorer/contracts/report-markdown-schema.md`
 
 Defines:
+
 - GitHub-Flavored Markdown format
 - Section requirements
 - Table formatting
@@ -161,11 +175,13 @@ is_valid, errors = validator.validate_report(report_data, strict=False)
 ```
 
 **Methods**:
+
 - `validate_report(report_data, strict=True)` → `(bool, list[str])`
 - `validate_report_file(report_path, strict=True)` → `(bool, list[str])`
 - `get_schema_path(version)` → `Path`
 
 **Attributes**:
+
 - `SUPPORTED_VERSIONS` - List of supported schema versions
 - `DEFAULT_VERSION` - Default schema version (`"1.0.0"`)
 
@@ -189,11 +205,13 @@ steps = migrator.get_migration_path(from_version="1.0.0", to_version="2.0.0")
 ```
 
 **Methods**:
+
 - `migrate_report(report_data, to_version)` → `dict`
 - `migrate_report_file(input_path, output_path, to_version)` → `None`
 - `get_migration_path(from_version, to_version)` → `list[tuple[str, str]]`
 
 **Attributes**:
+
 - `SUPPORTED_VERSIONS` - List of supported schema versions
 - `MIGRATION_PATHS` - Dictionary of migration functions
 
@@ -210,12 +228,15 @@ agentready validate-report [OPTIONS] REPORT
 ```
 
 **Arguments**:
+
 - `REPORT` - Path to JSON assessment report file
 
 **Options**:
+
 - `--strict` / `--no-strict` - Strict validation mode (default: strict)
 
 **Examples**:
+
 ```bash
 # Strict validation
 agentready validate-report assessment-20251122.json
@@ -225,6 +246,7 @@ agentready validate-report --no-strict assessment-20251122.json
 ```
 
 **Exit Codes**:
+
 - `0` - Report is valid
 - `1` - Validation failed
 
@@ -237,14 +259,17 @@ agentready migrate-report [OPTIONS] INPUT_REPORT
 ```
 
 **Arguments**:
+
 - `INPUT_REPORT` - Path to source JSON assessment report file
 
 **Options**:
+
 - `--from VERSION` - Source schema version (auto-detected if not specified)
 - `--to VERSION` - Target schema version (required)
 - `--output PATH` / `-o PATH` - Output file path (default: auto-generated)
 
 **Examples**:
+
 ```bash
 # Migrate to version 2.0.0
 agentready migrate-report assessment.json --to 2.0.0
@@ -257,6 +282,7 @@ agentready migrate-report old.json --from 1.0.0 --to 2.0.0
 ```
 
 **Exit Codes**:
+
 - `0` - Migration successful
 - `1` - Migration failed
 
@@ -305,6 +331,7 @@ SUPPORTED_VERSIONS = ["1.0.0", "2.0.0"]
 4. **Create New Schema File**
 
 Copy and modify `assessment-schema.json`:
+
 ```bash
 cp specs/001-agentready-scorer/contracts/assessment-schema.json \
    specs/001-agentready-scorer/contracts/assessment-schema-v2.0.0.json
@@ -380,13 +407,16 @@ pytest --cov=agentready.services tests/unit/test_schema_*.py
 ### Test Coverage
 
 **Unit Tests**:
+
 - `test_schema_validator.py` - 14 test cases
 - `test_schema_migrator.py` - 10 test cases
 
 **Integration Tests**:
+
 - `test_schema_commands.py` - 8 test cases
 
 **Total**: 32 test cases covering:
+
 - Validation (strict/lenient)
 - Migration (single/multi-step)
 - Error handling
@@ -402,6 +432,7 @@ Schema versioning requires:
 - **jsonschema** >= 4.17.0 (for validation)
 
 Install with:
+
 ```bash
 pip install jsonschema
 # or
@@ -423,6 +454,7 @@ uv pip install jsonschema
 ### Proposed Schema Changes
 
 See `BACKLOG.md` for proposed schema enhancements:
+
 - Add `ai_suggestions` field (v1.1.0)
 - Add `historical_trends` field (v1.1.0)
 - Restructure `findings` for nested attributes (v2.0.0)
@@ -434,6 +466,7 @@ See `BACKLOG.md` for proposed schema enhancements:
 ### "jsonschema not installed"
 
 **Solution**: Install jsonschema
+
 ```bash
 pip install jsonschema
 ```
@@ -441,6 +474,7 @@ pip install jsonschema
 ### "Unsupported schema version"
 
 **Solution**: Migrate report to supported version
+
 ```bash
 agentready migrate-report old-report.json --to 1.0.0
 ```
@@ -448,6 +482,7 @@ agentready migrate-report old-report.json --to 1.0.0
 ### "Validation failed: missing required field"
 
 **Solution**: Report may be corrupted or incomplete
+
 1. Check report file is valid JSON
 2. Verify report was generated by AgentReady
 3. Try lenient validation: `--no-strict`
@@ -455,6 +490,7 @@ agentready migrate-report old-report.json --to 1.0.0
 ### "No migration path found"
 
 **Solution**: Multi-step migration not yet implemented
+
 1. Check `SUPPORTED_VERSIONS` in `SchemaMigrator`
 2. Manually chain migrations if needed
 3. File issue for requested migration path
@@ -463,8 +499,8 @@ agentready migrate-report old-report.json --to 1.0.0
 
 ## References
 
-- **JSON Schema**: https://json-schema.org/
-- **Semantic Versioning**: https://semver.org/
+- **JSON Schema**: <https://json-schema.org/>
+- **Semantic Versioning**: <https://semver.org/>
 - **Assessment Schema**: `specs/001-agentready-scorer/contracts/assessment-schema.json`
 - **Test Suite**: `tests/unit/test_schema_*.py`
 

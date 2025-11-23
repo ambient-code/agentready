@@ -89,16 +89,19 @@ Then update `.releaserc.json` to include beta branch configuration.
 For urgent production fixes:
 
 1. **Create hotfix branch** from the latest release tag:
+
    ```bash
    git checkout -b hotfix/critical-bug v1.2.3
    ```
 
 2. **Apply fix** with conventional commit:
+
    ```bash
    git commit -m "fix: resolve critical security issue"
    ```
 
 3. **Push and create PR** to main:
+
    ```bash
    git push origin hotfix/critical-bug
    gh pr create --base main --title "fix: critical security hotfix"

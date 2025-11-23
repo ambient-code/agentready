@@ -89,6 +89,7 @@ git push
 ```
 
 **What you get in <60 seconds:**
+
 - ✅ GitHub Actions workflows (tests, security, AgentReady assessment)
 - ✅ Pre-commit hooks (formatters, linters, language-specific)
 - ✅ Issue & PR templates (bug reports, feature requests, CODEOWNERS)
@@ -107,6 +108,7 @@ open .agentready/report-latest.html
 ```
 
 **Assessment output:**
+
 - Overall score and certification level (Platinum/Gold/Silver/Bronze)
 - Detailed findings for all 25 attributes
 - Specific remediation steps with tools and examples
@@ -146,14 +148,16 @@ AgentReady scores repositories on a 0-100 scale with tier-weighted attributes:
   </div>
 </div>
 
-**AgentReady itself scores 75.4/100 (Gold)** — see our [self-assessment report](examples.html#agentready-self-assessment).
+**AgentReady itself scores 80.0/100 (Gold)** — see our [self-assessment report](examples.html#agentready-self-assessment).
 
 ## What Gets Assessed?
 
 AgentReady evaluates 25 attributes organized into four weighted tiers:
 
 ### Tier 1: Essential (50% of score)
+
 The fundamentals that enable basic AI agent functionality:
+
 - **CLAUDE.md File** — Project context for AI agents
 - **README Structure** — Clear documentation entry point
 - **Type Annotations** — Static typing for better code understanding
@@ -161,7 +165,9 @@ The fundamentals that enable basic AI agent functionality:
 - **Lock Files** — Reproducible dependency management
 
 ### Tier 2: Critical (30% of score)
+
 Major quality improvements and safety nets:
+
 - **Test Coverage** — Confidence for AI-assisted refactoring
 - **Pre-commit Hooks** — Automated quality enforcement
 - **Conventional Commits** — Structured git history
@@ -169,7 +175,9 @@ Major quality improvements and safety nets:
 - **One-Command Setup** — Easy environment reproduction
 
 ### Tier 3: Important (15% of score)
+
 Significant improvements in specific areas:
+
 - **Cyclomatic Complexity** — Code comprehension metrics
 - **Structured Logging** — Machine-parseable debugging
 - **API Documentation** — OpenAPI/GraphQL specifications
@@ -177,7 +185,9 @@ Significant improvements in specific areas:
 - **Semantic Naming** — Clear, descriptive identifiers
 
 ### Tier 4: Advanced (5% of score)
+
 Refinement and optimization:
+
 - **Security Scanning** — Automated vulnerability detection
 - **Performance Benchmarks** — Regression tracking
 - **Code Smell Elimination** — Quality baseline maintenance
@@ -191,6 +201,7 @@ Refinement and optimization:
 AgentReady generates three complementary report formats:
 
 ### Interactive HTML Report
+
 - Color-coded findings with visual score indicators
 - Search, filter, and sort capabilities
 - Collapsible sections for detailed analysis
@@ -198,12 +209,14 @@ AgentReady generates three complementary report formats:
 - **Use case**: Share with stakeholders, detailed exploration
 
 ### Version-Control Markdown
+
 - GitHub-Flavored Markdown with tables and emojis
 - Git-diffable format for tracking progress
 - Certification ladder and next steps
 - **Use case**: Commit to repository, track improvements over time
 
 ### Machine-Readable JSON
+
 - Complete assessment data structure
 - Timestamps and metadata
 - Structured findings with evidence
@@ -276,16 +289,19 @@ AgentReady Bootstrap creates production-ready infrastructure tailored to your la
 ### GitHub Actions Workflows
 
 **`agentready-assessment.yml`** — Runs assessment on every PR and push
+
 - Posts interactive results as PR comments
 - Tracks score progression over time
 - Fails if score drops below configured threshold
 
 **`tests.yml`** — Language-specific test automation
+
 - Python: pytest with coverage reporting
 - JavaScript: jest with coverage
 - Go: go test with race detection
 
 **`security.yml`** — Comprehensive security scanning
+
 - CodeQL analysis for vulnerability detection
 - Dependency scanning with GitHub Advisory Database
 - SAST (Static Application Security Testing)
@@ -293,11 +309,13 @@ AgentReady Bootstrap creates production-ready infrastructure tailored to your la
 ### GitHub Templates
 
 **Issue Templates** — Structured bug reports and feature requests
+
 - Bug report with reproduction steps template
 - Feature request with use case template
 - Auto-labeling and assignment
 
 **PR Template** — Checklist-driven pull requests
+
 - Testing verification checklist
 - Documentation update requirements
 - Breaking change indicators
@@ -307,11 +325,13 @@ AgentReady Bootstrap creates production-ready infrastructure tailored to your la
 ### Development Infrastructure
 
 **`.pre-commit-config.yaml`** — Language-specific quality gates
+
 - Python: black, isort, ruff, mypy
 - JavaScript: prettier, eslint
 - Go: gofmt, golint
 
 **`.github/dependabot.yml`** — Automated dependency management
+
 - Weekly update checks
 - Automatic PR creation for updates
 - Security vulnerability patching
@@ -324,11 +344,11 @@ AgentReady Bootstrap creates production-ready infrastructure tailored to your la
 
 ## Latest News
 
-**Version 1.1.0 - Bootstrap Released** (2025-11-21)
-Major release introducing automated infrastructure generation! Bootstrap command creates complete GitHub setup (Actions, templates, pre-commit hooks, Dependabot) tailored to your language. Transform any repository to agent-ready in <60 seconds.
+**Version 1.27.1 Released** (2025-11-23)
+Stability improvements with comprehensive pytest fixes! Resolved 35 test failures through enhanced model validation and path sanitization. Added shared test fixtures and improved Assessment schema handling. Significantly improved test coverage with comprehensive CLI and service module tests.
 
 **Version 1.0.0 Released** (2025-11-21)
-Initial release with 10 implemented assessors, interactive HTML reports, and comprehensive documentation. AgentReady achieves Gold certification (75.4/100) on its own codebase.
+Initial release with 10 implemented assessors, interactive HTML reports, and comprehensive documentation. AgentReady achieves Gold certification (80.0/100) on its own codebase.
 
 [View full changelog →](https://github.com/ambient-code/agentready/releases)
 

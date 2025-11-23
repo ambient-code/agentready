@@ -85,7 +85,8 @@ agentready/
 │   │   ├── code_quality.py  # Type annotations, complexity
 │   │   ├── testing.py       # Test coverage, pre-commit hooks
 │   │   ├── structure.py     # Standard layout, gitignore
-│   │   └── stub_assessors.py # 15 not-yet-implemented assessors
+│   │   ├── repomix.py       # Repomix configuration assessor
+│   │   └── stub_assessors.py # 15 stub assessors (to be implemented)
 │   ├── reporters/           # Report generators
 │   │   ├── html.py          # Interactive HTML with Jinja2
 │   │   ├── markdown.py      # GitHub-Flavored Markdown
@@ -147,6 +148,25 @@ pytest -s
 pytest -x
 ```
 
+**Recent Test Infrastructure Improvements (v1.27.1)**:
+
+1. **Shared Test Fixtures** (`tests/conftest.py`):
+   - Reusable repository fixtures for consistent test data
+   - Reduced test code duplication
+   - Faster test development
+
+2. **Model Validation Enhancements**:
+   - Enhanced Assessment schema validation
+   - Path sanitization for cross-platform compatibility
+   - Proper handling of optional fields
+
+3. **Comprehensive Coverage**:
+   - CLI tests (Phase 4) complete
+   - Service module tests (Phase 3) complete
+   - All 35 pytest failures from v1.27.0 resolved
+
+**Current test coverage**: Focused on core logic (models, scoring, critical assessors)
+
 ### Code Quality Checks
 
 ```bash
@@ -205,6 +225,7 @@ Immutable data classes representing domain entities:
 - **Assessment**: Repository, overall score, certification level, findings list
 
 **Design Principles**:
+
 - Immutable (frozen dataclasses)
 - Type-annotated
 - No business logic (pure data)
@@ -219,6 +240,7 @@ Orchestration and core algorithms:
 - **LanguageDetector**: Detects repository languages via `git ls-files`
 
 **Design Principles**:
+
 - Stateless (pure functions or stateless classes)
 - Single responsibility
 - No external dependencies (file I/O, network)
@@ -232,6 +254,7 @@ Strategy pattern implementations for each attribute:
 - Concrete assessors: `CLAUDEmdAssessor`, `READMEAssessor`, etc.
 
 **Design Principles**:
+
 - Each assessor is independent
 - Inherit from `BaseAssessor`
 - Implement `assess(repository)` method
@@ -247,6 +270,7 @@ Transform `Assessment` into report formats:
 - **JSONReporter**: Machine-readable JSON
 
 **Design Principles**:
+
 - Take `Assessment` as input
 - Return formatted string
 - Self-contained (HTML has inline CSS/JS, no CDN)
@@ -370,6 +394,7 @@ class BootstrapGenerator:
 ```
 
 **Key Methods**:
+
 - `_detect_language()` — Auto-detect primary language via LanguageDetector
 - `_render_template()` — Render Jinja2 template with context variables
 - `_get_templates_for_language()` — Map language to template files
@@ -395,6 +420,7 @@ def bootstrap(repository, dry_run, language):
 ```
 
 **Responsibilities**:
+
 - Parse command-line arguments
 - Create Repository object
 - Instantiate BootstrapGenerator
@@ -476,6 +502,7 @@ class LanguageDetector:
 ### File Generation Flow
 
 1. **Detect Language**:
+
    ```python
    if language == "auto":
        languages = LanguageDetector().detect(repository.path)
@@ -485,6 +512,7 @@ class LanguageDetector:
    ```
 
 2. **Select Templates**:
+
    ```python
    templates = {
        "python": [
@@ -500,6 +528,7 @@ class LanguageDetector:
    ```
 
 3. **Render Each Template**:
+
    ```python
    for template_path in selected:
        template = jinja_env.get_template(template_path)
@@ -510,6 +539,7 @@ class LanguageDetector:
    ```
 
 4. **Return Results**:
+
    ```python
    return [
        GeneratedFile(
@@ -540,6 +570,7 @@ class FileWriteError(BootstrapError):
 ```
 
 **Error scenarios**:
+
 - Not a git repository → Fail early with clear message
 - Language detection fails → Require `--language` flag
 - Template not found → Report missing template name
@@ -656,6 +687,7 @@ jobs:
 ```
 
 **Template variables used**:
+
 - `{{ python_version }}` — Python version from context
 - Could add: `{{ threshold }}`, `{{ branches }}` for customization
 
@@ -753,17 +785,20 @@ Templates can use Jinja2 conditionals:
 ### Template Development Workflow
 
 1. **Create template**:
+
    ```bash
    vim src/agentready/templates/bootstrap/python/mytemplate.yml.j2
    ```
 
 2. **Add template variables**:
+
    ```jinja2
    name: {{ repository_name }} CI
    version: {{ python_version }}
    ```
 
 3. **Register in BootstrapGenerator**:
+
    ```python
    TEMPLATES = {
        "python": [
@@ -774,11 +809,13 @@ Templates can use Jinja2 conditionals:
    ```
 
 4. **Test with dry-run**:
+
    ```bash
    agentready bootstrap . --dry-run
    ```
 
 5. **Verify rendered output**:
+
    ```bash
    # Check generated content
    cat .github/workflows/mytemplate.yml
@@ -787,6 +824,7 @@ Templates can use Jinja2 conditionals:
 ### Template Best Practices
 
 1. **Use descriptive variable names**:
+
    ```jinja2
    # Good
    {{ python_version }}
@@ -798,11 +836,13 @@ Templates can use Jinja2 conditionals:
    ```
 
 2. **Provide defaults**:
+
    ```jinja2
    python-version: '{{ python_version | default("3.11") }}'
    ```
 
 3. **Add comments**:
+
    ```yaml
    # This workflow runs on every PR to main
    # Generated by AgentReady Bootstrap
@@ -810,6 +850,7 @@ Templates can use Jinja2 conditionals:
    ```
 
 4. **Handle optional sections**:
+
    ```jinja2
    {% if has_tests_directory %}
    - name: Run Tests
@@ -820,6 +861,7 @@ Templates can use Jinja2 conditionals:
    ```
 
 5. **Include generation metadata**:
+
    ```yaml
    # Generated by AgentReady Bootstrap v{{ agentready_version }}
    # Date: {{ generation_date }}
@@ -1373,6 +1415,7 @@ git commit -m "feat(assessors): add inline documentation assessor
 ```
 
 **Commit types**:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes

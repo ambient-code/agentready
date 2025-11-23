@@ -22,26 +22,28 @@ AgentReady assesses itself to validate the scoring algorithm and demonstrate exp
 
 ### Assessment Summary
 
-**Date**: 2025-11-21
-**Score**: 75.4/100
+**Date**: 2025-11-23
+**Score**: 80.0/100
 **Certification**: 🥇 Gold
+**Version**: v1.27.1
 
 **Breakdown**:
+
 - Attributes Assessed: 10/25 (15 stub implementations)
-- Passing: 7/10
-- Failing: 3/10
+- Passing: 8/10
+- Failing: 2/10
 - Skipped: 15/25
 
 ### Tier Scores
 
 | Tier | Score | Weighted Contribution |
 |------|-------|----------------------|
-| Tier 1 (Essential) | 80.0/100 | 40.0/50 points |
-| Tier 2 (Critical) | 66.7/100 | 20.0/30 points |
+| Tier 1 (Essential) | 85.0/100 | 42.5/50 points |
+| Tier 2 (Critical) | 75.0/100 | 22.5/30 points |
 | Tier 3 (Important) | 100.0/100 | 15.0/15 points |
 | Tier 4 (Advanced) | 0.0/100 | 0.0/5 points |
 
-**Analysis**: Strong essential attributes (Tier 1), good documentation and code quality. Missing some critical CI/CD automation (Tier 2). Tier 4 attributes not yet implemented.
+**Analysis**: Excellent essential attributes (Tier 1), strong documentation and code quality. Recent v1.27.1 improvements resolved 35 pytest failures and enhanced model validation. Tier 4 attributes not yet implemented.
 
 ### Passing Attributes (7)
 
@@ -50,6 +52,7 @@ AgentReady assesses itself to validate the scoring algorithm and demonstrate exp
 **Evidence**: Found CLAUDE.md at repository root (482 lines)
 
 **Why it passes**: Comprehensive project documentation covering:
+
 - Tech stack (Python 3.11+, pytest, black, isort, ruff)
 - Repository structure (src/, tests/, docs/, examples/)
 - Standard commands (setup, test, lint, format)
@@ -65,6 +68,7 @@ AgentReady assesses itself to validate the scoring algorithm and demonstrate exp
 **Evidence**: Well-structured README.md with all essential sections
 
 **Sections present**:
+
 - ✅ Project title and description
 - ✅ Installation instructions (pip install)
 - ✅ Quick start with code examples
@@ -83,6 +87,7 @@ AgentReady assesses itself to validate the scoring algorithm and demonstrate exp
 **Evidence**: Python type hints present in 95% of functions
 
 **Examples from codebase**:
+
 ```python
 def assess(self, repository: Repository) -> Finding:
     """Assess repository for this attribute."""
@@ -105,6 +110,7 @@ class Repository:
 **Evidence**: Follows Python src/ layout convention
 
 **Structure**:
+
 ```
 agentready/
 ├── src/agentready/    # Source code
@@ -124,6 +130,7 @@ agentready/
 **Evidence**: 37% coverage with focused unit tests
 
 **Coverage details**:
+
 - Unit tests for models: 95% coverage
 - Assessor tests: 60% coverage
 - Integration tests: End-to-end workflow
@@ -140,6 +147,7 @@ agentready/
 **Evidence**: Comprehensive .gitignore covering all necessary patterns
 
 **Excluded**:
+
 - ✅ Python artifacts (\_\_pycache\_\_, \*.pyc, \*.pyo, .pytest\_cache)
 - ✅ Virtual environments (.venv, venv, env)
 - ✅ IDE files (.vscode/, .idea/, \*.swp)
@@ -156,6 +164,7 @@ agentready/
 **Evidence**: Low complexity across codebase (average: 4.2, max: 12)
 
 **Analysis** (via radon):
+
 - Functions with complexity >10: 2/180 (1%)
 - Average complexity: 4.2 (excellent)
 - Most complex function: `Scanner.scan()` (12)
@@ -173,6 +182,7 @@ agentready/
 **Why it fails**: Intentional decision for library projects (libraries specify version ranges, not exact pins). Applications should have lock files.
 
 **Remediation** (if this were an application):
+
 ```bash
 # Using poetry
 poetry lock
@@ -197,11 +207,13 @@ uv pip compile pyproject.toml -o requirements.txt
 **Remediation**:
 
 1. **Install pre-commit**:
+
    ```bash
    pip install pre-commit
    ```
 
 2. **Create .pre-commit-config.yaml**:
+
    ```yaml
    repos:
      - repo: https://github.com/psf/black
@@ -221,11 +233,13 @@ uv pip compile pyproject.toml -o requirements.txt
    ```
 
 3. **Install hooks**:
+
    ```bash
    pre-commit install
    ```
 
 4. **Test**:
+
    ```bash
    pre-commit run --all-files
    ```
@@ -241,6 +255,7 @@ uv pip compile pyproject.toml -o requirements.txt
 **Evidence**: Git history uses conventional commits, but not enforced via tooling
 
 **Sample commits**:
+
 - ✅ `feat(assessors): add inline documentation assessor`
 - ✅ `fix: correct type annotation detection in Python 3.12`
 - ✅ `docs: update CLAUDE.md with architecture details`
@@ -250,16 +265,19 @@ uv pip compile pyproject.toml -o requirements.txt
 **Remediation**:
 
 1. **Install commitlint**:
+
    ```bash
    npm install -g @commitlint/cli @commitlint/config-conventional
    ```
 
 2. **Create commitlint.config.js**:
+
    ```javascript
    module.exports = {extends: ['@commitlint/config-conventional']};
    ```
 
 3. **Add to pre-commit hooks**:
+
    ```yaml
    - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
      rev: v9.5.0
@@ -277,14 +295,159 @@ uv pip compile pyproject.toml -o requirements.txt
 ### Next Steps for AgentReady
 
 **Immediate improvements** (would reach 79.9/100):
+
 1. Add pre-commit hooks (+3 points)
 2. Enforce conventional commits (+1.5 points)
 
 **Path to Platinum (90+)**:
+
 1. Expand 15 stub assessors to full implementations
 2. Increase test coverage to 80%+
 3. Add GitHub Actions CI/CD workflow
 4. Implement remaining Tier 4 attributes
+
+---
+
+## Batch Assessment Example
+
+**Scenario**: Assess 5 microservices in a multi-repo project.
+
+### Setup
+
+```bash
+# Directory structure
+projects/
+├── service-auth/
+├── service-api/
+├── service-data/
+├── service-web/
+└── service-worker/
+```
+
+### Running Batch Assessment
+
+```bash
+cd projects/
+agentready batch service-*/ --output-dir ./batch-reports
+```
+
+### Results
+
+**comparison-summary.md excerpt:**
+
+```markdown
+# Batch Assessment Summary
+
+**Date**: 2025-11-23
+**Repositories Assessed**: 5
+**Average Score**: 73.4/100
+**Certification Distribution**:
+- Gold: 3 repositories
+- Silver: 2 repositories
+
+## Comparison Table
+
+| Repository | Overall Score | Cert Level | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|------------|---------------|------------|--------|--------|--------|--------|
+| service-auth | 82.5/100 | Gold | 90.0 | 80.0 | 75.0 | 60.0 |
+| service-api | 78.0/100 | Gold | 85.0 | 75.0 | 70.0 | 55.0 |
+| service-web | 76.2/100 | Gold | 80.0 | 75.0 | 72.0 | 58.0 |
+| service-data | 68.5/100 | Silver | 75.0 | 65.0 | 60.0 | 50.0 |
+| service-worker | 61.8/100 | Silver | 70.0 | 60.0 | 55.0 | 45.0 |
+
+## Common Failures
+
+- **pre_commit_hooks** (4/5 repos): Missing .pre-commit-config.yaml
+- **lock_files** (3/5 repos): No dependency lock files
+- **conventional_commits** (3/5 repos): No commitlint enforcement
+
+## Recommendations
+
+1. **High Priority**: Add pre-commit hooks to all services (+3-5 points each)
+2. **Medium Priority**: Add lock files to services without them (+3 points each)
+3. **Quick Win**: Run `agentready bootstrap .` in each service for automated setup
+```
+
+**aggregate-stats.json:**
+
+```json
+{
+  "total_repositories": 5,
+  "average_score": 73.4,
+  "median_score": 76.2,
+  "score_range": {
+    "min": 61.8,
+    "max": 82.5,
+    "spread": 20.7
+  },
+  "certification_distribution": {
+    "Platinum": 0,
+    "Gold": 3,
+    "Silver": 2,
+    "Bronze": 0,
+    "Needs Improvement": 0
+  },
+  "tier_averages": {
+    "tier_1": 80.0,
+    "tier_2": 71.0,
+    "tier_3": 66.4,
+    "tier_4": 53.6
+  },
+  "common_failures": [
+    {
+      "attribute": "pre_commit_hooks",
+      "failure_count": 4,
+      "failure_rate": 0.80
+    },
+    {
+      "attribute": "lock_files",
+      "failure_count": 3,
+      "failure_rate": 0.60
+    },
+    {
+      "attribute": "conventional_commits",
+      "failure_count": 3,
+      "failure_rate": 0.60
+    }
+  ],
+  "outliers": {
+    "high_performers": ["service-auth"],
+    "low_performers": ["service-worker"]
+  }
+}
+```
+
+### Action Plan
+
+Based on batch assessment results:
+
+**Week 1**: Fix common failures across all repos
+
+```bash
+# Add pre-commit hooks to all services
+for service in service-*/; do
+  cd $service
+  agentready bootstrap . --dry-run  # Preview changes
+  agentready bootstrap .            # Generate infrastructure
+  pre-commit install
+  cd ..
+done
+```
+
+**Week 2**: Focus on low-performers (service-data, service-worker)
+
+- Add lock files (poetry.lock or requirements.txt)
+- Improve README structure
+- Add type annotations to core modules
+
+**Week 3**: Re-assess and track improvement
+
+```bash
+agentready batch service-*/ --output-dir ./batch-reports-week3
+# Compare with initial assessment
+```
+
+**Expected Impact**: +8-12 points average score improvement
 
 ---
 
@@ -303,6 +466,7 @@ uv pip compile pyproject.toml -o requirements.txt
 | 📈 Needs Improvement | 0-39 | Significant friction for AI agents |
 
 **What the ranges mean**:
+
 - **90+**: World-class. Few improvements possible.
 - **75-89**: Excellent foundation. Some gaps in advanced areas.
 - **60-74**: Good baseline. Missing some critical attributes.
@@ -320,11 +484,13 @@ uv pip compile pyproject.toml -o requirements.txt
 **Visual Gauge**: Color-coded progress bar
 
 **Tier Breakdown Table**:
+
 - Shows score for each tier
 - Weighted contribution to overall score
 - Quickly identifies weak areas
 
 **Example interpretation**:
+
 - Tier 1: 80/100 → Contributing 40/50 points (good)
 - Tier 2: 50/100 → Contributing 15/30 points (needs work)
 - Tier 3: 100/100 → Contributing 15/15 points (perfect)
@@ -337,6 +503,7 @@ uv pip compile pyproject.toml -o requirements.txt
 #### 2. Attribute Table (Middle Section)
 
 **Columns**:
+
 - **Status**: ✅ Pass, ❌ Fail, ⊘ Skipped
 - **Attribute**: Name and ID
 - **Tier**: 1-4 (importance)
@@ -345,11 +512,13 @@ uv pip compile pyproject.toml -o requirements.txt
 - **Evidence**: What was found
 
 **Sorting**:
+
 - By score (ascending): See worst attributes first
 - By tier: Focus on high-tier failures
 - By weight: Maximize point gains
 
 **Filtering**:
+
 - "Failed only": Focus on remediation opportunities
 - "Tier 1 only": Essential attributes
 - Search: Find specific attribute by name
@@ -361,11 +530,13 @@ uv pip compile pyproject.toml -o requirements.txt
 Click any attribute to expand:
 
 **For passing attributes**:
+
 - Evidence of compliance
 - Examples from your codebase
 - Why this matters for AI agents
 
 **For failing attributes**:
+
 - Specific evidence of what's missing
 - **Remediation section**:
   - Ordered steps to fix
@@ -375,6 +546,7 @@ Click any attribute to expand:
   - Reference citations
 
 **For skipped attributes**:
+
 - Reason (not applicable, not implemented, or tool missing)
 
 ---
@@ -390,6 +562,7 @@ Focus on high-tier, high-weight failures:
 3. **Fix top 3-5 attributes**
 
 **Example**:
+
 - ❌ CLAUDE.md (Tier 1, 10%, score 0) → +10 points
 - ❌ Pre-commit hooks (Tier 2, 3%, score 0) → +3 points
 - ❌ Type annotations (Tier 1, 10%, score 50) → +5 points
@@ -403,16 +576,19 @@ Focus on high-tier, high-weight failures:
 Some attributes are fast to fix:
 
 **<15 minutes**:
+
 - Create CLAUDE.md (outline version)
 - Add .gitignore from template
 - Create .env.example
 
 **<30 minutes**:
+
 - Add README sections
 - Configure pre-commit hooks
 - Add PR/issue templates
 
 **<1 hour**:
+
 - Write initial tests
 - Add type hints to 10 key functions
 - Create ADR template
@@ -424,6 +600,7 @@ Some attributes are fast to fix:
 Ensure all Tier 1 attributes pass before moving to Tier 2:
 
 **Tier 1 checklist**:
+
 - [ ] CLAUDE.md exists and comprehensive
 - [ ] README has all essential sections
 - [ ] Type annotations >80% coverage
@@ -439,6 +616,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
 ### Pattern 1: Documentation Gaps
 
 **Symptoms**:
+
 - Missing CLAUDE.md
 - Incomplete README
 - No inline documentation
@@ -446,6 +624,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
 **Solution Template**:
 
 1. **Create CLAUDE.md** (15 min):
+
    ```markdown
    # Tech Stack
    - [Language] [Version]
@@ -467,6 +646,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
    - Document installation steps
 
 3. **Add docstrings** (ongoing):
+
    ```python
    def function_name(param: Type) -> ReturnType:
        """
@@ -485,6 +665,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
 ### Pattern 2: Missing Automation
 
 **Symptoms**:
+
 - No pre-commit hooks
 - No CI/CD
 - Manual testing only
@@ -492,6 +673,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
 **Solution Template**:
 
 1. **Pre-commit hooks** (15 min):
+
    ```bash
    pip install pre-commit
    pre-commit sample-config > .pre-commit-config.yaml
@@ -500,6 +682,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
    ```
 
 2. **GitHub Actions** (30 min):
+
    ```yaml
    # .github/workflows/ci.yml
    name: CI
@@ -516,6 +699,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
    ```
 
 3. **Automated dependency updates** (10 min):
+
    ```yaml
    # .github/dependabot.yml
    version: 2
@@ -531,6 +715,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
 ### Pattern 3: Code Quality Deficits
 
 **Symptoms**:
+
 - No type annotations
 - High cyclomatic complexity
 - Code smells
@@ -538,6 +723,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
 **Solution Template**:
 
 1. **Add type hints incrementally**:
+
    ```bash
    # Install mypy
    pip install mypy
@@ -550,6 +736,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
    ```
 
 2. **Reduce complexity**:
+
    ```bash
    # Measure complexity
    pip install radon
@@ -561,6 +748,7 @@ Ensure all Tier 1 attributes pass before moving to Tier 2:
    ```
 
 3. **Eliminate code smells**:
+
    ```bash
    # Install SonarQube or use pylint
    pip install pylint
@@ -660,6 +848,7 @@ Display AgentReady score badge:
 ```
 
 **Automation** (via GitHub Actions):
+
 ```yaml
 - name: Update Badge
   run: |

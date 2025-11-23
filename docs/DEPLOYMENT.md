@@ -49,6 +49,7 @@ url: "https://YOUR_USERNAME.github.io"  # Base hostname
 ```
 
 **Important**:
+
 - Replace `YOUR_USERNAME` with your GitHub username
 - If using custom domain, update `url` accordingly
 - Set `baseurl` to `/agentready` if repository is not organization homepage
@@ -111,12 +112,14 @@ Once deployment completes:
 ### Issue: 404 Not Found
 
 **Possible causes**:
+
 1. GitHub Pages not enabled in settings
 2. Wrong branch/folder selected
 3. Deployment still in progress
 4. `baseurl` misconfigured in `_config.yml`
 
 **Solutions**:
+
 ```bash
 # Check _config.yml
 grep -E "baseurl|url" docs/_config.yml
@@ -133,6 +136,7 @@ git branch --show-current
 **Cause**: Incorrect `baseurl` in `_config.yml`
 
 **Solution**:
+
 ```yaml
 # For repository named "agentready" at github.io/agentready
 baseurl: "/agentready"
@@ -144,6 +148,7 @@ url: "https://your-domain.com"
 ```
 
 **Test links**:
+
 ```bash
 # Search for absolute URLs (should use relative_url filter)
 grep -r "href=\"/" docs/*.md
@@ -159,11 +164,13 @@ grep -r "href=\"/" docs/*.md
 **Solution**:
 
 1. **Verify file exists**:
+
    ```bash
    ls docs/assets/css/style.css
    ```
 
 2. **Check layout references**:
+
    ```html
    <!-- Should be: -->
    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
@@ -186,16 +193,21 @@ grep -r "href=\"/" docs/*.md
 **Common errors**:
 
 **YAML syntax error**:
+
 ```
 Error: Invalid YAML in _config.yml
 ```
+
 **Solution**: Validate YAML syntax with online validator
 
 **Missing plugin**:
+
 ```
 Error: jekyll-seo-tag not found
 ```
+
 **Solution**: Add to `_config.yml`:
+
 ```yaml
 plugins:
   - jekyll-seo-tag
@@ -203,9 +215,11 @@ plugins:
 ```
 
 **Liquid syntax error**:
+
 ```
 Error: Liquid Exception in layouts/default.html
 ```
+
 **Solution**: Check for missing `{% endfor %}`, `{% endif %}`, etc.
 
 ---
@@ -301,6 +315,7 @@ git push
 Add DNS records at your domain registrar:
 
 **For apex domain (example.com)**:
+
 ```
 A    @    185.199.108.153
 A    @    185.199.109.153
@@ -309,6 +324,7 @@ A    @    185.199.111.153
 ```
 
 **For subdomain (docs.example.com)**:
+
 ```
 CNAME    docs    yourusername.github.io.
 ```
@@ -381,6 +397,7 @@ jobs:
 ### Adding New Pages
 
 1. **Create Markdown file** in `docs/`:
+
    ```bash
    cat > docs/new-page.md << 'EOF'
    ---
@@ -395,6 +412,7 @@ jobs:
    ```
 
 2. **Add to navigation** in `_config.yml`:
+
    ```yaml
    navigation:
      # ... existing items ...
@@ -403,6 +421,7 @@ jobs:
    ```
 
 3. **Commit and push**:
+
    ```bash
    git add docs/new-page.md docs/_config.yml
    git commit -m "docs: Add new page"
@@ -464,14 +483,17 @@ csso docs/assets/css/style.css -o docs/assets/css/style.min.css
 
 1. **Get tracking ID** from Google Analytics
 2. **Add to _config.yml**:
+
    ```yaml
    google_analytics: UA-XXXXXXXXX-X
    ```
+
 3. **Tracking script auto-added** by jekyll-seo-tag plugin
 
 ### GitHub Traffic
 
 View built-in analytics:
+
 1. Go to repository Insights tab
 2. Click "Traffic"
 3. See page views and visitor stats
@@ -511,10 +533,10 @@ git push --force  # Use with caution
 
 ## Support
 
-- **Jekyll Documentation**: https://jekyllrb.com/docs/
-- **GitHub Pages Docs**: https://docs.github.com/en/pages
-- **Jekyll Themes**: https://github.com/topics/jekyll-theme
-- **Troubleshooting**: https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/troubleshooting-jekyll-build-errors-for-github-pages-sites
+- **Jekyll Documentation**: <https://jekyllrb.com/docs/>
+- **GitHub Pages Docs**: <https://docs.github.com/en/pages>
+- **Jekyll Themes**: <https://github.com/topics/jekyll-theme>
+- **Troubleshooting**: <https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/troubleshooting-jekyll-build-errors-for-github-pages-sites>
 
 ---
 

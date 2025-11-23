@@ -437,6 +437,245 @@ for lang, count in languages.items():
 
 ---
 
+### BatchScanner
+
+Assess multiple repositories in parallel for organizational insights.
+
+```python
+from agentready.services import BatchScanner
+
+class BatchScanner:
+    """Batch assessment across multiple repositories."""
+
+    def __init__(self):
+        """Initialize batch scanner."""
+
+    def scan_batch(
+        self,
+        repository_paths: List[str],
+        parallel: bool = True,
+        max_workers: int = 4
+    ) -> List[Assessment]:
+        """
+        Scan multiple repositories.
+
+        Args:
+            repository_paths: List of repository paths to assess
+            parallel: Use parallel processing (default: True)
+            max_workers: Maximum parallel workers (default: 4)
+
+        Returns:
+            List of Assessment objects, one per repository
+        """
+```
+
+#### Example
+
+```python
+from agentready.services import BatchScanner
+
+# Initialize batch scanner
+batch_scanner = BatchScanner()
+
+# Assess multiple repositories
+assessments = batch_scanner.scan_batch([
+    "/path/to/repo1",
+    "/path/to/repo2",
+    "/path/to/repo3"
+], parallel=True, max_workers=4)
+
+# Process results
+for assessment in assessments:
+    print(f"{assessment.repository.name}: {assessment.overall_score}/100 ({assessment.certification_level})")
+
+# Calculate aggregate statistics
+total_score = sum(a.overall_score for a in assessments)
+average_score = total_score / len(assessments)
+print(f"Average score across {len(assessments)} repos: {average_score:.1f}/100")
+```
+
+---
+
+### SchemaValidator
+
+Validate assessment reports against JSON schemas.
+
+```python
+from agentready.services import SchemaValidator
+
+class SchemaValidator:
+    """Validates assessment reports against JSON schemas."""
+
+    def __init__(self):
+        """Initialize validator with default schema."""
+
+    def validate_report(
+        self,
+        report_data: dict,
+        strict: bool = True
+    ) -> tuple[bool, list[str]]:
+        """
+        Validate report data against schema.
+
+        Args:
+            report_data: Assessment report as dictionary
+            strict: Strict validation mode (disallow extra fields)
+
+        Returns:
+            Tuple of (is_valid, errors)
+            - is_valid: True if report passes validation
+            - errors: List of validation error messages
+        """
+
+    def validate_report_file(
+        self,
+        report_path: str,
+        strict: bool = True
+    ) -> tuple[bool, list[str]]:
+        """
+        Validate report file against schema.
+
+        Args:
+            report_path: Path to JSON assessment report file
+            strict: Strict validation mode
+
+        Returns:
+            Tuple of (is_valid, errors)
+        """
+```
+
+#### Example
+
+```python
+from agentready.services import SchemaValidator
+import json
+
+validator = SchemaValidator()
+
+# Validate report file
+is_valid, errors = validator.validate_report_file(
+    ".agentready/assessment-latest.json",
+    strict=True
+)
+
+if is_valid:
+    print("✅ Report is valid!")
+else:
+    print("❌ Validation failed:")
+    for error in errors:
+        print(f"  - {error}")
+
+# Validate report data
+with open(".agentready/assessment-latest.json") as f:
+    report_data = json.load(f)
+
+is_valid, errors = validator.validate_report(report_data, strict=False)
+print(f"Lenient validation: {'PASS' if is_valid else 'FAIL'}")
+```
+
+---
+
+### SchemaMigrator
+
+Migrate assessment reports between schema versions.
+
+```python
+from agentready.services import SchemaMigrator
+
+class SchemaMigrator:
+    """Migrates assessment reports between schema versions."""
+
+    def __init__(self):
+        """Initialize migrator with supported versions."""
+
+    def migrate_report(
+        self,
+        report_data: dict,
+        to_version: str
+    ) -> dict:
+        """
+        Migrate report data to target schema version.
+
+        Args:
+            report_data: Assessment report as dictionary
+            to_version: Target schema version (e.g., "2.0.0")
+
+        Returns:
+            Migrated report data
+
+        Raises:
+            ValueError: If migration path not found
+        """
+
+    def migrate_report_file(
+        self,
+        input_path: str,
+        output_path: str,
+        to_version: str
+    ) -> None:
+        """
+        Migrate report file to target schema version.
+
+        Args:
+            input_path: Path to source report file
+            output_path: Path to save migrated report
+            to_version: Target schema version
+
+        Raises:
+            ValueError: If migration path not found
+            FileNotFoundError: If input file doesn't exist
+        """
+
+    def get_migration_path(
+        self,
+        from_version: str,
+        to_version: str
+    ) -> list[tuple[str, str]]:
+        """
+        Get migration path from source to target version.
+
+        Args:
+            from_version: Source schema version
+            to_version: Target schema version
+
+        Returns:
+            List of (from_version, to_version) tuples representing migration steps
+
+        Raises:
+            ValueError: If no migration path exists
+        """
+```
+
+#### Example
+
+```python
+from agentready.services import SchemaMigrator
+import json
+
+migrator = SchemaMigrator()
+
+# Migrate report file
+migrator.migrate_report_file(
+    input_path="old-assessment.json",
+    output_path="new-assessment.json",
+    to_version="2.0.0"
+)
+
+# Migrate report data
+with open("old-assessment.json") as f:
+    old_data = json.load(f)
+
+new_data = migrator.migrate_report(old_data, to_version="2.0.0")
+
+# Check migration path
+migration_steps = migrator.get_migration_path("1.0.0", "2.0.0")
+print(f"Migration requires {len(migration_steps)} step(s):")
+for from_ver, to_ver in migration_steps:
+    print(f"  {from_ver} → {to_ver}")
+```
+
+---
+
 ## Assessors
 
 ### BaseAssessor
@@ -902,6 +1141,7 @@ except Exception as e:
 ```
 
 **Best practices**:
+
 - Assessors fail gracefully (return "skipped" if tools missing)
 - Scanner continues on individual assessor errors
 - Reports always generated (even with partial results)

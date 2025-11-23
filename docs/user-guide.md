@@ -105,6 +105,7 @@ git push
 ```
 
 **What happens:**
+
 - ✅ GitHub Actions workflows created (tests, security, assessment)
 - ✅ Pre-commit hooks configured
 - ✅ Issue/PR templates added
@@ -114,6 +115,32 @@ git push
 **Duration**: <60 seconds including review time.
 
 [See detailed Bootstrap tutorial →](#bootstrap-your-repository)
+
+### Batch Assessment Approach
+
+Assess multiple repositories at once for organizational insights:
+
+```bash
+# Navigate to directory containing multiple repos
+cd /path/to/repos
+
+# Run batch assessment
+agentready batch repo1/ repo2/ repo3/ --output-dir ./batch-reports
+
+# View comparison report
+open batch-reports/comparison-summary.html
+```
+
+**What you get:**
+
+- ✅ Individual reports for each repository
+- ✅ Comparison table showing scores side-by-side
+- ✅ Aggregate statistics across all repositories
+- ✅ Trend analysis for multi-repo projects
+
+**Duration**: Varies by number of repositories (~5 seconds per repo).
+
+[See detailed batch assessment guide →](#batch-assessment)
 
 ### Manual Assessment Approach
 
@@ -145,6 +172,7 @@ start .agentready/report-latest.html  # Windows
 **Bootstrap is AgentReady's automated infrastructure generator.** Instead of manually implementing recommendations from assessment reports, Bootstrap creates complete GitHub setup in one command:
 
 **Generated Infrastructure:**
+
 - **GitHub Actions workflows** — Tests, security scanning, AgentReady assessment
 - **Pre-commit hooks** — Language-specific formatters and linters
 - **Issue/PR templates** — Structured bug reports, feature requests, PR checklist
@@ -157,6 +185,7 @@ start .agentready/report-latest.html  # Windows
 Bootstrap automatically detects your primary language (Python, JavaScript, Go) via `git ls-files` and generates appropriate configurations.
 
 **Safe to Use:**
+
 - Use `--dry-run` to preview changes without creating files
 - All files are created, never overwritten
 - Review with `git status` before committing
@@ -213,6 +242,7 @@ Bootstrap automatically detects your primary language (Python, JavaScript, Go) v
 </table>
 
 **Recommended workflow:**
+
 1. **Bootstrap first** — Generate infrastructure
 2. **Review and commit** — Inspect generated files
 3. **Assess automatically** — Every PR via GitHub Actions
@@ -232,6 +262,7 @@ agentready bootstrap . --dry-run
 ```
 
 **Example output:**
+
 ```
 Detecting primary language...
 ✓ Detected: Python (42 files)
@@ -253,6 +284,7 @@ Run without --dry-run to create these files.
 ```
 
 **Review the list carefully:**
+
 - Files marked "(not present, will create)" are new
 - Existing files are never overwritten
 - Check for conflicts with existing workflows
@@ -268,6 +300,7 @@ agentready bootstrap .
 ```
 
 **Example output:**
+
 ```
 Detecting primary language...
 ✓ Detected: Python (42 files)
@@ -312,6 +345,7 @@ cat .github/CODEOWNERS
 ```
 
 **What to check:**
+
 - **CODEOWNERS** — Add actual team member GitHub usernames
 - **Workflows** — Adjust triggers (e.g., only main branch, specific paths)
 - **Pre-commit hooks** — Add/remove tools based on your stack
@@ -335,6 +369,7 @@ pre-commit run --all-files
 ```
 
 **Expected output:**
+
 ```
 black....................................................................Passed
 isort....................................................................Passed
@@ -342,6 +377,7 @@ ruff.....................................................................Passed
 ```
 
 **If failures occur:**
+
 - Review suggested fixes
 - Run formatters: `black .` and `isort .`
 - Fix linting errors: `ruff check . --fix`
@@ -403,11 +439,13 @@ gh pr create --title "Test: AgentReady Bootstrap" --body "Testing automated asse
 ```
 
 **What happens automatically:**
+
 1. **Tests workflow** runs pytest (Python) or appropriate tests
 2. **Security workflow** runs CodeQL analysis
 3. **AgentReady assessment workflow** runs assessment and posts results as PR comment
 
 **PR comment example:**
+
 ```
 ## AgentReady Assessment
 
@@ -431,6 +469,7 @@ gh pr create --title "Test: AgentReady Bootstrap" --body "Testing automated asse
 #### GitHub Actions Workflows
 
 **`.github/workflows/agentready-assessment.yml`**
+
 ```yaml
 # Runs on every PR and push to main
 # Posts assessment results as PR comment
@@ -442,6 +481,7 @@ Artifacts: HTML report, JSON data
 ```
 
 **`.github/workflows/tests.yml`**
+
 ```yaml
 # Language-specific test workflow
 
@@ -460,6 +500,7 @@ Go:
 ```
 
 **`.github/workflows/security.yml`**
+
 ```yaml
 # Comprehensive security scanning
 
@@ -482,6 +523,7 @@ Dependency Scanning:
 Language-specific hooks configured:
 
 **Python:**
+
 - `black` — Code formatter (88 char line length)
 - `isort` — Import sorter
 - `ruff` — Fast linter
@@ -489,12 +531,14 @@ Language-specific hooks configured:
 - `end-of-file-fixer` — Ensure newline at EOF
 
 **JavaScript/TypeScript:**
+
 - `prettier` — Code formatter
 - `eslint` — Linter
 - `trailing-whitespace`
 - `end-of-file-fixer`
 
 **Go:**
+
 - `gofmt` — Code formatter
 - `golint` — Linter
 - `go-vet` — Static analysis
@@ -507,18 +551,21 @@ Edit `.pre-commit-config.yaml` and adjust hook versions or add new repos.
 #### GitHub Templates
 
 **`.github/ISSUE_TEMPLATE/bug_report.md`**
+
 - Structured bug report with reproduction steps
 - Environment details (OS, version)
 - Expected vs actual behavior
 - Auto-labels as `bug`
 
 **`.github/ISSUE_TEMPLATE/feature_request.md`**
+
 - Structured feature proposal
 - Use case and motivation
 - Proposed solution
 - Auto-labels as `enhancement`
 
 **`.github/PULL_REQUEST_TEMPLATE.md`**
+
 - Checklist for PR authors:
   - [ ] Tests added/updated
   - [ ] Documentation updated
@@ -528,6 +575,7 @@ Edit `.pre-commit-config.yaml` and adjust hook versions or add new repos.
 - Change description
 
 **`.github/CODEOWNERS`**
+
 ```
 # Auto-assign reviewers based on file paths
 # CUSTOMIZE: Replace with actual GitHub usernames
@@ -538,6 +586,7 @@ Edit `.pre-commit-config.yaml` and adjust hook versions or add new repos.
 ```
 
 **`.github/dependabot.yml`**
+
 ```yaml
 # Weekly dependency update checks
 # Creates PRs for outdated dependencies
@@ -554,6 +603,7 @@ Updates:
 #### Development Guidelines
 
 **`CONTRIBUTING.md`** (created if missing)
+
 - Setup instructions
 - Development workflow
 - Code style guidelines
@@ -561,6 +611,7 @@ Updates:
 - Testing requirements
 
 **`CODE_OF_CONDUCT.md`** (created if missing)
+
 - Red Hat standard Code of Conduct
 - Community guidelines
 - Reporting process
@@ -619,6 +670,7 @@ pre-commit run --all-files  # Test on existing code
 #### 6. Test the Workflows
 
 Create a test PR to verify:
+
 ```bash
 git checkout -b test-workflows
 echo "# Test" >> README.md
@@ -629,6 +681,7 @@ gh pr create --title "Test: Verify workflows" --body "Testing Bootstrap"
 ```
 
 **Verify:**
+
 - ✅ All workflows run successfully
 - ✅ AgentReady posts PR comment with assessment results
 - ✅ Test coverage report appears
@@ -664,11 +717,13 @@ for detailed findings and remediation guidance.
 #### Python Projects
 
 Bootstrap generates:
+
 - `pytest` workflow with coverage (`pytest-cov`)
 - Pre-commit hooks: `black`, `isort`, `ruff`, `mypy`
 - Dependabot for pip dependencies
 
 **Customizations:**
+
 - Adjust `pytest` command in `tests.yml` if using different test directory
 - Add `mypy` configuration in `pyproject.toml` if type checking required
 - Modify `black` line length in `.pre-commit-config.yaml` if needed
@@ -676,11 +731,13 @@ Bootstrap generates:
 #### JavaScript/TypeScript Projects
 
 Bootstrap generates:
+
 - `jest` or `npm test` workflow
 - Pre-commit hooks: `prettier`, `eslint`
 - Dependabot for npm dependencies
 
 **Customizations:**
+
 - Update test command in `tests.yml` to match `package.json` scripts
 - Adjust `prettier` config (`.prettierrc`) if different style
 - Add TypeScript type checking (`tsc --noEmit`) to workflow
@@ -688,11 +745,13 @@ Bootstrap generates:
 #### Go Projects
 
 Bootstrap generates:
+
 - `go test` workflow with race detection
 - Pre-commit hooks: `gofmt`, `golint`, `go-vet`
 - Dependabot for Go modules
 
 **Customizations:**
+
 - Add build step to workflow if needed (`go build ./...`)
 - Configure `golangci-lint` for advanced linting
 - Add coverage reporting (`go test -coverprofile=coverage.out`)
@@ -706,9 +765,11 @@ agentready bootstrap [REPOSITORY] [OPTIONS]
 ```
 
 **Arguments:**
+
 - `REPOSITORY` — Path to repository (default: current directory)
 
 **Options:**
+
 - `--dry-run` — Preview files without creating
 - `--language TEXT` — Override auto-detection: `python|javascript|go|auto` (default: auto)
 
@@ -732,6 +793,7 @@ agentready bootstrap /path/to/repo --dry-run --language go
 ```
 
 **Exit codes:**
+
 - `0` — Success
 - `1` — Error (not a git repository, permission denied, etc.)
 
@@ -782,11 +844,204 @@ agentready assess . --verbose
 ```
 
 **Output includes**:
+
 - Repository path and detected languages
 - Each assessor's execution status
 - Finding summaries (pass/fail/skip)
 - Final score calculation breakdown
 - Report generation progress
+
+---
+
+## Batch Assessment
+
+Assess multiple repositories in one command to gain organizational insights and identify patterns across projects.
+
+### Basic Usage
+
+```bash
+# Assess all repos in a directory
+agentready batch /path/to/repos --output-dir ./reports
+
+# Assess specific repos
+agentready batch /path/repo1 /path/repo2 /path/repo3
+
+# Generate comparison report
+agentready batch . --compare
+```
+
+### Batch Output
+
+AgentReady batch assessment creates:
+
+```
+reports/
+├── comparison-summary.html      # Interactive comparison table
+├── comparison-summary.md        # Markdown summary
+├── aggregate-stats.json         # Machine-readable statistics
+├── repo1/
+│   ├── assessment-latest.json
+│   ├── report-latest.html
+│   └── report-latest.md
+├── repo2/
+│   └── ...
+└── repo3/
+    └── ...
+```
+
+### Comparison Report Features
+
+**comparison-summary.html** includes:
+
+- Side-by-side score comparison table
+- Certification level distribution (Platinum/Gold/Silver/Bronze)
+- Average scores by tier
+- Outlier detection (repos significantly above/below average)
+- Sortable columns (by score, name, certification)
+- Filterable view (show only failing repos)
+
+**Example comparison table:**
+
+| Repository | Overall Score | Cert Level | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|------------|---------------|------------|--------|--------|--------|--------|
+| agentready | 80.0/100 | Gold | 90.0 | 75.0 | 70.0 | 60.0 |
+| project-a | 75.2/100 | Gold | 85.0 | 70.0 | 65.0 | 55.0 |
+| project-b | 62.5/100 | Silver | 70.0 | 60.0 | 55.0 | 45.0 |
+
+### Aggregate Statistics
+
+**aggregate-stats.json** provides:
+
+```json
+{
+  "total_repositories": 3,
+  "average_score": 72.6,
+  "median_score": 75.2,
+  "certification_distribution": {
+    "Platinum": 0,
+    "Gold": 2,
+    "Silver": 1,
+    "Bronze": 0,
+    "Needs Improvement": 0
+  },
+  "tier_averages": {
+    "tier_1": 81.7,
+    "tier_2": 68.3,
+    "tier_3": 63.3,
+    "tier_4": 53.3
+  },
+  "common_failures": [
+    {"attribute": "pre_commit_hooks", "failure_rate": 0.67},
+    {"attribute": "lock_files", "failure_rate": 0.33}
+  ]
+}
+```
+
+### Use Cases
+
+**Organization-wide assessment**:
+
+```bash
+# Clone all org repos, then batch assess
+gh repo list myorg --limit 100 --json name --jq '.[].name' | \
+  xargs -I {} gh repo clone myorg/{}
+
+agentready batch repos/* --output-dir ./org-assessment
+```
+
+**Multi-repo project**:
+
+```bash
+# Assess all microservices
+agentready batch services/* --compare
+```
+
+**Trend tracking**:
+
+```bash
+# Monthly assessment
+agentready batch repos/* --output-dir ./assessments/2025-11
+```
+
+---
+
+## Report Validation & Migration
+
+AgentReady v1.27.1 includes schema versioning for backwards compatibility and evolution.
+
+### Validate Reports
+
+Verify assessment reports conform to their schema version:
+
+```bash
+# Strict validation (default)
+agentready validate-report .agentready/assessment-latest.json
+
+# Lenient validation (allow extra fields)
+agentready validate-report --no-strict .agentready/assessment-latest.json
+```
+
+**Output examples:**
+
+**Valid report:**
+
+```
+✅ Report is valid!
+Schema version: 1.0.0
+Repository: agentready
+Overall score: 80.0/100
+```
+
+**Invalid report:**
+
+```
+❌ Validation failed! 3 errors found:
+  - Missing required field: 'schema_version'
+  - Invalid type for 'overall_score': expected number, got string
+  - Extra field not allowed in strict mode: 'custom_field'
+```
+
+### Migrate Reports
+
+Convert reports between schema versions:
+
+```bash
+# Migrate to specific version
+agentready migrate-report old-report.json --to 2.0.0
+
+# Custom output path
+agentready migrate-report old.json --to 2.0.0 --output new.json
+
+# Explicit source version (auto-detected by default)
+agentready migrate-report old.json --from 1.0.0 --to 2.0.0
+```
+
+**Migration output:**
+
+```
+🔄 Migrating report...
+Source version: 1.0.0
+Target version: 2.0.0
+
+✅ Migration successful!
+Migrated report saved to: assessment-20251123-migrated.json
+```
+
+### Schema Compatibility
+
+**Current schema version**: 1.0.0
+
+**Supported versions**:
+
+- 1.0.0 (current)
+
+**Future versions** will maintain backwards compatibility:
+
+- Read old versions via migration
+- Write new versions with latest schema
+- Migration paths provided for all versions
+
+[Learn more about schema versioning →](schema-versioning.html)
 
 ---
 
@@ -826,6 +1081,7 @@ The HTML report provides an interactive, visual interface:
 #### Security
 
 HTML reports include Content Security Policy (CSP) headers for defense-in-depth:
+
 - Prevents unauthorized script execution
 - Mitigates XSS attack vectors
 - Safe to share and view in any browser
@@ -835,6 +1091,7 @@ The CSP policy allows only inline styles and scripts needed for interactivity.
 #### Sharing
 
 The HTML report is self-contained and can be:
+
 - Emailed to stakeholders
 - Uploaded to internal wikis
 - Viewed on any device with a browser
@@ -858,12 +1115,14 @@ The Markdown report is optimized for git tracking:
 #### How to Use
 
 1. **Commit to repository**:
+
    ```bash
    git add .agentready/report-latest.md
    git commit -m "docs: Add AgentReady assessment report"
    ```
 
 2. **Track progress**:
+
    ```bash
    # Run new assessment
    agentready assess .
@@ -940,6 +1199,7 @@ The JSON report contains complete assessment data:
 #### Use Cases
 
 **CI/CD Integration**:
+
 ```bash
 # Fail build if score < 70
 score=$(jq '.overall_score' .agentready/assessment-latest.json)
@@ -950,6 +1210,7 @@ fi
 ```
 
 **Trend Analysis**:
+
 ```python
 import json
 import glob
@@ -966,6 +1227,7 @@ for a in assessments:
 ```
 
 **Custom Reporting**:
+
 ```python
 import json
 
@@ -1071,14 +1333,17 @@ agentready --generate-config > .agentready-config.yaml
 Assess a repository at the specified path.
 
 **Arguments**:
+
 - `PATH` — Repository path to assess (required)
 
 **Options**:
+
 - `--verbose, -v` — Show detailed progress information
 - `--config FILE, -c FILE` — Use custom configuration file
 - `--output-dir DIR, -o DIR` — Custom report output directory
 
 **Examples**:
+
 ```bash
 agentready assess .
 agentready assess /path/to/repo
@@ -1096,6 +1361,7 @@ Generate example configuration file.
 **Output**: Prints YAML configuration to stdout.
 
 **Example**:
+
 ```bash
 agentready --generate-config > .agentready-config.yaml
 ```
@@ -1105,6 +1371,7 @@ agentready --generate-config > .agentready-config.yaml
 Validate configuration file syntax and weights.
 
 **Example**:
+
 ```bash
 agentready --validate-config .agentready-config.yaml
 ```
@@ -1116,6 +1383,7 @@ agentready --validate-config .agentready-config.yaml
 Show bundled research document version.
 
 **Example**:
+
 ```bash
 agentready --research-version
 # Output: Research version: 1.0.0 (2025-11-20)
@@ -1142,6 +1410,7 @@ Show help message with all commands.
 **Cause**: AgentReady not installed or wrong Python environment.
 
 **Solution**:
+
 ```bash
 # Verify Python version
 python --version  # Should be 3.11 or 3.12
@@ -1158,6 +1427,7 @@ pip install agentready
 **Cause**: No write permissions in repository directory.
 
 **Solution**:
+
 ```bash
 # Use custom output directory
 agentready assess . --output-dir ~/agentready-reports
@@ -1171,6 +1441,7 @@ chmod u+w .
 **Cause**: Path does not point to a git repository.
 
 **Solution**:
+
 ```bash
 # Verify git repository
 git status
@@ -1187,11 +1458,13 @@ git init
 AgentReady should complete in <10 seconds for most repositories. If it hangs:
 
 1. **Check verbose output**:
+
    ```bash
    agentready assess . --verbose
    ```
 
 2. **Verify git performance**:
+
    ```bash
    time git ls-files
    ```
@@ -1199,6 +1472,7 @@ AgentReady should complete in <10 seconds for most repositories. If it hangs:
 3. **Report issue** with repository size and language breakdown.
 
 **Note**: AgentReady will now warn you before scanning repositories with more than 10,000 files:
+
 ```
 ⚠️  Warning: Large repository detected (12,543 files).
 Assessment may take several minutes. Continue? [y/N]:
@@ -1216,6 +1490,7 @@ AgentReady includes safety checks to prevent accidental scanning of sensitive sy
 ```
 
 **Best practices**:
+
 - Only scan your own project repositories
 - Never scan system directories or sensitive configuration folders
 - If you need to assess a project in `/var/www`, copy it to a user directory first
@@ -1226,6 +1501,7 @@ AgentReady includes safety checks to prevent accidental scanning of sensitive sy
 **Cause**: Malformed YAML or incorrect weight values.
 
 **Solution**:
+
 ```bash
 # Validate configuration
 agentready --validate-config .agentready-config.yaml
@@ -1247,6 +1523,7 @@ agentready --generate-config > .agentready-config.yaml
 
 **Solution**:
 Bootstrap is safe by design—it never overwrites existing files. This is expected behavior:
+
 ```bash
 # Review what files already exist
 ls -la .github/workflows/
@@ -1267,6 +1544,7 @@ agentready bootstrap .  # Safely skips existing
 **Cause**: No recognizable language files in repository.
 
 **Solution**:
+
 ```bash
 # Check what files git tracks
 git ls-files
@@ -1300,6 +1578,7 @@ agentready bootstrap . --language auto  # Uses majority language
    - Save
 
 3. **Verify workflow files**:
+
    ```bash
    # Check files were created
    ls -la .github/workflows/
@@ -1318,6 +1597,7 @@ agentready bootstrap . --language auto  # Uses majority language
 **Cause**: Hooks not installed locally.
 
 **Solution**:
+
 ```bash
 # Install pre-commit framework
 pip install pre-commit
@@ -1334,6 +1614,7 @@ pre-commit run --all-files
 ```
 
 **If hooks fail:**
+
 ```bash
 # Update hook versions
 pre-commit autoupdate
@@ -1359,6 +1640,7 @@ pre-commit install
    - Enable "Dependabot alerts" and "Dependabot security updates"
 
 2. **Verify config**:
+
    ```bash
    cat .github/dependabot.yml
 
@@ -1383,6 +1665,7 @@ pre-commit install
 **Cause**: Invalid usernames or team names in CODEOWNERS.
 
 **Solution**:
+
 ```bash
 # Edit CODEOWNERS
 vim .github/CODEOWNERS
@@ -1400,6 +1683,7 @@ vim .github/CODEOWNERS
 ```
 
 **Common mistakes:**
+
 - Using email instead of GitHub username
 - Typo in username
 - Team name without org prefix (@myorg/team)
@@ -1419,6 +1703,7 @@ vim .github/CODEOWNERS
 2. **Common failures**:
 
    **Python not found:**
+
    ```yaml
    # In .github/workflows/agentready-assessment.yml
    # Ensure correct Python version
@@ -1428,6 +1713,7 @@ vim .github/CODEOWNERS
    ```
 
    **AgentReady not installing:**
+
    ```yaml
    # Check pip install step
    - run: pip install agentready
@@ -1437,6 +1723,7 @@ vim .github/CODEOWNERS
    ```
 
    **Permission denied:**
+
    ```yaml
    # Add permissions to workflow
    permissions:
@@ -1445,6 +1732,7 @@ vim .github/CODEOWNERS
    ```
 
 3. **Test locally**:
+
    ```bash
    # Run same commands as workflow
    pip install agentready
