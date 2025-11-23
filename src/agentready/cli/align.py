@@ -83,7 +83,7 @@ def align(repository, dry_run, attributes, interactive):
         scanner = Scanner(repo_path, config)
 
         # Create assessors
-        from agentready.assessors import create_all_assessors
+        from agentready.cli.main import create_all_assessors
 
         assessors = create_all_assessors()
 

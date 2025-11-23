@@ -61,3 +61,19 @@ class Config:
     def is_excluded(self, attribute_id: str) -> bool:
         """Check if attribute is excluded from assessment."""
         return attribute_id in self.excluded_attributes
+
+    @classmethod
+    def load_default(cls) -> "Config":
+        """Create a default configuration with no customizations.
+
+        Returns:
+            Config with empty weights, no exclusions, no overrides
+        """
+        return cls(
+            weights={},
+            excluded_attributes=[],
+            language_overrides={},
+            output_dir=None,
+            report_theme="default",
+            custom_theme=None,
+        )

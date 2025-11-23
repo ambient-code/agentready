@@ -32,6 +32,10 @@ class Repository:
 
     def __post_init__(self):
         """Validate repository data after initialization."""
+        # Convert string paths to Path objects for runtime type safety
+        if isinstance(self.path, str):
+            object.__setattr__(self, "path", Path(self.path))
+
         if not self.path.exists():
             raise ValueError(f"Repository path does not exist: {self.path}")
 

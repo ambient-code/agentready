@@ -46,14 +46,23 @@ def test_repo(tmp_path):
 
 
 @pytest.fixture
-def mock_assessment():
+def mock_assessment(tmp_path):
     """Create a mock assessment for testing."""
+    from datetime import datetime
+
     from agentready.models.assessment import Assessment
+    from agentready.models.attribute import Attribute
+    from agentready.models.finding import Finding
     from agentready.models.repository import Repository
+
+    # Create a temporary directory with .git for Repository validation
+    test_repo_path = tmp_path / "test-repo"
+    test_repo_path.mkdir()
+    (test_repo_path / ".git").mkdir()
 
     repo = Repository(
         name="test-repo",
-        path=Path("/tmp/test"),
+        path=test_repo_path,
         url=None,
         branch="main",
         commit_hash="abc123",
@@ -62,14 +71,40 @@ def mock_assessment():
         total_lines=100,
     )
 
+    # Create 25 dummy findings to match attributes_total requirement
+    findings = []
+    for i in range(25):
+        attr = Attribute(
+            id=f"attr_{i}",
+            name=f"Attribute {i}",
+            category="Testing",
+            tier=1,
+            description="Test attribute",
+            criteria="Test criteria",
+            default_weight=0.5,
+        )
+        finding = Finding(
+            attribute=attr,
+            status="pass" if i < 20 else "not_applicable",
+            score=100.0 if i < 20 else 0.0,
+            measured_value="present",
+            threshold="present",
+            evidence=[f"Test evidence {i}"],
+            remediation=None,
+            error_message=None,
+        )
+        findings.append(finding)
+
     assessment = Assessment(
         repository=repo,
-        findings=[],
+        timestamp=datetime.now(),
+        findings=findings,
         overall_score=85.0,
         certification_level="Gold",
         attributes_assessed=20,
         attributes_not_assessed=5,
         attributes_total=25,
+        config=None,
         duration_seconds=1.5,
     )
 
@@ -393,9 +428,7 @@ excluded_attributes:
         config_file = tmp_path / "config.yaml"
         config_file.write_text("output_dir: /etc/passwords")
 
-        with pytest.raises(
-            ValueError, match="cannot be in sensitive system directory"
-        ):
+        with pytest.raises(ValueError, match="cannot be in sensitive system directory"):
             load_config(config_file)
 
     def test_load_config_invalid_report_theme(self, tmp_path):
@@ -482,9 +515,7 @@ class TestGenerateConfigCommand:
         """Test generate-config creates config file."""
         with runner.isolated_filesystem():
             # Create example config
-            Path(".agentready-config.example.yaml").write_text(
-                "weights:\n  attr1: 1.0"
-            )
+            Path(".agentready-config.example.yaml").write_text("weights:\n  attr1: 1.0")
 
             result = runner.invoke(generate_config, [])
 
@@ -504,9 +535,7 @@ class TestGenerateConfigCommand:
         """Test generate-config prompts when file exists."""
         with runner.isolated_filesystem():
             # Create both example and target
-            Path(".agentready-config.example.yaml").write_text(
-                "weights:\n  attr1: 1.0"
-            )
+            Path(".agentready-config.example.yaml").write_text("weights:\n  attr1: 1.0")
             Path(".agentready-config.yaml").write_text("existing: content")
 
             # Decline overwrite
@@ -520,9 +549,7 @@ class TestGenerateConfigCommand:
         """Test generate-config overwrites when confirmed."""
         with runner.isolated_filesystem():
             # Create both example and target
-            Path(".agentready-config.example.yaml").write_text(
-                "weights:\n  attr1: 2.0"
-            )
+            Path(".agentready-config.example.yaml").write_text("weights:\n  attr1: 2.0")
             Path(".agentready-config.yaml").write_text("existing: content")
 
             # Confirm overwrite
@@ -598,9 +625,7 @@ class TestLargeRepositoryWarning:
             mock_scanner_class.return_value = mock_scanner
 
             # Mock file count to be large
-            with patch(
-                "agentready.cli.main.safe_subprocess_run"
-            ) as mock_subprocess:
+            with patch("agentready.cli.main.safe_subprocess_run") as mock_subprocess:
                 # Simulate large repo with 15000 files
                 mock_subprocess.return_value = MagicMock(
                     returncode=0, stdout="\n".join(["file.py"] * 15000)
@@ -624,7 +649,9 @@ class TestRunAssessment:
             mock_scanner_class.return_value = mock_scanner
 
             # Call run_assessment directly
-            run_assessment(str(test_repo), verbose=False, output_dir=None, config_path=None)
+            run_assessment(
+                str(test_repo), verbose=False, output_dir=None, config_path=None
+            )
 
             # Should have created reports
             assert (test_repo / ".agentready").exists()

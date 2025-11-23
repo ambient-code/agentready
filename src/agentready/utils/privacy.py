@@ -32,6 +32,7 @@ def sanitize_path(path: Path | str, relative_to: Path | None = None) -> str:
         "secret/data.txt"
     """
     path_obj = Path(path) if isinstance(path, str) else path
+    requested_relative = relative_to is not None
 
     # Try to make relative to specified directory
     if relative_to:
@@ -44,24 +45,47 @@ def sanitize_path(path: Path | str, relative_to: Path | None = None) -> str:
     # Convert to string for replacements
     path_str = str(path_obj)
 
-    # Redact home directory
-    try:
-        home = str(Path.home())
-        if path_str.startswith(home):
-            path_str = path_str.replace(home, "~")
-    except (RuntimeError, OSError):
-        pass
-
-    # Redact username
+    # Redact home directory and username
+    # Note: Do specific replacements first (home directories) before generic username replacement
     try:
         username = getpass.getuser()
-        path_str = path_str.replace(f"/{username}/", "/<user>/")
-        path_str = path_str.replace(f"\\{username}\\", "\\<user>\\")
+        # Replace specific home directory patterns first
         path_str = path_str.replace(f"/Users/{username}/", "~/")
         path_str = path_str.replace(f"/home/{username}/", "~/")
         path_str = path_str.replace(f"C:\\Users\\{username}\\", "~\\")
+        # Then do generic username replacement for other locations
+        path_str = path_str.replace(f"/{username}/", "/<user>/")
+        path_str = path_str.replace(f"\\{username}\\", "\\<user>\\")
     except Exception:
         pass
+
+    # Fallback: Redact home directory using Path.home() for current user
+    try:
+        home = str(Path.home())
+        if path_str.startswith(home):
+            path_str = path_str.replace(home, "~", 1)
+    except (RuntimeError, OSError):
+        pass
+
+    # Generic home directory pattern sanitization for any username
+    # Replace common home directory patterns even if they don't match current user
+    path_str = re.sub(r"/home/[^/]+/", "~/", path_str)
+    path_str = re.sub(r"/Users/[^/]+/", "~/", path_str)
+    path_str = re.sub(r"C:\\Users\\[^\\]+\\", r"~\\", path_str)
+
+    # Final fallback: Redact any remaining absolute paths to avoid leaking sensitive locations
+    # This catches paths like /secret, /opt/app, /var/sensitive, etc.
+    # Only do this if the path hasn't already been sanitized (contains ~ or <user>)
+    # AND if relative_to wasn't requested (in that case, preserve original for debugging)
+    if not requested_relative:
+        if (
+            "~" not in path_str
+            and "<user>" not in path_str
+            and "<path>" not in path_str
+        ):
+            # If it's an absolute path, redact it
+            if path_str.startswith("/") or (len(path_str) > 2 and path_str[1] == ":"):
+                path_str = "<path>"
 
     return path_str
 
@@ -91,7 +115,7 @@ def sanitize_command_args(args: List[str]) -> List[str]:
             continue
 
         # Redact values after these flags
-        if arg in ("--config", "-c", "--api-key", "--token", "--password"):
+        if arg in ("--config", "-c", "--api-key", "--key", "--token", "--password"):
             sanitized.append(arg)
             skip_next = True
             continue

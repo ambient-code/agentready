@@ -47,6 +47,9 @@ class MockFixer(BaseFixer):
 @pytest.fixture
 def sample_repository(tmp_path):
     """Create test repository."""
+    # Create .git directory for Repository validation
+    (tmp_path / ".git").mkdir()
+
     return Repository(
         path=tmp_path,
         name="test-repo",

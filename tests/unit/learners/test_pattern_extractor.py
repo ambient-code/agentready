@@ -1,6 +1,7 @@
 """Unit tests for pattern extraction."""
 
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
@@ -8,11 +9,42 @@ from agentready.learners.pattern_extractor import PatternExtractor
 from agentready.models import Assessment, Attribute, Finding, Repository
 
 
-@pytest.fixture
-def sample_repository():
-    """Create test repository."""
+def create_test_repository(tmp_path=None):
+    """Create a test repository with valid path."""
+    if tmp_path is None:
+        # For inline usage without fixture, create minimal valid repo
+        import tempfile
+
+        temp_dir = Path(tempfile.mkdtemp())
+        (temp_dir / ".git").mkdir(exist_ok=True)
+        test_repo = temp_dir
+    else:
+        test_repo = tmp_path / "test-repo"
+        test_repo.mkdir(exist_ok=True)
+        (test_repo / ".git").mkdir(exist_ok=True)
+
     return Repository(
-        path="/tmp/test",
+        path=test_repo,
+        name="test",
+        url=None,
+        branch="main",
+        commit_hash="abc",
+        languages={},
+        total_files=0,
+        total_lines=0,
+    )
+
+
+@pytest.fixture
+def sample_repository(tmp_path):
+    """Create test repository."""
+    # Create temporary directory with .git for Repository validation
+    test_repo = tmp_path / "test-repo"
+    test_repo.mkdir()
+    (test_repo / ".git").mkdir()
+
+    return Repository(
+        path=test_repo,
         name="test-repo",
         url=None,
         branch="main",
@@ -188,9 +220,7 @@ class TestPatternExtractor:
         assert len(skills) == 1
         assert skills[0].confidence == 95.0
 
-    def test_filters_failing_findings(
-        self, sample_repository, sample_finding_failing
-    ):
+    def test_filters_failing_findings(self, sample_repository, sample_finding_failing):
         """Test that failing findings are filtered."""
         assessment = Assessment(
             repository=sample_repository,
@@ -296,16 +326,7 @@ class TestPatternExtractor:
     def test_should_extract_pattern_logic(self, sample_finding_high_score):
         """Test _should_extract_pattern() logic."""
         assessment = Assessment(
-            repository=Repository(
-                path="/tmp",
-                name="test",
-                url=None,
-                branch="main",
-                commit_hash="abc",
-                languages={},
-                total_files=0,
-                total_lines=0,
-            ),
+            repository=create_test_repository(),
             timestamp=datetime.now(),
             overall_score=95.0,
             certification_level="Platinum",
@@ -367,16 +388,7 @@ class TestPatternExtractor:
     def test_create_skill_from_finding(self, sample_finding_high_score):
         """Test _create_skill_from_finding() creates valid skill."""
         assessment = Assessment(
-            repository=Repository(
-                path="/tmp",
-                name="test",
-                url=None,
-                branch="main",
-                commit_hash="abc",
-                languages={},
-                total_files=0,
-                total_lines=0,
-            ),
+            repository=create_test_repository(),
             timestamp=datetime.now(),
             overall_score=95.0,
             certification_level="Platinum",
@@ -494,16 +506,7 @@ class TestPatternExtractor:
     def test_extract_code_examples_from_evidence(self, sample_finding_high_score):
         """Test extracting code examples from evidence."""
         assessment = Assessment(
-            repository=Repository(
-                path="/tmp",
-                name="test",
-                url=None,
-                branch="main",
-                commit_hash="abc",
-                languages={},
-                total_files=0,
-                total_lines=0,
-            ),
+            repository=create_test_repository(),
             timestamp=datetime.now(),
             overall_score=95.0,
             certification_level="Platinum",
@@ -564,16 +567,7 @@ class TestPatternExtractor:
     def test_create_pattern_summary(self, sample_finding_high_score):
         """Test pattern summary generation."""
         assessment = Assessment(
-            repository=Repository(
-                path="/tmp",
-                name="test",
-                url=None,
-                branch="main",
-                commit_hash="abc",
-                languages={},
-                total_files=0,
-                total_lines=0,
-            ),
+            repository=create_test_repository(),
             timestamp=datetime.now(),
             overall_score=95.0,
             certification_level="Platinum",
