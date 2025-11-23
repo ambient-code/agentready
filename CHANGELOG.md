@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/ambient-code/agentready/compare/v1.17.0...v1.18.0) (2025-11-23)
+
+
+### Features
+
+* Implement ConciseDocumentationAssessor (fixes [#76](https://github.com/ambient-code/agentready/issues/76)) ([#93](https://github.com/ambient-code/agentready/issues/93)) ([c356cd5](https://github.com/ambient-code/agentready/commit/c356cd550641ede00ff66d72307a71b23ef83f22))
+
 # [1.17.0](https://github.com/ambient-code/agentready/compare/v1.16.0...v1.17.0) (2025-11-23)
 
 
