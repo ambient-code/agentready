@@ -26,6 +26,7 @@ from ..assessors.documentation import (
 from ..assessors.structure import (
     IssuePRTemplatesAssessor,
     OneCommandSetupAssessor,
+    SeparationOfConcernsAssessor,
     StandardLayoutAssessor,
 )
 from ..assessors.stub_assessors import (
@@ -81,6 +82,7 @@ def create_all_assessors():
         ConventionalCommitsAssessor(),
         GitignoreAssessor(),
         OneCommandSetupAssessor(),
+        SeparationOfConcernsAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
         # Tier 3 Important (4 implemented)
         ArchitectureDecisionsAssessor(),

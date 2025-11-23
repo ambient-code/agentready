@@ -476,3 +476,223 @@ What you expected to happen.
                 ),
             ],
         )
+
+
+class SeparationOfConcernsAssessor(BaseAssessor):
+    """Assesses code organization and separation of concerns.
+
+    Tier 2 Critical (3% weight) - Clear boundaries improve testability,
+    maintainability, and reduce cognitive load for AI.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "separation_of_concerns"
+
+    @property
+    def tier(self) -> int:
+        return 2  # Critical
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Separation of Concerns",
+            category="Code Organization",
+            tier=self.tier,
+            description="Code organized with single responsibility per module",
+            criteria="Feature-based organization, cohesive modules, low coupling",
+            default_weight=0.03,
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check for separation of concerns anti-patterns.
+
+        Scoring:
+        - Directory organization (40%): feature-based vs layer-based
+        - File cohesion (30%): files under 500 lines
+        - Module naming (30%): avoid utils/helpers
+        """
+        score = 0
+        evidence = []
+
+        # Check 1: Directory organization (40%)
+        org_score = self._check_directory_organization(repository)
+        score += org_score * 0.4
+        if org_score >= 80:
+            evidence.append("Good directory organization (feature-based or flat)")
+        else:
+            evidence.append("Layer-based directories detected (models/, views/, etc.)")
+
+        # Check 2: File cohesion via size (30%)
+        cohesion_score, file_stats = self._check_file_cohesion(repository)
+        score += cohesion_score * 0.3
+        evidence.append(
+            f"File cohesion: {file_stats['oversized']}/{file_stats['total']} files >500 lines"
+        )
+
+        # Check 3: Module naming (30%)
+        naming_score, antipatterns = self._check_module_naming(repository)
+        score += naming_score * 0.3
+        if antipatterns:
+            evidence.append(f"Anti-pattern files found: {', '.join(antipatterns[:3])}")
+        else:
+            evidence.append("No catch-all modules (utils.py, helpers.py) detected")
+
+        status = "pass" if score >= 75 else "fail"
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"organization:{org_score:.0f}, cohesion:{cohesion_score:.0f}, naming:{naming_score:.0f}",
+            threshold="≥75 overall",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _check_directory_organization(self, repository: Repository) -> float:
+        """Check for layer-based anti-patterns."""
+        # Layer-based anti-patterns (BAD)
+        layer_dirs = ["models", "views", "controllers", "services"]
+
+        # Check src directory if it exists
+        check_path = repository.path / "src"
+        if not check_path.exists():
+            check_path = repository.path
+
+        found_layers = []
+        for layer in layer_dirs:
+            if (check_path / layer).exists():
+                found_layers.append(layer)
+
+        # Score: 100 if no layers, 60 if any layers found
+        if not found_layers:
+            return 100.0
+        else:
+            # Penalty per layer directory
+            return max(60.0, 100.0 - (len(found_layers) * 15))
+
+    def _check_file_cohesion(self, repository: Repository) -> tuple:
+        """Check file sizes as cohesion indicator."""
+        threshold = 500  # lines
+        total_files = 0
+        oversized_files = 0
+
+        # Check Python files
+        try:
+            py_files = list(repository.path.rglob("*.py"))
+            for py_file in py_files:
+                # Skip venv, node_modules, etc.
+                if any(
+                    part in py_file.parts
+                    for part in [".venv", "venv", "node_modules", ".git"]
+                ):
+                    continue
+
+                try:
+                    with open(py_file, "r", encoding="utf-8") as f:
+                        lines = len(f.readlines())
+                    total_files += 1
+                    if lines > threshold:
+                        oversized_files += 1
+                except (OSError, UnicodeDecodeError):
+                    continue
+
+        except OSError:
+            pass
+
+        if total_files == 0:
+            return 100.0, {"total": 0, "oversized": 0}
+
+        # Score: penalize based on percentage of oversized files
+        oversized_ratio = oversized_files / total_files
+        cohesion_score = max(0, 100.0 - (oversized_ratio * 100))
+
+        return cohesion_score, {"total": total_files, "oversized": oversized_files}
+
+    def _check_module_naming(self, repository: Repository) -> tuple:
+        """Check for catch-all module anti-patterns."""
+        antipattern_names = ["utils.py", "helpers.py", "common.py", "misc.py"]
+
+        found = []
+        try:
+            for pattern in antipattern_names:
+                matches = list(repository.path.rglob(pattern))
+                # Filter out venv/node_modules
+                matches = [
+                    m
+                    for m in matches
+                    if not any(
+                        part in m.parts
+                        for part in [".venv", "venv", "node_modules", ".git"]
+                    )
+                ]
+                if matches:
+                    found.extend([m.name for m in matches])
+
+        except OSError:
+            pass
+
+        # Score: 100 if none found, -20 per antipattern file
+        naming_score = max(0, 100.0 - (len(found) * 20))
+
+        return naming_score, found
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for separation of concerns."""
+        return Remediation(
+            summary="Refactor code to improve separation of concerns",
+            steps=[
+                "Avoid layer-based directories (models/, views/, controllers/)",
+                "Organize by feature/domain instead (auth/, users/, billing/)",
+                "Break large files (>500 lines) into focused modules",
+                "Eliminate catch-all modules (utils.py, helpers.py)",
+                "Each module should have single, well-defined responsibility",
+                "Group related functions/classes by domain, not technical layer",
+            ],
+            tools=[],
+            commands=[],
+            examples=[
+                """# Good: Feature-based organization
+project/
+├── auth/
+│   ├── login.py
+│   ├── signup.py
+│   └── tokens.py
+├── users/
+│   ├── profile.py
+│   └── preferences.py
+└── billing/
+    ├── invoices.py
+    └── payments.py
+
+# Bad: Layer-based organization
+project/
+├── models/
+│   ├── user.py
+│   ├── invoice.py
+├── views/
+│   ├── user_view.py
+│   ├── invoice_view.py
+└── controllers/
+    ├── user_controller.py
+    ├── invoice_controller.py
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Martin Fowler",
+                    title="PresentationDomainDataLayering",
+                    url="https://martinfowler.com/bliki/PresentationDomainDataLayering.html",
+                    relevance="Explains layering vs feature organization",
+                ),
+                Citation(
+                    source="Uncle Bob Martin",
+                    title="The Single Responsibility Principle",
+                    url="https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
+                    relevance="Core SRP principle for module design",
+                ),
+            ],
+        )
