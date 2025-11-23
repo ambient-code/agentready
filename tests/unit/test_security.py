@@ -1,6 +1,9 @@
 """Security tests for AgentReady."""
 
 from datetime import datetime
+from unittest.mock import patch
+
+import pytest
 
 from agentready.models.assessment import Assessment
 from agentready.models.attribute import Attribute
@@ -300,3 +303,162 @@ class TestContentSecurityPolicy:
 
         # Verify CSP is in head section
         assert 'http-equiv="Content-Security-Policy"' in head_section
+
+
+class TestGitHubTokenSecurity:
+    """Test security controls for GitHub token handling."""
+
+    def test_token_not_in_logs(self, caplog):
+        """Test that token never appears in logs."""
+        from unittest.mock import Mock, patch
+
+        import requests
+
+        from agentready.services.github_scanner import GitHubOrgScanner
+
+        token = "ghp_" + "a" * 36
+
+        with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
+            scanner = GitHubOrgScanner()
+
+            # Trigger various operations that might log
+            try:
+                scanner.get_org_repos("invalid org!")
+            except Exception:
+                pass
+
+            # Verify token not in any log messages
+            for record in caplog.records:
+                assert token not in record.message
+                assert token not in str(record.args)
+
+    def test_token_not_in_error_messages(self):
+        """Test that token is redacted in error messages."""
+        from unittest.mock import Mock, patch
+
+        import requests
+
+        from agentready.services.github_scanner import GitHubOrgScanner
+
+        token = "ghp_" + "a" * 36
+
+        with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
+            with patch("requests.get") as mock_get:
+                # Simulate error with token in response
+                mock_response = Mock()
+                mock_response.status_code = 500
+                mock_response.text = f"Error: invalid token {token}"
+                mock_response.raise_for_status.side_effect = requests.HTTPError(
+                    f"Server error with token {token}"
+                )
+                mock_get.return_value = mock_response
+
+                scanner = GitHubOrgScanner()
+
+                try:
+                    scanner.get_org_repos("testorg")
+                except Exception as e:
+                    error_msg = str(e)
+                    # Token should be redacted
+                    assert token not in error_msg
+                    # Should contain redaction marker
+                    if "token" in error_msg.lower():
+                        assert "[REDACTED]" in error_msg
+
+    def test_token_format_validation(self):
+        """Test that token format is validated."""
+        from agentready.services.github_scanner import GitHubAuthError, GitHubOrgScanner
+
+        import pytest
+
+        invalid_tokens = [
+            "invalid",
+            "ghp_short",
+            "gho_" + "a" * 36,  # Wrong prefix
+            "ghp_" + "a" * 35,  # Too short
+            "ghp_" + "a" * 37,  # Too long
+        ]
+
+        for invalid_token in invalid_tokens:
+            with patch.dict("os.environ", {"GITHUB_TOKEN": invalid_token}):
+                with pytest.raises(GitHubAuthError, match="Invalid GitHub token format"):
+                    GitHubOrgScanner()
+
+    def test_token_read_from_env_only(self):
+        """Test that token is only read from environment variable."""
+        from agentready.services.github_scanner import GitHubAuthError, GitHubOrgScanner
+
+        import pytest
+
+        # Ensure environment is clean
+        with patch.dict("os.environ", {}, clear=True):
+            # Should fail without env var
+            with pytest.raises(GitHubAuthError, match="GITHUB_TOKEN"):
+                GitHubOrgScanner()
+
+            # Should work with env var
+            token = "ghp_" + "a" * 36
+            with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
+                scanner = GitHubOrgScanner()
+                assert scanner.token == token
+
+    def test_org_name_validation_prevents_injection(self):
+        """Test that org name validation prevents injection attacks."""
+        from agentready.services.github_scanner import GitHubOrgScanner
+
+        import pytest
+
+        token = "ghp_" + "a" * 36
+
+        with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
+            scanner = GitHubOrgScanner()
+
+            # Test various injection attempts
+            injection_attempts = [
+                "org; rm -rf /",  # Command injection
+                "../../../etc/passwd",  # Path traversal
+                "org\x00evil",  # Null byte injection
+                "org\n악성코드",  # Newline injection
+                "org' OR '1'='1",  # SQL injection attempt
+                "<script>alert(1)</script>",  # XSS attempt
+            ]
+
+            for malicious_org in injection_attempts:
+                with pytest.raises(ValueError, match="Invalid organization name"):
+                    scanner.get_org_repos(malicious_org)
+
+    def test_max_repos_enforced(self):
+        """Test that max_repos limit cannot be bypassed."""
+        from unittest.mock import Mock, patch
+
+        from agentready.services.github_scanner import GitHubOrgScanner
+
+        token = "ghp_" + "a" * 36
+
+        # Create mock response with many repos
+        mock_repos = [
+            {
+                "name": f"repo{i}",
+                "clone_url": f"https://github.com/org/repo{i}.git",
+                "private": False,
+                "archived": False,
+            }
+            for i in range(1000)
+        ]
+
+        with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
+            with patch("requests.get") as mock_get:
+                mock_response = Mock()
+                mock_response.status_code = 200
+                mock_response.json.return_value = mock_repos
+                mock_response.headers = {"X-RateLimit-Remaining": "5000"}
+                mock_get.return_value = mock_response
+
+                scanner = GitHubOrgScanner()
+
+                # Request with limit
+                repos = scanner.get_org_repos("testorg", max_repos=50)
+
+                # Should strictly enforce limit
+                assert len(repos) == 50
+                assert len(repos) <= 50  # Never exceeds limit

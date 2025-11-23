@@ -24,6 +24,7 @@ dependencies = [
     "lizard>=1.17.0",
     "anthropic>=0.74.0",
     "jsonschema>=4.17.0",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
