@@ -2,7 +2,7 @@
 
 **Purpose**: Assess repositories against agent-ready best practices and generate actionable reports.
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-22
 
 ---
 
@@ -10,9 +10,9 @@
 
 AgentReady is a Python CLI tool that evaluates repositories against 25 carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v1.0.0 - Core assessment engine complete, 10/25 attributes implemented, report schema versioning enabled
+**Current Status**: v1.23.0 - Core assessment engine complete, 13/25 attributes implemented, LLM-powered learning, research report management
 
-**Self-Assessment Score**: 75.4/100 (Gold) - See `examples/self-assessment/`
+**Self-Assessment Score**: 80.0/100 (Gold) - See `examples/self-assessment/`
 
 ---
 
@@ -48,7 +48,7 @@ agentready migrate-report old-report.json --to 2.0.0
 
 ## Continuous Learning Loop (LLM-Powered)
 
-**NEW in v1.1**: Extract high-quality skills from assessments using Claude API
+**Feature**: Extract high-quality skills from assessments using Claude API
 
 The `learn` command analyzes assessment results to identify successful patterns and generates Claude Code skills. With `--enable-llm`, it uses Claude Sonnet 4.5 to create detailed, context-aware skill documentation.
 
@@ -120,9 +120,9 @@ agentready learn . --enable-llm --output-format all
 
 ---
 
-## Research Report Management (NEW)
+## Research Report Management
 
-**NEW in v1.1**: Utilities for maintaining the research report (agent-ready-codebase-attributes.md)
+**Feature**: Utilities for maintaining the research report (agent-ready-codebase-attributes.md)
 
 The `research` command group provides tools to validate, update, and format research reports following the schema defined in `contracts/research-report-schema.md`.
 
@@ -197,7 +197,8 @@ src/agentready/
 │   ├── code_quality.py    # Type annotations, complexity
 │   ├── testing.py         # Test coverage, pre-commit hooks
 │   ├── structure.py       # Standard layout, gitignore
-│   └── stub_assessors.py  # 15 not-yet-implemented assessors
+│   ├── repomix.py         # Repomix configuration assessor
+│   └── stub_assessors.py  # 9 remaining stub assessors (12 implemented)
 ├── learners/        # Pattern extraction and LLM enrichment
 │   ├── pattern_extractor.py  # Heuristic skill extraction
 │   ├── skill_generator.py    # SKILL.md generation
@@ -414,35 +415,34 @@ chore: Update dependencies
 
 ## Known Issues & Limitations
 
-1. **Stub Assessors**: 15/25 assessors return "not_applicable" - need implementation
-2. **No Lock File**: Intentionally excluded for library project
-3. **No Pre-commit Hooks**: Not yet configured (planned P0 fix)
-4. **HTML Report Design**: Current color scheme needs improvement (P0 fix)
-5. **Report Metadata**: Missing repository context in header (P0 fix)
+1. **Stub Assessors**: 9/25 assessors still return "not_applicable" - need implementation
+2. **No Lock File**: Intentionally excluded for library project (assessed as deliberate choice)
+3. **Test Coverage**: Currently at ~37%, targeting >80% for production readiness
 
 ---
 
 ## Roadmap
 
-### v1.1 - Critical UX Fixes (Next Sprint)
-- **P0**: Add report header with repository metadata
-- **P0**: Redesign HTML report (larger fonts, better colors)
+### v1.x - Current Development (In Progress)
+- ✅ LLM-powered learning and skill extraction
+- ✅ Research report management commands
+- ✅ Lock files, conventional commits, gitignore assessors
+- ✅ Repomix configuration assessor
+- **In Progress**: Expand remaining 9 stub assessors
+- **In Progress**: Improve test coverage to >80%
 
-### v1.2 - Automation & Integration
-- **P1**: Implement `agentready align` subcommand (automated remediation)
+### v2.0 - Automation & Integration (Next)
+- **P1**: Implement `agentready bootstrap` subcommand (automated remediation)
+- **P1**: Implement `agentready align` subcommand (automated alignment)
 - **P2**: GitHub App integration (badges, status checks, PR comments)
 - **P2**: Interactive dashboard (one-click remediation)
 
-### v1.3 - Assessor Expansion
-- Expand 15 stub assessors
-- Add AI-powered assessors (type annotations, docstrings)
-- Improve test coverage to >80%
-
-### v2.0 - Enterprise Features
-- ✅ Report schema versioning (v1.0.0)
+### v3.0 - Enterprise Features (Future)
+- ✅ Report schema versioning
 - Customizable HTML themes with dark/light toggle
 - Organization-wide dashboards
 - Historical trend analysis
+- AI-powered assessors with deeper code analysis
 
 See `BACKLOG.md` for full feature list.
 
@@ -464,7 +464,7 @@ See `BACKLOG.md` for full feature list.
 - **GITHUB_ISSUES.md** - GitHub-ready issue templates
 - **README.md** - User-facing documentation
 - **specs/** - Feature specifications and design documents
-- **examples/self-assessment/** - AgentReady's own assessment (75.4/100 Gold)
+- **examples/self-assessment/** - AgentReady's own assessment (80.0/100 Gold)
 
 ---
 
@@ -551,6 +551,6 @@ Use the @agent-github-pages-docs to revise all documentation in docs/ based on:
 
 ---
 
-**Last Updated**: 2025-11-21 by Jeremy Eder
-**AgentReady Version**: 1.0.0
-**Self-Assessment**: 75.4/100 (Gold) ✨
+**Last Updated**: 2025-11-22 by Jeremy Eder
+**AgentReady Version**: 1.23.0
+**Self-Assessment**: 80.0/100 (Gold) ✨
