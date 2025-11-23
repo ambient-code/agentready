@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/ambient-code/agentready/compare/v1.25.0...v1.26.0) (2025-11-23)
+
+
+### Features
+
+* Implement multi-repository batch assessment (Phase 1 of issue [#68](https://github.com/ambient-code/agentready/issues/68)) ([#74](https://github.com/ambient-code/agentready/issues/74)) ([befc0d5](https://github.com/ambient-code/agentready/commit/befc0d59502e03eae7994f3ea407fef7bf65aec6))
+
 # [1.25.0](https://github.com/ambient-code/agentready/compare/v1.24.0...v1.25.0) (2025-11-23)
 
 
