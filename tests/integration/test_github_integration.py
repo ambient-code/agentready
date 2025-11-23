@@ -3,6 +3,7 @@
 import os
 
 import pytest
+import urllib.parse
 
 from agentready.services.github_scanner import GitHubOrgScanner
 
@@ -35,7 +36,7 @@ def test_github_org_scan_filters_archived():
     # We can't easily verify archived status without making additional API calls,
     # but at least verify we get valid repo URLs
     assert all(isinstance(url, str) for url in repos)
-    assert all("github.com" in url for url in repos)
+    assert all(urllib.parse.urlparse(url).hostname == "github.com" for url in repos)
 
 
 @pytest.mark.skipif(not os.getenv("GITHUB_TOKEN"), reason="GITHUB_TOKEN not set")
