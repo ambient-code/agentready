@@ -25,6 +25,7 @@ from ..assessors.documentation import (
     CLAUDEmdAssessor,
     ConciseDocumentationAssessor,
     InlineDocumentationAssessor,
+    OpenAPISpecsAssessor,
     READMEAssessor,
 )
 from ..assessors.structure import (
@@ -90,12 +91,13 @@ def create_all_assessors():
         ConciseDocumentationAssessor(),
         InlineDocumentationAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
-        # Tier 3 Important (6 implemented)
+        # Tier 3 Important (7 implemented)
         ArchitectureDecisionsAssessor(),
         IssuePRTemplatesAssessor(),
         CICDPipelineVisibilityAssessor(),
         SemanticNamingAssessor(),
         StructuredLoggingAssessor(),
+        OpenAPISpecsAssessor(),
     ]
 
     # Add remaining stub assessors

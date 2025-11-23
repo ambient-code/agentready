@@ -1,7 +1,10 @@
 """Documentation assessor for CLAUDE.md, README, docstrings, and ADRs."""
 
 import ast
+import json
 import re
+
+import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -1040,6 +1043,295 @@ function calculateDiscount(price, discountPercent) {
                     title="TSDoc Reference",
                     url="https://tsdoc.org/",
                     relevance="TypeScript documentation standard",
+                ),
+            ],
+        )
+
+
+class OpenAPISpecsAssessor(BaseAssessor):
+    """Assesses presence and quality of OpenAPI specification.
+
+    Tier 3 Important (1.5% weight) - Machine-readable API documentation
+    enables AI to generate client code, tests, and integration code.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "openapi_specs"
+
+    @property
+    def tier(self) -> int:
+        return 3  # Important
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="OpenAPI/Swagger Specifications",
+            category="API Documentation",
+            tier=self.tier,
+            description="Machine-readable API documentation in OpenAPI format",
+            criteria="OpenAPI 3.x spec with complete endpoint documentation",
+            default_weight=0.015,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        """Check if repository appears to be a web API/service."""
+        # Check for common web framework indicators
+        web_indicators = [
+            "flask",
+            "django",
+            "fastapi",
+            "express",
+            "spring",
+            "gin",
+            "rails",
+            "sinatra",
+        ]
+
+        # Check for API-related files
+        api_files = [
+            repository.path / "app.py",
+            repository.path / "server.py",
+            repository.path / "main.py",
+            repository.path / "api.py",
+            repository.path / "routes.py",
+        ]
+
+        # If any API files exist, consider it applicable
+        if any(f.exists() for f in api_files):
+            return True
+
+        # Check dependencies for web frameworks
+        dep_files = [
+            repository.path / "pyproject.toml",
+            repository.path / "requirements.txt",
+            repository.path / "package.json",
+            repository.path / "pom.xml",
+            repository.path / "go.mod",
+            repository.path / "Gemfile",
+        ]
+
+        for dep_file in dep_files:
+            if not dep_file.exists():
+                continue
+
+            try:
+                content = dep_file.read_text(encoding="utf-8").lower()
+                if any(framework in content for framework in web_indicators):
+                    return True
+            except (OSError, UnicodeDecodeError):
+                continue
+
+        # If no web framework indicators found, not applicable
+        return False
+
+    def assess(self, repository: Repository) -> Finding:
+        """Check for OpenAPI specification files."""
+        # Common OpenAPI spec file names
+        spec_files = [
+            "openapi.yaml",
+            "openapi.yml",
+            "openapi.json",
+            "swagger.yaml",
+            "swagger.yml",
+            "swagger.json",
+        ]
+
+        # Check for spec file
+        found_spec = None
+        for spec_name in spec_files:
+            spec_path = repository.path / spec_name
+            if spec_path.exists():
+                found_spec = spec_path
+                break
+
+        if not found_spec:
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=0.0,
+                measured_value="no OpenAPI spec",
+                threshold="OpenAPI 3.x spec present",
+                evidence=[
+                    "No OpenAPI specification found",
+                    f"Searched: {', '.join(spec_files)}",
+                ],
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
+
+        # Parse the spec file
+        try:
+            content = found_spec.read_text(encoding="utf-8")
+
+            # Try YAML first, then JSON
+            try:
+                spec_data = yaml.safe_load(content)
+            except yaml.YAMLError:
+                try:
+                    spec_data = json.loads(content)
+                except json.JSONDecodeError as e:
+                    return Finding.error(
+                        self.attribute,
+                        reason=f"Could not parse {found_spec.name}: {str(e)}",
+                    )
+
+            # Extract version and check completeness
+            openapi_version = spec_data.get("openapi", spec_data.get("swagger"))
+            has_paths = "paths" in spec_data and len(spec_data["paths"]) > 0
+            has_schemas = (
+                "components" in spec_data
+                and "schemas" in spec_data.get("components", {})
+            ) or ("definitions" in spec_data)
+
+            # Calculate score
+            file_score = 60  # File exists
+
+            # Version score
+            if openapi_version and openapi_version.startswith("3."):
+                version_score = 20
+            elif openapi_version:
+                version_score = 10  # Swagger 2.0
+            else:
+                version_score = 0
+
+            # Completeness score
+            if has_paths and has_schemas:
+                completeness_score = 20
+            elif has_paths:
+                completeness_score = 10
+            else:
+                completeness_score = 0
+
+            total_score = file_score + version_score + completeness_score
+            status = "pass" if total_score >= 75 else "fail"
+
+            # Build evidence
+            evidence = [f"{found_spec.name} found in repository"]
+
+            if openapi_version:
+                evidence.append(f"OpenAPI version: {openapi_version}")
+
+            if has_paths:
+                path_count = len(spec_data["paths"])
+                evidence.append(f"{path_count} endpoints documented")
+
+            if has_schemas:
+                if "components" in spec_data:
+                    schema_count = len(spec_data["components"].get("schemas", {}))
+                else:
+                    schema_count = len(spec_data.get("definitions", {}))
+                evidence.append(f"{schema_count} schemas defined")
+
+            return Finding(
+                attribute=self.attribute,
+                status=status,
+                score=total_score,
+                measured_value=(
+                    f"OpenAPI {openapi_version}" if openapi_version else "found"
+                ),
+                threshold="OpenAPI 3.x with paths and schemas",
+                evidence=evidence,
+                remediation=self._create_remediation() if status == "fail" else None,
+                error_message=None,
+            )
+
+        except (OSError, UnicodeDecodeError) as e:
+            return Finding.error(
+                self.attribute, reason=f"Could not read {found_spec.name}: {str(e)}"
+            )
+
+    def _create_remediation(self) -> Remediation:
+        """Create remediation guidance for OpenAPI specs."""
+        return Remediation(
+            summary="Create OpenAPI specification for API endpoints",
+            steps=[
+                "Create openapi.yaml in repository root",
+                "Define OpenAPI version 3.x",
+                "Document all API endpoints with full schemas",
+                "Add request/response examples",
+                "Define security schemes (API keys, OAuth, etc.)",
+                "Validate spec with Swagger Editor or Spectral",
+                "Generate API documentation with Swagger UI or ReDoc",
+            ],
+            tools=["swagger-editor", "spectral", "openapi-generator"],
+            commands=[
+                "# Install OpenAPI validator",
+                "npm install -g @stoplight/spectral-cli",
+                "",
+                "# Validate spec",
+                "spectral lint openapi.yaml",
+                "",
+                "# Generate client SDK",
+                "npx @openapitools/openapi-generator-cli generate \\",
+                "  -i openapi.yaml \\",
+                "  -g python \\",
+                "  -o client/",
+            ],
+            examples=[
+                """# openapi.yaml - Minimal example
+openapi: 3.1.0
+info:
+  title: My API
+  version: 1.0.0
+  description: API for managing users
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /users/{userId}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: string
+          example: "user_123"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        name:
+          type: string
+          example: "John Doe"
+""",
+            ],
+            citations=[
+                Citation(
+                    source="OpenAPI Initiative",
+                    title="OpenAPI Specification",
+                    url="https://spec.openapis.org/oas/v3.1.0",
+                    relevance="Official OpenAPI 3.1 specification",
+                ),
+                Citation(
+                    source="Swagger",
+                    title="API Documentation Best Practices",
+                    url="https://swagger.io/resources/articles/best-practices-in-api-documentation/",
+                    relevance="Guide to writing effective API docs",
                 ),
             ],
         )

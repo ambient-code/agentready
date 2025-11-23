@@ -299,13 +299,6 @@ def create_stub_assessors():
         ),
         # Tier 3 Important
         StubAssessor(
-            "openapi_specs",
-            "OpenAPI/Swagger Specifications",
-            "API Documentation",
-            3,
-            0.03,
-        ),
-        StubAssessor(
             "architecture_decisions",
             "Architecture Decision Records",
             "Documentation Standards",
