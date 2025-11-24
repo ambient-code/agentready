@@ -234,7 +234,9 @@ class TestCSVReporter:
     ):
         """Test that formula injection in repo name is prevented."""
         # Modify repository name to contain formula
-        mock_batch_assessment.results[0].assessment.repository.name = "=cmd|'/c calc'!A1"
+        mock_batch_assessment.results[0].assessment.repository.name = (
+            "=cmd|'/c calc'!A1"
+        )
 
         reporter = CSVReporter()
         reporter.generate(mock_batch_assessment, temp_csv_file)

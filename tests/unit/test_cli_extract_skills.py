@@ -64,7 +64,9 @@ class TestExtractSkillsCommand:
     def test_extract_skills_command_json_output(self, runner, temp_repo):
         """Test extract-skills command with JSON output."""
         with runner.isolated_filesystem(temp_dir=temp_repo.parent):
-            result = runner.invoke(extract_skills, [str(temp_repo), "--output-format", "json"])
+            result = runner.invoke(
+                extract_skills, [str(temp_repo), "--output-format", "json"]
+            )
 
             assert result.exit_code == 0
 
@@ -104,7 +106,9 @@ class TestExtractSkillsCommand:
     def test_extract_skills_command_all_output_formats(self, runner, temp_repo):
         """Test extract-skills command with all output formats."""
         with runner.isolated_filesystem(temp_dir=temp_repo.parent):
-            result = runner.invoke(extract_skills, [str(temp_repo), "--output-format", "all"])
+            result = runner.invoke(
+                extract_skills, [str(temp_repo), "--output-format", "all"]
+            )
 
             assert result.exit_code == 0
 

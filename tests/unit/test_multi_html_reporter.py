@@ -175,9 +175,9 @@ class TestMultiRepoHTMLReporter:
     ):
         """Test that XSS in repository name is prevented."""
         # Inject XSS payload into repository name
-        mock_batch_assessment.results[
-            0
-        ].assessment.repository.name = "<script>alert('XSS')</script>"
+        mock_batch_assessment.results[0].assessment.repository.name = (
+            "<script>alert('XSS')</script>"
+        )
 
         reporter = MultiRepoHTMLReporter(template_dir)
         reporter.generate(mock_batch_assessment, temp_html_file)

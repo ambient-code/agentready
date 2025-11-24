@@ -1,8 +1,5 @@
 """Unit tests for main CLI commands."""
 
-import json
-import shutil
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -18,7 +15,6 @@ from agentready.cli.main import (
     load_config,
     research_version,
     run_assessment,
-    show_version,
 )
 from agentready.models.config import Config
 

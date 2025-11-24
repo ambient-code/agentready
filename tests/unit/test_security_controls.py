@@ -1,11 +1,12 @@
 """Security control verification tests for batch assessment."""
 
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from agentready.services.repository_manager import RepositoryManager
+import pytest
+
 from agentready.services.assessment_cache import AssessmentCache
+from agentready.services.repository_manager import RepositoryManager
 
 
 class TestSecurityControls:

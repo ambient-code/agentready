@@ -146,9 +146,7 @@ class GitHubOrgScanner:
                 response.raise_for_status()
 
             except requests.Timeout:
-                raise GitHubAPIError(
-                    f"GitHub API timeout for organization: {org_name}"
-                )
+                raise GitHubAPIError(f"GitHub API timeout for organization: {org_name}")
 
             except requests.HTTPError as e:
                 # SECURITY: Redact token before raising

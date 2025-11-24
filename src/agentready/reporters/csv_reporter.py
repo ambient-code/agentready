@@ -112,7 +112,9 @@ class CSVReporter:
                     # SECURITY: Sanitize all string fields
                     row = {
                         "repo_url": self.sanitize_csv_field(result.repository_url),
-                        "repo_name": self.sanitize_csv_field(assessment.repository.name),
+                        "repo_name": self.sanitize_csv_field(
+                            assessment.repository.name
+                        ),
                         "overall_score": assessment.overall_score,
                         "certification_level": self.sanitize_csv_field(
                             assessment.certification_level

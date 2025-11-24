@@ -1,9 +1,8 @@
 """Unit tests for assessment cache."""
 
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from datetime import datetime, timedelta
+
 
 from agentready.services.assessment_cache import AssessmentCache
 

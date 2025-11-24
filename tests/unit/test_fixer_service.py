@@ -8,10 +8,7 @@ import pytest
 from agentready.fixers.base import BaseFixer
 from agentready.models import Assessment, Attribute, Finding, Repository
 from agentready.models.fix import (
-    CommandFix,
     FileCreationFix,
-    FileModificationFix,
-    MultiStepFix,
 )
 from agentready.services.fixer_service import FixerService, FixPlan
 

@@ -310,9 +310,8 @@ class TestGitHubTokenSecurity:
 
     def test_token_not_in_logs(self, caplog):
         """Test that token never appears in logs."""
-        from unittest.mock import Mock, patch
+        from unittest.mock import patch
 
-        import requests
 
         from agentready.services.github_scanner import GitHubOrgScanner
 
@@ -367,9 +366,8 @@ class TestGitHubTokenSecurity:
 
     def test_token_format_validation(self):
         """Test that token format is validated."""
-        from agentready.services.github_scanner import GitHubAuthError, GitHubOrgScanner
 
-        import pytest
+        from agentready.services.github_scanner import GitHubAuthError, GitHubOrgScanner
 
         invalid_tokens = [
             "invalid",
@@ -381,14 +379,15 @@ class TestGitHubTokenSecurity:
 
         for invalid_token in invalid_tokens:
             with patch.dict("os.environ", {"GITHUB_TOKEN": invalid_token}):
-                with pytest.raises(GitHubAuthError, match="Invalid GitHub token format"):
+                with pytest.raises(
+                    GitHubAuthError, match="Invalid GitHub token format"
+                ):
                     GitHubOrgScanner()
 
     def test_token_read_from_env_only(self):
         """Test that token is only read from environment variable."""
-        from agentready.services.github_scanner import GitHubAuthError, GitHubOrgScanner
 
-        import pytest
+        from agentready.services.github_scanner import GitHubAuthError, GitHubOrgScanner
 
         # Ensure environment is clean
         with patch.dict("os.environ", {}, clear=True):
@@ -404,9 +403,8 @@ class TestGitHubTokenSecurity:
 
     def test_org_name_validation_prevents_injection(self):
         """Test that org name validation prevents injection attacks."""
-        from agentready.services.github_scanner import GitHubOrgScanner
 
-        import pytest
+        from agentready.services.github_scanner import GitHubOrgScanner
 
         token = "ghp_" + "a" * 36
 

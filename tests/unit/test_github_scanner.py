@@ -1,6 +1,5 @@
 """Unit tests for GitHub organization scanner."""
 
-import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -452,4 +451,6 @@ def test_rate_limit_warning(mock_get, caplog):
 
         assert len(repos) == 1
         # Should have logged a warning about low rate limit
-        assert any("rate limit low" in record.message.lower() for record in caplog.records)
+        assert any(
+            "rate limit low" in record.message.lower() for record in caplog.records
+        )

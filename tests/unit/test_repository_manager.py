@@ -1,8 +1,8 @@
 """Unit tests for repository manager."""
 
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
 
 from agentready.services.repository_manager import RepositoryManager
 
@@ -73,9 +73,7 @@ class TestRepositoryManager:
     def test_get_repository_name_from_url_without_git_suffix(self):
         """Test extracting repository name from URL without .git suffix."""
         manager = RepositoryManager(Path("/tmp/cache"))
-        name = manager.get_repository_name_from_url(
-            "https://github.com/user/my-repo"
-        )
+        name = manager.get_repository_name_from_url("https://github.com/user/my-repo")
         assert name == "my-repo"
 
     def test_get_repository_name_from_local_path(self):

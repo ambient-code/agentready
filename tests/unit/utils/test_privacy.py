@@ -1,6 +1,5 @@
 """Unit tests for privacy utilities."""
 
-import getpass
 from pathlib import Path
 from unittest.mock import patch
 
@@ -398,7 +397,9 @@ class TestSanitizeMetadata:
 
     def test_sanitize_command_field(self):
         """Test command field sanitization."""
-        metadata = {"command": "agentready assess /home/user/project --config secret.yaml"}
+        metadata = {
+            "command": "agentready assess /home/user/project --config secret.yaml"
+        }
         result = sanitize_metadata(metadata)
 
         assert "command" in result

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-from ..models import Assessment, BatchAssessment, RepositoryResult
+from ..models import Assessment
 
 
 class AssessmentCache:
@@ -230,7 +230,9 @@ class AssessmentCache:
                 )
                 valid = cursor.fetchone()[0]
 
-                cursor = conn.execute("SELECT COUNT(DISTINCT repository_url) FROM assessments")
+                cursor = conn.execute(
+                    "SELECT COUNT(DISTINCT repository_url) FROM assessments"
+                )
                 unique_repos = cursor.fetchone()[0]
 
                 return {
@@ -258,7 +260,6 @@ class AssessmentCache:
         # In practice, you'd need full deserialization logic
         # For now, we'll use a placeholder that assumes the cached JSON
         # has the correct structure
-        from .scanner import Scanner
 
         # Note: This is a simplified approach. In production, you'd need
         # proper deserialization that reconstructs all nested objects

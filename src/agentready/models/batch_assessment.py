@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
 
 from .assessment import Assessment
 

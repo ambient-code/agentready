@@ -1,0 +1,3 @@
+https://github.com/ambient-code/agentready
+https://github.com/ambient-code/platform
+https://github.com/ambient-code/spec-kit-rh

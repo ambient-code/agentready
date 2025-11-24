@@ -6,9 +6,7 @@ from pathlib import Path
 import click
 
 from ..models.config import Config
-from ..models.repository import Repository
 from ..services.fixer_service import FixerService
-from ..services.language_detector import LanguageDetector
 from ..services.scanner import Scanner
 
 

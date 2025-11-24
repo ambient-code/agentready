@@ -57,9 +57,7 @@ def create_test_batch_with_payload(payload: str, inject_location: str):
     )
 
     repo_url = (
-        "https://github.com/test/repo"
-        if inject_location != "repo_url"
-        else payload
+        "https://github.com/test/repo" if inject_location != "repo_url" else payload
     )
     error = payload if inject_location == "error_message" else None
 

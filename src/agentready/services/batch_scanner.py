@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Callable, Optional
 from uuid import uuid4
 
-from ..models import Assessment, BatchAssessment, BatchSummary, RepositoryResult
+from ..models import BatchAssessment, BatchSummary, RepositoryResult
 from .assessment_cache import AssessmentCache
 from .repository_manager import RepositoryManager
 from .scanner import Scanner

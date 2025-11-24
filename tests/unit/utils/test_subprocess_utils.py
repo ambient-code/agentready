@@ -51,7 +51,9 @@ class TestValidateRepositoryPath:
         with patch.object(Path, "resolve") as mock_resolve:
             mock_resolve.return_value = Path("/etc/project")
 
-            with pytest.raises(SubprocessSecurityError, match="Cannot access sensitive directory"):
+            with pytest.raises(
+                SubprocessSecurityError, match="Cannot access sensitive directory"
+            ):
                 validate_repository_path(Path("/etc/project"))
 
     def test_validate_forbidden_sys(self, tmp_path):
@@ -59,7 +61,9 @@ class TestValidateRepositoryPath:
         with patch.object(Path, "resolve") as mock_resolve:
             mock_resolve.return_value = Path("/sys/project")
 
-            with pytest.raises(SubprocessSecurityError, match="Cannot access sensitive directory"):
+            with pytest.raises(
+                SubprocessSecurityError, match="Cannot access sensitive directory"
+            ):
                 validate_repository_path(Path("/sys/project"))
 
     def test_validate_forbidden_proc(self, tmp_path):
@@ -67,7 +71,9 @@ class TestValidateRepositoryPath:
         with patch.object(Path, "resolve") as mock_resolve:
             mock_resolve.return_value = Path("/proc/project")
 
-            with pytest.raises(SubprocessSecurityError, match="Cannot access sensitive directory"):
+            with pytest.raises(
+                SubprocessSecurityError, match="Cannot access sensitive directory"
+            ):
                 validate_repository_path(Path("/proc/project"))
 
     def test_validate_forbidden_root_ssh(self, tmp_path):
@@ -75,7 +81,9 @@ class TestValidateRepositoryPath:
         with patch.object(Path, "resolve") as mock_resolve:
             mock_resolve.return_value = Path("/.ssh")
 
-            with pytest.raises(SubprocessSecurityError, match="Cannot access sensitive directory"):
+            with pytest.raises(
+                SubprocessSecurityError, match="Cannot access sensitive directory"
+            ):
                 validate_repository_path(Path("/.ssh"))
 
     def test_validate_symlink_resolution(self, tmp_path):

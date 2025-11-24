@@ -1,6 +1,5 @@
 """Unit tests for skill generation."""
 
-import json
 from pathlib import Path
 
 import pytest
