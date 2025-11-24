@@ -31,9 +31,13 @@ def temp_tsv_file(tmp_path):
 @pytest.fixture
 def mock_repository(tmp_path):
     """Create a mock repository for testing."""
-    # Create a real temporary directory for the repository
+    # Create a real temporary directory for the repository with git
+    import subprocess
+
     repo_path = tmp_path / "test-repo"
     repo_path.mkdir()
+    # Initialize as git repo
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
     return Repository(
         path=repo_path,
         name="test-repo",
@@ -58,13 +62,19 @@ def mock_assessment(mock_repository):
         attributes_not_assessed=5,
         attributes_total=25,
         findings=[],
+        config=None,
         duration_seconds=42.5,
+        discovered_skills=[],
+        metadata=None,
+        schema_version="1.0.0",
     )
 
 
 @pytest.fixture
-def mock_batch_assessment(mock_assessment):
+def mock_batch_assessment(mock_assessment, tmp_path):
     """Create a mock batch assessment for testing."""
+    import subprocess
+
     # Create successful result
     result1 = RepositoryResult(
         repository_url="https://github.com/user/repo1",
@@ -73,9 +83,12 @@ def mock_batch_assessment(mock_assessment):
         cached=False,
     )
 
-    # Create another successful result
+    # Create another successful result with proper git repo
+    repo2_path = tmp_path / "repo2"
+    repo2_path.mkdir()
+    subprocess.run(["git", "init"], cwd=repo2_path, check=True, capture_output=True)
     repo2 = Repository(
-        path=Path("/test/repo2"),
+        path=repo2_path,
         name="test-repo-2",
         url=None,
         branch="main",
@@ -93,7 +106,11 @@ def mock_batch_assessment(mock_assessment):
         attributes_not_assessed=5,
         attributes_total=25,
         findings=[],
+        config=None,
         duration_seconds=38.0,
+        discovered_skills=[],
+        metadata=None,
+        schema_version="1.0.0",
     )
     result2 = RepositoryResult(
         repository_url="https://github.com/user/repo2",
@@ -294,11 +311,16 @@ class TestCSVReporter:
 
     def test_csv_creates_parent_directory(self, tmp_path):
         """Test that CSV reporter creates parent directories if needed."""
+        import subprocess
+
         nested_path = tmp_path / "nested" / "dir" / "report.csv"
 
-        # Create a minimal batch assessment
+        # Create a minimal batch assessment with proper git repo
+        repo_path = tmp_path / "test"
+        repo_path.mkdir()
+        subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
         repo = Repository(
-            path=Path("/test"),
+            path=repo_path,
             name="test",
             url=None,
             branch="main",
@@ -316,7 +338,11 @@ class TestCSVReporter:
             attributes_not_assessed=0,
             attributes_total=1,
             findings=[],
+            config=None,
             duration_seconds=1.0,
+            discovered_skills=[],
+            metadata=None,
+            schema_version="1.0.0",
         )
         result = RepositoryResult(
             repository_url="https://test.com", assessment=assessment
