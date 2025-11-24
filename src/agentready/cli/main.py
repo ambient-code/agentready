@@ -12,13 +12,14 @@ except ImportError:
     # Python 3.7 compatibility
     from importlib_metadata import version as get_version
 
+from pydantic import ValidationError
+
 from ..assessors import create_all_assessors
 from ..models.config import Config
 from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
-from pydantic import ValidationError
 from ..utils.subprocess_utils import safe_subprocess_run
 from .align import align
 from .assess_batch import assess_batch

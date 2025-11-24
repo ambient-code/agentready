@@ -467,8 +467,8 @@
             {% for result in batch_assessment.results %}
                 {% if result.is_success() %}
                 <tr>
-                    {# SECURITY: All fields auto-escaped by Jinja2 autoescape #}
-                    <td class="truncate" title="{{ result.repository_url }}">{{ result.repository_url }}</td>
+                    {# SECURITY: All fields auto-escaped by Jinja2 autoescape, URLs validated #}
+                    <td class="truncate" title="{{ result.repository_url | sanitize_url }}">{{ result.repository_url | sanitize_url }}</td>
                     <td data-value="{{ result.assessment.overall_score }}">{{ "%.1f"|format(result.assessment.overall_score) }}</td>
                     <td>
                         <span class="badge {{ result.assessment.certification_level.lower().replace(' ', '-') }}">
@@ -478,7 +478,8 @@
                     <td>{{ result.assessment.repository.primary_language }}</td>
                     <td data-value="{{ result.duration_seconds }}">{{ "%.1f"|format(result.duration_seconds) }}s</td>
                     <td>
-                        {% set base_name = result.assessment.repository.name ~ '-' ~ result.assessment.timestamp.strftime('%Y%m%d-%H%M%S') %}
+                        {# SECURITY: Sanitize repository name for use in filenames/hrefs #}
+                        {% set base_name = (result.assessment.repository.name | sanitize_filename) ~ '-' ~ result.assessment.timestamp.strftime('%Y%m%d-%H%M%S') %}
                         <a href="{{ base_name }}.html">HTML</a> |
                         <a href="{{ base_name }}.json">JSON</a> |
                         <a href="{{ base_name }}.md">MD</a>
@@ -624,8 +625,8 @@
             <tbody>
             {% for result in failed_results %}
                 <tr>
-                    {# SECURITY: All fields auto-escaped by Jinja2 autoescape #}
-                    <td class="truncate" title="{{ result.repository_url }}">{{ result.repository_url }}</td>
+                    {# SECURITY: All fields auto-escaped by Jinja2 autoescape, URLs validated #}
+                    <td class="truncate" title="{{ result.repository_url | sanitize_url }}">{{ result.repository_url | sanitize_url }}</td>
                     <td>{{ result.error_type }}</td>
                     <td class="truncate" title="{{ result.error }}">
                         {{ result.error[:100] }}{% if result.error|length > 100 %}...{% endif %}

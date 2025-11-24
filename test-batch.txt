@@ -1,0 +1,3 @@
+/Users/jeder/repos/agentready
+/Users/jeder/repos/acp-frontend-prototype
+/Users/jeder/repos/acpctl

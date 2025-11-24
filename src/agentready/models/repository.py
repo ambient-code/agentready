@@ -68,6 +68,17 @@ class Repository:
         """
         return shorten_commit_hash(self.commit_hash)
 
+    @property
+    def primary_language(self) -> str:
+        """Get the primary programming language (most files).
+
+        Returns:
+            Primary language name, or "Unknown" if no languages detected
+        """
+        if not self.languages:
+            return "Unknown"
+        return max(self.languages, key=self.languages.get)
+
     def to_dict(self, privacy_mode: bool = False) -> dict:
         """Convert to dictionary for JSON serialization.
 

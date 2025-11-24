@@ -17,8 +17,57 @@ def cli_runner():
 
 @pytest.fixture
 def sample_report():
-    """Create a temporary sample research report."""
-    content = """---
+    """Create a temporary sample research report with 25 attributes."""
+    # Generate 25 attributes (minimum required for validation)
+    attributes_content = ""
+    tier_assignments = {1: [], 2: [], 3: [], 4: []}
+
+    for i in range(1, 26):
+        section = (i - 1) // 5 + 1  # 5 attributes per section
+        attr_num = (i - 1) % 5 + 1
+        attr_id = f"{section}.{attr_num}"
+        tier = ((i - 1) % 4) + 1  # Distribute across tiers
+
+        tier_assignments[tier].append(attr_id)
+
+        attributes_content += f"""
+### {attr_id} Test Attribute {i}
+
+**Definition:** Test definition {i}
+
+**Why It Matters:** Test rationale {i}
+
+**Impact on Agent Behavior:**
+- Impact {i}
+
+**Measurable Criteria:**
+- Criterion {i}
+
+**Citations:**
+- Source {i}
+
+"""
+
+    # Build tier assignments
+    tier_section = "## IMPLEMENTATION PRIORITIES\n\n"
+    for tier_num in range(1, 5):
+        tier_names = {
+            1: "Tier 1: Essential (Must-Have)",
+            2: "Tier 2: Critical (Should-Have)",
+            3: "Tier 3: Important (Nice-to-Have)",
+            4: "Tier 4: Advanced (Optimization)",
+        }
+        tier_section += f"### {tier_names[tier_num]}\n"
+        for attr_id in tier_assignments[tier_num]:
+            tier_section += f"- {attr_id} Test Attribute\n"
+        tier_section += "\n"
+
+    # Build references (need 20+ for no warnings)
+    references_section = "## REFERENCES & CITATIONS\n\n"
+    for i in range(1, 21):
+        references_section += f"{i}. Source {i}\n"
+
+    content = f"""---
 version: 1.0.0
 date: 2025-11-20
 ---
@@ -29,40 +78,13 @@ date: 2025-11-20
 **Date:** 2025-11-20
 
 ## 1. CONTEXT WINDOW OPTIMIZATION
-
-### 1.1 Test Attribute
-
-**Definition:** Test definition
-
-**Why It Matters:** Test rationale
-
-**Impact on Agent Behavior:**
-- Impact 1
-
-**Measurable Criteria:**
-- Criterion 1
-
-**Citations:**
-- Source 1
-
+{attributes_content}
 ---
 
-## IMPLEMENTATION PRIORITIES
-
-### Tier 1: Essential (Must-Have)
-- 1.1 Test Attribute
-
-### Tier 2: Critical (Should-Have)
-
-### Tier 3: Important (Nice-to-Have)
-
-### Tier 4: Advanced (Optimization)
-
+{tier_section}
 ---
 
-## REFERENCES & CITATIONS
-
-1. Source 1
+{references_section}
 """
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".md", delete=False, encoding="utf-8"

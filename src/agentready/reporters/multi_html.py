@@ -45,6 +45,44 @@ class MultiRepoHTMLReporter:
 
         # Register security filters
         self.env.filters["sanitize_url"] = self.sanitize_url
+        self.env.filters["sanitize_filename"] = self.sanitize_filename
+
+    @staticmethod
+    def sanitize_filename(name: str) -> str:
+        """Sanitize repository names for use in filenames and href attributes.
+
+        SECURITY: Prevents XSS and path traversal attacks by removing
+        special characters that could be exploited in HTML contexts.
+
+        Args:
+            name: Repository name to sanitize
+
+        Returns:
+            Sanitized string safe for use in filenames and HTML attributes
+
+        Examples:
+            >>> MultiRepoHTMLReporter.sanitize_filename("my-repo")
+            "my-repo"
+            >>> MultiRepoHTMLReporter.sanitize_filename("<script>alert(1)</script>")
+            "scriptalert1script"
+            >>> MultiRepoHTMLReporter.sanitize_filename("../../etc/passwd")
+            "etcpasswd"
+        """
+        import re
+
+        if not name:
+            return "unknown"
+
+        # Remove any characters that aren't alphanumeric, dash, underscore, or dot
+        # This prevents XSS (<script>), path traversal (../), and other attacks
+        sanitized = re.sub(r"[^a-zA-Z0-9._-]", "", name)
+
+        # Ensure we don't end up with an empty string
+        if not sanitized:
+            return "unknown"
+
+        # Limit length to prevent filename issues
+        return sanitized[:200]
 
     @staticmethod
     def sanitize_url(url: str) -> str:

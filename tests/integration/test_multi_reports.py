@@ -35,19 +35,51 @@ def template_dir():
 
 
 @pytest.fixture
-def mock_batch_assessment():
+def mock_batch_assessment(tmp_path):
     """Create a comprehensive mock batch assessment."""
+    # Create temporary repository directories for validation
+    repo1_path = tmp_path / "repo1"
+    repo1_path.mkdir()
+    (repo1_path / ".git").mkdir()
+
     # Create first repository and assessment
     repo1 = Repository(
-        path=Path("/test/repo1"),
+        path=repo1_path,
         name="repo1",
+        url=None,
         branch="main",
         commit_hash="abc123",
-        primary_language="Python",
         languages={"Python": 50, "JavaScript": 10},
         total_files=100,
         total_lines=5000,
     )
+    # Create dummy findings to satisfy Assessment validation
+    from src.agentready.models.attribute import Attribute
+    from src.agentready.models.finding import Finding
+
+    dummy_findings = []
+    for i in range(25):
+        attr = Attribute(
+            id=f"attr_{i}",
+            name=f"Attribute {i}",
+            category="Test",
+            tier=1,
+            description="Test",
+            criteria="Test",
+            default_weight=1.0,
+        )
+        finding = Finding(
+            attribute=attr,
+            status="pass" if i < 20 else "skipped",
+            score=100.0 if i < 20 else None,
+            measured_value="test",
+            threshold="test",
+            evidence=["test"],
+            remediation=None,
+            error_message=None,
+        )
+        dummy_findings.append(finding)
+
     assessment1 = Assessment(
         repository=repo1,
         timestamp=datetime(2025, 1, 22, 14, 30, 22),
@@ -56,7 +88,8 @@ def mock_batch_assessment():
         attributes_assessed=20,
         attributes_not_assessed=5,
         attributes_total=25,
-        findings=[],
+        findings=dummy_findings,
+        config=None,
         duration_seconds=42.5,
     )
     result1 = RepositoryResult(
@@ -66,13 +99,18 @@ def mock_batch_assessment():
         cached=False,
     )
 
+    # Create second repository directory
+    repo2_path = tmp_path / "repo2"
+    repo2_path.mkdir()
+    (repo2_path / ".git").mkdir()
+
     # Create second repository and assessment
     repo2 = Repository(
-        path=Path("/test/repo2"),
+        path=repo2_path,
         name="repo2",
+        url=None,
         branch="develop",
         commit_hash="def456",
-        primary_language="JavaScript",
         languages={"JavaScript": 80, "TypeScript": 20},
         total_files=150,
         total_lines=7500,
@@ -85,7 +123,8 @@ def mock_batch_assessment():
         attributes_assessed=20,
         attributes_not_assessed=5,
         attributes_total=25,
-        findings=[],
+        findings=dummy_findings,  # Reuse findings from assessment1
+        config=None,
         duration_seconds=38.0,
     )
     result2 = RepositoryResult(
@@ -361,4 +400,5 @@ class TestMultiReportGeneration:
         # Verify HTML escaping
         html_content = (reports_dir / "index.html").read_text()
         assert 'href="javascript:' not in html_content
-        assert "<script>" not in html_content
+        # Verify the actual XSS payload is not present (template has legitimate <script> tags)
+        assert "javascript:alert('XSS')" not in html_content

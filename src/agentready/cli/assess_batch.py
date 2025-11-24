@@ -6,13 +6,13 @@ from pathlib import Path
 from typing import Optional
 
 import click
+from pydantic import ValidationError
 
 from ..assessors import create_all_assessors
 from ..models.config import Config
 from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
 from ..services.batch_scanner import BatchScanner
-from pydantic import ValidationError
 
 
 def _get_agentready_version() -> str:
