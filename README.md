@@ -63,16 +63,16 @@ For one-time analysis without infrastructure changes:
 
 ```bash
 # Assess current repository
-agentready .
+agentready assess .
 
 # Assess another repository
-agentready /path/to/your/repo
+agentready assess /path/to/your/repo
 
 # Specify custom configuration
-agentready /path/to/repo --config my-config.yaml
+agentready assess /path/to/repo --config my-config.yaml
 
 # Custom output directory
-agentready /path/to/repo --output-dir ./reports
+agentready assess /path/to/repo --output-dir ./reports
 ```
 
 ### Example Output
@@ -156,10 +156,10 @@ output_dir: ./custom-reports
 
 ```bash
 # Assessment commands
-agentready PATH                          # Assess repository at PATH
-agentready PATH --verbose                # Show detailed progress
-agentready PATH --config FILE            # Use custom configuration
-agentready PATH --output-dir DIR         # Custom report location
+agentready assess PATH                   # Assess repository at PATH
+agentready assess PATH --verbose         # Show detailed progress
+agentready assess PATH --config FILE     # Use custom configuration
+agentready assess PATH --output-dir DIR  # Custom report location
 
 # Configuration commands
 agentready --validate-config FILE        # Validate configuration
@@ -273,4 +273,4 @@ Contributions welcome! Please ensure:
 
 ---
 
-**Quick Start**: `pip install -e ".[dev]" && agentready .` - Ready in <5 minutes!
+**Quick Start**: `pip install -e ".[dev]" && agentready assess .` - Ready in <5 minutes!

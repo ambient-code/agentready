@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/ambient-code/agentready/compare/v2.3.0...v2.4.0) (2025-11-24)
+
+
+### Features
+
+* Phase 2 Task 4 - Replace manual config validation with Pydantic ([#134](https://github.com/ambient-code/agentready/issues/134)) ([d83cf58](https://github.com/ambient-code/agentready/commit/d83cf58a6eb0b1f889a3cfc49a8fb816db2a1f3e))
+
 # [2.3.0](https://github.com/ambient-code/agentready/compare/v2.2.0...v2.3.0) (2025-11-24)
 
 

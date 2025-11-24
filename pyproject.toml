@@ -1,6 +1,6 @@
 [project]
 name = "agentready"
-version = "2.3.0"
+version = "2.4.0"
 description = "Assess and bootstrap git repositories for AI-assisted development with automated remediation and continuous learning"
 authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
 readme = "README.md"
@@ -25,6 +25,7 @@ dependencies = [
     "anthropic>=0.74.0",
     "jsonschema>=4.17.0",
     "requests>=2.31.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
