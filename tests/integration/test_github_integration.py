@@ -1,9 +1,9 @@
 """Integration tests for GitHub scanner (requires GITHUB_TOKEN)."""
 
 import os
+import urllib.parse
 
 import pytest
-import urllib.parse
 
 from agentready.services.github_scanner import GitHubOrgScanner
 
