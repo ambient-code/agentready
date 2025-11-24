@@ -26,22 +26,10 @@ class Config:
 
     def __post_init__(self):
         """Validate config data after initialization."""
-        # Validate weights are positive
+        # Validate weights are positive (no upper limit - allow boosting)
         for attr_id, weight in self.weights.items():
             if weight <= 0:
                 raise ValueError(f"Weight must be positive for {attr_id}: {weight}")
-            if weight > 1.0:
-                raise ValueError(f"Weight must be <= 1.0 for {attr_id}: {weight}")
-
-        # Validate weights sum (with tolerance for floating point)
-        if self.weights:
-            total = sum(self.weights.values())
-            tolerance = 0.001
-            if abs(total - 1.0) > tolerance:
-                raise ValueError(
-                    f"Weights must sum to 1.0 (got {total:.4f}, "
-                    f"difference: {total - 1.0:+.4f})"
-                )
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
