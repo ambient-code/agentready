@@ -116,6 +116,81 @@ agentready assess-batch \
 
 ---
 
+## SWE-bench Experiments (MVP)
+
+**Feature**: Quantify AgentReady settings against SWE-bench baseline using both SWE-agent and Claude Code.
+
+The `experiment` commands enable controlled experiments to validate which AgentReady attributes improve AI agent performance on real-world coding tasks.
+
+### Quick Start
+
+```bash
+# 1. Run agent on repository
+agentready experiment run-agent sweagent \
+  --repo-path /path/to/repo \
+  --dataset lite \
+  --output predictions_baseline.jsonl
+
+# 2. Evaluate predictions
+agentready experiment evaluate \
+  --predictions predictions_baseline.jsonl \
+  --output results_baseline.json
+
+# 3. Analyze and generate interactive heatmap
+agentready experiment analyze \
+  --results-dir results/ \
+  --heatmap heatmap.html
+
+# 4. View results
+open heatmap.html
+```
+
+### Pre-configured Experiments
+
+Five configurations in `experiments/configs/`:
+
+1. **baseline.yaml** - No AgentReady changes (control)
+2. **claude-md.yaml** - CLAUDE.md only (Tier 1 essential)
+3. **types-docs.yaml** - Type annotations + inline documentation
+4. **tier1.yaml** - All 5 Tier 1 attributes
+5. **full-bootstrap.yaml** - All AgentReady best practices
+
+### Supported Agents
+
+- **SWE-agent**: Production-ready, built-in SWE-bench support
+- **Claude Code**: Headless mode execution (requires task file)
+
+### SWE-bench Datasets
+
+- **Lite**: 300 tasks (~15-30 min with cache)
+- **Full**: 2,294 tasks (~2-4 hours)
+
+### Interactive Visualization
+
+Generates Plotly Express heatmap with:
+- Hover tooltips (config, agent, score, delta from baseline)
+- Zoom/pan capability
+- RdYlGn colormap (seaborn-style)
+- Standalone HTML export (shareable without Python)
+
+### Expected Results
+
+Based on sample data:
+- **Baseline**: ~38-39% pass rate
+- **CLAUDE.md only**: +7-8pp improvement
+- **Full bootstrap**: +14pp improvement
+- **Correlation**: r ≈ 0.87 between AgentReady score and SWE-bench performance
+
+### Dependencies
+
+```bash
+uv pip install swebench sweagent plotly pandas scipy
+```
+
+See `experiments/README.md` for detailed workflow and manual steps.
+
+---
+
 ## Continuous Learning Loop (LLM-Powered)
 
 **Feature**: Extract high-quality skills from assessments using Claude API

@@ -1,0 +1,4 @@
+name: full-bootstrap
+description: "All AgentReady best practices"
+agentready_changes:
+  bootstrap: true

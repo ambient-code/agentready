@@ -1,0 +1,8 @@
+name: types-docs
+description: "Type annotations + inline documentation"
+agentready_changes:
+  align:
+    enabled: true
+    attributes:
+      - type_annotations
+      - inline_documentation
