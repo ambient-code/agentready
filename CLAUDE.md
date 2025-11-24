@@ -428,7 +428,7 @@ agentready/
 
 ## Technologies
 
-- **Python 3.11+** (only N and N-1 versions supported)
+- **Python 3.12+** (only N and N-1 versions supported)
 - **Click** - CLI framework
 - **Jinja2** - HTML template engine
 - **Anthropic** - Claude API client (for LLM enrichment)

@@ -1,17 +1,17 @@
 [project]
 name = "agentready"
-version = "2.1.0"
-description = "Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness"
+version = "2.2.0"
+description = "Assess and bootstrap git repositories for AI-assisted development with automated remediation and continuous learning"
 authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Quality Assurance",
 ]
 
@@ -61,7 +61,7 @@ agentready = [
 
 [tool.black]
 line-length = 88
-target-version = ["py311"]
+target-version = ["py312"]
 extend-exclude = '''
 /(
   \.eggs

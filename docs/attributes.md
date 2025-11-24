@@ -111,7 +111,7 @@ CLAUDE.md files provide **immediate project context** without repeated explanati
 
 ```markdown
 # Tech Stack
-- Python 3.11+, pytest, black + isort
+- Python 3.12+, pytest, black + isort
 - FastAPI, PostgreSQL, Redis
 
 # Standard Commands
@@ -233,7 +233,7 @@ print(result)
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.12+
 - PostgreSQL 14+
 - Redis 7+ (optional, for caching)
 
@@ -943,7 +943,7 @@ Clear documentation of prerequisites, environment variables, and configuration r
 
 **Must document**:
 
-- Language/runtime version (Python 3.11+, Node.js 18+)
+- Language/runtime version (Python 3.12+, Node.js 18+)
 - System dependencies (PostgreSQL, Redis, etc.)
 - Environment variables (`.env.example` with all variables)
 - Optional: IDE setup, debugging config

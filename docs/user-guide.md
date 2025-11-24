@@ -29,7 +29,7 @@ Complete guide to installing, configuring, and using AgentReady to assess your r
 
 ### Prerequisites
 
-- **Python 3.11 or 3.12** (AgentReady supports versions N and N-1)
+- **Python 3.12 or 3.13** (AgentReady supports versions N and N-1)
 - **Git** (for repository analysis)
 - **pip** or **uv** (Python package manager)
 

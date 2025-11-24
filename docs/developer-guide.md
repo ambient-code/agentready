@@ -24,7 +24,7 @@ Comprehensive guide for contributors and developers extending AgentReady.
 
 ### Prerequisites
 
-- **Python 3.11 or 3.12**
+- **Python 3.12 or 3.13**
 - **Git**
 - **uv** or **pip** (uv recommended for faster dependency management)
 - **Make** (optional, for convenience commands)

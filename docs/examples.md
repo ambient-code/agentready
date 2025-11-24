@@ -53,7 +53,7 @@ AgentReady assesses itself to validate the scoring algorithm and demonstrate exp
 
 **Why it passes**: Comprehensive project documentation covering:
 
-- Tech stack (Python 3.11+, pytest, black, isort, ruff)
+- Tech stack (Python 3.12+, pytest, black, isort, ruff)
 - Repository structure (src/, tests/, docs/, examples/)
 - Standard commands (setup, test, lint, format)
 - Development workflow (GitHub Flow, feature branches)
