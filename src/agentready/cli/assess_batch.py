@@ -12,7 +12,7 @@ from ..models.config import Config
 from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
 from ..services.batch_scanner import BatchScanner
-from ..utils.security import validate_config_dict, validate_path
+from pydantic import ValidationError
 
 
 def _get_agentready_version() -> str:
@@ -29,67 +29,44 @@ def _get_agentready_version() -> str:
 
 
 def _load_config(config_path: Path) -> Config:
-    """Load configuration from YAML file with validation.
+    """Load configuration from YAML file with Pydantic validation.
 
-    Uses centralized security utilities from utils.security module.
+    Uses Pydantic for automatic validation, replacing duplicated manual
+    validation code with the Config.from_yaml_dict() classmethod.
+
+    Args:
+        config_path: Path to YAML configuration file
+
+    Returns:
+        Validated Config instance
+
+    Raises:
+        ValidationError: If YAML data doesn't match expected schema
+        FileNotFoundError: If config file doesn't exist
+        yaml.YAMLError: If YAML parsing fails
     """
+    import sys
+
     import yaml
 
-    with open(config_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
 
-    # Define config schema for validation
-    schema = {
-        "weights": {str: (int, float)},
-        "excluded_attributes": [str],
-        "language_overrides": {str: list},
-        "output_dir": str,
-        "report_theme": str,
-        "custom_theme": dict,
-    }
+        # Pydantic handles all validation automatically
+        return Config.from_yaml_dict(data)
+    except ValidationError as e:
+        # Convert Pydantic validation errors to user-friendly messages
+        errors = []
+        for error in e.errors():
+            field = " → ".join(str(x) for x in error["loc"])
+            msg = error["msg"]
+            errors.append(f"  - {field}: {msg}")
 
-    # Validate config structure using centralized utility
-    validated = validate_config_dict(data, schema)
-
-    # Additional nested validations for complex types
-    if "language_overrides" in validated:
-        for lang, patterns in validated["language_overrides"].items():
-            if not isinstance(patterns, list):
-                raise ValueError(
-                    f"'language_overrides' values must be lists, got {type(patterns).__name__}"
-                )
-            for pattern in patterns:
-                if not isinstance(pattern, str):
-                    raise ValueError(
-                        f"'language_overrides' patterns must be strings, got {type(pattern).__name__}"
-                    )
-
-    if "custom_theme" in validated:
-        for key, value in validated["custom_theme"].items():
-            if not isinstance(key, str):
-                raise ValueError(
-                    f"'custom_theme' keys must be strings, got {type(key).__name__}"
-                )
-            if not isinstance(value, str):
-                raise ValueError(
-                    f"'custom_theme' values must be strings, got {type(value).__name__}"
-                )
-
-    # Validate and sanitize output_dir path
-    output_dir = None
-    if "output_dir" in validated:
-        output_dir = validate_path(
-            validated["output_dir"], allow_system_dirs=False, must_exist=False
-        )
-
-    return Config(
-        weights=validated.get("weights", {}),
-        excluded_attributes=validated.get("excluded_attributes", []),
-        language_overrides=validated.get("language_overrides", {}),
-        output_dir=output_dir,
-        report_theme=validated.get("report_theme", "default"),
-        custom_theme=validated.get("custom_theme"),
-    )
+        click.echo("Configuration validation failed:", err=True)
+        for error in errors:
+            click.echo(error, err=True)
+        sys.exit(1)
 
 
 def _generate_multi_reports(batch_assessment, output_path: Path, verbose: bool) -> None:
