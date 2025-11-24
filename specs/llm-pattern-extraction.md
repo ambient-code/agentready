@@ -815,10 +815,10 @@ def run_full_workflow(
 
 ### Phase 3: CLI Enhancement
 
-**File**: `src/agentready/cli/learn.py` (modifications)
+**File**: `src/agentready/cli/extract_skills.py` (modifications)
 
 ```python
-# Add new options to learn command
+# Add new options to extract-skills command
 @click.option(
     "--enable-llm",
     is_flag=True,
@@ -835,7 +835,7 @@ def run_full_workflow(
     is_flag=True,
     help="Bypass LLM response cache (always call API)",
 )
-def learn(repository, output_format, output_dir, attribute, min_confidence, verbose, enable_llm, llm_budget, llm_no_cache):
+def extract_skills(repository, output_format, output_dir, attribute, min_confidence, verbose, enable_llm, llm_budget, llm_no_cache):
     """Extract reusable patterns and generate Claude Code skills.
 
     ... existing docstring ...
@@ -1056,7 +1056,7 @@ dependencies = [
 ## Success Criteria
 
 1. **LLM Integration Works**:
-   - `agentready learn . --enable-llm` successfully calls Claude API
+   - `agentready extract-skills . --enable-llm` successfully calls Claude API
    - Enriched skills have detailed instructions (5-10 steps)
    - Code examples include real file paths from repository
 
@@ -1092,10 +1092,10 @@ export ANTHROPIC_API_KEY=sk-ant-api03-...
 agentready assess .
 
 # Extract skills with LLM enrichment
-agentready learn . --enable-llm --llm-budget 5 --verbose
+agentready extract-skills . --enable-llm --llm-budget 5 --verbose
 
 # Expected output:
-# 🧠 AgentReady Learning Loop
+# 🧠 AgentReady Skill Extraction
 # ==================================================
 # Repository: /Users/jeder/repos/agentready
 # LLM enrichment: ENABLED (budget: 5 skills)
@@ -1118,7 +1118,7 @@ agentready learn . --enable-llm --llm-budget 5 --verbose
 - [ ] Create `src/agentready/services/llm_cache.py`
 - [ ] Create `src/agentready/learners/llm_enricher.py`
 - [ ] Modify `src/agentready/services/learning_service.py`
-- [ ] Modify `src/agentready/cli/learn.py`
+- [ ] Modify `src/agentready/cli/extract_skills.py`
 - [ ] Create `tests/unit/learners/test_llm_enricher.py`
 - [ ] Run linters (black, isort, ruff)
 - [ ] Test on AgentReady repository (dogfooding)

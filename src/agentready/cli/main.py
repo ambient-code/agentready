@@ -57,7 +57,7 @@ from .align import align
 from .assess_batch import assess_batch
 from .bootstrap import bootstrap
 from .demo import demo
-from .learn import learn
+from .extract_skills import extract_skills
 from .repomix import repomix_generate
 from .research import research
 from .schema import migrate_report, validate_report
@@ -493,7 +493,7 @@ cli.add_command(align)
 cli.add_command(assess_batch)
 cli.add_command(bootstrap)
 cli.add_command(demo)
-cli.add_command(learn)
+cli.add_command(extract_skills)
 cli.add_command(migrate_report)
 cli.add_command(repomix_generate)
 cli.add_command(research)

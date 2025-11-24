@@ -120,19 +120,19 @@ agentready assess-batch \
 
 **Feature**: Extract high-quality skills from assessments using Claude API
 
-The `learn` command analyzes assessment results to identify successful patterns and generates Claude Code skills. With `--enable-llm`, it uses Claude Sonnet 4.5 to create detailed, context-aware skill documentation.
+The `extract-skills` command analyzes assessment results to identify successful patterns and generates Claude Code skills. With `--enable-llm`, it uses Claude Sonnet 4.5 to create detailed, context-aware skill documentation.
 
 ### Basic Usage (Heuristic)
 
 ```bash
 # Extract skills using heuristic pattern extraction
-agentready learn .
+agentready extract-skills .
 
 # Generate SKILL.md files
-agentready learn . --output-format skill_md
+agentready extract-skills . --output-format skill_md
 
 # Create GitHub issue templates
-agentready learn . --output-format github_issues
+agentready extract-skills . --output-format github_issues
 ```
 
 ### LLM-Powered Enrichment
@@ -142,16 +142,16 @@ agentready learn . --output-format github_issues
 export ANTHROPIC_API_KEY=sk-ant-api03-...
 
 # Extract skills with LLM enrichment (top 5 skills)
-agentready learn . --enable-llm
+agentready extract-skills . --enable-llm
 
 # Enrich more skills with custom budget
-agentready learn . --enable-llm --llm-budget 10
+agentready extract-skills . --enable-llm --llm-budget 10
 
 # Bypass cache for fresh analysis
-agentready learn . --enable-llm --llm-no-cache
+agentready extract-skills . --enable-llm --llm-no-cache
 
 # Generate all formats with LLM enrichment
-agentready learn . --enable-llm --output-format all
+agentready extract-skills . --enable-llm --output-format all
 ```
 
 ### LLM Enrichment Features
