@@ -16,13 +16,19 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/PROJECT_NAME.git
-   cd PROJECT_NAME
+   git clone https://github.com/YOUR_USERNAME/agentready.git
+   cd agentready
    ```
 
 3. Set up your development environment:
 
-4. Install pre-commit hooks:
+4. Add the upstream remote (to sync with the original repository):
+   ```bash
+   git remote add upstream https://github.com/ambient-code/agentready.git
+   git fetch upstream
+   ```
+
+5. Install pre-commit hooks:
    ```bash
    pre-commit install
    ```
