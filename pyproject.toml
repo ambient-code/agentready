@@ -26,6 +26,9 @@ dependencies = [
     "jsonschema>=4.17.0",
     "requests>=2.31.0",
     "pydantic>=2.0.0",
+    "pandas>=2.0.0",
+    "plotly>=5.0.0",
+    "scipy>=1.10.0",
 ]
 
 [project.optional-dependencies]

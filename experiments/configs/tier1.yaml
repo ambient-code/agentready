@@ -1,0 +1,11 @@
+name: tier1-attrs
+description: "All Tier 1 attributes"
+agentready_changes:
+  align:
+    enabled: true
+    attributes:
+      - claude_md_file
+      - readme_structure
+      - type_annotations
+      - standard_layout
+      - lock_files

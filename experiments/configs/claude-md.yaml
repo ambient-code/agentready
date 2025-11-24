@@ -1,0 +1,7 @@
+name: claude-md
+description: "CLAUDE.md only (Tier 1 essential)"
+agentready_changes:
+  align:
+    enabled: true
+    attributes:
+      - claude_md_file

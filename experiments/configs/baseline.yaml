@@ -1,0 +1,4 @@
+name: baseline
+description: "No AgentReady changes (control)"
+agentready_changes:
+  enabled: false
