@@ -30,9 +30,8 @@ class JSONReporter(BaseReporter):
         Raises:
             IOError: If JSON cannot be written
         """
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Serialize to JSON string
+        json_content = json.dumps(assessment.to_dict(), indent=2, default=str)
 
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(assessment.to_dict(), f, indent=2, default=str)
-
-        return output_path
+        # Write to file using base class method
+        return self._write_file(json_content, output_path)

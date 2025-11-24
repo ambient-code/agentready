@@ -87,12 +87,8 @@ class HTMLReporter(BaseReporter):
         # Render template
         html_content = template.render(**template_data)
 
-        # Write to file
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        return output_path
+        # Write to file using base class method
+        return self._write_file(html_content, output_path)
 
     def _resolve_theme(self, config) -> Theme:
         """Resolve theme from config.

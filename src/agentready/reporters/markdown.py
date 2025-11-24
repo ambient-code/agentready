@@ -54,12 +54,8 @@ class MarkdownReporter(BaseReporter):
         # Combine all sections
         markdown_content = "\n\n".join(sections)
 
-        # Write to file
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(markdown_content)
-
-        return output_path
+        # Write to file using base class method
+        return self._write_file(markdown_content, output_path)
 
     def _generate_header(self, assessment: Assessment) -> str:
         """Generate report header with repository info and metadata."""
