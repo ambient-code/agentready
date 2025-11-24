@@ -34,32 +34,104 @@ class LockFilesAssessor(BaseAssessor):
         )
 
     def assess(self, repository: Repository) -> Finding:
-        lock_files = [
-            "package-lock.json",
-            "yarn.lock",
-            "pnpm-lock.yaml",
-            "poetry.lock",
-            "Pipfile.lock",
-            "requirements.txt",
-            "Cargo.lock",
-            "Gemfile.lock",
-            "go.sum",
-        ]
+        # Detect project type based on manifest files
+        has_package_json = (repository.path / "package.json").exists()
+        has_pyproject = (repository.path / "pyproject.toml").exists()
+        has_setup_py = (repository.path / "setup.py").exists()
+        has_cargo_toml = (repository.path / "Cargo.toml").exists()
+        has_gemfile = (repository.path / "Gemfile").exists()
+        has_go_mod = (repository.path / "go.mod").exists()
 
-        found = [f for f in lock_files if (repository.path / f).exists()]
+        # Check for lock files by language
+        lock_files_found = []
 
-        if found:
+        # Python lock files
+        python_locks = ["uv.lock", "poetry.lock", "Pipfile.lock", "pdm.lock"]
+        if has_pyproject or has_setup_py:
+            for lock in python_locks:
+                if (repository.path / lock).exists():
+                    lock_files_found.append(lock)
+
+        # Node.js lock files
+        node_locks = ["package-lock.json", "yarn.lock", "pnpm-lock.yaml"]
+        if has_package_json:
+            for lock in node_locks:
+                if (repository.path / lock).exists():
+                    lock_files_found.append(lock)
+
+        # Other language lock files
+        if has_cargo_toml and (repository.path / "Cargo.lock").exists():
+            lock_files_found.append("Cargo.lock")
+        if has_gemfile and (repository.path / "Gemfile.lock").exists():
+            lock_files_found.append("Gemfile.lock")
+        if has_go_mod and (repository.path / "go.sum").exists():
+            lock_files_found.append("go.sum")
+
+        # Determine if this is a library project (more lenient for libraries)
+        is_library = False
+        if has_pyproject:
+            try:
+                import tomllib
+                with open(repository.path / "pyproject.toml", "rb") as f:
+                    pyproject = tomllib.load(f)
+                    # Library if it has [project.scripts] or [tool.poetry.plugins]
+                    is_library = "scripts" in pyproject.get("project", {}) or \
+                                 "plugins" in pyproject.get("tool", {}).get("poetry", {})
+            except Exception:
+                pass
+
+        if lock_files_found:
             return Finding(
                 attribute=self.attribute,
                 status="pass",
                 score=100.0,
-                measured_value=", ".join(found),
+                measured_value=", ".join(lock_files_found),
                 threshold="at least one lock file",
-                evidence=[f"Found: {', '.join(found)}"],
+                evidence=[f"Found: {', '.join(lock_files_found)}"],
+                remediation=None,
+                error_message=None,
+            )
+        elif is_library and has_pyproject:
+            # Python libraries can be more lenient - pyproject.toml with version constraints is acceptable
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=100.0,
+                measured_value="pyproject.toml with version constraints",
+                threshold="lock file or pyproject.toml for libraries",
+                evidence=["Python library detected with pyproject.toml dependency management"],
                 remediation=None,
                 error_message=None,
             )
         else:
+            # Build language-specific remediation
+            remediation_steps = []
+            remediation_commands = []
+
+            if has_pyproject or has_setup_py:
+                remediation_steps.append("Generate a lock file using uv, poetry, or pipenv")
+                remediation_commands.extend([
+                    "uv lock  # Modern Python lock file",
+                    "poetry lock  # Poetry lock file",
+                    "pipenv lock  # Pipenv lock file"
+                ])
+            elif has_package_json:
+                remediation_steps.append("Generate lock file using npm, yarn, or pnpm")
+                remediation_commands.extend([
+                    "npm install  # Generates package-lock.json",
+                    "yarn install  # Generates yarn.lock",
+                    "pnpm install  # Generates pnpm-lock.yaml"
+                ])
+            elif has_cargo_toml:
+                remediation_steps.append("Cargo.lock should be auto-generated on build")
+                remediation_commands.append("cargo build")
+            elif has_go_mod:
+                remediation_steps.append("go.sum should be auto-generated")
+                remediation_commands.append("go mod tidy")
+            else:
+                remediation_steps.append("Add dependency lock file for your language/package manager")
+                remediation_commands.append("# Use your package manager's lock command")
+
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -69,11 +141,9 @@ class LockFilesAssessor(BaseAssessor):
                 evidence=["No lock files found"],
                 remediation=Remediation(
                     summary="Add lock file for dependency reproducibility",
-                    steps=[
-                        "Use npm install, poetry lock, or equivalent to generate lock file"
-                    ],
+                    steps=remediation_steps,
                     tools=[],
-                    commands=["npm install  # generates package-lock.json"],
+                    commands=remediation_commands,
                     examples=[],
                     citations=[],
                 ),
@@ -108,36 +178,116 @@ class ConventionalCommitsAssessor(BaseAssessor):
         )
 
     def assess(self, repository: Repository) -> Finding:
-        # Simplified: Check if commitlint or husky is configured
-        has_commitlint = (repository.path / ".commitlintrc.json").exists()
+        # Check for various conventional commit enforcement tools
+        evidence = []
+        configured = False
+
+        # Node.js tools
+        has_commitlint = (repository.path / ".commitlintrc.json").exists() or \
+                        (repository.path / "commitlint.config.js").exists() or \
+                        (repository.path / ".commitlintrc.js").exists()
         has_husky = (repository.path / ".husky").exists()
 
-        if has_commitlint or has_husky:
+        if has_commitlint:
+            evidence.append("Found commitlint configuration")
+            configured = True
+        if has_husky:
+            evidence.append("Found husky hooks")
+            configured = True
+
+        # Python pre-commit hooks
+        precommit_config = repository.path / ".pre-commit-config.yaml"
+        if precommit_config.exists():
+            try:
+                import yaml
+                with open(precommit_config, "r") as f:
+                    config = yaml.safe_load(f)
+                    if config and "repos" in config:
+                        for repo in config["repos"]:
+                            repo_url = repo.get("repo", "")
+                            # Check for conventional-pre-commit hook
+                            if "conventional-pre-commit" in repo_url:
+                                hooks = repo.get("hooks", [])
+                                for hook in hooks:
+                                    if hook.get("id") == "conventional-pre-commit":
+                                        evidence.append("Found conventional-pre-commit hook in .pre-commit-config.yaml")
+                                        configured = True
+                                        break
+            except Exception:
+                # If we can't parse the YAML, check for the string pattern
+                try:
+                    content = precommit_config.read_text()
+                    if "conventional-pre-commit" in content:
+                        evidence.append("Found conventional-pre-commit reference in .pre-commit-config.yaml")
+                        configured = True
+                except Exception:
+                    pass
+
+        if configured:
             return Finding(
                 attribute=self.attribute,
                 status="pass",
                 score=100.0,
                 measured_value="configured",
                 threshold="configured",
-                evidence=["Commit linting configured"],
+                evidence=evidence,
                 remediation=None,
                 error_message=None,
             )
         else:
+            # Detect project type for appropriate remediation
+            has_package_json = (repository.path / "package.json").exists()
+            has_pyproject = (repository.path / "pyproject.toml").exists()
+            has_setup_py = (repository.path / "setup.py").exists()
+
+            remediation_steps = []
+            remediation_tools = []
+            remediation_commands = []
+
+            if has_pyproject or has_setup_py:
+                # Python project - recommend pre-commit
+                remediation_steps.extend([
+                    "Install pre-commit",
+                    "Add conventional-pre-commit hook to .pre-commit-config.yaml"
+                ])
+                remediation_tools.append("pre-commit")
+                remediation_commands.extend([
+                    "pip install pre-commit",
+                    "# Add to .pre-commit-config.yaml:",
+                    "# - repo: https://github.com/compilerla/conventional-pre-commit",
+                    "#   rev: v3.0.0",
+                    "#   hooks:",
+                    "#     - id: conventional-pre-commit",
+                    "#       stages: [commit-msg]",
+                    "pre-commit install --hook-type commit-msg"
+                ])
+            elif has_package_json:
+                # Node.js project - recommend commitlint + husky
+                remediation_steps.extend([
+                    "Install commitlint and husky",
+                    "Configure husky for commit-msg hook"
+                ])
+                remediation_tools.extend(["commitlint", "husky"])
+                remediation_commands.append(
+                    "npm install --save-dev @commitlint/cli @commitlint/config-conventional husky"
+                )
+            else:
+                # Generic recommendation
+                remediation_steps.append("Configure conventional commit enforcement for your project type")
+                remediation_commands.append("# Use commitlint (Node.js) or pre-commit (Python)")
+
             return Finding(
                 attribute=self.attribute,
                 status="fail",
                 score=0.0,
                 measured_value="not configured",
                 threshold="configured",
-                evidence=["No commitlint or husky configuration"],
+                evidence=["No conventional commit enforcement detected"],
                 remediation=Remediation(
-                    summary="Configure conventional commits with commitlint",
-                    steps=["Install commitlint", "Configure husky for commit-msg hook"],
-                    tools=["commitlint", "husky"],
-                    commands=[
-                        "npm install --save-dev @commitlint/cli @commitlint/config-conventional husky"
-                    ],
+                    summary="Configure conventional commits enforcement",
+                    steps=remediation_steps,
+                    tools=remediation_tools,
+                    commands=remediation_commands,
                     examples=[],
                     citations=[],
                 ),
