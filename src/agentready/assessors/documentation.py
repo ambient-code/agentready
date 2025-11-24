@@ -1138,13 +1138,38 @@ class OpenAPISpecsAssessor(BaseAssessor):
             "swagger.json",
         ]
 
-        # Check for spec file
-        found_spec = None
+        # Recursively search for spec files
+        found_specs = []
+        excluded_dirs = {".git", "node_modules", ".venv", "venv", "__pycache__", ".pytest_cache"}
+        
         for spec_name in spec_files:
-            spec_path = repository.path / spec_name
-            if spec_path.exists():
-                found_spec = spec_path
-                break
+            try:
+                # Use rglob to search recursively
+                matches = list(repository.path.rglob(spec_name))
+                # Filter out files in excluded directories
+                matches = [
+                    m for m in matches
+                    if not any(part in m.parts for part in excluded_dirs)
+                ]
+                found_specs.extend(matches)
+            except OSError:
+                # If rglob fails, continue to next pattern
+                continue
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_specs = []
+        for spec in found_specs:
+            if spec not in seen:
+                seen.add(spec)
+                unique_specs.append(spec)
+
+        # Select the first found spec (prefer root-level if available, otherwise first found)
+        found_spec = None
+        if unique_specs:
+            # Prefer root-level specs, otherwise use first found
+            root_specs = [s for s in unique_specs if s.parent == repository.path]
+            found_spec = root_specs[0] if root_specs else unique_specs[0]
 
         if not found_spec:
             return Finding(
@@ -1155,7 +1180,7 @@ class OpenAPISpecsAssessor(BaseAssessor):
                 threshold="OpenAPI 3.x spec present",
                 evidence=[
                     "No OpenAPI specification found",
-                    f"Searched: {', '.join(spec_files)}",
+                    f"Searched recursively for: {', '.join(spec_files)}",
                 ],
                 remediation=self._create_remediation(),
                 error_message=None,
@@ -1172,9 +1197,10 @@ class OpenAPISpecsAssessor(BaseAssessor):
                 try:
                     spec_data = json.loads(content)
                 except json.JSONDecodeError as e:
+                    spec_relative_path = found_spec.relative_to(repository.path)
                     return Finding.error(
                         self.attribute,
-                        reason=f"Could not parse {found_spec.name}: {str(e)}",
+                        reason=f"Could not parse {spec_relative_path}: {str(e)}",
                     )
 
             # Extract version and check completeness
@@ -1208,7 +1234,15 @@ class OpenAPISpecsAssessor(BaseAssessor):
             status = "pass" if total_score >= 75 else "fail"
 
             # Build evidence
-            evidence = [f"{found_spec.name} found in repository"]
+            spec_relative_path = found_spec.relative_to(repository.path)
+            evidence = [f"{spec_relative_path} found in repository"]
+            
+            # Indicate if multiple OpenAPI files were found
+            if len(unique_specs) > 1:
+                other_specs = [s.relative_to(repository.path) for s in unique_specs if s != found_spec]
+                evidence.append(f"Additional OpenAPI files found: {', '.join(str(p) for p in other_specs[:3])}")
+                if len(other_specs) > 3:
+                    evidence.append(f"... and {len(other_specs) - 3} more")
 
             if openapi_version:
                 evidence.append(f"OpenAPI version: {openapi_version}")
@@ -1238,8 +1272,9 @@ class OpenAPISpecsAssessor(BaseAssessor):
             )
 
         except (OSError, UnicodeDecodeError) as e:
+            spec_relative_path = found_spec.relative_to(repository.path)
             return Finding.error(
-                self.attribute, reason=f"Could not read {found_spec.name}: {str(e)}"
+                self.attribute, reason=f"Could not read {spec_relative_path}: {str(e)}"
             )
 
     def _create_remediation(self) -> Remediation:
