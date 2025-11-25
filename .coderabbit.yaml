@@ -1,0 +1,240 @@
+# CodeRabbit Configuration for AgentReady
+# Goal: Extremely high signal-to-noise ratio for AI code reviews
+# Last Updated: 2025-11-25
+
+# Language and tone settings
+language: en-US
+early_access: false
+enable_free_tier: true
+
+# Review behavior - optimized for signal
+reviews:
+  # Use "chill" profile to reduce noise
+  profile: "chill"
+
+  # Request changes only for critical issues
+  request_changes_workflow: true
+
+  # High-level overview without verbose walkthrough
+  high_level_summary: true
+  high_level_summary_placeholder: "<!-- CODERABBIT SUMMARY -->"
+
+  # Disable poem (pure noise)
+  poem: false
+
+  # Collapse walkthrough to reduce visual clutter
+  collapse_walkthrough: true
+
+  # Review status at top of PR for quick scanning
+  review_status: true
+
+  # Auto-review configuration
+  auto_review:
+    enabled: true
+    drafts: false  # Don't waste cycles on WIP
+    base_branches:
+      - main
+
+  # Tools configuration - only high-signal checks
+  tools:
+    # Linting tools (we already run these locally, skip duplicates)
+    ruff:
+      enabled: false  # We run ruff locally before push
+    black:
+      enabled: false  # We run black locally before push
+    isort:
+      enabled: false  # We run isort locally before push
+
+    # GitHub Actions analysis (useful for CI/CD changes)
+    actionlint:
+      enabled: true
+
+    # Shellcheck for bash scripts
+    shellcheck:
+      enabled: true
+
+    # Markdownlint (we run locally but good backup)
+    markdownlint:
+      enabled: true
+
+    # Gitleaks for secret detection (high signal)
+    gitleaks:
+      enabled: true
+
+    # Biome (JavaScript/TypeScript - not applicable but harmless)
+    biome:
+      enabled: false
+
+    # Hadolint for Dockerfiles (future use)
+    hadolint:
+      enabled: true
+
+  # What to focus on (HIGH SIGNAL ONLY)
+  focus:
+    - security_vulnerabilities      # Critical: SQL injection, XSS, etc.
+    - bug_risks                     # High: Logic errors, race conditions
+    - error_handling                # High: Uncaught exceptions, poor error messages
+    - breaking_changes              # High: API compatibility
+    - performance_issues            # Medium: Only significant issues (O(n²) → O(n))
+    - test_coverage_gaps            # Medium: Missing critical test cases
+    - documentation_gaps            # Low: Only for public APIs and complex logic
+
+  # What to ignore (NOISE REDUCTION)
+  ignore:
+    - style_preferences             # Handled by black/isort/ruff locally
+    - naming_conventions            # Handled by ruff locally
+    - line_length                   # We explicitly don't enforce this
+    - minor_refactoring_suggestions # Only suggest if major impact
+    - subjective_improvements       # "This could be cleaner" noise
+    - trivial_optimizations         # Micro-optimizations with no real impact
+
+  # Severity thresholds - only comment on important issues
+  severity_threshold: "medium"  # Skip "low" severity comments
+
+  # Path-based rules
+  path_instructions:
+    # Core library code - highest scrutiny
+    - path: "src/agentready/assessors/**"
+      instructions: |
+        - Verify BaseAssessor pattern compliance
+        - Check for proper error handling (return skipped/error, don't crash)
+        - Ensure proportional scoring using calculate_proportional_score()
+        - Validate attribute_id matches research report
+        - Check for graceful degradation when tools missing
+
+    - path: "src/agentready/models/**"
+      instructions: |
+        - Check for breaking changes to data models
+        - Verify backwards compatibility
+        - Ensure schema version bumps when needed
+
+    - path: "src/agentready/services/**"
+      instructions: |
+        - Check for proper error handling
+        - Verify performance implications (file I/O, subprocess calls)
+        - Look for security issues (path traversal, command injection)
+
+    # Tests - focus on coverage and correctness
+    - path: "tests/**"
+      instructions: |
+        - Verify test actually tests the intended behavior
+        - Check for missing edge cases
+        - Flag overly brittle tests (mocking too much)
+        - Skip style comments entirely
+
+    # CLI - focus on UX and error messages
+    - path: "src/agentready/cli/**"
+      instructions: |
+        - Check for clear error messages
+        - Verify help text is accurate
+        - Look for missing error handling for user input
+
+    # GitHub workflows - focus on security and correctness
+    - path: ".github/workflows/**"
+      instructions: |
+        - Check for secret exposure risks
+        - Verify proper permissions (least privilege)
+        - Flag outdated action versions (security)
+
+    # Documentation - only flag critical issues
+    - path: "**/*.md"
+      instructions: |
+        - Only comment on factual errors or broken links
+        - Skip formatting/style suggestions
+        - Flag outdated information (version mismatches, wrong commands)
+
+    # Scripts - focus on security and robustness
+    - path: "scripts/**"
+      instructions: |
+        - Check for command injection vulnerabilities
+        - Verify error handling for subprocess calls
+        - Flag missing input validation
+
+# Path filters - completely skip reviewing these
+path_filters:
+  # Build artifacts and caches
+  - "!**/*.pyc"
+  - "!**/__pycache__/**"
+  - "!.venv/**"
+  - "!venv/**"
+  - "!htmlcov/**"
+  - "!.pytest_cache/**"
+  - "!.ruff_cache/**"
+  - "!*.egg-info/**"
+  - "!build/**"
+  - "!dist/**"
+
+  # Generated reports and data
+  - "!.agentready/**"
+  - "!.cache/**"
+  - "!*.log"
+  - "!*.tmp"
+
+  # Lock files (dependency updates are separate concern)
+  - "!uv.lock"
+  - "!poetry.lock"
+  - "!package-lock.json"
+
+  # Example outputs (reference only, not production code)
+  - "!examples/**/*.json"
+  - "!examples/**/*.html"
+  - "!examples/**/*.md"
+
+# Custom instructions - AgentReady-specific context
+chat:
+  auto_reply: true
+
+# Knowledge base - teach CodeRabbit about AgentReady patterns
+knowledge_base:
+  - |
+    AgentReady is a tool that assesses repositories against 25 agent-ready best practices.
+    The research report (agent-ready-codebase-attributes.md) defines these attributes.
+    All assessors must inherit from BaseAssessor and implement attribute_id property and assess() method.
+
+  - |
+    We intentionally don't enforce line length limits (E501 ignored in ruff).
+    We use black for formatting with default settings.
+    We prefer explicit over clever, simple over complex.
+
+  - |
+    Error handling philosophy: Assessors should return Finding.create_skipped() when tools are missing,
+    not crash. Fail gracefully and provide actionable remediation guidance.
+
+  - |
+    This project follows conventional commits (feat:, fix:, chore:, docs:, test:, refactor:).
+    All commits should be squashed before merge.
+    All commits must be signed with git signature.
+
+  - |
+    Testing philosophy: We aim for >80% coverage on new code.
+    Tests should focus on behavior, not implementation details.
+    Mock external dependencies, but don't over-mock internal functions.
+
+  - |
+    Documentation: CLAUDE.md is the source of truth for development.
+    README.md is user-facing. Keep them in sync.
+    All new features must update CLAUDE.md before merging.
+
+# Review thresholds - only create review comments for actionable items
+review:
+  # Minimum confidence to comment (0.0 - 1.0)
+  # Higher = fewer but more accurate comments
+  confidence_threshold: 0.75
+
+  # Require at least this many similar patterns before suggesting refactoring
+  pattern_threshold: 3
+
+  # Only suggest performance improvements if >10% impact
+  performance_improvement_threshold: 0.10
+
+# Tone and style - professional and concise
+tone_instructions: |
+  - Be direct and concise - no fluff or pleasantries
+  - Focus on "why" not just "what" (explain the impact)
+  - Provide specific examples and code suggestions
+  - Link to documentation when relevant
+  - Don't repeat what the developer already knows
+  - Skip comments on anything already handled by automated tools
+  - Use "Consider" for suggestions, "This will" for bugs/issues
+  - No emoji, no enthusiasm, just facts
+  - If you're not 75%+ confident, don't comment
