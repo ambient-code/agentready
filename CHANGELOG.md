@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/ambient-code/agentready/compare/v2.7.1...v2.8.0) (2025-11-25)
+
+
+### Features
+
+* **assessors:** implement File Size Limits assessor (Tier 2) ([#141](https://github.com/ambient-code/agentready/issues/141)) ([248467f](https://github.com/ambient-code/agentready/commit/248467f56ad38a263f2615904f9fe35a34ace251))
+
 ## [2.7.1](https://github.com/ambient-code/agentready/compare/v2.7.0...v2.7.1) (2025-11-24)
 
 
