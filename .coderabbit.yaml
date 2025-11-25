@@ -4,13 +4,13 @@
 
 # Language and tone settings
 language: en-US
-early_access: false
+early_access: true # sure, why not
 enable_free_tier: true
 
 # Review behavior - optimized for signal
 reviews:
   # Use "chill" profile to reduce noise
-  profile: "chill"
+  profile: "chill" # assertive is part of the paid plan. It's more verbose anyway. At least I can give it tone_instructions (bottom of this file)
 
   # Request changes only for critical issues
   request_changes_workflow: true
@@ -37,13 +37,6 @@ reviews:
 
   # Tools configuration - only high-signal checks
   tools:
-    # Linting tools (we already run these locally, skip duplicates)
-    ruff:
-      enabled: false  # We run ruff locally before push
-    black:
-      enabled: false  # We run black locally before push
-    isort:
-      enabled: false  # We run isort locally before push
 
     # GitHub Actions analysis (useful for CI/CD changes)
     actionlint:
@@ -63,13 +56,13 @@ reviews:
 
     # Biome (JavaScript/TypeScript - not applicable but harmless)
     biome:
-      enabled: false
+      enabled: true
 
     # Hadolint for Dockerfiles (future use)
     hadolint:
       enabled: true
 
-  # What to focus on (HIGH SIGNAL ONLY)
+  # What to focus on (HIGH SIGNAL ONLY) - can tweak as we go
   focus:
     - security_vulnerabilities      # Critical: SQL injection, XSS, etc.
     - bug_risks                     # High: Logic errors, race conditions
@@ -78,18 +71,15 @@ reviews:
     - performance_issues            # Medium: Only significant issues (O(n²) → O(n))
     - test_coverage_gaps            # Medium: Missing critical test cases
     - documentation_gaps            # Low: Only for public APIs and complex logic
+    - style_preferences             # Handled by black/isort/ruff locally
+    - naming_conventions            # Handled by ruff locally 
 
   # What to ignore (NOISE REDUCTION)
   ignore:
-    - style_preferences             # Handled by black/isort/ruff locally
-    - naming_conventions            # Handled by ruff locally
     - line_length                   # We explicitly don't enforce this
     - minor_refactoring_suggestions # Only suggest if major impact
     - subjective_improvements       # "This could be cleaner" noise
     - trivial_optimizations         # Micro-optimizations with no real impact
-
-  # Severity thresholds - only comment on important issues
-  severity_threshold: "medium"  # Skip "low" severity comments
 
   # Path-based rules
   path_instructions:
@@ -187,8 +177,8 @@ chat:
 # Knowledge base - teach CodeRabbit about AgentReady patterns
 knowledge_base:
   - |
-    AgentReady is a tool that assesses repositories against 25 agent-ready best practices.
-    The research report (agent-ready-codebase-attributes.md) defines these attributes.
+    AgentReady is a tool that assesses repositories against agent-ready best practices.
+    The research report (agent-ready-codebase-attributes.md - a living document) defines these attributes.
     All assessors must inherit from BaseAssessor and implement attribute_id property and assess() method.
 
   - |
@@ -206,7 +196,7 @@ knowledge_base:
     All commits must be signed with git signature.
 
   - |
-    Testing philosophy: We aim for >80% coverage on new code.
+    Testing philosophy: We aim for >90% coverage on new code.
     Tests should focus on behavior, not implementation details.
     Mock external dependencies, but don't over-mock internal functions.
 
@@ -238,3 +228,4 @@ tone_instructions: |
   - Use "Consider" for suggestions, "This will" for bugs/issues
   - No emoji, no enthusiasm, just facts
   - If you're not 75%+ confident, don't comment
+  - Your name is Bugs Bunny and you speak in the 3rd person
