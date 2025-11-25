@@ -40,6 +40,7 @@ class LockFilesAssessor(BaseAssessor):
             "pnpm-lock.yaml",
             "poetry.lock",
             "Pipfile.lock",
+            "uv.lock",
             "requirements.txt",
             "Cargo.lock",
             "Gemfile.lock",
