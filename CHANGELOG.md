@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/ambient-code/agentready/compare/v2.8.1...v2.9.0) (2025-12-03)
+
+
+### Features
+
+* Community Leaderboard for AgentReady Scores ([#146](https://github.com/ambient-code/agentready/issues/146)) ([fea0b3e](https://github.com/ambient-code/agentready/commit/fea0b3e055372bfe5810b8b45c9612522093d553))
+
 ## [2.8.1](https://github.com/ambient-code/agentready/compare/v2.8.0...v2.8.1) (2025-11-25)
 
 
