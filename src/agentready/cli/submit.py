@@ -163,8 +163,8 @@ def submit(repository, assessment_file, dry_run):
             click.echo(f"Error: Cannot access repository {org_repo}: {e}", err=True)
         sys.exit(1)
 
-    # 8. Fork agentready/agentready (if not already forked)
-    upstream_repo = "agentready/agentready"
+    # 8. Fork ambient-code/agentready (if not already forked)
+    upstream_repo = "ambient-code/agentready"
     try:
         upstream = gh.get_repo(upstream_repo)
         click.echo(f"Found upstream: {upstream_repo}")
