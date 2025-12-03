@@ -35,11 +35,9 @@ jobs:
           if [ -n "$(git status --porcelain docs/_data/leaderboard.json)" ]; then
             git add docs/_data/leaderboard.json
 
-            # Use static commit message (no user input)
             TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-            git commit -m "chore: update leaderboard data [skip ci]
-
-Generated from submissions/ directory at $TIMESTAMP"
+            git commit -m "chore: update leaderboard data [skip ci]" \
+                       -m "Generated from submissions/ directory at $TIMESTAMP"
             git push
           else
             echo "No changes to leaderboard data"
