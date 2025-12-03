@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/ambient-code/agentready/compare/v2.10.0...v2.10.1) (2025-12-03)
+
+
+### Bug Fixes
+
+* leaderboard workflow and SSH URL support ([#147](https://github.com/ambient-code/agentready/issues/147)) ([de28cd0](https://github.com/ambient-code/agentready/commit/de28cd0a6037a0951ba370aa73832553c088cfb8))
+
 # [2.10.0](https://github.com/ambient-code/agentready/compare/v2.9.0...v2.10.0) (2025-12-03)
 
 
