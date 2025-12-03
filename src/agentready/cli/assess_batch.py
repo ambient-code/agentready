@@ -439,12 +439,12 @@ def assess_batch(
         )
 
         if verbose:
-            click.echo(f"\nGenerating heatmap visualization...")
+            click.echo("\nGenerating heatmap visualization...")
 
         try:
             analyzer = AttributeAnalyzer()
             analyzer.analyze_batch(batch_assessment, heatmap_path)
-            click.echo(f"  ✓ heatmap.html")
+            click.echo("  ✓ heatmap.html")
         except Exception as e:
             click.echo(f"⚠ Warning: Failed to generate heatmap: {e}", err=True)
             if verbose:

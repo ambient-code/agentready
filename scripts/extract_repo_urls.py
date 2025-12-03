@@ -34,7 +34,7 @@ def main():
             f.write(f"{url}\n")
 
     print(f"✅ Wrote {len(urls)} repository URLs to {output_file}")
-    print(f"\nUsage:")
+    print("\nUsage:")
     print(
         f"  agentready assess-batch --repos-file {output_file} --cache-dir ~/repos/cache/github-org --generate-heatmap"
     )

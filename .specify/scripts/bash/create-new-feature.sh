@@ -10,8 +10,8 @@ i=1
 while [ $i -le $# ]; do
     arg="${!i}"
     case "$arg" in
-        --json) 
-            JSON_MODE=true 
+        --json)
+            JSON_MODE=true
             ;;
         --short-name)
             if [ $((i + 1)) -gt $# ]; then
@@ -40,7 +40,7 @@ while [ $i -le $# ]; do
             fi
             BRANCH_NUMBER="$next_arg"
             ;;
-        --help|-h) 
+        --help|-h)
             echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>"
             echo ""
             echo "Options:"
@@ -54,8 +54,8 @@ while [ $i -le $# ]; do
             echo "  $0 'Implement OAuth2 integration for API' --number 5"
             exit 0
             ;;
-        *) 
-            ARGS+=("$arg") 
+        *)
+            ARGS+=("$arg")
             ;;
     esac
     i=$((i + 1))
@@ -84,7 +84,7 @@ find_repo_root() {
 get_highest_from_specs() {
     local specs_dir="$1"
     local highest=0
-    
+
     if [ -d "$specs_dir" ]; then
         for dir in "$specs_dir"/*; do
             [ -d "$dir" ] || continue
@@ -96,22 +96,22 @@ get_highest_from_specs() {
             fi
         done
     fi
-    
+
     echo "$highest"
 }
 
 # Function to get highest number from git branches
 get_highest_from_branches() {
     local highest=0
-    
+
     # Get all branches (local and remote)
     branches=$(git branch -a 2>/dev/null || echo "")
-    
+
     if [ -n "$branches" ]; then
         while IFS= read -r branch; do
             # Clean branch name: remove leading markers and remote prefixes
             clean_branch=$(echo "$branch" | sed 's/^[* ]*//; s|^remotes/[^/]*/||')
-            
+
             # Extract feature number if branch matches pattern ###-*
             if echo "$clean_branch" | grep -q '^[0-9]\{3\}-'; then
                 number=$(echo "$clean_branch" | grep -o '^[0-9]\{3\}' || echo "0")
@@ -122,7 +122,7 @@ get_highest_from_branches() {
             fi
         done <<< "$branches"
     fi
-    
+
     echo "$highest"
 }
 
@@ -130,22 +130,22 @@ get_highest_from_branches() {
 check_existing_branches() {
     local short_name="$1"
     local specs_dir="$2"
-    
+
     # Fetch all remotes to get latest branch info (suppress errors if no remotes)
     git fetch --all --prune 2>/dev/null || true
-    
+
     # Find all branches matching the pattern using git ls-remote (more reliable)
     local remote_branches=$(git ls-remote --heads origin 2>/dev/null | grep -E "refs/heads/[0-9]+-${short_name}$" | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n)
-    
+
     # Also check local branches
     local local_branches=$(git branch 2>/dev/null | grep -E "^[* ]*[0-9]+-${short_name}$" | sed 's/^[* ]*//' | sed 's/-.*//' | sort -n)
-    
+
     # Check specs directory as well
     local spec_dirs=""
     if [ -d "$specs_dir" ]; then
         spec_dirs=$(find "$specs_dir" -maxdepth 1 -type d -name "[0-9]*-${short_name}" 2>/dev/null | xargs -n1 basename 2>/dev/null | sed 's/-.*//' | sort -n)
     fi
-    
+
     # Combine all sources and get the highest number
     local max_num=0
     for num in $remote_branches $local_branches $spec_dirs; do
@@ -153,7 +153,7 @@ check_existing_branches() {
             max_num=$num
         fi
     done
-    
+
     # Return next number
     echo $((max_num + 1))
 }
@@ -189,19 +189,19 @@ mkdir -p "$SPECS_DIR"
 # Function to generate branch name with stop word filtering and length filtering
 generate_branch_name() {
     local description="$1"
-    
+
     # Common stop words to filter out
     local stop_words="^(i|a|an|the|to|for|of|in|on|at|by|with|from|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|should|could|can|may|might|must|shall|this|that|these|those|my|your|our|their|want|need|add|get|set)$"
-    
+
     # Convert to lowercase and split into words
     local clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/ /g')
-    
+
     # Filter words: remove stop words and words shorter than 3 chars (unless they're uppercase acronyms in original)
     local meaningful_words=()
     for word in $clean_name; do
         # Skip empty words
         [ -z "$word" ] && continue
-        
+
         # Keep words that are NOT stop words AND (length >= 3 OR are potential acronyms)
         if ! echo "$word" | grep -qiE "$stop_words"; then
             if [ ${#word} -ge 3 ]; then
@@ -212,12 +212,12 @@ generate_branch_name() {
             fi
         fi
     done
-    
+
     # If we have meaningful words, use first 3-4 of them
     if [ ${#meaningful_words[@]} -gt 0 ]; then
         local max_words=3
         if [ ${#meaningful_words[@]} -eq 4 ]; then max_words=4; fi
-        
+
         local result=""
         local count=0
         for word in "${meaningful_words[@]}"; do
@@ -265,15 +265,15 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     # Calculate how much we need to trim from suffix
     # Account for: feature number (3) + hyphen (1) = 4 chars
     MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - 4))
-    
+
     # Truncate suffix at word boundary if possible
     TRUNCATED_SUFFIX=$(echo "$BRANCH_SUFFIX" | cut -c1-$MAX_SUFFIX_LENGTH)
     # Remove trailing hyphen if truncation created one
     TRUNCATED_SUFFIX=$(echo "$TRUNCATED_SUFFIX" | sed 's/-$//')
-    
+
     ORIGINAL_BRANCH_NAME="$BRANCH_NAME"
     BRANCH_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
-    
+
     >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
     >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"

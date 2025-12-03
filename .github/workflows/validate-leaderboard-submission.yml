@@ -180,30 +180,24 @@ jobs:
               }
             }
 
-            const body = `## Validation Results
+            const checkMark = parseFloat(diff) <= 2.0 ? '✅' : '❌';
+            const finalMessage = status.includes('PASSED') ? '**This submission is ready for merge!**' : '**Please review the workflow logs for error details.**';
 
-${status} - ${message}
-
-### Scores
-
-- **Claimed**: ${claimed}/100
-- **Verified**: ${actual}/100
-- **Difference**: ${diff} points
-- **Tolerance**: ±2 points
-
-### Checks
-
-- ✅ JSON schema valid
-- ✅ Repository is public
-- ✅ Submitter has commit access
-- ${parseFloat(diff) <= 2.0 ? '✅' : '❌'} Score verification passed
-
-${status.includes('PASSED') ? '**This submission is ready for merge!**' : '**Please review the workflow logs for error details.**'}
-
----
-
-*Automated validation by [AgentReady Leaderboard](https://github.com/agentready/agentready)*
-            `;
+            const body = '## Validation Results\n\n' +
+              status + ' - ' + message + '\n\n' +
+              '### Scores\n\n' +
+              '- **Claimed**: ' + claimed + '/100\n' +
+              '- **Verified**: ' + actual + '/100\n' +
+              '- **Difference**: ' + diff + ' points\n' +
+              '- **Tolerance**: ±2 points\n\n' +
+              '### Checks\n\n' +
+              '- ✅ JSON schema valid\n' +
+              '- ✅ Repository is public\n' +
+              '- ✅ Submitter has commit access\n' +
+              '- ' + checkMark + ' Score verification passed\n\n' +
+              finalMessage + '\n\n' +
+              '---\n\n' +
+              '*Automated validation by [AgentReady Leaderboard](https://github.com/agentready/agentready)*';
 
             github.rest.issues.createComment({
               owner: context.repo.owner,

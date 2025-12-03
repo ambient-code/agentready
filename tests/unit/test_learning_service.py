@@ -7,9 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from agentready.models import (
-    DiscoveredSkill,
-)
+from agentready.models import DiscoveredSkill
 from agentready.services.learning_service import LearningService
 
 

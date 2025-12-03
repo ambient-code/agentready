@@ -1140,15 +1140,23 @@ class OpenAPISpecsAssessor(BaseAssessor):
 
         # Recursively search for spec files
         found_specs = []
-        excluded_dirs = {".git", "node_modules", ".venv", "venv", "__pycache__", ".pytest_cache"}
-        
+        excluded_dirs = {
+            ".git",
+            "node_modules",
+            ".venv",
+            "venv",
+            "__pycache__",
+            ".pytest_cache",
+        }
+
         for spec_name in spec_files:
             try:
                 # Use rglob to search recursively
                 matches = list(repository.path.rglob(spec_name))
                 # Filter out files in excluded directories
                 matches = [
-                    m for m in matches
+                    m
+                    for m in matches
                     if not any(part in m.parts for part in excluded_dirs)
                 ]
                 found_specs.extend(matches)
@@ -1236,11 +1244,17 @@ class OpenAPISpecsAssessor(BaseAssessor):
             # Build evidence
             spec_relative_path = found_spec.relative_to(repository.path)
             evidence = [f"{spec_relative_path} found in repository"]
-            
+
             # Indicate if multiple OpenAPI files were found
             if len(unique_specs) > 1:
-                other_specs = [s.relative_to(repository.path) for s in unique_specs if s != found_spec]
-                evidence.append(f"Additional OpenAPI files found: {', '.join(str(p) for p in other_specs[:3])}")
+                other_specs = [
+                    s.relative_to(repository.path)
+                    for s in unique_specs
+                    if s != found_spec
+                ]
+                evidence.append(
+                    f"Additional OpenAPI files found: {', '.join(str(p) for p in other_specs[:3])}"
+                )
                 if len(other_specs) > 3:
                     evidence.append(f"... and {len(other_specs) - 3} more")
 

@@ -259,12 +259,25 @@ class FileSizeLimitsAssessor(BaseAssessor):
         total_files = 0
 
         # Check common source file extensions
-        extensions = {".py", ".js", ".ts", ".jsx", ".tsx", ".go", ".java", ".rb", ".rs", ".cpp", ".c", ".h"}
+        extensions = {
+            ".py",
+            ".js",
+            ".ts",
+            ".jsx",
+            ".tsx",
+            ".go",
+            ".java",
+            ".rb",
+            ".rs",
+            ".cpp",
+            ".c",
+            ".h",
+        }
 
         for ext in extensions:
             pattern = f"**/*{ext}"
             try:
-                from pathlib import Path
+
                 for file_path in repository.path.glob(pattern):
                     if file_path.is_file():
                         try:
@@ -273,9 +286,13 @@ class FileSizeLimitsAssessor(BaseAssessor):
                                 total_files += 1
 
                                 if lines > 1000:
-                                    huge_files.append((file_path.relative_to(repository.path), lines))
+                                    huge_files.append(
+                                        (file_path.relative_to(repository.path), lines)
+                                    )
                                 elif lines > 500:
-                                    large_files.append((file_path.relative_to(repository.path), lines))
+                                    large_files.append(
+                                        (file_path.relative_to(repository.path), lines)
+                                    )
                         except (OSError, UnicodeDecodeError):
                             # Skip files we can't read
                             pass
@@ -429,7 +446,7 @@ def create_stub_assessors():
             "Issue & Pull Request Templates",
             "Git & Version Control",
             4,
-            0.01
+            0.01,
         ),
         StubAssessor(
             "container_setup",

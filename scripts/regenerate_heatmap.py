@@ -8,7 +8,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from agentready.services.attribute_analyzer import AttributeAnalyzer
+from agentready.services.attribute_analyzer import AttributeAnalyzer  # noqa: E402
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
     analyzer = AttributeAnalyzer()
     analyzer.analyze_batch_from_json(batch_data, output_file)
 
-    print(f"\n✓ Heatmap regenerated successfully!")
+    print("\n✓ Heatmap regenerated successfully!")
     print(f"  File: {output_file}")
     print(f"  Size: {output_file.stat().st_size / 1024 / 1024:.1f} MB")
 
