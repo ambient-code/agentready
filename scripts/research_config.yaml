@@ -1,0 +1,41 @@
+# Research Update Configuration
+# Controls weekly automated updates to agent-ready-codebase-attributes.md
+
+update_settings:
+  # Maximum number of attribute updates per weekly run
+  # Keeps PRs reviewable and focused
+  max_updates_per_run: 5
+
+  # Minimum Claude-rated relevance score (0.0-1.0)
+  # Higher = more selective about what gets included
+  min_citation_quality_score: 0.7
+
+  # Only include research from last N months
+  search_recency_months: 12
+
+# Tier 1 attributes get priority in updates
+# These are processed first before other attributes
+priority_attributes:
+  - "1.1"  # CLAUDE.md Configuration Files
+  - "2.1"  # README Structure
+  - "3.3"  # Type Annotations (Static Typing)
+  - "5.1"  # Test Coverage Requirements
+  - "7.1"  # Conventional Commit Messages
+
+# Search domain preferences
+search_domains:
+  # Prioritized sources (high authority)
+  prioritized:
+    - anthropic.com
+    - microsoft.com/research
+    - research.google
+    - arxiv.org
+    - dl.acm.org
+    - openai.com/research
+    - github.blog
+    - martinfowler.com
+    - thoughtworks.com
+
+  # Blocked domains (low quality, spam)
+  blocked:
+    - example-spam-site.com
