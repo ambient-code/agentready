@@ -1,8 +1,90 @@
 {
-  "generated_at": "2025-12-03T00:00:00Z",
-  "total_repositories": 0,
-  "overall": [],
-  "by_language": {},
-  "by_size": {},
+  "generated_at": "2025-12-03T23:03:27.289632Z",
+  "total_repositories": 1,
+  "overall": [
+    {
+      "repo": "ambient-code/agentready",
+      "org": "ambient-code",
+      "name": "agentready",
+      "score": 78.6,
+      "tier": "Gold",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2025-12-03",
+      "url": "git@github.com:ambient-code/agentready.git",
+      "agentready_version": "2.9.0",
+      "research_version": "1.0.0",
+      "history": [
+        {
+          "date": "2025-12-03",
+          "score": 78.6,
+          "agentready_version": "2.9.0",
+          "research_version": "1.0.0"
+        }
+      ],
+      "rank": 1,
+      "lang_rank": {
+        "Unknown": 1
+      }
+    }
+  ],
+  "by_language": {
+    "Unknown": [
+      {
+        "repo": "ambient-code/agentready",
+        "org": "ambient-code",
+        "name": "agentready",
+        "score": 78.6,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2025-12-03",
+        "url": "git@github.com:ambient-code/agentready.git",
+        "agentready_version": "2.9.0",
+        "research_version": "1.0.0",
+        "history": [
+          {
+            "date": "2025-12-03",
+            "score": 78.6,
+            "agentready_version": "2.9.0",
+            "research_version": "1.0.0"
+          }
+        ],
+        "rank": 1,
+        "lang_rank": {
+          "Unknown": 1
+        }
+      }
+    ]
+  },
+  "by_size": {
+    "Unknown": [
+      {
+        "repo": "ambient-code/agentready",
+        "org": "ambient-code",
+        "name": "agentready",
+        "score": 78.6,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2025-12-03",
+        "url": "git@github.com:ambient-code/agentready.git",
+        "agentready_version": "2.9.0",
+        "research_version": "1.0.0",
+        "history": [
+          {
+            "date": "2025-12-03",
+            "score": 78.6,
+            "agentready_version": "2.9.0",
+            "research_version": "1.0.0"
+          }
+        ],
+        "rank": 1,
+        "lang_rank": {
+          "Unknown": 1
+        }
+      }
+    ]
+  },
   "most_improved": []
 }
