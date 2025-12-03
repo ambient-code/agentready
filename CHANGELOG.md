@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/ambient-code/agentready/compare/v2.10.1...v2.11.0) (2025-12-03)
+
+
+### Features
+
+* Add weekly research update skill and automation ([#145](https://github.com/ambient-code/agentready/issues/145)) ([7ba17a6](https://github.com/ambient-code/agentready/commit/7ba17a6b045251cbc9f26b5c2f4a0ec31d89dd11))
+
 ## [2.10.1](https://github.com/ambient-code/agentready/compare/v2.10.0...v2.10.1) (2025-12-03)
 
 
