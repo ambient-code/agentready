@@ -24,6 +24,7 @@ from ..utils.subprocess_utils import safe_subprocess_run
 from .align import align
 from .assess_batch import assess_batch
 from .bootstrap import bootstrap
+from .config import config
 from .demo import demo
 from .experiment import experiment
 from .extract_skills import extract_skills
@@ -341,6 +342,7 @@ def generate_config():
 cli.add_command(align)
 cli.add_command(assess_batch)
 cli.add_command(bootstrap)
+cli.add_command(config)
 cli.add_command(demo)
 cli.add_command(experiment)
 cli.add_command(extract_skills)
