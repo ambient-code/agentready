@@ -1,0 +1,213 @@
+name: Validate Leaderboard Submission
+
+on:
+  pull_request:
+    paths:
+      - 'submissions/**/*-assessment.json'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv venv
+          source .venv/bin/activate
+          uv pip install -e .
+
+      - name: Extract submission details
+        id: extract
+        run: |
+          # Find changed JSON file
+          CHANGED_FILE=$(git diff --name-only origin/main...HEAD | grep 'submissions/.*-assessment.json' | head -1)
+
+          if [ -z "$CHANGED_FILE" ]; then
+            echo "No assessment file found in diff"
+            exit 1
+          fi
+
+          echo "file=$CHANGED_FILE" >> $GITHUB_OUTPUT
+
+          # Parse JSON
+          REPO_URL=$(jq -r '.repository.url' "$CHANGED_FILE")
+          CLAIMED_SCORE=$(jq -r '.overall_score' "$CHANGED_FILE")
+          REPO_NAME=$(jq -r '.repository.name' "$CHANGED_FILE")
+
+          echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
+          echo "claimed_score=$CLAIMED_SCORE" >> $GITHUB_OUTPUT
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+
+      - name: Validate JSON schema
+        env:
+          ASSESSMENT_FILE: ${{ steps.extract.outputs.file }}
+        run: |
+          source .venv/bin/activate
+          agentready validate-report "$ASSESSMENT_FILE"
+
+      - name: Verify repository exists and is public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+
+          # Check if repo exists and is public
+          IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
+
+          if [ "$IS_PRIVATE" == "true" ]; then
+            echo "::error::Repository $ORG_REPO is private. Only public repositories can be submitted to the leaderboard."
+            exit 1
+          fi
+
+          echo "✅ Repository $ORG_REPO is public"
+
+      - name: Verify submitter has access
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+          SUBMITTER: ${{ github.event.pull_request.user.login }}
+        run: |
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+
+          # Check if submitter is collaborator or owner
+          if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
+            echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
+          elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
+            echo "✅ $SUBMITTER is the owner of $ORG_REPO"
+          else
+            echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
+            exit 1
+          fi
+
+      - name: Check rate limiting
+        env:
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+          SUBMISSIONS_DIR="submissions/$(dirname $ORG_REPO)/$(basename $ORG_REPO)"
+
+          # Count submissions in last 24 hours
+          if [ -d "$SUBMISSIONS_DIR" ]; then
+            CUTOFF=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%S 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%S)
+            RECENT_COUNT=$(find "$SUBMISSIONS_DIR" -name '*-assessment.json' -type f -newer <(date -d "$CUTOFF" +%s 2>/dev/null || echo 0) 2>/dev/null | wc -l)
+
+            if [ "$RECENT_COUNT" -ge 1 ]; then
+              echo "::warning::Repository $ORG_REPO has $RECENT_COUNT submission(s) in the last 24 hours. Maximum is 1 per 24 hours."
+              echo "This is a warning only - manual review recommended."
+            fi
+          fi
+
+      - name: Re-run assessment
+        env:
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          source .venv/bin/activate
+
+          # Clone repository to temporary directory
+          echo "Cloning $REPO_URL..."
+          git clone "$REPO_URL" /tmp/repo-to-assess
+
+          # Run assessment
+          echo "Running assessment..."
+          agentready assess /tmp/repo-to-assess --output-dir /tmp/validation
+
+          # Extract actual score
+          ACTUAL_SCORE=$(jq -r '.overall_score' /tmp/validation/assessment-latest.json)
+          echo "ACTUAL_SCORE=$ACTUAL_SCORE" >> $GITHUB_ENV
+          echo "Actual score: $ACTUAL_SCORE"
+
+      - name: Compare scores
+        env:
+          CLAIMED_SCORE: ${{ steps.extract.outputs.claimed_score }}
+        run: |
+          CLAIMED=$CLAIMED_SCORE
+          ACTUAL=$ACTUAL_SCORE
+
+          # Calculate absolute difference
+          DIFF=$(echo "scale=2; if ($ACTUAL - $CLAIMED < 0) $CLAIMED - $ACTUAL else $ACTUAL - $CLAIMED" | bc)
+
+          echo "Claimed score: $CLAIMED"
+          echo "Actual score: $ACTUAL"
+          echo "Difference: $DIFF"
+
+          # Allow ±2 point tolerance
+          if (( $(echo "$DIFF > 2" | bc -l) )); then
+            echo "::error::Score mismatch: claimed $CLAIMED, actual $ACTUAL (diff: $DIFF points)"
+            echo "Maximum tolerance is ±2 points."
+            exit 1
+          fi
+
+          echo "::notice::✅ Score validated: $ACTUAL (claimed: $CLAIMED, diff: $DIFF points)"
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          CLAIMED_SCORE: ${{ steps.extract.outputs.claimed_score }}
+          ACTUAL_SCORE: ${{ env.ACTUAL_SCORE }}
+          REPO_NAME: ${{ steps.extract.outputs.repo_name }}
+        with:
+          script: |
+            const claimed = process.env.CLAIMED_SCORE || 'N/A';
+            const actual = process.env.ACTUAL_SCORE || 'N/A';
+            const repoName = process.env.REPO_NAME || 'unknown';
+
+            let diff = 'N/A';
+            let status = '❌ **FAILED**';
+            let message = 'Validation checks failed. See workflow logs for details.';
+
+            if (actual !== 'N/A') {
+              diff = Math.abs(parseFloat(actual) - parseFloat(claimed)).toFixed(1);
+
+              if (parseFloat(diff) <= 2.0) {
+                status = '✅ **PASSED**';
+                message = 'All validation checks successful! Ready for review and merge.';
+              } else {
+                status = '❌ **FAILED**';
+                message = `Score mismatch exceeds tolerance (±2 points).`;
+              }
+            }
+
+            const body = `## Validation Results
+
+${status} - ${message}
+
+### Scores
+
+- **Claimed**: ${claimed}/100
+- **Verified**: ${actual}/100
+- **Difference**: ${diff} points
+- **Tolerance**: ±2 points
+
+### Checks
+
+- ✅ JSON schema valid
+- ✅ Repository is public
+- ✅ Submitter has commit access
+- ${parseFloat(diff) <= 2.0 ? '✅' : '❌'} Score verification passed
+
+${status.includes('PASSED') ? '**This submission is ready for merge!**' : '**Please review the workflow logs for error details.**'}
+
+---
+
+*Automated validation by [AgentReady Leaderboard](https://github.com/agentready/agentready)*
+            `;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });

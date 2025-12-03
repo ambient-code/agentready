@@ -52,9 +52,7 @@ def submit(repository, assessment_file, dry_run):
         click.echo(
             "Required scopes: public_repo (for creating PRs to public repos)", err=True
         )
-        click.echo(
-            "\nThen set it: export GITHUB_TOKEN=ghp_your_token_here", err=True
-        )
+        click.echo("\nThen set it: export GITHUB_TOKEN=ghp_your_token_here", err=True)
         sys.exit(1)
 
     # 2. Find assessment file
@@ -82,7 +80,6 @@ def submit(repository, assessment_file, dry_run):
     # Extract metadata
     try:
         repo_url = assessment_data["repository"]["url"]
-        repo_name = assessment_data["repository"]["name"]
         score = assessment_data["overall_score"]
         tier = assessment_data["certification_level"]
     except KeyError as e:
@@ -137,12 +134,8 @@ def submit(repository, assessment_file, dry_run):
         is_owner = submitted_repo.owner.login == user.login
 
         if not (is_collaborator or is_owner):
-            click.echo(
-                f"Error: You must have commit access to {org_repo}", err=True
-            )
-            click.echo(
-                "\nYou can only submit repositories where you are:", err=True
-            )
+            click.echo(f"Error: You must have commit access to {org_repo}", err=True)
+            click.echo("\nYou can only submit repositories where you are:", err=True)
             click.echo("  - Repository owner", err=True)
             click.echo("  - Collaborator with push access", err=True)
             sys.exit(1)
@@ -253,7 +246,7 @@ Submitted via `agentready submit` command.
             base="main",
         )
 
-        click.echo(f"\n🎉 Submission successful!")
+        click.echo("\n🎉 Submission successful!")
         click.echo(f"\nPR URL: {pr.html_url}")
         click.echo(
             "\nYour submission will appear on the leaderboard after validation and review."
