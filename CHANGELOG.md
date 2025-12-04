@@ -1,3 +1,10 @@
+## [2.12.2](https://github.com/ambient-code/agentready/compare/v2.12.1...v2.12.2) (2025-12-04)
+
+
+### Bug Fixes
+
+* resolve broken links and workflow failures ([#160](https://github.com/ambient-code/agentready/issues/160)) ([fbf5cf7](https://github.com/ambient-code/agentready/commit/fbf5cf7a1fdcb65ef4d3943a2d84e46aa831d337))
+
 ## [2.12.1](https://github.com/ambient-code/agentready/compare/v2.12.0...v2.12.1) (2025-12-04)
 
 
