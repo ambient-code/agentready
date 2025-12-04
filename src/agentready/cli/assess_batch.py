@@ -28,6 +28,47 @@ def _get_agentready_version() -> str:
         return "unknown"
 
 
+def _discover_config(repo_path: Path, explicit_config: Path | None) -> Config | None:
+    """Discover config file with priority chain.
+
+    Priority:
+    1. Explicit --config flag (highest)
+    2. .agentready.yaml in target repo
+    3. .agentready.yml in target repo
+    4. ~/.config/agentready/config.yaml (user-level)
+    5. None (use defaults)
+
+    Args:
+        repo_path: Path to repository being assessed
+        explicit_config: Path from --config flag (if provided)
+
+    Returns:
+        Config object if found, None otherwise
+    """
+    if explicit_config:
+        if explicit_config.exists():
+            click.echo(f"📋 Using config: {explicit_config}")
+            return _load_config(explicit_config)
+        else:
+            click.echo(f"⚠️  Config file not found: {explicit_config}", err=True)
+            sys.exit(1)
+
+    # Check repo-level configs
+    for filename in [".agentready.yaml", ".agentready.yml"]:
+        config_file = repo_path / filename
+        if config_file.exists():
+            click.echo(f"📋 Using config: {config_file}")
+            return _load_config(config_file)
+
+    # Check user-level config
+    user_config = Path.home() / ".config" / "agentready" / "config.yaml"
+    if user_config.exists():
+        click.echo(f"📋 Using config: {user_config}")
+        return _load_config(user_config)
+
+    return None
+
+
 def _load_config(config_path: Path) -> Config:
     """Load configuration from YAML file with Pydantic validation.
 
@@ -364,14 +405,18 @@ def assess_batch(
         click.echo(f"Repositories: {len(repository_urls)}")
         click.echo(f"Output: {output_dir or '.agentready/batch/'}\n")
 
-    # Load configuration if provided
+    # Auto-discover configuration
     config_obj = None
     if config:
         try:
-            config_obj = _load_config(Path(config))
+            # For batch assessments, use current directory as base for config discovery
+            config_obj = _discover_config(Path.cwd(), Path(config))
         except Exception as e:
             click.echo(f"Error loading config: {e}", err=True)
             sys.exit(1)
+    else:
+        # Try auto-discovery from current directory
+        config_obj = _discover_config(Path.cwd(), None)
 
     # Set output directory
     if output_dir:
