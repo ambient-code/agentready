@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Report Schema Versioning | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Report Schema Versioning | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Report Schema Versioning" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/schema-versioning.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/schema-versioning.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Report Schema Versioning" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Report Schema Versioning","url":"http://localhost:4000/agentready/schema-versioning.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1 id="report-schema-versioning">Report Schema Versioning</h1>
+
+<p><strong>Version</strong>: 1.0.0
+<strong>Last Updated</strong>: 2025-11-22
+<strong>Status</strong>: Implemented</p>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>AgentReady assessment reports now include formal schema versioning to ensure backwards compatibility and enable schema evolution. All reports include a <code class="language-python highlighter-rouge"><span class="n">schema_version</span></code> field that follows semantic versioning (<code class="language-python highlighter-rouge"><span class="n">MAJOR</span><span class="p">.</span><span class="n">MINOR</span><span class="p">.</span><span class="n">PATCH</span></code>).</p>
+
+<p><strong>Current Schema Version</strong>: <code class="language-python highlighter-rouge"><span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span></code></p>
+
+<hr />
+
+<h2 id="features">Features</h2>
+
+<h3 id="1-schema-version-field">1. Schema Version Field</h3>
+
+<p>Every assessment report includes a <code class="language-python highlighter-rouge"><span class="n">schema_version</span></code> field:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"repository"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span><span class="w">
+  </span><span class="err">...</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="2-schema-validation">2. Schema Validation</h3>
+
+<p>Validate assessment reports against their schema version:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Validate report with strict checking</span>
+agentready validate-report assessment-20251122-061500.json
+
+<span class="c"># Validate with lenient mode (allow extra fields)</span>
+agentready validate-report <span class="nt">--no-strict</span> assessment-20251122-061500.json
+</code></pre></div></div>
+
+<p><strong>Features</strong>:</p>
+
+<ul>
+  <li>JSON Schema Draft 7 validation</li>
+  <li>Automatic version detection</li>
+  <li>Strict/lenient validation modes</li>
+  <li>Detailed error messages</li>
+</ul>
+
+<h3 id="3-schema-migration">3. Schema Migration</h3>
+
+<p>Migrate reports between schema versions:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Migrate report to version 2.0.0</span>
+agentready migrate-report assessment.json <span class="nt">--to</span> 2.0.0
+
+<span class="c"># Specify custom output path</span>
+agentready migrate-report old-report.json <span class="nt">--to</span> 2.0.0 <span class="nt">--output</span> new-report.json
+</code></pre></div></div>
+
+<p><strong>Features</strong>:</p>
+
+<ul>
+  <li>Automatic migration path resolution</li>
+  <li>Multi-step migrations</li>
+  <li>Data transformation</li>
+  <li>Validation after migration</li>
+</ul>
+
+<hr />
+
+<h2 id="semantic-versioning-strategy">Semantic Versioning Strategy</h2>
+
+<p>Schema versions follow semantic versioning:</p>
+
+<h3 id="major-version-x00">MAJOR version (X.0.0)</h3>
+
+<p><strong>Breaking changes</strong> - Incompatible schema modifications:</p>
+
+<ul>
+  <li>Removing required fields</li>
+  <li>Changing field types</li>
+  <li>Renaming fields</li>
+  <li>Changing validation rules (stricter)</li>
+</ul>
+
+<p><strong>Example</strong>: Removing <code class="language-python highlighter-rouge"><span class="n">attributes_skipped</span></code> field</p>
+
+<h3 id="minor-version-1x0">MINOR version (1.X.0)</h3>
+
+<p><strong>Backward-compatible additions</strong> - New optional features:</p>
+
+<ul>
+  <li>Adding optional fields</li>
+  <li>Adding new enum values</li>
+  <li>Relaxing validation rules</li>
+</ul>
+
+<p><strong>Example</strong>: Adding optional <code class="language-python highlighter-rouge"><span class="n">ai_suggestions</span></code> field</p>
+
+<h3 id="patch-version-10x">PATCH version (1.0.X)</h3>
+
+<p><strong>Non-functional changes</strong> - No schema modifications:</p>
+
+<ul>
+  <li>Documentation updates</li>
+  <li>Example clarifications</li>
+  <li>Bug fixes in descriptions</li>
+</ul>
+
+<p><strong>Example</strong>: Clarifying field descriptions</p>
+
+<hr />
+
+<h2 id="schema-files">Schema Files</h2>
+
+<p>Schemas are stored in <code class="language-python highlighter-rouge"><span class="n">specs</span><span class="o">/</span><span class="mi">001</span><span class="o">-</span><span class="n">agentready</span><span class="o">-</span><span class="n">scorer</span><span class="o">/</span><span class="n">contracts</span><span class="o">/</span></code>:</p>
+
+<h3 id="assessment-schemajson">assessment-schema.json</h3>
+
+<p>JSON Schema for assessment reports (Draft 7)</p>
+
+<p><strong>Location</strong>: <code class="language-python highlighter-rouge"><span class="n">specs</span><span class="o">/</span><span class="mi">001</span><span class="o">-</span><span class="n">agentready</span><span class="o">-</span><span class="n">scorer</span><span class="o">/</span><span class="n">contracts</span><span class="o">/</span><span class="n">assessment</span><span class="o">-</span><span class="n">schema</span><span class="p">.</span><span class="n">json</span></code></p>
+
+<p><strong>Usage</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services.schema_validator</span> <span class="kn">import</span> <span class="n">SchemaValidator</span>
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">SchemaValidator</span><span class="p">()</span>
+<span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validator</span><span class="p">.</span><span class="n">validate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="report-html-schemamd">report-html-schema.md</h3>
+
+<p>HTML report structure specification</p>
+
+<p><strong>Location</strong>: <code class="language-python highlighter-rouge"><span class="n">specs</span><span class="o">/</span><span class="mi">001</span><span class="o">-</span><span class="n">agentready</span><span class="o">-</span><span class="n">scorer</span><span class="o">/</span><span class="n">contracts</span><span class="o">/</span><span class="n">report</span><span class="o">-</span><span class="n">html</span><span class="o">-</span><span class="n">schema</span><span class="p">.</span><span class="n">md</span></code></p>
+
+<p>Defines:</p>
+
+<ul>
+  <li>HTML document structure</li>
+  <li>Required sections</li>
+  <li>Interactivity requirements</li>
+  <li>Self-contained design</li>
+</ul>
+
+<h3 id="report-markdown-schemamd">report-markdown-schema.md</h3>
+
+<p>Markdown report format specification</p>
+
+<p><strong>Location</strong>: <code class="language-python highlighter-rouge"><span class="n">specs</span><span class="o">/</span><span class="mi">001</span><span class="o">-</span><span class="n">agentready</span><span class="o">-</span><span class="n">scorer</span><span class="o">/</span><span class="n">contracts</span><span class="o">/</span><span class="n">report</span><span class="o">-</span><span class="n">markdown</span><span class="o">-</span><span class="n">schema</span><span class="p">.</span><span class="n">md</span></code></p>
+
+<p>Defines:</p>
+
+<ul>
+  <li>GitHub-Flavored Markdown format</li>
+  <li>Section requirements</li>
+  <li>Table formatting</li>
+  <li>Evidence presentation</li>
+</ul>
+
+<hr />
+
+<h2 id="api-reference">API Reference</h2>
+
+<h3 id="schemavalidator">SchemaValidator</h3>
+
+<p>Validates assessment reports against JSON schemas.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services.schema_validator</span> <span class="kn">import</span> <span class="n">SchemaValidator</span>
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">SchemaValidator</span><span class="p">()</span>
+
+<span class="c1"># Validate report data
+</span><span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validator</span><span class="p">.</span><span class="n">validate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">)</span>
+
+<span class="c1"># Validate report file
+</span><span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validator</span><span class="p">.</span><span class="n">validate_report_file</span><span class="p">(</span><span class="n">report_path</span><span class="p">)</span>
+
+<span class="c1"># Lenient validation (allow extra fields)
+</span><span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validator</span><span class="p">.</span><span class="n">validate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Methods</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">validate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></code> → <code class="language-python highlighter-rouge"><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span></code></li>
+  <li><code class="language-python highlighter-rouge"><span class="n">validate_report_file</span><span class="p">(</span><span class="n">report_path</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></code> → <code class="language-python highlighter-rouge"><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span></code></li>
+  <li><code class="language-python highlighter-rouge"><span class="n">get_schema_path</span><span class="p">(</span><span class="n">version</span><span class="p">)</span></code> → <code class="language-python highlighter-rouge"><span class="n">Path</span></code></li>
+</ul>
+
+<p><strong>Attributes</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">SUPPORTED_VERSIONS</span></code> - List of supported schema versions</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">DEFAULT_VERSION</span></code> - Default schema version (<code class="language-python highlighter-rouge"><span class="s">"1.0.0"</span></code>)</li>
+</ul>
+
+<h3 id="schemamigrator">SchemaMigrator</h3>
+
+<p>Migrates assessment reports between schema versions.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services.schema_migrator</span> <span class="kn">import</span> <span class="n">SchemaMigrator</span>
+
+<span class="n">migrator</span> <span class="o">=</span> <span class="n">SchemaMigrator</span><span class="p">()</span>
+
+<span class="c1"># Migrate report data
+</span><span class="n">migrated_data</span> <span class="o">=</span> <span class="n">migrator</span><span class="p">.</span><span class="n">migrate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">,</span> <span class="n">to_version</span><span class="o">=</span><span class="s">"2.0.0"</span><span class="p">)</span>
+
+<span class="c1"># Migrate report file
+</span><span class="n">migrator</span><span class="p">.</span><span class="n">migrate_report_file</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">to_version</span><span class="o">=</span><span class="s">"2.0.0"</span><span class="p">)</span>
+
+<span class="c1"># Check migration path
+</span><span class="n">steps</span> <span class="o">=</span> <span class="n">migrator</span><span class="p">.</span><span class="n">get_migration_path</span><span class="p">(</span><span class="n">from_version</span><span class="o">=</span><span class="s">"1.0.0"</span><span class="p">,</span> <span class="n">to_version</span><span class="o">=</span><span class="s">"2.0.0"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Methods</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">migrate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">,</span> <span class="n">to_version</span><span class="p">)</span></code> → <code class="language-python highlighter-rouge"><span class="nb">dict</span></code></li>
+  <li><code class="language-python highlighter-rouge"><span class="n">migrate_report_file</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">to_version</span><span class="p">)</span></code> → <code class="language-python highlighter-rouge"><span class="bp">None</span></code></li>
+  <li><code class="language-python highlighter-rouge"><span class="n">get_migration_path</span><span class="p">(</span><span class="n">from_version</span><span class="p">,</span> <span class="n">to_version</span><span class="p">)</span></code> → <code class="language-python highlighter-rouge"><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span></code></li>
+</ul>
+
+<p><strong>Attributes</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">SUPPORTED_VERSIONS</span></code> - List of supported schema versions</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">MIGRATION_PATHS</span></code> - Dictionary of migration functions</li>
+</ul>
+
+<hr />
+
+<h2 id="cli-commands">CLI Commands</h2>
+
+<h3 id="validate-report">validate-report</h3>
+
+<p>Validate assessment report against its schema version.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready validate-report <span class="o">[</span>OPTIONS] REPORT
+</code></pre></div></div>
+
+<p><strong>Arguments</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">REPORT</span></code> - Path to JSON assessment report file</li>
+</ul>
+
+<p><strong>Options</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">strict</span></code> / <code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">strict</span></code> - Strict validation mode (default: strict)</li>
+</ul>
+
+<p><strong>Examples</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Strict validation</span>
+agentready validate-report assessment-20251122.json
+
+<span class="c"># Lenient validation</span>
+agentready validate-report <span class="nt">--no-strict</span> assessment-20251122.json
+</code></pre></div></div>
+
+<p><strong>Exit Codes</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="mi">0</span></code> - Report is valid</li>
+  <li><code class="language-python highlighter-rouge"><span class="mi">1</span></code> - Validation failed</li>
+</ul>
+
+<h3 id="migrate-report">migrate-report</h3>
+
+<p>Migrate assessment report to a different schema version.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready migrate-report <span class="o">[</span>OPTIONS] INPUT_REPORT
+</code></pre></div></div>
+
+<p><strong>Arguments</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">INPUT_REPORT</span></code> - Path to source JSON assessment report file</li>
+</ul>
+
+<p><strong>Options</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="k">from</span> <span class="n">VERSION</span></code> - Source schema version (auto-detected if not specified)</li>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">to</span> <span class="n">VERSION</span></code> - Target schema version (required)</li>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">output</span> <span class="n">PATH</span></code> / <code class="language-python highlighter-rouge"><span class="o">-</span><span class="n">o</span> <span class="n">PATH</span></code> - Output file path (default: auto-generated)</li>
+</ul>
+
+<p><strong>Examples</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Migrate to version 2.0.0</span>
+agentready migrate-report assessment.json <span class="nt">--to</span> 2.0.0
+
+<span class="c"># Custom output path</span>
+agentready migrate-report old.json <span class="nt">--to</span> 2.0.0 <span class="nt">--output</span> new.json
+
+<span class="c"># Explicit source version</span>
+agentready migrate-report old.json <span class="nt">--from</span> 1.0.0 <span class="nt">--to</span> 2.0.0
+</code></pre></div></div>
+
+<p><strong>Exit Codes</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="mi">0</span></code> - Migration successful</li>
+  <li><code class="language-python highlighter-rouge"><span class="mi">1</span></code> - Migration failed</li>
+</ul>
+
+<hr />
+
+<h2 id="migration-guide">Migration Guide</h2>
+
+<h3 id="adding-a-new-schema-version">Adding a New Schema Version</h3>
+
+<ol>
+  <li><strong>Create Migration Function</strong></li>
+</ol>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># In src/agentready/services/schema_migrator.py
+</span>
+<span class="o">@</span><span class="nb">staticmethod</span>
+<span class="k">def</span> <span class="nf">migrate_1_0_to_2_0</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="s">"""Migrate from schema 1.0.0 to 2.0.0."""</span>
+    <span class="n">migrated</span> <span class="o">=</span> <span class="n">data</span><span class="p">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">migrated</span><span class="p">[</span><span class="s">"schema_version"</span><span class="p">]</span> <span class="o">=</span> <span class="s">"2.0.0"</span>
+
+    <span class="c1"># Add new required fields with defaults
+</span>    <span class="n">migrated</span><span class="p">[</span><span class="s">"new_field"</span><span class="p">]</span> <span class="o">=</span> <span class="s">"default_value"</span>
+
+    <span class="c1"># Transform existing fields
+</span>    <span class="k">if</span> <span class="s">"old_field"</span> <span class="ow">in</span> <span class="n">migrated</span><span class="p">:</span>
+        <span class="n">migrated</span><span class="p">[</span><span class="s">"new_field_name"</span><span class="p">]</span> <span class="o">=</span> <span class="n">migrated</span><span class="p">.</span><span class="n">pop</span><span class="p">(</span><span class="s">"old_field"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">migrated</span>
+</code></pre></div></div>
+
+<ol>
+  <li><strong>Register Migration</strong></li>
+</ol>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># In SchemaMigrator.__init__()
+</span><span class="n">MIGRATION_PATHS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="s">"1.0.0"</span><span class="p">,</span> <span class="s">"2.0.0"</span><span class="p">):</span> <span class="n">migrate_1_0_to_2_0</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ol>
+  <li><strong>Update Supported Versions</strong></li>
+</ol>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">SUPPORTED_VERSIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s">"1.0.0"</span><span class="p">,</span> <span class="s">"2.0.0"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<ol>
+  <li><strong>Create New Schema File</strong></li>
+</ol>
+
+<p>Copy and modify <code class="language-python highlighter-rouge"><span class="n">assessment</span><span class="o">-</span><span class="n">schema</span><span class="p">.</span><span class="n">json</span></code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cp </span>specs/001-agentready-scorer/contracts/assessment-schema.json <span class="se">\</span>
+   specs/001-agentready-scorer/contracts/assessment-schema-v2.0.0.json
+</code></pre></div></div>
+
+<p>Update schema file with changes.</p>
+
+<ol>
+  <li><strong>Write Tests</strong></li>
+</ol>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">test_migrate_1_0_to_2_0</span><span class="p">(</span><span class="n">migrator</span><span class="p">):</span>
+    <span class="n">data_v1</span> <span class="o">=</span> <span class="p">{</span><span class="s">"schema_version"</span><span class="p">:</span> <span class="s">"1.0.0"</span><span class="p">,</span> <span class="p">...}</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">migrator</span><span class="p">.</span><span class="n">migrate_report</span><span class="p">(</span><span class="n">data_v1</span><span class="p">,</span> <span class="s">"2.0.0"</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s">"schema_version"</span><span class="p">]</span> <span class="o">==</span> <span class="s">"2.0.0"</span>
+    <span class="k">assert</span> <span class="s">"new_field"</span> <span class="ow">in</span> <span class="n">result</span>
+</code></pre></div></div>
+
+<ol>
+  <li><strong>Update Documentation</strong></li>
+</ol>
+
+<p>Update this document with new version details.</p>
+
+<hr />
+
+<h2 id="backwards-compatibility">Backwards Compatibility</h2>
+
+<h3 id="reading-old-reports">Reading Old Reports</h3>
+
+<p>AgentReady can read and validate reports from any supported schema version:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Validate old report</span>
+agentready validate-report old-assessment-v1.0.0.json
+<span class="c"># ✅ Report is valid! (schema version: 1.0.0)</span>
+</code></pre></div></div>
+
+<h3 id="writing-new-reports">Writing New Reports</h3>
+
+<p>All new assessments use the current schema version:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready assess <span class="nb">.</span>
+<span class="c"># Generates report with schema_version: "1.0.0"</span>
+</code></pre></div></div>
+
+<h3 id="migration-strategy">Migration Strategy</h3>
+
+<p>When breaking changes are introduced:</p>
+
+<ol>
+  <li><strong>Add migration path</strong> from old version to new version</li>
+  <li><strong>Support old versions</strong> for validation (read-only)</li>
+  <li><strong>Document breaking changes</strong> in release notes</li>
+  <li><strong>Provide migration command</strong> for users</li>
+</ol>
+
+<hr />
+
+<h2 id="testing">Testing</h2>
+
+<h3 id="running-tests">Running Tests</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># All schema tests</span>
+pytest tests/unit/test_schema_validator.py tests/unit/test_schema_migrator.py
+
+<span class="c"># Integration tests</span>
+pytest tests/integration/test_schema_commands.py
+
+<span class="c"># With coverage</span>
+pytest <span class="nt">--cov</span><span class="o">=</span>agentready.services tests/unit/test_schema_<span class="k">*</span>.py
+</code></pre></div></div>
+
+<h3 id="test-coverage">Test Coverage</h3>
+
+<p><strong>Unit Tests</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">test_schema_validator</span><span class="p">.</span><span class="n">py</span></code> - 14 test cases</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">test_schema_migrator</span><span class="p">.</span><span class="n">py</span></code> - 10 test cases</li>
+</ul>
+
+<p><strong>Integration Tests</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">test_schema_commands</span><span class="p">.</span><span class="n">py</span></code> - 8 test cases</li>
+</ul>
+
+<p><strong>Total</strong>: 32 test cases covering:</p>
+
+<ul>
+  <li>Validation (strict/lenient)</li>
+  <li>Migration (single/multi-step)</li>
+  <li>Error handling</li>
+  <li>CLI interface</li>
+  <li>File I/O</li>
+</ul>
+
+<hr />
+
+<h2 id="dependencies">Dependencies</h2>
+
+<p>Schema versioning requires:</p>
+
+<ul>
+  <li><strong>jsonschema</strong> &gt;= 4.17.0 (for validation)</li>
+</ul>
+
+<p>Install with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>jsonschema
+<span class="c"># or</span>
+uv pip <span class="nb">install </span>jsonschema
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="future-enhancements">Future Enhancements</h2>
+
+<h3 id="planned-features-v20">Planned Features (v2.0)</h3>
+
+<ol>
+  <li><strong>Multi-step migrations</strong> - Automatic chaining (1.0 → 1.1 → 2.0)</li>
+  <li><strong>Validation caching</strong> - Cache validation results for performance</li>
+  <li><strong>Schema registry</strong> - Centralized schema version management</li>
+  <li><strong>Web-based validator</strong> - Validate reports in browser</li>
+  <li><strong>Automatic migration on load</strong> - Migrate on-the-fly when loading old reports</li>
+</ol>
+
+<h3 id="proposed-schema-changes">Proposed Schema Changes</h3>
+
+<p>See <code class="language-python highlighter-rouge"><span class="n">BACKLOG</span><span class="p">.</span><span class="n">md</span></code> for proposed schema enhancements:</p>
+
+<ul>
+  <li>Add <code class="language-python highlighter-rouge"><span class="n">ai_suggestions</span></code> field (v1.1.0)</li>
+  <li>Add <code class="language-python highlighter-rouge"><span class="n">historical_trends</span></code> field (v1.1.0)</li>
+  <li>Restructure <code class="language-python highlighter-rouge"><span class="n">findings</span></code> for nested attributes (v2.0.0)</li>
+</ul>
+
+<hr />
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="jsonschema-not-installed">“jsonschema not installed”</h3>
+
+<p><strong>Solution</strong>: Install jsonschema</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>jsonschema
+</code></pre></div></div>
+
+<h3 id="unsupported-schema-version">“Unsupported schema version”</h3>
+
+<p><strong>Solution</strong>: Migrate report to supported version</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready migrate-report old-report.json <span class="nt">--to</span> 1.0.0
+</code></pre></div></div>
+
+<h3 id="validation-failed-missing-required-field">“Validation failed: missing required field”</h3>
+
+<p><strong>Solution</strong>: Report may be corrupted or incomplete</p>
+
+<ol>
+  <li>Check report file is valid JSON</li>
+  <li>Verify report was generated by AgentReady</li>
+  <li>Try lenient validation: <code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">strict</span></code></li>
+</ol>
+
+<h3 id="no-migration-path-found">“No migration path found”</h3>
+
+<p><strong>Solution</strong>: Multi-step migration not yet implemented</p>
+
+<ol>
+  <li>Check <code class="language-python highlighter-rouge"><span class="n">SUPPORTED_VERSIONS</span></code> in <code class="language-python highlighter-rouge"><span class="n">SchemaMigrator</span></code></li>
+  <li>Manually chain migrations if needed</li>
+  <li>File issue for requested migration path</li>
+</ol>
+
+<hr />
+
+<h2 id="references">References</h2>
+
+<ul>
+  <li><strong>JSON Schema</strong>: <a href="https://json-schema.org/">https://json-schema.org/</a></li>
+  <li><strong>Semantic Versioning</strong>: <a href="https://semver.org/">https://semver.org/</a></li>
+  <li><strong>Assessment Schema</strong>: <code class="language-python highlighter-rouge"><span class="n">specs</span><span class="o">/</span><span class="mi">001</span><span class="o">-</span><span class="n">agentready</span><span class="o">-</span><span class="n">scorer</span><span class="o">/</span><span class="n">contracts</span><span class="o">/</span><span class="n">assessment</span><span class="o">-</span><span class="n">schema</span><span class="p">.</span><span class="n">json</span></code></li>
+  <li><strong>Test Suite</strong>: <code class="language-python highlighter-rouge"><span class="n">tests</span><span class="o">/</span><span class="n">unit</span><span class="o">/</span><span class="n">test_schema_</span><span class="o">*</span><span class="p">.</span><span class="n">py</span></code></li>
+</ul>
+
+<hr />
+
+<p><strong>Maintained by</strong>: AgentReady Team
+<strong>Last Updated</strong>: 2025-11-22
+<strong>Schema Version</strong>: 1.0.0</p>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

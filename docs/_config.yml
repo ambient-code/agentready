@@ -82,7 +82,7 @@ exclude:
   - SETUP_SUMMARY.md
 
 # Site metadata
-version: 1.0.0
+version: 2.12.3
 certification_levels:
   platinum:
     range: "90-100"

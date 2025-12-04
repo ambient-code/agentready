@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>http://localhost:4000/agentready/api-reference.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/attributes.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/developer-guide.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/examples.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/roadmaps.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/user-guide.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/REALIGNMENT_SUMMARY.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/RELEASE_PROCESS.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/agentready/schema-versioning.html</loc>
+</url>
+</urlset>

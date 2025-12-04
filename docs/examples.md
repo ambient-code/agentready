@@ -3,8 +3,6 @@ layout: page
 title: Examples
 ---
 
-# Examples & Showcase
-
 Real-world AgentReady assessments demonstrating report formats, interpretation guidance, and remediation patterns.
 
 ## Table of Contents

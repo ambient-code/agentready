@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>API Reference | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>API Reference | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="API Reference" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/api-reference.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/api-reference.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="API Reference" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"API Reference","url":"http://localhost:4000/agentready/api-reference.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1>API Reference</h1>
+
+<p>Complete reference for AgentReady’s Python API. Use these APIs to integrate AgentReady into your own tools, CI/CD pipelines, or custom workflows.</p>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#installation">Installation</a></li>
+  <li><a href="#core-models">Core Models</a></li>
+  <li><a href="#services">Services</a></li>
+  <li><a href="#assessors">Assessors</a></li>
+  <li><a href="#reporters">Reporters</a></li>
+  <li><a href="#usage-examples">Usage Examples</a></li>
+</ul>
+
+<hr />
+
+<h2 id="installation">Installation</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>agentready
+</code></pre></div></div>
+
+<p>Import the library:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">Assessment</span><span class="p">,</span> <span class="n">Finding</span><span class="p">,</span> <span class="n">Attribute</span>
+<span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Scorer</span><span class="p">,</span> <span class="n">LanguageDetector</span>
+<span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">HTMLReporter</span><span class="p">,</span> <span class="n">MarkdownReporter</span><span class="p">,</span> <span class="n">JSONReporter</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="core-models">Core Models</h2>
+
+<h3 id="repository">Repository</h3>
+
+<p>Represents a git repository being assessed.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span>
+
+<span class="k">class</span> <span class="nc">Repository</span><span class="p">:</span>
+    <span class="s">"""Immutable representation of a repository."""</span>
+
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># Absolute path to repository
+</span>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># Repository name
+</span>    <span class="n">languages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>    <span class="c1"># Language → file count mapping
+</span></code></pre></div></div>
+
+<h4 id="constructor">Constructor</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Repository</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">languages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="example">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s">"/home/user/myproject"</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s">"myproject"</span><span class="p">,</span>
+    <span class="n">languages</span><span class="o">=</span><span class="p">{</span><span class="s">"Python"</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s">"JavaScript"</span><span class="p">:</span> <span class="mi">18</span><span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="attribute">Attribute</h3>
+
+<p>Defines a single agent-ready attribute to assess.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Attribute</span>
+
+<span class="k">class</span> <span class="nc">Attribute</span><span class="p">:</span>
+    <span class="s">"""Immutable attribute definition."""</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>              <span class="c1"># Unique identifier (e.g., "claude_md_file")
+</span>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>            <span class="c1"># Display name
+</span>    <span class="n">tier</span><span class="p">:</span> <span class="nb">int</span>            <span class="c1"># Tier 1-4 (1 = most important)
+</span>    <span class="n">weight</span><span class="p">:</span> <span class="nb">float</span>        <span class="c1"># Weight in scoring (0.0-1.0, sum to 1.0 across all)
+</span>    <span class="n">category</span><span class="p">:</span> <span class="nb">str</span>        <span class="c1"># Category (e.g., "Documentation", "Testing")
+</span>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>     <span class="c1"># What this attribute measures
+</span>    <span class="n">rationale</span><span class="p">:</span> <span class="nb">str</span>       <span class="c1"># Why it matters for AI agents
+</span></code></pre></div></div>
+
+<h4 id="constructor-1">Constructor</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Attribute</span><span class="p">(</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">tier</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weight</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">""</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">""</span><span class="p">,</span>
+    <span class="n">rationale</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">""</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="example-1">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">attribute</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span>
+    <span class="nb">id</span><span class="o">=</span><span class="s">"claude_md_file"</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s">"CLAUDE.md File"</span><span class="p">,</span>
+    <span class="n">tier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">weight</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span>
+    <span class="n">category</span><span class="o">=</span><span class="s">"Context Window Optimization"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s">"CLAUDE.md file at repository root"</span><span class="p">,</span>
+    <span class="n">rationale</span><span class="o">=</span><span class="s">"Provides immediate project context to AI agents"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="finding">Finding</h3>
+
+<p>Result of assessing a single attribute.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Finding</span><span class="p">,</span> <span class="n">Remediation</span>
+
+<span class="k">class</span> <span class="nc">Finding</span><span class="p">:</span>
+    <span class="s">"""Assessment finding for a single attribute."""</span>
+
+    <span class="n">attribute</span><span class="p">:</span> <span class="n">Attribute</span>      <span class="c1"># Attribute being assessed
+</span>    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>              <span class="c1"># "pass", "fail", or "skipped"
+</span>    <span class="n">score</span><span class="p">:</span> <span class="nb">float</span>             <span class="c1"># 0.0-100.0
+</span>    <span class="n">evidence</span><span class="p">:</span> <span class="nb">str</span>            <span class="c1"># What was found (specific details)
+</span>    <span class="n">remediation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Remediation</span><span class="p">]</span>  <span class="c1"># How to fix (if failed)
+</span>    <span class="n">reason</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>    <span class="c1"># Why skipped (if status="skipped")
+</span></code></pre></div></div>
+
+<h4 id="factory-methods">Factory Methods</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create passing finding
+</span><span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="p">:</span> <span class="n">Attribute</span><span class="p">,</span>
+    <span class="n">evidence</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">remediation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Remediation</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span>
+
+<span class="c1"># Create failing finding
+</span><span class="n">Finding</span><span class="p">.</span><span class="n">create_fail</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="p">:</span> <span class="n">Attribute</span><span class="p">,</span>
+    <span class="n">evidence</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">remediation</span><span class="p">:</span> <span class="n">Remediation</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span>
+
+<span class="c1"># Create skipped finding
+</span><span class="n">Finding</span><span class="p">.</span><span class="n">create_skip</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="p">:</span> <span class="n">Attribute</span><span class="p">,</span>
+    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span>
+</code></pre></div></div>
+
+<h4 id="example-2">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Pass
+</span><span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="o">=</span><span class="n">claude_md_attr</span><span class="p">,</span>
+    <span class="n">evidence</span><span class="o">=</span><span class="s">"Found CLAUDE.md at repository root (245 lines)"</span>
+<span class="p">)</span>
+
+<span class="c1"># Fail
+</span><span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_fail</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="o">=</span><span class="n">readme_attr</span><span class="p">,</span>
+    <span class="n">evidence</span><span class="o">=</span><span class="s">"README.md missing quick start section"</span><span class="p">,</span>
+    <span class="n">remediation</span><span class="o">=</span><span class="n">Remediation</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span><span class="s">"Add Quick Start section to README.md"</span><span class="p">],</span>
+        <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s">"text editor"</span><span class="p">],</span>
+        <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="s">"# Quick Start</span><span class="se">\n\n</span><span class="s">Install: `pip install myproject`"</span><span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Skip
+</span><span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_skip</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="o">=</span><span class="n">container_attr</span><span class="p">,</span>
+    <span class="n">reason</span><span class="o">=</span><span class="s">"Assessor not yet implemented"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="remediation">Remediation</h3>
+
+<p>Actionable guidance for fixing a failed attribute.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Remediation</span>
+
+<span class="k">class</span> <span class="nc">Remediation</span><span class="p">:</span>
+    <span class="s">"""Remediation guidance for failed findings."""</span>
+
+    <span class="n">steps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>           <span class="c1"># Ordered steps to fix
+</span>    <span class="n">tools</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>           <span class="c1"># Required tools
+</span>    <span class="n">commands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>        <span class="c1"># Shell commands (optional)
+</span>    <span class="n">examples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>        <span class="c1"># Code/config examples (optional)
+</span>    <span class="n">citations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>       <span class="c1"># Reference documentation (optional)
+</span></code></pre></div></div>
+
+<h4 id="example-3">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">remediation</span> <span class="o">=</span> <span class="n">Remediation</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+        <span class="s">"Install pre-commit framework"</span><span class="p">,</span>
+        <span class="s">"Create .pre-commit-config.yaml"</span><span class="p">,</span>
+        <span class="s">"Add black and isort hooks"</span><span class="p">,</span>
+        <span class="s">"Install git hooks: pre-commit install"</span>
+    <span class="p">],</span>
+    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s">"pre-commit"</span><span class="p">,</span> <span class="s">"black"</span><span class="p">,</span> <span class="s">"isort"</span><span class="p">],</span>
+    <span class="n">commands</span><span class="o">=</span><span class="p">[</span>
+        <span class="s">"pip install pre-commit"</span><span class="p">,</span>
+        <span class="s">"pre-commit install"</span><span class="p">,</span>
+        <span class="s">"pre-commit run --all-files"</span>
+    <span class="p">],</span>
+    <span class="n">examples</span><span class="o">=</span><span class="p">[</span>
+        <span class="s">'''repos:
+  - repo: https://github.com/psf/black
+    rev: 23.12.0
+    hooks:
+      - id: black'''</span>
+    <span class="p">],</span>
+    <span class="n">citations</span><span class="o">=</span><span class="p">[</span>
+        <span class="s">"https://pre-commit.com/"</span><span class="p">,</span>
+        <span class="s">"Memfault: Automatically format and lint code with pre-commit"</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="assessment">Assessment</h3>
+
+<p>Complete assessment result for a repository.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Assessment</span>
+
+<span class="k">class</span> <span class="nc">Assessment</span><span class="p">:</span>
+    <span class="s">"""Complete assessment result."""</span>
+
+    <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span>           <span class="c1"># Repository assessed
+</span>    <span class="n">overall_score</span><span class="p">:</span> <span class="nb">float</span>            <span class="c1"># 0.0-100.0
+</span>    <span class="n">certification_level</span><span class="p">:</span> <span class="nb">str</span>        <span class="c1"># "Platinum", "Gold", "Silver", "Bronze", "Needs Improvement"
+</span>    <span class="n">findings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Finding</span><span class="p">]</span>         <span class="c1"># Individual attribute findings
+</span>    <span class="n">tier_scores</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>   <span class="c1"># Tier 1-4 scores
+</span>    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>        <span class="c1"># Timestamp, version, duration, etc.
+</span></code></pre></div></div>
+
+<h4 id="properties">Properties</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">assessment</span><span class="p">.</span><span class="n">passing_count</span> <span class="o">-&gt;</span> <span class="nb">int</span>      <span class="c1"># Number of passing attributes
+</span><span class="n">assessment</span><span class="p">.</span><span class="n">failing_count</span> <span class="o">-&gt;</span> <span class="nb">int</span>      <span class="c1"># Number of failing attributes
+</span><span class="n">assessment</span><span class="p">.</span><span class="n">skipped_count</span> <span class="o">-&gt;</span> <span class="nb">int</span>      <span class="c1"># Number of skipped attributes
+</span></code></pre></div></div>
+
+<hr />
+
+<h2 id="services">Services</h2>
+
+<h3 id="scanner">Scanner</h3>
+
+<p>Orchestrates repository assessment by running all assessors.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span>
+
+<span class="k">class</span> <span class="nc">Scanner</span><span class="p">:</span>
+    <span class="s">"""Assessment orchestration."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""Initialize scanner with all assessors."""</span>
+
+    <span class="k">def</span> <span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Assessment</span><span class="p">:</span>
+        <span class="s">"""
+        Run all assessors and generate assessment.
+
+        Args:
+            repository: Repository to assess
+
+        Returns:
+            Complete Assessment object
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-4">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">LanguageDetector</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span>
+
+<span class="c1"># Detect languages
+</span><span class="n">detector</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">()</span>
+<span class="n">languages</span> <span class="o">=</span> <span class="n">detector</span><span class="p">.</span><span class="n">detect</span><span class="p">(</span><span class="s">"/path/to/repo"</span><span class="p">)</span>
+
+<span class="c1"># Create repository object
+</span><span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s">"/path/to/repo"</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s">"myproject"</span><span class="p">,</span>
+    <span class="n">languages</span><span class="o">=</span><span class="n">languages</span>
+<span class="p">)</span>
+
+<span class="c1"># Run assessment
+</span><span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">()</span>
+<span class="n">assessment</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">scan</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Score: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">overall_score</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Certification: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">certification_level</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Passing: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">passing_count</span><span class="si">}</span><span class="s">/25"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="scorer">Scorer</h3>
+
+<p>Calculates weighted scores and certification levels.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scorer</span>
+
+<span class="k">class</span> <span class="nc">Scorer</span><span class="p">:</span>
+    <span class="s">"""Score calculation and certification determination."""</span>
+
+    <span class="o">@</span><span class="nb">staticmethod</span>
+    <span class="k">def</span> <span class="nf">calculate_overall_score</span><span class="p">(</span><span class="n">findings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Finding</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="s">"""
+        Calculate weighted average score.
+
+        Args:
+            findings: List of assessment findings
+
+        Returns:
+            Overall score (0.0-100.0)
+        """</span>
+
+    <span class="o">@</span><span class="nb">staticmethod</span>
+    <span class="k">def</span> <span class="nf">determine_certification</span><span class="p">(</span><span class="n">score</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""
+        Determine certification level from score.
+
+        Args:
+            score: Overall score (0.0-100.0)
+
+        Returns:
+            Certification level string
+        """</span>
+
+    <span class="o">@</span><span class="nb">staticmethod</span>
+    <span class="k">def</span> <span class="nf">calculate_tier_scores</span><span class="p">(</span><span class="n">findings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Finding</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="s">"""
+        Calculate scores by tier.
+
+        Args:
+            findings: List of assessment findings
+
+        Returns:
+            Dict mapping tier (e.g., "tier_1") to score
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-5">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scorer</span>
+
+<span class="c1"># Calculate overall score
+</span><span class="n">score</span> <span class="o">=</span> <span class="n">Scorer</span><span class="p">.</span><span class="n">calculate_overall_score</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Score: </span><span class="si">{</span><span class="n">score</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+
+<span class="c1"># Determine certification
+</span><span class="n">cert</span> <span class="o">=</span> <span class="n">Scorer</span><span class="p">.</span><span class="n">determine_certification</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Certification: </span><span class="si">{</span><span class="n">cert</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+
+<span class="c1"># Calculate tier scores
+</span><span class="n">tier_scores</span> <span class="o">=</span> <span class="n">Scorer</span><span class="p">.</span><span class="n">calculate_tier_scores</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tier</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">tier_scores</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">tier</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="p">.</span><span class="mi">1</span><span class="n">f</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="languagedetector">LanguageDetector</h3>
+
+<p>Detects programming languages in repository via <code class="language-python highlighter-rouge"><span class="n">git</span> <span class="n">ls</span><span class="o">-</span><span class="n">files</span></code>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">LanguageDetector</span>
+
+<span class="k">class</span> <span class="nc">LanguageDetector</span><span class="p">:</span>
+    <span class="s">"""Detect repository languages via git."""</span>
+
+    <span class="k">def</span> <span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repo_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="s">"""
+        Detect languages by file extensions.
+
+        Args:
+            repo_path: Path to git repository
+
+        Returns:
+            Dict mapping language name to file count
+
+        Raises:
+            ValueError: If not a git repository
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-6">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">LanguageDetector</span>
+
+<span class="n">detector</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">()</span>
+<span class="n">languages</span> <span class="o">=</span> <span class="n">detector</span><span class="p">.</span><span class="n">detect</span><span class="p">(</span><span class="s">"/path/to/repo"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">lang</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">languages</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">lang</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s"> files"</span><span class="p">)</span>
+
+<span class="c1"># Output:
+# Python: 42 files
+# JavaScript: 18 files
+# TypeScript: 12 files
+</span></code></pre></div></div>
+
+<hr />
+
+<h3 id="batchscanner">BatchScanner</h3>
+
+<p>Assess multiple repositories in parallel for organizational insights.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">BatchScanner</span>
+
+<span class="k">class</span> <span class="nc">BatchScanner</span><span class="p">:</span>
+    <span class="s">"""Batch assessment across multiple repositories."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""Initialize batch scanner."""</span>
+
+    <span class="k">def</span> <span class="nf">scan_batch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">repository_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Assessment</span><span class="p">]:</span>
+        <span class="s">"""
+        Scan multiple repositories.
+
+        Args:
+            repository_paths: List of repository paths to assess
+            parallel: Use parallel processing (default: True)
+            max_workers: Maximum parallel workers (default: 4)
+
+        Returns:
+            List of Assessment objects, one per repository
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-7">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">BatchScanner</span>
+
+<span class="c1"># Initialize batch scanner
+</span><span class="n">batch_scanner</span> <span class="o">=</span> <span class="n">BatchScanner</span><span class="p">()</span>
+
+<span class="c1"># Assess multiple repositories
+</span><span class="n">assessments</span> <span class="o">=</span> <span class="n">batch_scanner</span><span class="p">.</span><span class="n">scan_batch</span><span class="p">([</span>
+    <span class="s">"/path/to/repo1"</span><span class="p">,</span>
+    <span class="s">"/path/to/repo2"</span><span class="p">,</span>
+    <span class="s">"/path/to/repo3"</span>
+<span class="p">],</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Process results
+</span><span class="k">for</span> <span class="n">assessment</span> <span class="ow">in</span> <span class="n">assessments</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">repository</span><span class="p">.</span><span class="n">name</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">overall_score</span><span class="si">}</span><span class="s">/100 (</span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">certification_level</span><span class="si">}</span><span class="s">)"</span><span class="p">)</span>
+
+<span class="c1"># Calculate aggregate statistics
+</span><span class="n">total_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">overall_score</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">assessments</span><span class="p">)</span>
+<span class="n">average_score</span> <span class="o">=</span> <span class="n">total_score</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">assessments</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Average score across </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">assessments</span><span class="p">)</span><span class="si">}</span><span class="s"> repos: </span><span class="si">{</span><span class="n">average_score</span><span class="si">:</span><span class="p">.</span><span class="mi">1</span><span class="n">f</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="schemavalidator">SchemaValidator</h3>
+
+<p>Validate assessment reports against JSON schemas.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">SchemaValidator</span>
+
+<span class="k">class</span> <span class="nc">SchemaValidator</span><span class="p">:</span>
+    <span class="s">"""Validates assessment reports against JSON schemas."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""Initialize validator with default schema."""</span>
+
+    <span class="k">def</span> <span class="nf">validate_report</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">report_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="s">"""
+        Validate report data against schema.
+
+        Args:
+            report_data: Assessment report as dictionary
+            strict: Strict validation mode (disallow extra fields)
+
+        Returns:
+            Tuple of (is_valid, errors)
+            - is_valid: True if report passes validation
+            - errors: List of validation error messages
+        """</span>
+
+    <span class="k">def</span> <span class="nf">validate_report_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">report_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="s">"""
+        Validate report file against schema.
+
+        Args:
+            report_path: Path to JSON assessment report file
+            strict: Strict validation mode
+
+        Returns:
+            Tuple of (is_valid, errors)
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-8">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">SchemaValidator</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">SchemaValidator</span><span class="p">()</span>
+
+<span class="c1"># Validate report file
+</span><span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validator</span><span class="p">.</span><span class="n">validate_report_file</span><span class="p">(</span>
+    <span class="s">".agentready/assessment-latest.json"</span><span class="p">,</span>
+    <span class="n">strict</span><span class="o">=</span><span class="bp">True</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">is_valid</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"✅ Report is valid!"</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"❌ Validation failed:"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"  - </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+
+<span class="c1"># Validate report data
+</span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">".agentready/assessment-latest.json"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">report_data</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validator</span><span class="p">.</span><span class="n">validate_report</span><span class="p">(</span><span class="n">report_data</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Lenient validation: </span><span class="si">{</span><span class="s">'PASS'</span> <span class="k">if</span> <span class="n">is_valid</span> <span class="k">else</span> <span class="s">'FAIL'</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="schemamigrator">SchemaMigrator</h3>
+
+<p>Migrate assessment reports between schema versions.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">SchemaMigrator</span>
+
+<span class="k">class</span> <span class="nc">SchemaMigrator</span><span class="p">:</span>
+    <span class="s">"""Migrates assessment reports between schema versions."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""Initialize migrator with supported versions."""</span>
+
+    <span class="k">def</span> <span class="nf">migrate_report</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">report_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">to_version</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="s">"""
+        Migrate report data to target schema version.
+
+        Args:
+            report_data: Assessment report as dictionary
+            to_version: Target schema version (e.g., "2.0.0")
+
+        Returns:
+            Migrated report data
+
+        Raises:
+            ValueError: If migration path not found
+        """</span>
+
+    <span class="k">def</span> <span class="nf">migrate_report_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">to_version</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="s">"""
+        Migrate report file to target schema version.
+
+        Args:
+            input_path: Path to source report file
+            output_path: Path to save migrated report
+            to_version: Target schema version
+
+        Raises:
+            ValueError: If migration path not found
+            FileNotFoundError: If input file doesn't exist
+        """</span>
+
+    <span class="k">def</span> <span class="nf">get_migration_path</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">from_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">to_version</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="s">"""
+        Get migration path from source to target version.
+
+        Args:
+            from_version: Source schema version
+            to_version: Target schema version
+
+        Returns:
+            List of (from_version, to_version) tuples representing migration steps
+
+        Raises:
+            ValueError: If no migration path exists
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-9">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">SchemaMigrator</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="n">migrator</span> <span class="o">=</span> <span class="n">SchemaMigrator</span><span class="p">()</span>
+
+<span class="c1"># Migrate report file
+</span><span class="n">migrator</span><span class="p">.</span><span class="n">migrate_report_file</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="s">"old-assessment.json"</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s">"new-assessment.json"</span><span class="p">,</span>
+    <span class="n">to_version</span><span class="o">=</span><span class="s">"2.0.0"</span>
+<span class="p">)</span>
+
+<span class="c1"># Migrate report data
+</span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"old-assessment.json"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">old_data</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">new_data</span> <span class="o">=</span> <span class="n">migrator</span><span class="p">.</span><span class="n">migrate_report</span><span class="p">(</span><span class="n">old_data</span><span class="p">,</span> <span class="n">to_version</span><span class="o">=</span><span class="s">"2.0.0"</span><span class="p">)</span>
+
+<span class="c1"># Check migration path
+</span><span class="n">migration_steps</span> <span class="o">=</span> <span class="n">migrator</span><span class="p">.</span><span class="n">get_migration_path</span><span class="p">(</span><span class="s">"1.0.0"</span><span class="p">,</span> <span class="s">"2.0.0"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Migration requires </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">migration_steps</span><span class="p">)</span><span class="si">}</span><span class="s"> step(s):"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">from_ver</span><span class="p">,</span> <span class="n">to_ver</span> <span class="ow">in</span> <span class="n">migration_steps</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"  </span><span class="si">{</span><span class="n">from_ver</span><span class="si">}</span><span class="s"> → </span><span class="si">{</span><span class="n">to_ver</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="assessors">Assessors</h2>
+
+<h3 id="baseassessor">BaseAssessor</h3>
+
+<p>Abstract base class for all assessors. Implement this to create custom assessors.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">agentready.assessors.base</span> <span class="kn">import</span> <span class="n">BaseAssessor</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">Finding</span>
+
+<span class="k">class</span> <span class="nc">BaseAssessor</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="s">"""Abstract base class for assessors."""</span>
+
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="o">@</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">attribute_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""Unique attribute identifier."""</span>
+
+    <span class="o">@</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+        <span class="s">"""
+        Assess repository for this attribute.
+
+        Args:
+            repository: Repository to assess
+
+        Returns:
+            Finding with pass/fail/skip status
+        """</span>
+
+    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""
+        Check if this assessor applies to repository.
+
+        Override to skip assessment for irrelevant repositories
+        (e.g., JavaScript-only repo for Python-specific assessor).
+
+        Args:
+            repository: Repository being assessed
+
+        Returns:
+            True if assessor should run, False to skip
+        """</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">calculate_proportional_score</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">actual</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="s">"""
+        Calculate proportional score for partial compliance.
+
+        Args:
+            actual: Actual value (e.g., 0.65 for 65% coverage)
+            target: Target value (e.g., 0.80 for 80% target)
+
+        Returns:
+            Score (0-100)
+
+        Example:
+            &gt;&gt;&gt; calculate_proportional_score(0.70, 0.80)
+            87.5  # 70/80 = 87.5%
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-custom-assessor">Example: Custom Assessor</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.assessors.base</span> <span class="kn">import</span> <span class="n">BaseAssessor</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">Finding</span><span class="p">,</span> <span class="n">Remediation</span>
+
+<span class="k">class</span> <span class="nc">MyCustomAssessor</span><span class="p">(</span><span class="n">BaseAssessor</span><span class="p">):</span>
+    <span class="s">"""Assess my custom attribute."""</span>
+
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">attribute_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">"my_custom_attribute"</span>
+
+    <span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+        <span class="c1"># Check if attribute is satisfied
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_check_condition</span><span class="p">(</span><span class="n">repository</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+                <span class="n">evidence</span><span class="o">=</span><span class="s">"Condition met"</span><span class="p">,</span>
+                <span class="n">remediation</span><span class="o">=</span><span class="bp">None</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_fail</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+                <span class="n">evidence</span><span class="o">=</span><span class="s">"Condition not met"</span><span class="p">,</span>
+                <span class="n">remediation</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">_create_remediation</span><span class="p">()</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># Only apply to Python repositories
+</span>        <span class="k">return</span> <span class="s">"Python"</span> <span class="ow">in</span> <span class="n">repository</span><span class="p">.</span><span class="n">languages</span>
+
+    <span class="k">def</span> <span class="nf">_check_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># Custom assessment logic
+</span>        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_create_remediation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Remediation</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Remediation</span><span class="p">(</span>
+            <span class="n">steps</span><span class="o">=</span><span class="p">[</span><span class="s">"Step 1"</span><span class="p">,</span> <span class="s">"Step 2"</span><span class="p">],</span>
+            <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s">"tool1"</span><span class="p">,</span> <span class="s">"tool2"</span><span class="p">]</span>
+        <span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="reporters">Reporters</h2>
+
+<h3 id="htmlreporter">HTMLReporter</h3>
+
+<p>Generate interactive HTML reports.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">HTMLReporter</span>
+
+<span class="k">class</span> <span class="nc">HTMLReporter</span><span class="p">:</span>
+    <span class="s">"""Generate interactive HTML reports."""</span>
+
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assessment</span><span class="p">:</span> <span class="n">Assessment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""
+        Generate HTML report.
+
+        Args:
+            assessment: Complete assessment result
+
+        Returns:
+            HTML string (self-contained, no external dependencies)
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-10">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">HTMLReporter</span>
+
+<span class="n">reporter</span> <span class="o">=</span> <span class="n">HTMLReporter</span><span class="p">()</span>
+<span class="n">html</span> <span class="o">=</span> <span class="n">reporter</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">assessment</span><span class="p">)</span>
+
+<span class="c1"># Save to file
+</span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"report.html"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"HTML report saved: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="si">}</span><span class="s"> bytes"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="markdownreporter">MarkdownReporter</h3>
+
+<p>Generate GitHub-Flavored Markdown reports.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">MarkdownReporter</span>
+
+<span class="k">class</span> <span class="nc">MarkdownReporter</span><span class="p">:</span>
+    <span class="s">"""Generate Markdown reports."""</span>
+
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assessment</span><span class="p">:</span> <span class="n">Assessment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""
+        Generate Markdown report.
+
+        Args:
+            assessment: Complete assessment result
+
+        Returns:
+            Markdown string (GitHub-Flavored Markdown)
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-11">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">MarkdownReporter</span>
+
+<span class="n">reporter</span> <span class="o">=</span> <span class="n">MarkdownReporter</span><span class="p">()</span>
+<span class="n">markdown</span> <span class="o">=</span> <span class="n">reporter</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">assessment</span><span class="p">)</span>
+
+<span class="c1"># Save to file
+</span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"report.md"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">markdown</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="jsonreporter">JSONReporter</h3>
+
+<p>Generate machine-readable JSON reports.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">JSONReporter</span>
+
+<span class="k">class</span> <span class="nc">JSONReporter</span><span class="p">:</span>
+    <span class="s">"""Generate JSON reports."""</span>
+
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assessment</span><span class="p">:</span> <span class="n">Assessment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""
+        Generate JSON report.
+
+        Args:
+            assessment: Complete assessment result
+
+        Returns:
+            JSON string (formatted with indentation)
+        """</span>
+</code></pre></div></div>
+
+<h4 id="example-12">Example</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">JSONReporter</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="n">reporter</span> <span class="o">=</span> <span class="n">JSONReporter</span><span class="p">()</span>
+<span class="n">json_str</span> <span class="o">=</span> <span class="n">reporter</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">assessment</span><span class="p">)</span>
+
+<span class="c1"># Save to file
+</span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"assessment.json"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+
+<span class="c1"># Parse for programmatic access
+</span><span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Score: </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s">'overall_score'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Certification: </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s">'certification_level'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="usage-examples">Usage Examples</h2>
+
+<h3 id="complete-assessment-workflow">Complete Assessment Workflow</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">LanguageDetector</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span>
+<span class="kn">from</span> <span class="nn">agentready.reporters</span> <span class="kn">import</span> <span class="n">HTMLReporter</span><span class="p">,</span> <span class="n">MarkdownReporter</span><span class="p">,</span> <span class="n">JSONReporter</span>
+
+<span class="c1"># 1. Detect languages
+</span><span class="n">detector</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">()</span>
+<span class="n">languages</span> <span class="o">=</span> <span class="n">detector</span><span class="p">.</span><span class="n">detect</span><span class="p">(</span><span class="s">"/path/to/repo"</span><span class="p">)</span>
+
+<span class="c1"># 2. Create repository object
+</span><span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s">"/path/to/repo"</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s">"myproject"</span><span class="p">,</span>
+    <span class="n">languages</span><span class="o">=</span><span class="n">languages</span>
+<span class="p">)</span>
+
+<span class="c1"># 3. Run assessment
+</span><span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">()</span>
+<span class="n">assessment</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">scan</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+<span class="c1"># 4. Generate reports
+</span><span class="n">html_reporter</span> <span class="o">=</span> <span class="n">HTMLReporter</span><span class="p">()</span>
+<span class="n">md_reporter</span> <span class="o">=</span> <span class="n">MarkdownReporter</span><span class="p">()</span>
+<span class="n">json_reporter</span> <span class="o">=</span> <span class="n">JSONReporter</span><span class="p">()</span>
+
+<span class="n">html</span> <span class="o">=</span> <span class="n">html_reporter</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">assessment</span><span class="p">)</span>
+<span class="n">markdown</span> <span class="o">=</span> <span class="n">md_reporter</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">assessment</span><span class="p">)</span>
+<span class="n">json_str</span> <span class="o">=</span> <span class="n">json_reporter</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">assessment</span><span class="p">)</span>
+
+<span class="c1"># 5. Save reports
+</span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"report.html"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"report.md"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">markdown</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"assessment.json"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+
+<span class="c1"># 6. Print summary
+</span><span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Assessment complete!"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Score: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">overall_score</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Certification: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">certification_level</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Passing: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">passing_count</span><span class="si">}</span><span class="s">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">assessment</span><span class="p">.</span><span class="n">findings</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="cicd-integration">CI/CD Integration</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">LanguageDetector</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span>
+
+<span class="c1"># Assess repository
+</span><span class="n">detector</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">()</span>
+<span class="n">languages</span> <span class="o">=</span> <span class="n">detector</span><span class="p">.</span><span class="n">detect</span><span class="p">(</span><span class="s">"."</span><span class="p">)</span>
+
+<span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s">"."</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">"myproject"</span><span class="p">,</span> <span class="n">languages</span><span class="o">=</span><span class="n">languages</span><span class="p">)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">()</span>
+<span class="n">assessment</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">scan</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+<span class="c1"># Fail build if score &lt; 70
+</span><span class="k">if</span> <span class="n">assessment</span><span class="p">.</span><span class="n">overall_score</span> <span class="o">&lt;</span> <span class="mi">70</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"❌ AgentReady score too low: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">overall_score</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Minimum required: 70/100"</span><span class="p">)</span>
+    <span class="n">sys</span><span class="p">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"✅ AgentReady score: </span><span class="si">{</span><span class="n">assessment</span><span class="p">.</span><span class="n">overall_score</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+    <span class="n">sys</span><span class="p">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="custom-filtering">Custom Filtering</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Filter findings by status
+</span><span class="n">passing</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">assessment</span><span class="p">.</span><span class="n">findings</span> <span class="k">if</span> <span class="n">f</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"pass"</span><span class="p">]</span>
+<span class="n">failing</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">assessment</span><span class="p">.</span><span class="n">findings</span> <span class="k">if</span> <span class="n">f</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"fail"</span><span class="p">]</span>
+<span class="n">skipped</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">assessment</span><span class="p">.</span><span class="n">findings</span> <span class="k">if</span> <span class="n">f</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"skipped"</span><span class="p">]</span>
+
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Passing: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">passing</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Failing: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">failing</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Skipped: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">skipped</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+
+<span class="c1"># Find Tier 1 failures (highest priority)
+</span><span class="n">tier1_failures</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">failing</span>
+    <span class="k">if</span> <span class="n">f</span><span class="p">.</span><span class="n">attribute</span><span class="p">.</span><span class="n">tier</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <span class="n">finding</span> <span class="ow">in</span> <span class="n">tier1_failures</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"❌ </span><span class="si">{</span><span class="n">finding</span><span class="p">.</span><span class="n">attribute</span><span class="p">.</span><span class="n">name</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"   </span><span class="si">{</span><span class="n">finding</span><span class="p">.</span><span class="n">evidence</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">finding</span><span class="p">.</span><span class="n">remediation</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"   Fix: </span><span class="si">{</span><span class="n">finding</span><span class="p">.</span><span class="n">remediation</span><span class="p">.</span><span class="n">steps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="historical-tracking">Historical Tracking</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="c1"># Load all historical assessments
+</span><span class="n">assessments</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="p">.</span><span class="n">glob</span><span class="p">(</span><span class="s">".agentready/assessment-*.json"</span><span class="p">)):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">assessments</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># Track score progression
+</span><span class="k">print</span><span class="p">(</span><span class="s">"Score history:"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">assessments</span><span class="p">:</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s">"metadata"</span><span class="p">][</span><span class="s">"timestamp"</span><span class="p">]</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s">"overall_score"</span><span class="p">]</span>
+    <span class="n">cert</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="s">"certification_level"</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="p">.</span><span class="mi">1</span><span class="n">f</span><span class="si">}</span><span class="s">/100 (</span><span class="si">{</span><span class="n">cert</span><span class="si">}</span><span class="s">)"</span><span class="p">)</span>
+
+<span class="c1"># Calculate improvement
+</span><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">assessments</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">initial</span> <span class="o">=</span> <span class="n">assessments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">"overall_score"</span><span class="p">]</span>
+    <span class="n">latest</span> <span class="o">=</span> <span class="n">assessments</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s">"overall_score"</span><span class="p">]</span>
+    <span class="n">improvement</span> <span class="o">=</span> <span class="n">latest</span> <span class="o">-</span> <span class="n">initial</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="se">\n</span><span class="s">Total improvement: +</span><span class="si">{</span><span class="n">improvement</span><span class="si">:</span><span class="p">.</span><span class="mi">1</span><span class="n">f</span><span class="si">}</span><span class="s"> points"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="custom-weight-configuration">Custom Weight Configuration</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span>
+
+<span class="c1"># Override default weights programmatically
+</span><span class="n">custom_weights</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"claude_md_file"</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>      <span class="c1"># Increase from 0.10
+</span>    <span class="s">"readme_structure"</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">,</span>    <span class="c1"># Increase from 0.10
+</span>    <span class="s">"type_annotations"</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">,</span>    <span class="c1"># Decrease from 0.10
+</span>    <span class="c1"># ... other attributes
+</span><span class="p">}</span>
+
+<span class="c1"># Note: Full weight customization requires modifying
+# attribute definitions before scanner initialization.
+# Typically done via .agentready-config.yaml file.
+</span>
+<span class="c1"># For programmatic use, you can filter/reweight findings
+# after assessment:
+</span><span class="n">assessment</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">scan</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+<span class="c1"># Custom scoring logic
+</span><span class="k">def</span> <span class="nf">custom_score</span><span class="p">(</span><span class="n">findings</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">finding</span> <span class="ow">in</span> <span class="n">findings</span><span class="p">:</span>
+        <span class="n">attr_id</span> <span class="o">=</span> <span class="n">finding</span><span class="p">.</span><span class="n">attribute</span><span class="p">.</span><span class="nb">id</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">attr_id</span><span class="p">,</span> <span class="n">finding</span><span class="p">.</span><span class="n">attribute</span><span class="p">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="n">finding</span><span class="p">.</span><span class="n">score</span> <span class="o">*</span> <span class="n">weight</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+<span class="n">score</span> <span class="o">=</span> <span class="n">custom_score</span><span class="p">(</span><span class="n">assessment</span><span class="p">.</span><span class="n">findings</span><span class="p">,</span> <span class="n">custom_weights</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Custom weighted score: </span><span class="si">{</span><span class="n">score</span><span class="si">}</span><span class="s">/100"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="type-annotations">Type Annotations</h2>
+
+<p>All AgentReady APIs include full type annotations for excellent IDE support:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">Assessment</span><span class="p">,</span> <span class="n">Finding</span>
+<span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">Scanner</span>
+
+<span class="k">def</span> <span class="nf">assess_repository</span><span class="p">(</span><span class="n">repo_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Assessment</span><span class="p">:</span>
+    <span class="s">"""Assess repository and return results."""</span>
+    <span class="c1"># Type hints enable autocomplete and type checking
+</span>    <span class="n">detector</span><span class="p">:</span> <span class="n">LanguageDetector</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">()</span>
+    <span class="n">languages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">detector</span><span class="p">.</span><span class="n">detect</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>
+
+    <span class="n">repo</span><span class="p">:</span> <span class="n">Repository</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">repo_path</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">repo_path</span><span class="p">).</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">languages</span><span class="o">=</span><span class="n">languages</span>
+    <span class="p">)</span>
+
+    <span class="n">scanner</span><span class="p">:</span> <span class="n">Scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">()</span>
+    <span class="n">assessment</span><span class="p">:</span> <span class="n">Assessment</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">scan</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">assessment</span>
+</code></pre></div></div>
+
+<p>Use with mypy for static type checking:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mypy your_script.py
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="error-handling">Error Handling</h2>
+
+<p>AgentReady follows defensive programming principles:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">agentready.services</span> <span class="kn">import</span> <span class="n">LanguageDetector</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">()</span>
+    <span class="n">languages</span> <span class="o">=</span> <span class="n">detector</span><span class="p">.</span><span class="n">detect</span><span class="p">(</span><span class="s">"/path/to/repo"</span><span class="p">)</span>
+<span class="k">except</span> <span class="nb">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="c1"># Typically: "Not a git repository"
+</span>
+<span class="k">except</span> <span class="nb">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="c1"># Path does not exist
+</span>
+<span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Unexpected error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Best practices</strong>:</p>
+
+<ul>
+  <li>Assessors fail gracefully (return “skipped” if tools missing)</li>
+  <li>Scanner continues on individual assessor errors</li>
+  <li>Reports always generated (even with partial results)</li>
+</ul>
+
+<hr />
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ul>
+  <li><strong><a href="user-guide.html">User Guide</a></strong> — CLI usage and configuration</li>
+  <li><strong><a href="developer-guide.html">Developer Guide</a></strong> — Implementing custom assessors</li>
+  <li><strong><a href="attributes.html">Attributes</a></strong> — Complete attribute reference</li>
+  <li><strong><a href="examples.html">Examples</a></strong> — Real-world integration examples</li>
+</ul>
+
+<hr />
+
+<p><strong>Questions?</strong> Open an issue on <a href="https://github.com/ambient-code/agentready/issues">GitHub</a>.</p>
+
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

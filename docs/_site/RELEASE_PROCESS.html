@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Release Process | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Release Process | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Release Process" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/RELEASE_PROCESS.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/RELEASE_PROCESS.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Release Process" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Release Process","url":"http://localhost:4000/agentready/RELEASE_PROCESS.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1 id="release-process">Release Process</h1>
+
+<h2 id="overview">Overview</h2>
+
+<p>AgentReady uses automated semantic releases based on conventional commits. Releases are created automatically when commits are merged to the <code class="language-python highlighter-rouge"><span class="n">main</span></code> branch.</p>
+
+<h2 id="release-types">Release Types</h2>
+
+<p>Releases follow <a href="https://semver.org/">Semantic Versioning</a>:</p>
+
+<ul>
+  <li><strong>Major (X.0.0)</strong>: Breaking changes (commit prefix: <code class="language-python highlighter-rouge"><span class="n">feat</span><span class="err">!</span><span class="p">:</span></code> or <code class="language-python highlighter-rouge"><span class="n">fix</span><span class="err">!</span><span class="p">:</span></code> or <code class="language-python highlighter-rouge"><span class="n">BREAKING</span> <span class="n">CHANGE</span><span class="p">:</span></code>)</li>
+  <li><strong>Minor (x.Y.0)</strong>: New features (commit prefix: <code class="language-python highlighter-rouge"><span class="n">feat</span><span class="p">:</span></code>)</li>
+  <li><strong>Patch (x.y.Z)</strong>: Bug fixes (commit prefix: <code class="language-python highlighter-rouge"><span class="n">fix</span><span class="p">:</span></code>)</li>
+</ul>
+
+<h2 id="automated-release-workflow">Automated Release Workflow</h2>
+
+<p>When commits are merged to <code class="language-python highlighter-rouge"><span class="n">main</span></code>:</p>
+
+<ol>
+  <li><strong>Semantic-release analyzes</strong> commit messages since the last release</li>
+  <li><strong>Version is determined</strong> based on conventional commit types</li>
+  <li><strong>CHANGELOG.md is updated</strong> with release notes</li>
+  <li><strong>pyproject.toml version</strong> is bumped automatically</li>
+  <li><strong>Git tag is created</strong> (e.g., <code class="language-python highlighter-rouge"><span class="n">v1</span><span class="p">.</span><span class="mf">0.0</span></code>)</li>
+  <li><strong>GitHub Release is published</strong> with release notes</li>
+  <li><strong>Changes are committed</strong> back to main with <code class="language-python highlighter-rouge"><span class="p">[</span><span class="n">skip</span> <span class="n">ci</span><span class="p">]</span></code></li>
+</ol>
+
+<h2 id="conventional-commit-format">Conventional Commit Format</h2>
+
+<p>All commits must follow the <a href="https://www.conventionalcommits.org/">Conventional Commits</a> specification:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&lt;</span><span class="n">scope</span><span class="o">&gt;</span><span class="p">):</span> <span class="o">&lt;</span><span class="n">description</span><span class="o">&gt;</span>
+
+<span class="p">[</span><span class="n">optional</span> <span class="n">body</span><span class="p">]</span>
+
+<span class="p">[</span><span class="n">optional</span> <span class="n">footer</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+</code></pre></div></div>
+
+<h3 id="common-types">Common Types</h3>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">feat</span><span class="p">:</span></code> - New feature (triggers minor release)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">fix</span><span class="p">:</span></code> - Bug fix (triggers patch release)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">docs</span><span class="p">:</span></code> - Documentation changes (no release)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">chore</span><span class="p">:</span></code> - Maintenance tasks (no release)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">refactor</span><span class="p">:</span></code> - Code refactoring (no release)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">test</span><span class="p">:</span></code> - Test changes (no release)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">ci</span><span class="p">:</span></code> - CI/CD changes (no release)</li>
+</ul>
+
+<h3 id="breaking-changes">Breaking Changes</h3>
+
+<p>To trigger a major version bump, use one of these:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># With ! after type</span>
+feat!: redesign assessment API
+
+<span class="c"># With BREAKING CHANGE footer</span>
+feat: update scoring algorithm
+
+BREAKING CHANGE: Assessment.score is now a float instead of int
+</code></pre></div></div>
+
+<h2 id="manual-release-trigger">Manual Release Trigger</h2>
+
+<p>To manually trigger a release without a commit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Trigger release workflow via GitHub CLI</span>
+gh workflow run release.yml
+
+<span class="c"># Or via GitHub UI</span>
+<span class="c"># Actions → Release → Run workflow → Run workflow</span>
+</code></pre></div></div>
+
+<h2 id="pre-release-process">Pre-release Process</h2>
+
+<p>For alpha/beta releases (not yet configured):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Future: Create pre-release from beta branch</span>
+git checkout <span class="nt">-b</span> beta
+git push origin beta
+</code></pre></div></div>
+
+<p>Then update <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">releaserc</span><span class="p">.</span><span class="n">json</span></code> to include beta branch configuration.</p>
+
+<h2 id="hotfix-process">Hotfix Process</h2>
+
+<p>For urgent production fixes:</p>
+
+<ol>
+  <li>
+    <p><strong>Create hotfix branch</strong> from the latest release tag:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout <span class="nt">-b</span> hotfix/critical-bug v1.2.3
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Apply fix</strong> with conventional commit:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-m</span> <span class="s2">"fix: resolve critical security issue"</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Push and create PR</strong> to main:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push origin hotfix/critical-bug
+gh <span class="nb">pr </span>create <span class="nt">--base</span> main <span class="nt">--title</span> <span class="s2">"fix: critical security hotfix"</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Merge to main</strong> - Release automation handles versioning</p>
+  </li>
+</ol>
+
+<h2 id="rollback-procedure">Rollback Procedure</h2>
+
+<p>To rollback a release:</p>
+
+<h3 id="1-delete-the-tag-and-release">1. Delete the tag and release</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Delete tag locally</span>
+git tag <span class="nt">-d</span> v1.2.3
+
+<span class="c"># Delete tag remotely</span>
+git push origin :refs/tags/v1.2.3
+
+<span class="c"># Delete GitHub release</span>
+gh release delete v1.2.3 <span class="nt">--yes</span>
+</code></pre></div></div>
+
+<h3 id="2-revert-the-release-commit">2. Revert the release commit</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Find the release commit</span>
+git log <span class="nt">--oneline</span> | <span class="nb">grep</span> <span class="s2">"chore(release)"</span>
+
+<span class="c"># Revert it</span>
+git revert &lt;release-commit-sha&gt;
+git push origin main
+</code></pre></div></div>
+
+<h3 id="3-restore-previous-version">3. Restore previous version</h3>
+
+<p>Edit <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code> to restore the previous version number and commit.</p>
+
+<h2 id="release-checklist">Release Checklist</h2>
+
+<p>Before a major release, ensure:</p>
+
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />All tests passing on main branch</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Documentation is up to date</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Security vulnerabilities addressed</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Dependencies are up to date (run <code class="language-python highlighter-rouge"><span class="n">uv</span> <span class="n">pip</span> <span class="nb">list</span> <span class="o">--</span><span class="n">outdated</span></code>)</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Self-assessment score is current</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Migration guide written (if breaking changes)</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Examples updated for new features</li>
+</ul>
+
+<h2 id="monitoring-releases">Monitoring Releases</h2>
+
+<p>After a release is published:</p>
+
+<ol>
+  <li><strong>Verify GitHub Release</strong> - Check release notes are accurate</li>
+  <li><strong>Monitor issues</strong> - Watch for regression reports</li>
+  <li><strong>Check workflows</strong> - Ensure no failures in release workflow</li>
+  <li><strong>Update milestones</strong> - Close completed milestone, create next one</li>
+</ol>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="release-workflow-fails">Release workflow fails</h3>
+
+<ul>
+  <li>Check commit message format matches conventional commits</li>
+  <li>Verify <code class="language-python highlighter-rouge"><span class="n">GITHUB_TOKEN</span></code> has sufficient permissions</li>
+  <li>Review semantic-release logs in Actions tab</li>
+  <li>Ensure no merge conflicts in CHANGELOG.md</li>
+</ul>
+
+<h3 id="version-not-incrementing">Version not incrementing</h3>
+
+<ul>
+  <li>Ensure commits use conventional commit format (<code class="language-python highlighter-rouge"><span class="n">feat</span><span class="p">:</span></code>, <code class="language-python highlighter-rouge"><span class="n">fix</span><span class="p">:</span></code>, etc.)</li>
+  <li>Check that commits aren’t marked <code class="language-python highlighter-rouge"><span class="p">[</span><span class="n">skip</span> <span class="n">ci</span><span class="p">]</span></code></li>
+  <li>Verify <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">releaserc</span><span class="p">.</span><span class="n">json</span></code> branch configuration matches current branch</li>
+  <li>Review semantic-release dry-run output</li>
+</ul>
+
+<h3 id="changelog-conflicts">CHANGELOG conflicts</h3>
+
+<p>If CHANGELOG.md has merge conflicts:</p>
+
+<ol>
+  <li>Resolve conflicts manually</li>
+  <li>Commit the resolution</li>
+  <li>Semantic-release will include the fix in next release</li>
+</ol>
+
+<h2 id="resources">Resources</h2>
+
+<ul>
+  <li><a href="https://semver.org/">Semantic Versioning</a></li>
+  <li><a href="https://www.conventionalcommits.org/">Conventional Commits</a></li>
+  <li><a href="https://semantic-release.gitbook.io/">Semantic Release Documentation</a></li>
+  <li><a href="https://docs.github.com/en/actions/publishing-packages">GitHub Actions: Publishing packages</a></li>
+</ul>
+
+<h2 id="version-history">Version History</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Version</th>
+      <th>Date</th>
+      <th>Highlights</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1.0.0</td>
+      <td>2025-11-21</td>
+      <td>Initial release with core assessment engine</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<p><strong>Last Updated</strong>: 2025-11-21
+<strong>Maintained By</strong>: AgentReady Team</p>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

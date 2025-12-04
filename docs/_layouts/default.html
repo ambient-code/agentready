@@ -11,7 +11,7 @@
   {% seo %}
 
   <!-- Styles -->
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/agentready.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/assets/css/leaderboard.css' | relative_url }}">
 
   <!-- Favicon (add your own) -->
@@ -20,20 +20,6 @@
 <body>
   <!-- Skip to main content for accessibility -->
   <a href="#main-content" class="skip-to-main">Skip to main content</a>
-
-  <!-- Header -->
-  <header>
-    <nav>
-      <div class="container">
-        <ul>
-          {% for item in site.navigation %}
-            <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
-          {% endfor %}
-          <li><a href="{{ site.repository }}" target="_blank" rel="noopener">GitHub</a></li>
-        </ul>
-      </div>
-    </nav>
-  </header>
 
   <!-- Main Content -->
   <main id="main-content" class="container">
@@ -53,8 +39,7 @@
       </p>
       <p style="margin-top: var(--space-4);">
         <a href="{{ site.repository }}" target="_blank" rel="noopener">GitHub</a> •
-        <a href="{{ site.repository }}/issues" target="_blank" rel="noopener">Issues</a> •
-        <a href="{{ site.repository }}/discussions" target="_blank" rel="noopener">Discussions</a>
+        <a href="{{ site.repository }}/issues" target="_blank" rel="noopener">Issues</a>
       </p>
     </div>
   </footer>
