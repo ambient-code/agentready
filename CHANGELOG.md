@@ -1,3 +1,10 @@
+## [2.12.1](https://github.com/ambient-code/agentready/compare/v2.12.0...v2.12.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* disable attestations for Test PyPI to avoid conflict ([#155](https://github.com/ambient-code/agentready/issues/155)) ([a33e3cd](https://github.com/ambient-code/agentready/commit/a33e3cd2d86d4a461701e906070ab3eae8ca8082)), closes [pypa/#action-pypi-publish](https://github.com/ambient-code/agentready/issues/action-pypi-publish)
+
 # [2.12.0](https://github.com/ambient-code/agentready/compare/v2.11.1...v2.12.0) (2025-12-04)
 
 
