@@ -1,6 +1,6 @@
 {
-  "generated_at": "2025-12-03T23:03:27.289632Z",
-  "total_repositories": 1,
+  "generated_at": "2025-12-04T19:24:27.444845Z",
+  "total_repositories": 2,
   "overall": [
     {
       "repo": "ambient-code/agentready",
@@ -25,6 +25,31 @@
       "rank": 1,
       "lang_rank": {
         "Unknown": 1
+      }
+    },
+    {
+      "repo": "quay/quay",
+      "org": "quay",
+      "name": "quay",
+      "score": 51.0,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2025-12-04",
+      "url": "git@github.com:quay/quay.git",
+      "agentready_version": "2.12.2",
+      "research_version": "1.0.0",
+      "history": [
+        {
+          "date": "2025-12-04",
+          "score": 51.0,
+          "agentready_version": "2.12.2",
+          "research_version": "1.0.0"
+        }
+      ],
+      "rank": 2,
+      "lang_rank": {
+        "Unknown": 2
       }
     }
   ],
@@ -54,6 +79,31 @@
         "lang_rank": {
           "Unknown": 1
         }
+      },
+      {
+        "repo": "quay/quay",
+        "org": "quay",
+        "name": "quay",
+        "score": 51.0,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2025-12-04",
+        "url": "git@github.com:quay/quay.git",
+        "agentready_version": "2.12.2",
+        "research_version": "1.0.0",
+        "history": [
+          {
+            "date": "2025-12-04",
+            "score": 51.0,
+            "agentready_version": "2.12.2",
+            "research_version": "1.0.0"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
       }
     ]
   },
@@ -82,6 +132,31 @@
         "rank": 1,
         "lang_rank": {
           "Unknown": 1
+        }
+      },
+      {
+        "repo": "quay/quay",
+        "org": "quay",
+        "name": "quay",
+        "score": 51.0,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2025-12-04",
+        "url": "git@github.com:quay/quay.git",
+        "agentready_version": "2.12.2",
+        "research_version": "1.0.0",
+        "history": [
+          {
+            "date": "2025-12-04",
+            "score": 51.0,
+            "agentready_version": "2.12.2",
+            "research_version": "1.0.0"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
         }
       }
     ]
