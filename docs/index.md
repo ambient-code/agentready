@@ -8,39 +8,6 @@ description: Community-submitted repository assessments ranked by agent-readines
 
 Community-driven rankings of agent-ready repositories.
 
-## Key Features
-
-<div class="feature-grid">
-  <div class="feature">
-    <h3>🤖 Automated Infrastructure</h3>
-    <p>Bootstrap generates complete GitHub setup: Actions workflows, issue/PR templates, pre-commit hooks, Dependabot config, and security scanning—all language-aware.</p>
-  </div>
-  <div class="feature">
-    <h3>🎯 Language-Specific</h3>
-    <p>Auto-detects your primary language (Python, JavaScript, Go) and generates appropriate workflows, linters, and test configurations.</p>
-  </div>
-  <div class="feature">
-    <h3>📈 Continuous Assessment</h3>
-    <p>Generated GitHub Actions run AgentReady on every PR, posting results as comments. Track improvements over time with Markdown reports.</p>
-  </div>
-  <div class="feature">
-    <h3>🏆 Certification Levels</h3>
-    <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality. Bootstrap helps you achieve Gold (75+) immediately.</p>
-  </div>
-  <div class="feature">
-    <h3>⚡ One Command Setup</h3>
-    <p>From zero to production-ready infrastructure in seconds. Review generated files with --dry-run before committing.</p>
-  </div>
-  <div class="feature">
-    <h3>🔬 Research-Backed</h3>
-    <p>Every generated file and assessed attribute is backed by 50+ citations from Anthropic, Microsoft, Google, and academic research.</p>
-  </div>
-</div>
-
-[Learn more about AgentReady →](about.html)
-
----
-
 {% if site.data.leaderboard.total_repositories == 0 %}
 
 ## No Submissions Yet
@@ -119,6 +86,41 @@ agentready submit
 </table>
 
 {% endif %}
+
+---
+
+## Key Features
+
+<div class="feature-grid">
+  <div class="feature">
+    <h3>🤖 Automated Infrastructure</h3>
+    <p>Bootstrap generates complete GitHub setup: Actions workflows, issue/PR templates, pre-commit hooks, Dependabot config, and security scanning—all language-aware.</p>
+  </div>
+  <div class="feature">
+    <h3>🎯 Language-Specific</h3>
+    <p>Auto-detects your primary language (Python, JavaScript, Go) and generates appropriate workflows, linters, and test configurations.</p>
+  </div>
+  <div class="feature">
+    <h3>📈 Continuous Assessment</h3>
+    <p>Generated GitHub Actions run AgentReady on every PR, posting results as comments. Track improvements over time with Markdown reports.</p>
+  </div>
+  <div class="feature">
+    <h3>🏆 Certification Levels</h3>
+    <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality. Bootstrap helps you achieve Gold (75+) immediately.</p>
+  </div>
+  <div class="feature">
+    <h3>⚡ One Command Setup</h3>
+    <p>From zero to production-ready infrastructure in seconds. Review generated files with --dry-run before committing.</p>
+  </div>
+  <div class="feature">
+    <h3>🔬 Research-Backed</h3>
+    <p>Every generated file and assessed attribute is backed by 50+ citations from Anthropic, Microsoft, Google, and academic research.</p>
+  </div>
+</div>
+
+[Learn more about AgentReady →](about.html)
+
+---
 
 ## 📈 Submit Your Repository
 
