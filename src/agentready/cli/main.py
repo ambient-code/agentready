@@ -146,15 +146,21 @@ def cli(ctx, version):
     default=None,
     help="Path to configuration file",
 )
-def assess(repository, verbose, output_dir, config):
+@click.option(
+    "--exclude",
+    "-e",
+    multiple=True,
+    help="Attribute ID(s) to exclude (can be specified multiple times)",
+)
+def assess(repository, verbose, output_dir, config, exclude):
     """Assess a repository against agent-ready criteria.
 
     REPOSITORY: Path to git repository (default: current directory)
     """
-    run_assessment(repository, verbose, output_dir, config)
+    run_assessment(repository, verbose, output_dir, config, exclude)
 
 
-def run_assessment(repository_path, verbose, output_dir, config_path):
+def run_assessment(repository_path, verbose, output_dir, config_path, exclude=None):
     """Execute repository assessment."""
     repo_path = Path(repository_path).resolve()
 
@@ -217,8 +223,26 @@ def run_assessment(repository_path, verbose, output_dir, config_path):
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
 
-    # Create assessors
-    assessors = create_all_assessors()
+    # Create all assessors first
+    all_assessors = create_all_assessors()
+
+    # Validate exclusions (strict mode)
+    if exclude:
+        valid_ids = {a.attribute_id for a in all_assessors}
+        invalid_ids = set(exclude) - valid_ids
+        if invalid_ids:
+            raise click.BadParameter(
+                f"Invalid attribute ID(s): {', '.join(sorted(invalid_ids))}. "
+                f"Valid IDs: {', '.join(sorted(valid_ids))}"
+            )
+        # Filter out excluded assessors
+        assessors = [a for a in all_assessors if a.attribute_id not in exclude]
+        if verbose and exclude:
+            click.echo(
+                f"Excluded {len(exclude)} attribute(s): {', '.join(sorted(exclude))}\n"
+            )
+    else:
+        assessors = all_assessors
 
     if verbose:
         click.echo(f"Repository: {repo_path}")

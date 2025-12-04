@@ -1059,17 +1059,15 @@ cr src/**/*.js
 
 ## Implementation Status
 
-| Tier | Implemented | Stub | Total |
-|------|-------------|------|-------|
-| **Tier 1** | 5 | 0 | 5 |
-| **Tier 2** | 3 | 3 | 6 |
-| **Tier 3** | 1 | 8 | 9 |
-| **Tier 4** | 1 | 4 | 5 |
-| **Total** | **10** | **15** | **25** |
+AgentReady's assessor implementations are actively maintained across four tiers. Most essential and critical attributes (Tier 1 and Tier 2) are fully implemented with rich remediation guidance.
 
-**Current version (v1.27.2)**: 10 assessors fully implemented, 15 return "not_applicable" (stub implementations).
+**Current State**:
+- ✅ **Tier 1 (Essential)**: Fully implemented
+- ✅ **Tier 2 (Critical)**: Majority implemented
+- 🚧 **Tier 3 (Important)**: Active development
+- 🚧 **Tier 4 (Advanced)**: Planned implementations
 
-**Roadmap**: Future versions will expand stub assessors to provide complete 25-attribute coverage.
+See the [GitHub repository](https://github.com/ambient-code/agentready) for current implementation details.
 
 ---
 

@@ -8,320 +8,13 @@
 
 ## Overview
 
-AgentReady is a Python CLI tool that evaluates repositories against 25 carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
+AgentReady is a Python CLI tool that evaluates repositories against a comprehensive set of carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v2.11.1 - Core assessment engine complete, 22/31 attributes implemented (9 stubs), LLM-powered learning, research report management
+**Current Status**: v2.11.1 - Core assessment engine complete, most essential assessors implemented, LLM-powered learning, research report management
 
 **Self-Assessment Score**: 80.0/100 (Gold) - See `examples/self-assessment/`
 
----
-
-## Quick Start
-
-```bash
-# Install in virtual environment
-uv venv && source .venv/bin/activate
-uv pip install -e .
-
-# Run assessment on current directory
-agentready assess .
-
-# Run with verbose output
-agentready assess . --verbose
-
-# Assess different repository
-agentready assess /path/to/repo --output-dir ./reports
-
-# Validate assessment report
-agentready validate-report .agentready/assessment-latest.json
-
-# Migrate report to new schema version
-agentready migrate-report old-report.json --to 2.0.0
-```
-
-**Outputs**:
-- `.agentready/assessment-YYYYMMDD-HHMMSS.json` - Machine-readable results (with schema version)
-- `.agentready/report-YYYYMMDD-HHMMSS.html` - Interactive web report
-- `.agentready/report-YYYYMMDD-HHMMSS.md` - Git-friendly markdown report
-
----
-
-## Batch Assessment & GitHub Integration
-
-**Feature**: Assess multiple repositories in a single operation, including scanning entire GitHub organizations.
-
-The `assess-batch` command enables bulk repository assessment with support for file-based lists, inline arguments, and direct GitHub organization scanning.
-
-### Basic Usage
-
-```bash
-# Assess repositories from a file
-agentready assess-batch --repos-file repos.txt
-
-# Assess specific repositories
-agentready assess-batch \
-  --repos https://github.com/user/repo1 \
-  --repos https://github.com/user/repo2
-
-# Combine multiple sources
-agentready assess-batch \
-  --repos-file my-repos.txt \
-  --repos https://github.com/user/extra-repo
-```
-
-### GitHub Organization Scanning
-
-Assess all repositories in a GitHub organization:
-
-```bash
-# Set GitHub token
-export GITHUB_TOKEN=ghp_your_token_here
-
-# Scan public repos only (default)
-agentready assess-batch --github-org anthropics
-
-# Include private repos
-agentready assess-batch --github-org myorg --include-private
-
-# Limit number of repos
-agentready assess-batch --github-org myorg --max-repos 50
-
-# Combine with other sources
-agentready assess-batch \
-  --github-org myorg \
-  --repos-file additional-repos.txt \
-  --verbose
-```
-
-**Token Setup**:
-1. Create personal access token: https://github.com/settings/tokens
-2. Required scopes: `repo:status`, `public_repo`
-3. For private repos: `repo` (full control)
-4. Set environment variable: `export GITHUB_TOKEN=ghp_...`
-
-**Security Features**:
-- Token stored in environment only (never in files)
-- Token redacted in all logs and errors
-- Public repos scanned by default (safe)
-- Private repos require explicit `--include-private` flag
-- Organization name validated to prevent injection attacks
-- Repository limit enforced (default: 100)
-- Rate limiting implemented (0.2s between API requests)
-
-**Output**:
-- Batch reports saved to `.agentready/batch/` by default
-- Individual repository assessments cached
-- Summary statistics across all repositories
-- Aggregate scoring and failure analysis
-
----
-
-## SWE-bench Experiments (MVP)
-
-**Feature**: Quantify AgentReady settings against SWE-bench baseline using both SWE-agent and Claude Code.
-
-The `experiment` commands enable controlled experiments to validate which AgentReady attributes improve AI agent performance on real-world coding tasks.
-
-### Quick Start
-
-```bash
-# 1. Run agent on repository
-agentready experiment run-agent sweagent \
-  --repo-path /path/to/repo \
-  --dataset lite \
-  --output predictions_baseline.jsonl
-
-# 2. Evaluate predictions
-agentready experiment evaluate \
-  --predictions predictions_baseline.jsonl \
-  --output results_baseline.json
-
-# 3. Analyze and generate interactive heatmap
-agentready experiment analyze \
-  --results-dir results/ \
-  --heatmap heatmap.html
-
-# 4. View results
-open heatmap.html
-```
-
-### Pre-configured Experiments
-
-Five configurations in `experiments/configs/`:
-
-1. **baseline.yaml** - No AgentReady changes (control)
-2. **claude-md.yaml** - CLAUDE.md only (Tier 1 essential)
-3. **types-docs.yaml** - Type annotations + inline documentation
-4. **tier1.yaml** - All 5 Tier 1 attributes
-5. **full-bootstrap.yaml** - All AgentReady best practices
-
-### Supported Agents
-
-- **SWE-agent**: Production-ready, built-in SWE-bench support
-- **Claude Code**: Headless mode execution (requires task file)
-
-### SWE-bench Datasets
-
-- **Lite**: 300 tasks (~15-30 min with cache)
-- **Full**: 2,294 tasks (~2-4 hours)
-
-### Interactive Visualization
-
-Generates Plotly Express heatmap with:
-- Hover tooltips (config, agent, score, delta from baseline)
-- Zoom/pan capability
-- RdYlGn colormap (seaborn-style)
-- Standalone HTML export (shareable without Python)
-
-### Expected Results
-
-Based on sample data:
-- **Baseline**: ~38-39% pass rate
-- **CLAUDE.md only**: +7-8pp improvement
-- **Full bootstrap**: +14pp improvement
-- **Correlation**: r ≈ 0.87 between AgentReady score and SWE-bench performance
-
-### Dependencies
-
-```bash
-uv pip install swebench sweagent plotly pandas scipy
-```
-
-See `experiments/README.md` for detailed workflow and manual steps.
-
----
-
-## Continuous Learning Loop (LLM-Powered)
-
-**Feature**: Extract high-quality skills from assessments using Claude API
-
-The `extract-skills` command analyzes assessment results to identify successful patterns and generates Claude Code skills. With `--enable-llm`, it uses Claude Sonnet 4.5 to create detailed, context-aware skill documentation.
-
-### Basic Usage (Heuristic)
-
-```bash
-# Extract skills using heuristic pattern extraction
-agentready extract-skills .
-
-# Generate SKILL.md files
-agentready extract-skills . --output-format skill_md
-
-# Create GitHub issue templates
-agentready extract-skills . --output-format github_issues
-```
-
-### LLM-Powered Enrichment
-
-```bash
-# Set API key
-export ANTHROPIC_API_KEY=sk-ant-api03-...
-
-# Extract skills with LLM enrichment (top 5 skills)
-agentready extract-skills . --enable-llm
-
-# Enrich more skills with custom budget
-agentready extract-skills . --enable-llm --llm-budget 10
-
-# Bypass cache for fresh analysis
-agentready extract-skills . --enable-llm --llm-no-cache
-
-# Generate all formats with LLM enrichment
-agentready extract-skills . --enable-llm --output-format all
-```
-
-### LLM Enrichment Features
-
-**What it does**:
-- Analyzes repository code samples for real examples
-- Generates 5-10 step detailed instructions
-- Extracts file paths and code snippets from actual implementation
-- Derives best practices from high-scoring attributes
-- Identifies anti-patterns to avoid
-
-**How it works**:
-1. Heuristics extract basic skills from assessment findings
-2. Top N skills (default: 5) are sent to Claude API
-3. Code sampler provides relevant files from repository
-4. Claude analyzes patterns and generates structured JSON
-5. Enriched skills merged with detailed instructions/examples
-6. Results cached for 7 days to reduce API costs
-
-**Caching**:
-- Responses cached in `.agentready/llm-cache/`
-- 7-day TTL (time-to-live)
-- Cache key based on attribute + score + evidence hash
-- Use `--llm-no-cache` to force fresh API calls
-
-**Cost Control**:
-- `--llm-budget N` limits enrichment to top N skills
-- Default: 5 skills (approximately 5-10 API calls)
-- Each enrichment: ~2-6 seconds, ~2000-4000 tokens
-- Caching prevents redundant calls on repeated assessments
-
-**Graceful Fallback**:
-- Missing API key → falls back to heuristic skills
-- API errors → uses original heuristic skill
-- Rate limits → retries with exponential backoff
-
----
-
-## Research Report Management
-
-**Feature**: Utilities for maintaining the research report (agent-ready-codebase-attributes.md)
-
-The `research` command group provides tools to validate, update, and format research reports following the schema defined in `contracts/research-report-schema.md`.
-
-### Commands
-
-```bash
-# Validate research report against schema
-agentready research validate agent-ready-codebase-attributes.md
-
-# Generate new research report from template
-agentready research init --output new-research.md
-
-# Add new attribute to research report
-agentready research add-attribute research.md \
-  --attribute-id "1.4" \
-  --name "New Attribute" \
-  --tier 2 \
-  --category "Documentation"
-
-# Update version (major.minor.patch)
-agentready research bump-version research.md --type minor
-
-# Set explicit version
-agentready research bump-version research.md --version 2.0.0
-
-# Lint and format research report
-agentready research format research.md
-
-# Check formatting without changes
-agentready research format research.md --check
-```
-
-### Validation Rules
-
-**Errors** (block usage):
-- Missing metadata header (version, date)
-- Incorrect attribute count (not 25)
-- Missing "Measurable Criteria" sections
-- Fewer than 4 tiers defined
-- Invalid version/date format
-
-**Warnings** (non-critical):
-- Missing "Impact on Agent Behavior" sections
-- Fewer than 20 references
-- Unbalanced tier distribution
-- Non-sequential attribute numbering
-
-### Use Cases
-
-1. **Maintain consistency**: Validate before committing changes
-2. **Add new attributes**: Use `add-attribute` for proper structure
-3. **Version tracking**: Bump version after significant updates
-4. **Code quality**: Format ensures consistent markdown style
-5. **Pre-commit integration**: Run `validate` in pre-commit hooks
+**For User Documentation**: See `README.md` for installation, usage examples, and feature tutorials.
 
 ---
 
@@ -343,7 +36,7 @@ src/agentready/
 │   ├── testing.py         # Test coverage, pre-commit hooks
 │   ├── structure.py       # Standard layout, gitignore
 │   ├── repomix.py         # Repomix configuration assessor
-│   └── stub_assessors.py  # 9 stub assessors (22 implemented)
+│   └── stub_assessors.py  # Remaining assessors in development
 ├── learners/        # Pattern extraction and LLM enrichment
 │   ├── pattern_extractor.py  # Heuristic skill extraction
 │   ├── skill_generator.py    # SKILL.md generation
@@ -418,7 +111,7 @@ pytest --cov=src/agentready --cov-report=html
 pytest tests/unit/test_models.py -v
 ```
 
-**Current Coverage**: 37% (focused on core logic)
+**Current Coverage**: 37% (focused on core logic, targeting >80%)
 
 ### Code Quality
 
@@ -432,26 +125,39 @@ isort src/ tests/
 # Lint code
 ruff check src/ tests/
 
-# Run all linters
+# Run all linters (pre-push)
 black src/ tests/ && isort src/ tests/ && ruff check src/ tests/
 ```
 
 ### Cold-Start Prompts Pattern
 
-**Gitignored Planning Directory**: `.plans/`
+**Purpose**: Enable context-free agent handoff for feature implementation.
 
-When creating cold-start prompts for features or assessors:
-- Store in `.plans/` directory (gitignored, never committed)
-- Each prompt is self-contained for implementation handoff
-- Prompts include: requirements, implementation approach, code patterns, test guidance
-- Use for creating GitHub issues with full context
-- Allows LLM agents to pick up work without conversation history
+**Structure**:
+- **Directory**: `plans/` (gitignored, never committed)
+- **Content**: Self-contained implementation prompts with complete context
+- **Usage**: Create GitHub issues or hand off work to future agents
 
-**Example workflow**:
-1. Generate cold-start prompt → `.plans/assessor-name.md`
-2. Create GitHub issue with prompt content as body
-3. Future agent reads issue → implements feature
-4. Prompt stays in `.plans/` for local reference only
+**What to Include**:
+- Requirements and acceptance criteria
+- Implementation approach and architectural decisions
+- Code patterns to follow (with file paths)
+- Test guidance and edge cases
+- Related files and dependencies
+
+**Example Workflow**:
+1. During planning → Generate cold-start prompt in `plans/feature-name.md`
+2. Create GitHub issue → Copy prompt content as issue body
+3. Future agent → Reads issue, implements feature without conversation history
+4. Local reference → Prompt stays in `plans/` for quick lookup
+
+**Benefits**:
+- Enables asynchronous development across multiple sessions
+- Provides complete context without requiring chat history
+- Standardizes knowledge transfer between agents
+- Supports incremental feature development
+
+**Note**: Also see `coldstart-prompts/` directory for legacy prompts (being migrated to `plans/`).
 
 ### Adding New Assessors
 
@@ -479,6 +185,11 @@ class MyAssessor(BaseAssessor):
             return Finding.create_fail(self.attribute, ...)
 ```
 
+**Reference Implementations**:
+- Simple: `CLAUDEmdAssessor` (file existence check)
+- Complex: `TypeAnnotationsAssessor` (proportional scoring)
+- Language-aware: `TestCoverageAssessor` (conditional logic)
+
 ---
 
 ## Project Structure
@@ -492,8 +203,11 @@ agentready/
 ├── examples/               # Example reports
 │   └── self-assessment/    # AgentReady's own assessment
 ├── specs/                  # Feature specifications
+├── plans/                  # Cold-start prompts (gitignored)
+├── experiments/            # SWE-bench validation studies
+├── contracts/              # Data schemas and validation rules
 ├── pyproject.toml          # Python package configuration
-├── CLAUDE.md              # This file
+├── CLAUDE.md              # This file (developer guide)
 ├── README.md              # User-facing documentation
 ├── BACKLOG.md             # Future features and enhancements
 └── GITHUB_ISSUES.md       # GitHub-ready issue templates
@@ -547,7 +261,7 @@ chore: Update dependencies
 
 ## CI/CD
 
-**GitHub Actions** (planned):
+**GitHub Actions**:
 - Run tests on PR
 - Run linters (black, isort, ruff)
 - Generate coverage report
@@ -568,48 +282,19 @@ chore: Update dependencies
 
 ## Roadmap
 
-### v1.x - Current Development (In Progress)
-- ✅ LLM-powered learning and skill extraction
-- ✅ Research report management commands
-- ✅ Lock files, conventional commits, gitignore assessors
-- ✅ Repomix configuration assessor
-- **In Progress**: Expand remaining 9 stub assessors (22/31 currently implemented)
+### v2.x - Current Development (In Progress)
+- **In Progress**: Expand remaining stub assessors
 - **In Progress**: Improve test coverage to >80%
-
-### v2.0 - Automation & Integration (Next)
-- **P1**: Implement `agentready bootstrap` subcommand (automated remediation)
-- **P1**: Implement `agentready align` subcommand (automated alignment)
-- **P2**: GitHub App integration (badges, status checks, PR comments)
-- **P2**: Interactive dashboard (one-click remediation)
+- **Planned**: Bootstrap command (automated remediation)
+- **Planned**: Align command (automated alignment)
 
 ### v3.0 - Enterprise Features (Future)
-- ✅ Report schema versioning
 - Customizable HTML themes with dark/light toggle
 - Organization-wide dashboards
 - Historical trend analysis
 - AI-powered assessors with deeper code analysis
 
-See `BACKLOG.md` for full feature list.
-
----
-
-## Getting Help
-
-- **Issues**: Create GitHub issue using templates in `GITHUB_ISSUES.md`
-- **Documentation**: See `README.md` for user guide
-- **Examples**: View `examples/self-assessment/` for reference reports
-- **Research**: Read `agent-ready-codebase-attributes.md` for attribute definitions
-
----
-
-## Related Documents
-
-- **.github/CLAUDE_INTEGRATION.md** - Dual Claude integration guide (automated + interactive)
-- **BACKLOG.md** - Future features and enhancements (11 items)
-- **GITHUB_ISSUES.md** - GitHub-ready issue templates
-- **README.md** - User-facing documentation
-- **specs/** - Feature specifications and design documents
-- **examples/self-assessment/** - AgentReady's own assessment (80.0/100 Gold)
+See `BACKLOG.md` for complete feature list.
 
 ---
 
@@ -631,6 +316,12 @@ See `BACKLOG.md` for full feature list.
 - Strategy pattern for assessors (each is independent)
 - Fail gracefully (missing tools → skip, don't crash)
 - User-focused (actionable remediation over theoretical guidance)
+
+**Command Reference**:
+- User tutorials → See `README.md`
+- CLI help → Run `agentready --help`
+- SWE-bench experiments → See `experiments/README.md`
+- Research report schema → See `contracts/research-report-schema.md`
 
 ### Documentation Workflow
 
@@ -671,15 +362,6 @@ Use the @agent-github-pages-docs to [action] based on:
 - [Specific sections] that need updating
 ```
 
-**Example**:
-```
-Use the @agent-github-pages-docs to revise all documentation in docs/ based on:
-- Bootstrap feature now fully implemented
-- New CLI commands (bootstrap, align)
-- Updated architecture in CLAUDE.md
-- Self-assessment score improvement (75.4 → 82.1)
-```
-
 **Documentation Sources of Truth** (in priority order):
 1. `CLAUDE.md` - Complete project guide (architecture, development, workflows)
 2. `agent-ready-codebase-attributes.md` - Research report (25 attributes, tier system)
@@ -693,6 +375,18 @@ Use the @agent-github-pages-docs to revise all documentation in docs/ based on:
 - Future: Automatic cascade updates on source file changes (see BACKLOG.md - P2 item)
 - Always review agent-generated docs before committing
 - Ensure Bootstrap documentation is kept prominent and up-to-date
+
+---
+
+## Related Documents
+
+- **.github/CLAUDE_INTEGRATION.md** - Dual Claude integration guide (automated + interactive)
+- **BACKLOG.md** - Future features and enhancements
+- **GITHUB_ISSUES.md** - GitHub-ready issue templates
+- **README.md** - User-facing documentation
+- **specs/** - Feature specifications and design documents
+- **experiments/README.md** - SWE-bench validation workflow
+- **examples/self-assessment/** - AgentReady's own assessment (80.0/100 Gold)
 
 ---
 

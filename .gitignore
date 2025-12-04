@@ -48,10 +48,12 @@ coverage.xml
 .DS_Store
 
 # Project specific
+# AgentReady runtime artifacts
 .agentready/
+.agentready/cache/  # Explicitly exclude cached repositories (510MB+)
 *.log
 *.tmp
-.plans/
+plans/  # Planning documents (was .plans/)
 .cache/
 
 # Repository lists (generated/temporary)

@@ -1,7 +1,8 @@
 # AgentReady Coldstart Implementation Prompts
 
 **Generated**: 2025-11-21
-**Total Prompts**: 19
+**Last Updated**: 2025-12-03
+**Total Prompts**: 13 (7 completed, removed from this directory)
 **Source**: BACKLOG.md + Community Contributions
 
 ---
@@ -24,24 +25,24 @@ These prompts are designed to be "drop in and go" - an AI agent or developer can
 
 ## Priority-Based Index
 
-### P0 (Critical) - 6 Items
+### P0 (Critical) - 3 Items (3 completed ✅)
 
 | # | File | Title | Size | Status |
 |---|------|-------|------|--------|
-| 01 | [01-create-automated-demo.md](01-create-automated-demo.md) | Create Automated Demo | 8.7K | 🔴 Not Started |
+| 01 | ~~01-create-automated-demo.md~~ | Create Automated Demo | - | 🟢 Completed |
 | 02 | [02-fix-critical-security-logic-bugs-from-code-review.md](02-fix-critical-security-logic-bugs-from-code-review.md) | Fix Critical Security & Logic Bugs from Code Review | 7.4K | 🔴 Not Started |
-| 03 | [03-bootstrap-agentready-repository-on-github.md](03-bootstrap-agentready-repository-on-github.md) | Bootstrap AgentReady Repository on GitHub | 11K | 🔴 Not Started |
+| 03 | ~~03-bootstrap-agentready-repository-on-github.md~~ | Bootstrap AgentReady Repository on GitHub | - | 🟢 Completed |
 | 04 | [04-report-header-with-repository-metadata.md](04-report-header-with-repository-metadata.md) | Report Header with Repository Metadata | 6.8K | 🔴 Not Started |
 | 05 | [05-improve-html-report-design-font-size-color-scheme.md](05-improve-html-report-design-font-size-color-scheme.md) | Improve HTML Report Design (Font Size & Color Scheme) | 8.6K | 🔴 Not Started |
-| 17 | [17-add-bootstrap-quickstart-to-readme.md](17-add-bootstrap-quickstart-to-readme.md) | Add Bootstrap Quickstart to README.md | 7.2K | 🔴 Not Started |
+| 17 | ~~17-add-bootstrap-quickstart-to-readme.md~~ | Add Bootstrap Quickstart to README.md | - | 🟢 Completed |
 
-### P1 (High) - 3 Items
+### P1 (High) - 2 Items (1 completed ✅)
 
 | # | File | Title | Size | Status |
 |---|------|-------|------|--------|
 | 11 | [11-fix-code-quality-issues-from-code-review.md](11-fix-code-quality-issues-from-code-review.md) | Fix Code Quality Issues from Code Review | 6.6K | 🔴 Not Started |
 | 12 | [12-improve-test-coverage-and-edge-case-handling.md](12-improve-test-coverage-and-edge-case-handling.md) | Improve Test Coverage and Edge Case Handling | 6.5K | 🔴 Not Started |
-| 14 | [14-align-subcommand-automated-remediation.md](14-align-subcommand-automated-remediation.md) | Align Subcommand (Automated Remediation) | 12K | 🔴 Not Started |
+| 14 | ~~14-align-subcommand-automated-remediation.md~~ | Align Subcommand (Automated Remediation) | - | 🟢 Completed |
 
 ### P2 (Medium) - 5 Items
 
@@ -53,19 +54,19 @@ These prompts are designed to be "drop in and go" - an AI agent or developer can
 | 18 | [18-setup-release-pipeline.md](18-setup-release-pipeline.md) | Setup GitHub Release Pipeline | 24K | 🟡 In Progress |
 | 19 | [19-github-pages-linter-integration.md](19-github-pages-linter-integration.md) | GitHub Pages Linter Integration | 13K | 🔴 Not Started |
 
-### P3 (Important) - 2 Items
+### P3 (Important) - 1 Item (1 completed ✅)
 
 | # | File | Title | Size | Status |
 |---|------|-------|------|--------|
-| 06 | [06-report-schema-versioning.md](06-report-schema-versioning.md) | Report Schema Versioning | 5.2K | 🔴 Not Started |
+| 06 | ~~06-report-schema-versioning.md~~ | Report Schema Versioning | - | 🟢 Completed |
 | 09 | [09-agentready-repository-agent.md](09-agentready-repository-agent.md) | AgentReady Repository Agent | 5.8K | 🔴 Not Started |
 
-### P4 (Enhancement) - 3 Items
+### P4 (Enhancement) - 1 Item (2 completed ✅)
 
 | # | File | Title | Size | Status |
 |---|------|-------|------|--------|
-| 07 | [07-research-report-generatorupdater-utility.md](07-research-report-generatorupdater-utility.md) | Research Report Generator/Updater Utility | 6.3K | 🔴 Not Started |
-| 08 | [08-repomix-integration.md](08-repomix-integration.md) | Repomix Integration | 5.7K | 🔴 Not Started |
+| 07 | ~~07-research-report-generatorupdater-utility.md~~ | Research Report Generator/Updater Utility | - | 🟢 Completed |
+| 08 | ~~08-repomix-integration.md~~ | Repomix Integration | - | 🟢 Completed |
 | 10 | [10-customizable-html-report-themes.md](10-customizable-html-report-themes.md) | Customizable HTML Report Themes | 6.1K | 🔴 Not Started |
 
 ---
@@ -164,16 +165,18 @@ python scripts/backlog_to_issues.py --all
 ## Statistics
 
 - **Total Features**: 19
-- **P0 (Critical)**: 6 features
-- **P1 (High)**: 3 features
-- **P2 (Medium)**: 5 features
-- **P3 (Important)**: 2 features
-- **P4 (Enhancement)**: 3 features
-- **Total Prompt Size**: ~175 KB
-- **Avg Prompt Size**: ~9.2 KB
+- **Completed**: 7 features (removed from this directory)
+- **Remaining**: 13 features
+- **P0 (Critical)**: 3 remaining (3 completed)
+- **P1 (High)**: 2 remaining (1 completed)
+- **P2 (Medium)**: 5 remaining
+- **P3 (Important)**: 1 remaining (1 completed)
+- **P4 (Enhancement)**: 1 remaining (2 completed)
+- **Total Prompt Size**: ~125 KB (after cleanup)
+- **Avg Prompt Size**: ~9.6 KB
 
 ---
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-12-03
 **Generator Script**: `scripts/backlog_to_issues.py`
 **Source Backlog**: `BACKLOG.md`
