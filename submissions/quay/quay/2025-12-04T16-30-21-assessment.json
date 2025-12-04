@@ -1,0 +1,1097 @@
+{
+  "schema_version": "1.0.0",
+  "metadata": {
+    "agentready_version": "2.12.2",
+    "research_version": "1.0.0",
+    "assessment_timestamp": "2025-12-04T10:28:41.792751",
+    "assessment_timestamp_human": "December 04, 2025 at 10:28 AM",
+    "executed_by": "bpratt@toolbx",
+    "command": "/var/home/bpratt/.cache/uv/archive-v0/brNzKxsxHZGlJBCoEJvpz/bin/agentready assess",
+    "working_directory": "/var/home/bpratt/git/quay/quay"
+  },
+  "repository": {
+    "path": "/var/home/bpratt/git/quay/quay",
+    "name": "quay",
+    "url": "git@github.com:quay/quay.git",
+    "branch": "playwright",
+    "commit_hash": "a55f995e1313d14341588889a470f24c2e6f1b18",
+    "languages": {
+      "Markdown": 24,
+      "YAML": 115,
+      "Shell": 29,
+      "JSON": 119,
+      "Python": 869,
+      "TOML": 4,
+      "Go": 121,
+      "TypeScript": 632,
+      "JavaScript": 268
+    },
+    "total_files": 2979,
+    "total_lines": 737154
+  },
+  "timestamp": "2025-12-04T10:28:41.792751",
+  "overall_score": 51.0,
+  "certification_level": "Bronze",
+  "attributes_assessed": 21,
+  "attributes_not_assessed": 9,
+  "attributes_total": 30,
+  "findings": [
+    {
+      "attribute": {
+        "id": "claude_md_file",
+        "name": "CLAUDE.md Configuration Files",
+        "category": "Context Window Optimization",
+        "tier": 1,
+        "description": "Project-specific configuration for Claude Code",
+        "criteria": "CLAUDE.md file exists in repository root",
+        "default_weight": 0.1
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "missing",
+      "threshold": "present",
+      "evidence": [
+        "CLAUDE.md not found in repository root"
+      ],
+      "remediation": {
+        "summary": "Create CLAUDE.md file with project-specific configuration for Claude Code",
+        "steps": [
+          "Create CLAUDE.md file in repository root",
+          "Add project overview and purpose",
+          "Document key architectural patterns",
+          "Specify coding standards and conventions",
+          "Include build/test/deployment commands",
+          "Add any project-specific context that helps AI assistants"
+        ],
+        "tools": [],
+        "commands": [
+          "touch CLAUDE.md",
+          "# Add content describing your project"
+        ],
+        "examples": [
+          "# My Project\n\n## Overview\nBrief description of what this project does.\n\n## Architecture\nKey patterns and structure.\n\n## Development\n```bash\n# Install dependencies\nnpm install\n\n# Run tests\nnpm test\n\n# Build\nnpm run build\n```\n\n## Coding Standards\n- Use TypeScript strict mode\n- Follow ESLint configuration\n- Write tests for new features\n"
+        ],
+        "citations": [
+          {
+            "source": "Anthropic",
+            "title": "Claude Code Documentation",
+            "url": "https://docs.anthropic.com/claude-code",
+            "relevance": "Official guidance on CLAUDE.md configuration"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "readme_structure",
+        "name": "README Structure",
+        "category": "Documentation Standards",
+        "tier": 1,
+        "description": "Well-structured README with key sections",
+        "criteria": "README.md with installation, usage, and development sections",
+        "default_weight": 0.1
+      },
+      "status": "fail",
+      "score": 66.66666666666666,
+      "measured_value": "2/3 sections",
+      "threshold": "3/3 sections",
+      "evidence": [
+        "Found 2/3 essential sections",
+        "Installation: \u2713",
+        "Usage: \u2717",
+        "Development: \u2713"
+      ],
+      "remediation": {
+        "summary": "Create or enhance README.md with essential sections",
+        "steps": [
+          "Add project overview and description",
+          "Include installation/setup instructions",
+          "Document basic usage with examples",
+          "Add development/contributing guidelines",
+          "Include build and test commands"
+        ],
+        "tools": [],
+        "commands": [],
+        "examples": [
+          "# Project Name\n\n## Overview\nWhat this project does and why it exists.\n\n## Installation\n```bash\npip install -e .\n```\n\n## Usage\n```bash\nmyproject --help\n```\n\n## Development\n```bash\n# Run tests\npytest\n\n# Format code\nblack .\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "GitHub",
+            "title": "About READMEs",
+            "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes",
+            "relevance": "Best practices for README structure"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "type_annotations",
+        "name": "Type Annotations",
+        "category": "Code Quality",
+        "tier": 1,
+        "description": "Type hints in function signatures",
+        "criteria": ">80% of functions have type annotations",
+        "default_weight": 0.1
+      },
+      "status": "fail",
+      "score": 2.058004052684904,
+      "measured_value": "1.6%",
+      "threshold": "\u226580%",
+      "evidence": [
+        "Typed functions: 130/7896",
+        "Coverage: 1.6%"
+      ],
+      "remediation": {
+        "summary": "Add type annotations to function signatures",
+        "steps": [
+          "For Python: Add type hints to function parameters and return types",
+          "For TypeScript: Enable strict mode in tsconfig.json",
+          "Use mypy or pyright for Python type checking",
+          "Use tsc --strict for TypeScript",
+          "Add type annotations gradually to existing code"
+        ],
+        "tools": [
+          "mypy",
+          "pyright",
+          "typescript"
+        ],
+        "commands": [
+          "# Python",
+          "pip install mypy",
+          "mypy --strict src/",
+          "",
+          "# TypeScript",
+          "npm install --save-dev typescript",
+          "echo '{\"compilerOptions\": {\"strict\": true}}' > tsconfig.json"
+        ],
+        "examples": [
+          "# Python - Before\ndef calculate(x, y):\n    return x + y\n\n# Python - After\ndef calculate(x: float, y: float) -> float:\n    return x + y\n",
+          "// TypeScript - tsconfig.json\n{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"noImplicitAny\": true,\n    \"strictNullChecks\": true\n  }\n}\n"
+        ],
+        "citations": [
+          {
+            "source": "Python.org",
+            "title": "Type Hints",
+            "url": "https://docs.python.org/3/library/typing.html",
+            "relevance": "Official Python type hints documentation"
+          },
+          {
+            "source": "TypeScript",
+            "title": "TypeScript Handbook",
+            "url": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html",
+            "relevance": "TypeScript type system guide"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "standard_layout",
+        "name": "Standard Project Layouts",
+        "category": "Repository Structure",
+        "tier": 1,
+        "description": "Follows standard project structure for language",
+        "criteria": "Standard directories (src/, tests/, docs/) present",
+        "default_weight": 0.1
+      },
+      "status": "fail",
+      "score": 50.0,
+      "measured_value": "1/2 directories",
+      "threshold": "2/2 directories",
+      "evidence": [
+        "Found 1/2 standard directories",
+        "src/: \u2717",
+        "tests/: \u2713"
+      ],
+      "remediation": {
+        "summary": "Organize code into standard directories (src/, tests/, docs/)",
+        "steps": [
+          "Create src/ directory for source code",
+          "Create tests/ directory for test files",
+          "Create docs/ directory for documentation",
+          "Move source code into src/",
+          "Move tests into tests/"
+        ],
+        "tools": [],
+        "commands": [
+          "mkdir -p src tests docs",
+          "# Move source files to src/",
+          "# Move test files to tests/"
+        ],
+        "examples": [],
+        "citations": [
+          {
+            "source": "Python Packaging Authority",
+            "title": "Python Project Structure",
+            "url": "https://packaging.python.org/en/latest/tutorials/packaging-projects/",
+            "relevance": "Standard Python project layout"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "lock_files",
+        "name": "Lock Files for Reproducibility",
+        "category": "Dependency Management",
+        "tier": 1,
+        "description": "Lock files present for dependency pinning",
+        "criteria": "package-lock.json, yarn.lock, poetry.lock, or requirements.txt with versions",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "package-lock.json, requirements.txt",
+      "threshold": "at least one lock file",
+      "evidence": [
+        "Found: package-lock.json, requirements.txt"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "test_coverage",
+        "name": "Test Coverage Requirements",
+        "category": "Testing & CI/CD",
+        "tier": 2,
+        "description": "Test coverage thresholds configured and enforced",
+        "criteria": ">80% code coverage",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 50.0,
+      "measured_value": "not configured",
+      "threshold": "configured with >80% threshold",
+      "evidence": [
+        "Coverage config: \u2713",
+        "pytest-cov: \u2717"
+      ],
+      "remediation": {
+        "summary": "Configure test coverage with \u226580% threshold",
+        "steps": [
+          "Install coverage tool (pytest-cov for Python, jest for JavaScript)",
+          "Configure coverage threshold in project config",
+          "Add coverage reporting to CI/CD pipeline",
+          "Run coverage locally before committing"
+        ],
+        "tools": [
+          "pytest-cov",
+          "jest",
+          "vitest",
+          "coverage"
+        ],
+        "commands": [
+          "# Python",
+          "pip install pytest-cov",
+          "pytest --cov=src --cov-report=term-missing --cov-fail-under=80",
+          "",
+          "# JavaScript",
+          "npm install --save-dev jest",
+          "npm test -- --coverage --coverageThreshold='{\\'global\\': {\\'lines\\': 80}}'"
+        ],
+        "examples": [
+          "# Python - pyproject.toml\n[tool.pytest.ini_options]\naddopts = \"--cov=src --cov-report=term-missing\"\n\n[tool.coverage.report]\nfail_under = 80\n",
+          "// JavaScript - package.json\n{\n  \"jest\": {\n    \"coverageThreshold\": {\n      \"global\": {\n        \"lines\": 80,\n        \"statements\": 80,\n        \"functions\": 80,\n        \"branches\": 80\n      }\n    }\n  }\n}\n"
+        ],
+        "citations": [
+          {
+            "source": "pytest-cov",
+            "title": "Coverage Configuration",
+            "url": "https://pytest-cov.readthedocs.io/",
+            "relevance": "pytest-cov configuration guide"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "precommit_hooks",
+        "name": "Pre-commit Hooks & CI/CD Linting",
+        "category": "Testing & CI/CD",
+        "tier": 2,
+        "description": "Pre-commit hooks configured for linting and formatting",
+        "criteria": ".pre-commit-config.yaml exists",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "configured",
+      "threshold": "configured",
+      "evidence": [
+        ".pre-commit-config.yaml found"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "conventional_commits",
+        "name": "Conventional Commit Messages",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Follows conventional commit format",
+        "criteria": "\u226580% of recent commits follow convention",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "not configured",
+      "threshold": "configured",
+      "evidence": [
+        "No commitlint or husky configuration"
+      ],
+      "remediation": {
+        "summary": "Configure conventional commits with commitlint",
+        "steps": [
+          "Install commitlint",
+          "Configure husky for commit-msg hook"
+        ],
+        "tools": [
+          "commitlint",
+          "husky"
+        ],
+        "commands": [
+          "npm install --save-dev @commitlint/cli @commitlint/config-conventional husky"
+        ],
+        "examples": [],
+        "citations": []
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "gitignore_completeness",
+        "name": ".gitignore Completeness",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Comprehensive .gitignore file",
+        "criteria": ".gitignore exists and covers common patterns",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "2022 bytes",
+      "threshold": ">50 bytes",
+      "evidence": [
+        ".gitignore found (2022 bytes)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "one_command_setup",
+        "name": "One-Command Build/Setup",
+        "category": "Build & Development",
+        "tier": 2,
+        "description": "Single command to set up development environment from fresh clone",
+        "criteria": "Single command (make setup, npm install, etc.) documented prominently",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 60,
+      "measured_value": "multi-step setup",
+      "threshold": "single command",
+      "evidence": [
+        "No clear setup command found in README",
+        "Setup automation found: Makefile, package.json, pyproject.toml, setup.py",
+        "Setup instructions in prominent location"
+      ],
+      "remediation": {
+        "summary": "Create single-command setup for development environment",
+        "steps": [
+          "Choose setup automation tool (Makefile, setup script, or package manager)",
+          "Create setup command that handles all dependencies",
+          "Document setup command prominently in README (Quick Start section)",
+          "Ensure setup is idempotent (safe to run multiple times)",
+          "Test setup on fresh clone to verify it works"
+        ],
+        "tools": [
+          "make",
+          "npm",
+          "pip",
+          "poetry"
+        ],
+        "commands": [
+          "# Example Makefile",
+          "cat > Makefile << 'EOF'",
+          ".PHONY: setup",
+          "setup:",
+          "\tpython -m venv venv",
+          "\t. venv/bin/activate && pip install -r requirements.txt",
+          "\tpre-commit install",
+          "\tcp .env.example .env",
+          "\t@echo 'Setup complete! Run make test to verify.'",
+          "EOF"
+        ],
+        "examples": [
+          "# Quick Start section in README\n\n## Quick Start\n\n```bash\nmake setup  # One command to set up development environment\nmake test   # Run tests to verify setup\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "freeCodeCamp",
+            "title": "Using make for project automation",
+            "url": "https://www.freecodecamp.org/news/want-to-know-the-easiest-way-to-save-time-use-make/",
+            "relevance": "Guide to using Makefiles for one-command setup"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "file_size_limits",
+        "name": "File Size Limits",
+        "category": "Context Window Optimization",
+        "tier": 2,
+        "description": "Files are reasonably sized for AI context windows",
+        "criteria": "<5% of files >500 lines, no files >1000 lines",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 56.55269527976911,
+      "measured_value": "2311 huge, 3152 large out of 171856",
+      "threshold": "<5% files >500 lines, 0 files >1000 lines",
+      "evidence": [
+        "Found 2311 files >1000 lines (1.3% of 171856 files)",
+        "Largest: node_modules/yargs/yargs.js (1205 lines)"
+      ],
+      "remediation": {
+        "summary": "Refactor large files into smaller, focused modules",
+        "steps": [
+          "Identify files >1000 lines",
+          "Split into logical submodules",
+          "Extract classes/functions into separate files",
+          "Maintain single responsibility principle"
+        ],
+        "tools": [
+          "refactoring tools",
+          "linters"
+        ],
+        "commands": [],
+        "examples": [
+          "# Split large file:\n# models.py (1500 lines) \u2192 models/user.py, models/product.py, models/order.py"
+        ],
+        "citations": []
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "separation_of_concerns",
+        "name": "Separation of Concerns",
+        "category": "Code Organization",
+        "tier": 2,
+        "description": "Code organized with single responsibility per module",
+        "criteria": "Feature-based organization, cohesive modules, low coupling",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 65.41740674955595,
+      "measured_value": "organization:100, cohesion:85, naming:0",
+      "threshold": "\u226575 overall",
+      "evidence": [
+        "Good directory organization (feature-based or flat)",
+        "File cohesion: 1462/9571 files >500 lines",
+        "Anti-pattern files found: utils.py, utils.py, utils.py"
+      ],
+      "remediation": {
+        "summary": "Refactor code to improve separation of concerns",
+        "steps": [
+          "Avoid layer-based directories (models/, views/, controllers/)",
+          "Organize by feature/domain instead (auth/, users/, billing/)",
+          "Break large files (>500 lines) into focused modules",
+          "Eliminate catch-all modules (utils.py, helpers.py)",
+          "Each module should have single, well-defined responsibility",
+          "Group related functions/classes by domain, not technical layer"
+        ],
+        "tools": [],
+        "commands": [],
+        "examples": [
+          "# Good: Feature-based organization\nproject/\n\u251c\u2500\u2500 auth/\n\u2502   \u251c\u2500\u2500 login.py\n\u2502   \u251c\u2500\u2500 signup.py\n\u2502   \u2514\u2500\u2500 tokens.py\n\u251c\u2500\u2500 users/\n\u2502   \u251c\u2500\u2500 profile.py\n\u2502   \u2514\u2500\u2500 preferences.py\n\u2514\u2500\u2500 billing/\n    \u251c\u2500\u2500 invoices.py\n    \u2514\u2500\u2500 payments.py\n\n# Bad: Layer-based organization\nproject/\n\u251c\u2500\u2500 models/\n\u2502   \u251c\u2500\u2500 user.py\n\u2502   \u251c\u2500\u2500 invoice.py\n\u251c\u2500\u2500 views/\n\u2502   \u251c\u2500\u2500 user_view.py\n\u2502   \u251c\u2500\u2500 invoice_view.py\n\u2514\u2500\u2500 controllers/\n    \u251c\u2500\u2500 user_controller.py\n    \u251c\u2500\u2500 invoice_controller.py\n"
+        ],
+        "citations": [
+          {
+            "source": "Martin Fowler",
+            "title": "PresentationDomainDataLayering",
+            "url": "https://martinfowler.com/bliki/PresentationDomainDataLayering.html",
+            "relevance": "Explains layering vs feature organization"
+          },
+          {
+            "source": "Uncle Bob Martin",
+            "title": "The Single Responsibility Principle",
+            "url": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
+            "relevance": "Core SRP principle for module design"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "concise_documentation",
+        "name": "Concise Documentation",
+        "category": "Documentation",
+        "tier": 2,
+        "description": "Documentation maximizes information density while minimizing token consumption",
+        "criteria": "README <500 lines with clear structure, bullet points over prose",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 77.0,
+      "measured_value": "78 lines, 4 headings, 19 bullets",
+      "threshold": "<500 lines, structured format",
+      "evidence": [
+        "README length: 78 lines (excellent)",
+        "Heading density: 5.1 per 100 lines (target: 3-5)",
+        "1 paragraphs exceed 10 lines (walls of text)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "inline_documentation",
+        "name": "Inline Documentation",
+        "category": "Documentation",
+        "tier": 2,
+        "description": "Function, class, and module-level documentation using language-specific conventions",
+        "criteria": "\u226580% of public functions/classes have docstrings",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 38.82918552036199,
+      "measured_value": "31.1%",
+      "threshold": "\u226580%",
+      "evidence": [
+        "Documented items: 2746/8840",
+        "Coverage: 31.1%",
+        "Many public functions/classes lack docstrings"
+      ],
+      "remediation": {
+        "summary": "Add docstrings to public functions and classes",
+        "steps": [
+          "Identify functions/classes without docstrings",
+          "Add PEP 257 compliant docstrings for Python",
+          "Add JSDoc comments for JavaScript/TypeScript",
+          "Include: description, parameters, return values, exceptions",
+          "Add examples for complex functions",
+          "Run pydocstyle to validate docstring format"
+        ],
+        "tools": [
+          "pydocstyle",
+          "jsdoc"
+        ],
+        "commands": [
+          "# Install pydocstyle",
+          "pip install pydocstyle",
+          "",
+          "# Check docstring coverage",
+          "pydocstyle src/",
+          "",
+          "# Generate documentation",
+          "pip install sphinx",
+          "sphinx-apidoc -o docs/ src/"
+        ],
+        "examples": [
+          "# Python - Good docstring\ndef calculate_discount(price: float, discount_percent: float) -> float:\n    \"\"\"Calculate discounted price.\n\n    Args:\n        price: Original price in USD\n        discount_percent: Discount percentage (0-100)\n\n    Returns:\n        Discounted price\n\n    Raises:\n        ValueError: If discount_percent not in 0-100 range\n\n    Example:\n        >>> calculate_discount(100.0, 20.0)\n        80.0\n    \"\"\"\n    if not 0 <= discount_percent <= 100:\n        raise ValueError(\"Discount must be 0-100\")\n    return price * (1 - discount_percent / 100)\n",
+          "// JavaScript - Good JSDoc\n/**\n * Calculate discounted price\n *\n * @param {number} price - Original price in USD\n * @param {number} discountPercent - Discount percentage (0-100)\n * @returns {number} Discounted price\n * @throws {Error} If discountPercent not in 0-100 range\n * @example\n * calculateDiscount(100.0, 20.0)\n * // Returns: 80.0\n */\nfunction calculateDiscount(price, discountPercent) {\n    if (discountPercent < 0 || discountPercent > 100) {\n        throw new Error(\"Discount must be 0-100\");\n    }\n    return price * (1 - discountPercent / 100);\n}\n"
+        ],
+        "citations": [
+          {
+            "source": "Python.org",
+            "title": "PEP 257 - Docstring Conventions",
+            "url": "https://peps.python.org/pep-0257/",
+            "relevance": "Python docstring standards"
+          },
+          {
+            "source": "TypeScript",
+            "title": "TSDoc Reference",
+            "url": "https://tsdoc.org/",
+            "relevance": "TypeScript documentation standard"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "cyclomatic_complexity",
+        "name": "Cyclomatic Complexity Thresholds",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Cyclomatic complexity thresholds enforced",
+        "criteria": "Average complexity <10, no functions >15",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "2.8",
+      "threshold": "<10.0",
+      "evidence": [
+        "Average cyclomatic complexity: 2.8"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "architecture_decisions",
+        "name": "Architecture Decision Records (ADRs)",
+        "category": "Documentation Standards",
+        "tier": 3,
+        "description": "Lightweight documents capturing architectural decisions",
+        "criteria": "ADR directory with documented decisions",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "no ADR directory",
+      "threshold": "ADR directory with decisions",
+      "evidence": [
+        "No ADR directory found (checked docs/adr/, .adr/, adr/, docs/decisions/)"
+      ],
+      "remediation": {
+        "summary": "Create Architecture Decision Records (ADRs) directory and document key decisions",
+        "steps": [
+          "Create docs/adr/ directory in repository root",
+          "Use Michael Nygard ADR template or MADR format",
+          "Document each significant architectural decision",
+          "Number ADRs sequentially (0001-*.md, 0002-*.md)",
+          "Include Status, Context, Decision, and Consequences sections",
+          "Update ADR status when decisions are revised (Superseded, Deprecated)"
+        ],
+        "tools": [
+          "adr-tools",
+          "log4brains"
+        ],
+        "commands": [
+          "# Create ADR directory",
+          "mkdir -p docs/adr",
+          "",
+          "# Create first ADR using template",
+          "cat > docs/adr/0001-use-architecture-decision-records.md << 'EOF'",
+          "# 1. Use Architecture Decision Records",
+          "",
+          "Date: 2025-11-22",
+          "",
+          "## Status",
+          "Accepted",
+          "",
+          "## Context",
+          "We need to record architectural decisions made in this project.",
+          "",
+          "## Decision",
+          "We will use Architecture Decision Records (ADRs) as described by Michael Nygard.",
+          "",
+          "## Consequences",
+          "- Decisions are documented with context",
+          "- Future contributors understand rationale",
+          "- ADRs are lightweight and version-controlled",
+          "EOF"
+        ],
+        "examples": [
+          "# Example ADR Structure\n\n```markdown\n# 2. Use PostgreSQL for Database\n\nDate: 2025-11-22\n\n## Status\nAccepted\n\n## Context\nWe need a relational database for complex queries and ACID transactions.\nTeam has PostgreSQL experience. Need full-text search capabilities.\n\n## Decision\nUse PostgreSQL 15+ as primary database.\n\n## Consequences\n- Positive: Robust ACID, full-text search, team familiarity\n- Negative: Higher resource usage than SQLite\n- Neutral: Need to manage migrations, backups\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "Michael Nygard",
+            "title": "Documenting Architecture Decisions",
+            "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
+            "relevance": "Original ADR format and rationale"
+          },
+          {
+            "source": "GitHub adr/madr",
+            "title": "Markdown ADR (MADR) Template",
+            "url": "https://github.com/adr/madr",
+            "relevance": "Modern ADR template with examples"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "issue_pr_templates",
+        "name": "Issue & Pull Request Templates",
+        "category": "Repository Structure",
+        "tier": 3,
+        "description": "Standardized templates for issues and PRs",
+        "criteria": "PR template and issue templates in .github/",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 0,
+      "measured_value": "PR:False, Issues:0",
+      "threshold": "PR template + \u22652 issue templates",
+      "evidence": [
+        "No PR template found",
+        "No issue template directory found"
+      ],
+      "remediation": {
+        "summary": "Create GitHub issue and PR templates in .github/ directory",
+        "steps": [
+          "Create .github/ directory if it doesn't exist",
+          "Add PULL_REQUEST_TEMPLATE.md for PRs",
+          "Create .github/ISSUE_TEMPLATE/ directory",
+          "Add bug_report.md for bug reports",
+          "Add feature_request.md for feature requests",
+          "Optionally add config.yml to configure template chooser"
+        ],
+        "tools": [
+          "gh"
+        ],
+        "commands": [
+          "# Create directories",
+          "mkdir -p .github/ISSUE_TEMPLATE",
+          "",
+          "# Create PR template",
+          "cat > .github/PULL_REQUEST_TEMPLATE.md << 'EOF'",
+          "## Summary",
+          "<!-- Describe the changes in this PR -->",
+          "",
+          "## Related Issues",
+          "Fixes #",
+          "",
+          "## Testing",
+          "- [ ] Tests added/updated",
+          "- [ ] All tests pass",
+          "",
+          "## Checklist",
+          "- [ ] Documentation updated",
+          "- [ ] CHANGELOG.md updated",
+          "EOF"
+        ],
+        "examples": [
+          "# Bug Report Template (.github/ISSUE_TEMPLATE/bug_report.md)\n\n```markdown\n---\nname: Bug Report\nabout: Create a report to help us improve\ntitle: '[BUG] '\nlabels: bug\nassignees: ''\n---\n\n**Describe the bug**\nA clear description of what the bug is.\n\n**To Reproduce**\nSteps to reproduce:\n1. Go to '...'\n2. Click on '....'\n3. See error\n\n**Expected behavior**\nWhat you expected to happen.\n\n**Environment**\n- OS: [e.g. macOS 13.0]\n- Version: [e.g. 1.0.0]\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "GitHub Docs",
+            "title": "About issue and pull request templates",
+            "url": "https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates",
+            "relevance": "Official GitHub guide for templates"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "cicd_pipeline_visibility",
+        "name": "CI/CD Pipeline Visibility",
+        "category": "Testing & CI/CD",
+        "tier": 3,
+        "description": "Clear, well-documented CI/CD configuration files",
+        "criteria": "CI config with descriptive names, caching, parallelization",
+        "default_weight": 0.015
+      },
+      "status": "pass",
+      "score": 80,
+      "measured_value": "configured with best practices",
+      "threshold": "CI with best practices",
+      "evidence": [
+        "CI config found: .github/workflows/codeql.yml, .github/workflows/cut-release.yml, .github/workflows/prepare-release.yml, .github/workflows/label-backported-pr.yml, .github/workflows/CI-nightly.yaml, .github/workflows/aws-ip-json.yaml, .github/workflows/branch-sync.yaml, .github/workflows/build-and-publish.yaml, .github/workflows/pull_request_linting.yaml, .github/workflows/web-ci-results.yaml, .github/workflows/surge-preview-cleanup.yaml, .github/workflows/surge-preview-deploy.yaml, .github/workflows/surge-preview-build.yaml, .github/workflows/CI.yaml, .github/workflows/oci-distribution-spec.yaml, .github/workflows/web-ci.yaml, .github/workflows/pr-labeler.yaml, .github/workflows/pr-status-labeler.yaml, .github/workflows/config-tool.yaml, .github/workflows/web-playwright-ci.yaml",
+        "Descriptive job/step names found",
+        "No caching detected",
+        "Parallel job execution detected",
+        "Config includes comments"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "semantic_naming",
+        "name": "Semantic Naming",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Systematic naming patterns following language conventions",
+        "criteria": "Language conventions followed, avoid generic names",
+        "default_weight": 0.015
+      },
+      "status": "pass",
+      "score": 98.96625248143519,
+      "measured_value": "functions:99%, classes:99%",
+      "threshold": "\u226575% compliance",
+      "evidence": [
+        "Functions: 464/469 follow snake_case (98.9%)",
+        "Classes: 201/203 follow PascalCase (99.0%)",
+        "No generic names (temp, data, obj) detected"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "structured_logging",
+        "name": "Structured Logging",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Logging in structured format (JSON) with consistent fields",
+        "criteria": "Structured logging library configured (structlog, winston, zap)",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "not configured",
+      "threshold": "structured logging library",
+      "evidence": [
+        "No structured logging library found",
+        "Checked files: pyproject.toml, requirements.txt, setup.py",
+        "Using built-in logging module (unstructured)"
+      ],
+      "remediation": {
+        "summary": "Add structured logging library for machine-parseable logs",
+        "steps": [
+          "Choose structured logging library (structlog for Python, winston for Node.js)",
+          "Install library and configure JSON formatter",
+          "Add standard fields: timestamp, level, message, context",
+          "Include request context: request_id, user_id, session_id",
+          "Use consistent field naming (snake_case for Python)",
+          "Never log sensitive data (passwords, tokens, PII)",
+          "Configure different formats for dev (pretty) and prod (JSON)"
+        ],
+        "tools": [
+          "structlog",
+          "winston",
+          "zap"
+        ],
+        "commands": [
+          "# Install structlog",
+          "pip install structlog",
+          "",
+          "# Configure structlog",
+          "# See examples for configuration"
+        ],
+        "examples": [
+          "# Python with structlog\nimport structlog\n\n# Configure structlog\nstructlog.configure(\n    processors=[\n        structlog.stdlib.add_log_level,\n        structlog.processors.TimeStamper(fmt=\"iso\"),\n        structlog.processors.JSONRenderer()\n    ]\n)\n\nlogger = structlog.get_logger()\n\n# Good: Structured logging\nlogger.info(\n    \"user_login\",\n    user_id=\"123\",\n    email=\"user@example.com\",\n    ip_address=\"192.168.1.1\"\n)\n\n# Bad: Unstructured logging\nlogger.info(f\"User {user_id} logged in from {ip}\")\n"
+        ],
+        "citations": [
+          {
+            "source": "structlog",
+            "title": "structlog Documentation",
+            "url": "https://www.structlog.org/en/stable/",
+            "relevance": "Python structured logging library"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "openapi_specs",
+        "name": "OpenAPI/Swagger Specifications",
+        "category": "API Documentation",
+        "tier": 3,
+        "description": "Machine-readable API documentation in OpenAPI format",
+        "criteria": "OpenAPI 3.x spec with complete endpoint documentation",
+        "default_weight": 0.015
+      },
+      "status": "pass",
+      "score": 90,
+      "measured_value": "OpenAPI 2.0",
+      "threshold": "OpenAPI 3.x with paths and schemas",
+      "evidence": [
+        "config-tool/docs/swagger.yaml found in repository",
+        "Additional OpenAPI files found: config-tool/docs/swagger.json",
+        "OpenAPI version: 2.0",
+        "4 endpoints documented",
+        "1 schemas defined"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "branch_protection",
+        "name": "Branch Protection Rules",
+        "category": "Git & Version Control",
+        "tier": 4,
+        "description": "Required status checks and review approvals before merging",
+        "criteria": "Branch protection enabled with status checks and required reviews",
+        "default_weight": 0.005
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Requires GitHub API integration for branch protection checks. Future implementation will verify: required status checks, required reviews, force push prevention, and branch update requirements."
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "code_smells",
+        "name": "Code Smell Elimination",
+        "category": "Code Quality",
+        "tier": 4,
+        "description": "Removing indicators of deeper problems: long methods, large classes, duplicate code",
+        "criteria": "<5 major code smells per 1000 lines, zero critical smells",
+        "default_weight": 0.005
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Requires advanced static analysis tools for comprehensive code smell detection. Future implementation will analyze: long methods (>50 lines), large classes (>500 lines), long parameter lists (>5 params), duplicate code blocks, magic numbers, and divergent change patterns. Consider using SonarQube, PMD, pylint, or similar tools."
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dependency_freshness",
+        "name": "Dependency Freshness & Security",
+        "category": "Dependency Management",
+        "tier": 2,
+        "description": "Assessment for Dependency Freshness & Security",
+        "criteria": "To be implemented",
+        "default_weight": 0.03
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Dependency Freshness & Security assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "separation_concerns",
+        "name": "Separation of Concerns",
+        "category": "Repository Structure",
+        "tier": 2,
+        "description": "Assessment for Separation of Concerns",
+        "criteria": "To be implemented",
+        "default_weight": 0.03
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Separation of Concerns assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "architecture_decisions",
+        "name": "Architecture Decision Records",
+        "category": "Documentation Standards",
+        "tier": 3,
+        "description": "Assessment for Architecture Decision Records",
+        "criteria": "To be implemented",
+        "default_weight": 0.03
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Architecture Decision Records assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "security_scanning",
+        "name": "Security Scanning Automation",
+        "category": "Security",
+        "tier": 4,
+        "description": "Assessment for Security Scanning Automation",
+        "criteria": "To be implemented",
+        "default_weight": 0.01
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Security Scanning Automation assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "performance_benchmarks",
+        "name": "Performance Benchmarks",
+        "category": "Performance",
+        "tier": 4,
+        "description": "Assessment for Performance Benchmarks",
+        "criteria": "To be implemented",
+        "default_weight": 0.01
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Performance Benchmarks assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "issue_pr_templates",
+        "name": "Issue & Pull Request Templates",
+        "category": "Git & Version Control",
+        "tier": 4,
+        "description": "Assessment for Issue & Pull Request Templates",
+        "criteria": "To be implemented",
+        "default_weight": 0.01
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Issue & Pull Request Templates assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "container_setup",
+        "name": "Container/Virtualization Setup",
+        "category": "Build & Development",
+        "tier": 4,
+        "description": "Assessment for Container/Virtualization Setup",
+        "criteria": "To be implemented",
+        "default_weight": 0.01
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Container/Virtualization Setup assessment not yet implemented"
+      ],
+      "remediation": null,
+      "error_message": null
+    }
+  ],
+  "config": null,
+  "duration_seconds": 67.6,
+  "discovered_skills": []
+}
