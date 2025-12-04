@@ -62,22 +62,6 @@ pip install -e .
 uv pip install -e .
 ```
 
-### Development Installation
-
-If you plan to contribute or modify AgentReady:
-
-```bash
-# Install with development dependencies
-pip install -e ".[dev]"
-
-# Or using uv
-uv pip install -e ".[dev]"
-
-# Verify installation
-pytest --version
-black --version
-```
-
 ---
 
 ## Quick Start
@@ -102,15 +86,7 @@ git commit -m "build: Bootstrap agent-ready infrastructure"
 git push
 ```
 
-**What happens:**
-
-- ✅ GitHub Actions workflows created (tests, security, assessment)
-- ✅ Pre-commit hooks configured
-- ✅ Issue/PR templates added
-- ✅ Dependabot enabled
-- ✅ Assessment runs automatically on next PR
-
-**Duration**: <60 seconds including review time.
+Bootstrap generates complete CI/CD infrastructure: GitHub Actions workflows (tests, security, assessment), pre-commit hooks, issue/PR templates, and Dependabot configuration. Assessment runs automatically on your next PR. **Duration**: <60 seconds.
 
 [See detailed Bootstrap tutorial →](#bootstrap-your-repository)
 
@@ -129,14 +105,7 @@ agentready batch repo1/ repo2/ repo3/ --output-dir ./batch-reports
 open batch-reports/comparison-summary.html
 ```
 
-**What you get:**
-
-- ✅ Individual reports for each repository
-- ✅ Comparison table showing scores side-by-side
-- ✅ Aggregate statistics across all repositories
-- ✅ Trend analysis for multi-repo projects
-
-**Duration**: Varies by number of repositories (~5 seconds per repo).
+Batch assessment generates individual reports for each repository plus a comparison table, aggregate statistics, and trend analysis for multi-repo projects. **Duration**: ~5 seconds per repository.
 
 [See detailed batch assessment guide →](#batch-assessment)
 
@@ -934,6 +903,20 @@ reports/
   ]
 }
 ```
+
+### Interactive Heatmap Visualization
+
+Generate an interactive Plotly heatmap showing attribute scores across all repositories:
+
+```bash
+# Generate heatmap with batch assessment
+agentready assess-batch --repos /path/repo1 --repos /path/repo2 --generate-heatmap
+
+# Custom heatmap output path
+agentready assess-batch --repos-file repos.txt --generate-heatmap --heatmap-output ./heatmap.html
+```
+
+The heatmap visualization includes color-coded scores for instant visual identification of strong/weak attributes, cross-repo comparison to see patterns, interactive exploration with hover details and zoom, and export capability as a self-contained HTML file for sharing with teams. Use heatmaps to identify organization-wide patterns, spot outliers, track improvements over time, and guide training efforts on commonly failing attributes.
 
 ### Use Cases
 
