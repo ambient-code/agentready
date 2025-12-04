@@ -1,3 +1,10 @@
+## [2.11.1](https://github.com/ambient-code/agentready/compare/v2.11.0...v2.11.1) (2025-12-04)
+
+
+### Performance Improvements
+
+* implement lazy loading for heavy CLI commands ([#151](https://github.com/ambient-code/agentready/issues/151)) ([6a7cd4e](https://github.com/ambient-code/agentready/commit/6a7cd4e147ebfdfc95921b86599a5b650db76153))
+
 # [2.11.0](https://github.com/ambient-code/agentready/compare/v2.10.1...v2.11.0) (2025-12-03)
 
 
