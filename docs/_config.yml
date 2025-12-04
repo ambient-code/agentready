@@ -37,8 +37,6 @@ navigation:
     url: /user-guide
   - title: Developer Guide
     url: /developer-guide
-  - title: Leaderboard
-    url: /leaderboard/
   - title: Roadmaps
     url: /roadmaps
   - title: Attributes
@@ -80,7 +78,7 @@ exclude:
   - SETUP_SUMMARY.md
 
 # Site metadata
-version: 1.0.0
+version: 2.12.3
 certification_levels:
   platinum:
     range: "90-100"

@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Developer Guide | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Developer Guide | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Developer Guide" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/developer-guide.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/developer-guide.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Developer Guide" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Developer Guide","url":"http://localhost:4000/agentready/developer-guide.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1>Developer Guide</h1>
+
+<p>Comprehensive guide for contributors and developers extending AgentReady.</p>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#getting-started">Getting Started</a></li>
+  <li><a href="#development-environment">Development Environment</a></li>
+  <li><a href="#architecture-overview">Architecture Overview</a></li>
+  <li><a href="#implementing-new-assessors">Implementing New Assessors</a></li>
+  <li><a href="#testing-guidelines">Testing Guidelines</a></li>
+  <li><a href="#code-quality-standards">Code Quality Standards</a></li>
+  <li><a href="#contributing-workflow">Contributing Workflow</a></li>
+  <li><a href="#release-process">Release Process</a></li>
+</ul>
+
+<hr />
+
+<h2 id="getting-started">Getting Started</h2>
+
+<h3 id="prerequisites">Prerequisites</h3>
+
+<ul>
+  <li><strong>Python 3.12 or 3.13</strong></li>
+  <li><strong>Git</strong></li>
+  <li><strong>uv</strong> or <strong>pip</strong> (uv recommended for faster dependency management)</li>
+  <li><strong>Make</strong> (optional, for convenience commands)</li>
+</ul>
+
+<h3 id="fork-and-clone">Fork and Clone</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Fork on GitHub first, then:</span>
+git clone https://github.com/YOUR_USERNAME/agentready.git
+<span class="nb">cd </span>agentready
+
+<span class="c"># Add upstream remote</span>
+git remote add upstream https://github.com/ambient-code/agentready.git
+</code></pre></div></div>
+
+<h3 id="install-development-dependencies">Install Development Dependencies</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create virtual environment</span>
+python3 <span class="nt">-m</span> venv .venv
+<span class="nb">source</span> .venv/bin/activate  <span class="c"># On Windows: .venv\Scripts\activate</span>
+
+<span class="c"># Install with development dependencies</span>
+uv pip <span class="nb">install</span> <span class="nt">-e</span> <span class="s2">".[dev]"</span>
+
+<span class="c"># Or using pip</span>
+pip <span class="nb">install</span> <span class="nt">-e</span> <span class="s2">".[dev]"</span>
+
+<span class="c"># Verify installation</span>
+pytest <span class="nt">--version</span>
+black <span class="nt">--version</span>
+ruff <span class="nt">--version</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="development-environment">Development Environment</h2>
+
+<h3 id="project-structure">Project Structure</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">agentready</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">src</span><span class="o">/</span><span class="n">agentready</span><span class="o">/</span>          <span class="c1"># Source code
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">cli</span><span class="o">/</span>                 <span class="c1"># Click-based CLI
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">main</span><span class="p">.</span><span class="n">py</span>          <span class="c1"># Entry point (assess, research-version, generate-config)
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">models</span><span class="o">/</span>              <span class="c1"># Data models
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">repository</span><span class="p">.</span><span class="n">py</span>    <span class="c1"># Repository representation
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">attribute</span><span class="p">.</span><span class="n">py</span>     <span class="c1"># Attribute definition
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">finding</span><span class="p">.</span><span class="n">py</span>       <span class="c1"># Assessment finding
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">assessment</span><span class="p">.</span><span class="n">py</span>    <span class="c1"># Complete assessment result
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">services</span><span class="o">/</span>            <span class="c1"># Core business logic
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">scanner</span><span class="p">.</span><span class="n">py</span>       <span class="c1"># Assessment orchestration
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">scorer</span><span class="p">.</span><span class="n">py</span>        <span class="c1"># Score calculation
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">language_detector</span><span class="p">.</span><span class="n">py</span>  <span class="c1"># Language detection via git
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">assessors</span><span class="o">/</span>           <span class="c1"># Attribute assessors
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">base</span><span class="p">.</span><span class="n">py</span>          <span class="c1"># BaseAssessor abstract class
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">documentation</span><span class="p">.</span><span class="n">py</span> <span class="c1"># CLAUDE.md, README assessors
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">code_quality</span><span class="p">.</span><span class="n">py</span>  <span class="c1"># Type annotations, complexity
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">testing</span><span class="p">.</span><span class="n">py</span>       <span class="c1"># Test coverage, pre-commit hooks
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">structure</span><span class="p">.</span><span class="n">py</span>     <span class="c1"># Standard layout, gitignore
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">repomix</span><span class="p">.</span><span class="n">py</span>       <span class="c1"># Repomix configuration assessor
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">stub_assessors</span><span class="p">.</span><span class="n">py</span> <span class="c1"># 9 stub assessors (22 implemented)
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">reporters</span><span class="o">/</span>           <span class="c1"># Report generators
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">html</span><span class="p">.</span><span class="n">py</span>          <span class="c1"># Interactive HTML with Jinja2
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">markdown</span><span class="p">.</span><span class="n">py</span>      <span class="c1"># GitHub-Flavored Markdown
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">json</span><span class="p">.</span><span class="n">py</span>          <span class="c1"># Machine-readable JSON
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">templates</span><span class="o">/</span>           <span class="c1"># Jinja2 templates
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">report</span><span class="p">.</span><span class="n">html</span><span class="p">.</span><span class="n">j2</span>   <span class="c1"># HTML report template
+</span><span class="err">│</span>   <span class="err">└──</span> <span class="n">data</span><span class="o">/</span>                <span class="c1"># Bundled data
+</span><span class="err">│</span>       <span class="err">└──</span> <span class="n">attributes</span><span class="p">.</span><span class="n">yaml</span>  <span class="c1"># Attribute definitions
+</span><span class="err">├──</span> <span class="n">tests</span><span class="o">/</span>                   <span class="c1"># Test suite
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">unit</span><span class="o">/</span>               <span class="c1"># Unit tests (fast, isolated)
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">test_models</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">test_assessors_documentation</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">test_assessors_code_quality</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="p">...</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">integration</span><span class="o">/</span>        <span class="c1"># End-to-end tests
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">test_full_assessment</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">fixtures</span><span class="o">/</span>           <span class="c1"># Test data
+</span><span class="err">│</span>       <span class="err">└──</span> <span class="n">sample_repos</span><span class="o">/</span>   <span class="c1"># Sample repositories for testing
+</span><span class="err">├──</span> <span class="n">docs</span><span class="o">/</span>                    <span class="c1"># GitHub Pages documentation
+</span><span class="err">├──</span> <span class="n">examples</span><span class="o">/</span>               <span class="c1"># Example reports
+</span><span class="err">│</span>   <span class="err">└──</span> <span class="bp">self</span><span class="o">-</span><span class="n">assessment</span><span class="o">/</span>    <span class="c1"># AgentReady's own assessment
+</span><span class="err">├──</span> <span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span>          <span class="c1"># Python package configuration
+</span><span class="err">├──</span> <span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span>              <span class="c1"># Project context for AI agents
+</span><span class="err">├──</span> <span class="n">README</span><span class="p">.</span><span class="n">md</span>              <span class="c1"># User-facing documentation
+</span><span class="err">└──</span> <span class="n">BACKLOG</span><span class="p">.</span><span class="n">md</span>             <span class="c1"># Feature backlog
+</span></code></pre></div></div>
+
+<h3 id="development-tools">Development Tools</h3>
+
+<p>AgentReady uses modern Python tooling:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tool</th>
+      <th>Purpose</th>
+      <th>Configuration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>pytest</strong></td>
+      <td>Testing framework</td>
+      <td><code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code></td>
+    </tr>
+    <tr>
+      <td><strong>black</strong></td>
+      <td>Code formatter</td>
+      <td><code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code></td>
+    </tr>
+    <tr>
+      <td><strong>isort</strong></td>
+      <td>Import sorter</td>
+      <td><code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code></td>
+    </tr>
+    <tr>
+      <td><strong>ruff</strong></td>
+      <td>Fast linter</td>
+      <td><code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code></td>
+    </tr>
+    <tr>
+      <td><strong>mypy</strong></td>
+      <td>Type checker</td>
+      <td><code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code> (future)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="running-tests">Running Tests</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run all tests</span>
+pytest
+
+<span class="c"># Run with coverage</span>
+pytest <span class="nt">--cov</span><span class="o">=</span>src/agentready <span class="nt">--cov-report</span><span class="o">=</span>html
+
+<span class="c"># Run specific test file</span>
+pytest tests/unit/test_models.py <span class="nt">-v</span>
+
+<span class="c"># Run tests matching pattern</span>
+pytest <span class="nt">-k</span> <span class="s2">"test_claude_md"</span> <span class="nt">-v</span>
+
+<span class="c"># Run with output (don't capture print statements)</span>
+pytest <span class="nt">-s</span>
+
+<span class="c"># Fast fail (stop on first failure)</span>
+pytest <span class="nt">-x</span>
+</code></pre></div></div>
+
+<p><strong>Recent Test Infrastructure Improvements (v1.27.2)</strong>:</p>
+
+<ol>
+  <li><strong>Shared Test Fixtures</strong> (<code class="language-python highlighter-rouge"><span class="n">tests</span><span class="o">/</span><span class="n">conftest</span><span class="p">.</span><span class="n">py</span></code>):
+    <ul>
+      <li>Reusable repository fixtures for consistent test data</li>
+      <li>Reduced test code duplication</li>
+      <li>Faster test development</li>
+    </ul>
+  </li>
+  <li><strong>Model Validation Enhancements</strong>:
+    <ul>
+      <li>Enhanced Assessment schema validation</li>
+      <li>Path sanitization for cross-platform compatibility</li>
+      <li>Proper handling of optional fields</li>
+    </ul>
+  </li>
+  <li><strong>Comprehensive Coverage</strong>:
+    <ul>
+      <li>CLI tests (Phase 4) complete</li>
+      <li>Service module tests (Phase 3) complete</li>
+      <li>All 35 pytest failures from v1.27.0 resolved</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>Current test coverage</strong>: Focused on core logic (models, scoring, critical assessors)</p>
+
+<h3 id="code-quality-checks">Code Quality Checks</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Format code</span>
+black src/ tests/
+
+<span class="c"># Sort imports</span>
+isort src/ tests/
+
+<span class="c"># Lint code</span>
+ruff check src/ tests/
+
+<span class="c"># Run all quality checks (recommended before committing)</span>
+black src/ tests/ <span class="o">&amp;&amp;</span> isort src/ tests/ <span class="o">&amp;&amp;</span> ruff check src/ tests/
+</code></pre></div></div>
+
+<h3 id="pre-commit-hooks-recommended">Pre-commit Hooks (Recommended)</h3>
+
+<p>Install pre-commit hooks to automatically run quality checks:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install pre-commit (if not already installed)</span>
+pip <span class="nb">install </span>pre-commit
+
+<span class="c"># Install git hooks</span>
+pre-commit <span class="nb">install</span>
+
+<span class="c"># Run manually on all files</span>
+pre-commit run <span class="nt">--all-files</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="architecture-overview">Architecture Overview</h2>
+
+<p>AgentReady follows a <strong>library-first architecture</strong> with clear separation of concerns.</p>
+
+<h3 id="data-flow">Data Flow</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Repository</span> <span class="err">→</span> <span class="n">Scanner</span> <span class="err">→</span> <span class="n">Assessors</span> <span class="err">→</span> <span class="n">Findings</span> <span class="err">→</span> <span class="n">Assessment</span> <span class="err">→</span> <span class="n">Reporters</span> <span class="err">→</span> <span class="n">Reports</span>
+                <span class="err">↓</span>
+         <span class="n">Language</span> <span class="n">Detection</span>
+         <span class="p">(</span><span class="n">git</span> <span class="n">ls</span><span class="o">-</span><span class="n">files</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="core-components">Core Components</h3>
+
+<h4 id="1-models-models">1. Models (<code class="language-python highlighter-rouge"><span class="n">models</span><span class="o">/</span></code>)</h4>
+
+<p>Immutable data classes representing domain entities:</p>
+
+<ul>
+  <li><strong>Repository</strong>: Path, name, detected languages</li>
+  <li><strong>Attribute</strong>: ID, name, tier, weight, description</li>
+  <li><strong>Finding</strong>: Attribute, status (pass/fail/skip), score, evidence, remediation</li>
+  <li><strong>Assessment</strong>: Repository, overall score, certification level, findings list</li>
+</ul>
+
+<p><strong>Design Principles</strong>:</p>
+
+<ul>
+  <li>Immutable (frozen dataclasses)</li>
+  <li>Type-annotated</li>
+  <li>No business logic (pure data)</li>
+  <li>Factory methods for common patterns (<code class="language-python highlighter-rouge"><span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">()</span></code>, etc.)</li>
+</ul>
+
+<h4 id="2-services-services">2. Services (<code class="language-python highlighter-rouge"><span class="n">services</span><span class="o">/</span></code>)</h4>
+
+<p>Orchestration and core algorithms:</p>
+
+<ul>
+  <li><strong>Scanner</strong>: Coordinates assessment flow, manages assessors</li>
+  <li><strong>Scorer</strong>: Calculates weighted scores, determines certification levels</li>
+  <li><strong>LanguageDetector</strong>: Detects repository languages via <code class="language-python highlighter-rouge"><span class="n">git</span> <span class="n">ls</span><span class="o">-</span><span class="n">files</span></code></li>
+</ul>
+
+<p><strong>Design Principles</strong>:</p>
+
+<ul>
+  <li>Stateless (pure functions or stateless classes)</li>
+  <li>Single responsibility</li>
+  <li>No external dependencies (file I/O, network)</li>
+  <li>Testable with mocks</li>
+</ul>
+
+<h4 id="3-assessors-assessors">3. Assessors (<code class="language-python highlighter-rouge"><span class="n">assessors</span><span class="o">/</span></code>)</h4>
+
+<p>Strategy pattern implementations for each attribute:</p>
+
+<ul>
+  <li><strong>BaseAssessor</strong>: Abstract base class defining interface</li>
+  <li>Concrete assessors: <code class="language-python highlighter-rouge"><span class="n">CLAUDEmdAssessor</span></code>, <code class="language-python highlighter-rouge"><span class="n">READMEAssessor</span></code>, etc.</li>
+</ul>
+
+<p><strong>Design Principles</strong>:</p>
+
+<ul>
+  <li>Each assessor is independent</li>
+  <li>Inherit from <code class="language-python highlighter-rouge"><span class="n">BaseAssessor</span></code></li>
+  <li>Implement <code class="language-python highlighter-rouge"><span class="n">assess</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span></code> method</li>
+  <li>Return <code class="language-python highlighter-rouge"><span class="n">Finding</span></code> object</li>
+  <li>Fail gracefully (return “skipped” if tools missing, don’t crash)</li>
+</ul>
+
+<h4 id="4-reporters-reporters">4. Reporters (<code class="language-python highlighter-rouge"><span class="n">reporters</span><span class="o">/</span></code>)</h4>
+
+<p>Transform <code class="language-python highlighter-rouge"><span class="n">Assessment</span></code> into report formats:</p>
+
+<ul>
+  <li><strong>HTMLReporter</strong>: Jinja2-based interactive report</li>
+  <li><strong>MarkdownReporter</strong>: GitHub-Flavored Markdown</li>
+  <li><strong>JSONReporter</strong>: Machine-readable JSON</li>
+</ul>
+
+<p><strong>Design Principles</strong>:</p>
+
+<ul>
+  <li>Take <code class="language-python highlighter-rouge"><span class="n">Assessment</span></code> as input</li>
+  <li>Return formatted string</li>
+  <li>Self-contained (HTML has inline CSS/JS, no CDN)</li>
+  <li>Idempotent (same input → same output)</li>
+</ul>
+
+<h3 id="key-design-patterns">Key Design Patterns</h3>
+
+<h4 id="strategy-pattern-assessors">Strategy Pattern (Assessors)</h4>
+
+<p>Each assessor is a pluggable strategy implementing the same interface:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="k">class</span> <span class="nc">BaseAssessor</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="o">@</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">attribute_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""Unique attribute identifier."""</span>
+        <span class="k">pass</span>
+
+    <span class="o">@</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+        <span class="s">"""Assess repository for this attribute."""</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""Check if this assessor applies to the repository."""</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</code></pre></div></div>
+
+<h4 id="factory-pattern-finding-creation">Factory Pattern (Finding Creation)</h4>
+
+<p><code class="language-python highlighter-rouge"><span class="n">Finding</span></code> class provides factory methods for common patterns:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Pass with full score
+</span><span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="o">=</span><span class="n">attribute</span><span class="p">,</span>
+    <span class="n">evidence</span><span class="o">=</span><span class="s">"Found CLAUDE.md at repository root"</span><span class="p">,</span>
+    <span class="n">remediation</span><span class="o">=</span><span class="bp">None</span>
+<span class="p">)</span>
+
+<span class="c1"># Fail with zero score
+</span><span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_fail</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="o">=</span><span class="n">attribute</span><span class="p">,</span>
+    <span class="n">evidence</span><span class="o">=</span><span class="s">"No CLAUDE.md file found"</span><span class="p">,</span>
+    <span class="n">remediation</span><span class="o">=</span><span class="n">Remediation</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="p">[...],</span> <span class="n">tools</span><span class="o">=</span><span class="p">[...])</span>
+<span class="p">)</span>
+
+<span class="c1"># Skip (not applicable)
+</span><span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_skip</span><span class="p">(</span>
+    <span class="n">attribute</span><span class="o">=</span><span class="n">attribute</span><span class="p">,</span>
+    <span class="n">reason</span><span class="o">=</span><span class="s">"Not implemented yet"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="template-pattern-reporters">Template Pattern (Reporters)</h4>
+
+<p>Reporters use Jinja2 templates for HTML generation:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Environment</span><span class="p">,</span> <span class="n">FileSystemLoader</span>
+
+<span class="k">class</span> <span class="nc">HTMLReporter</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assessment</span><span class="p">:</span> <span class="n">Assessment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">loader</span><span class="o">=</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="s">'templates'</span><span class="p">))</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">get_template</span><span class="p">(</span><span class="s">'report.html.j2'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">template</span><span class="p">.</span><span class="n">render</span><span class="p">(</span><span class="n">assessment</span><span class="o">=</span><span class="n">assessment</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="bootstrap-system-architecture">Bootstrap System Architecture</h2>
+
+<h3 id="overview">Overview</h3>
+
+<p>The Bootstrap system automates infrastructure generation through template rendering and language-aware configuration.</p>
+
+<h3 id="data-flow-1">Data Flow</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Repository</span> <span class="err">→</span> <span class="n">LanguageDetector</span> <span class="err">→</span> <span class="n">BootstrapGenerator</span> <span class="err">→</span> <span class="n">Templates</span> <span class="err">→</span> <span class="n">Generated</span> <span class="n">Files</span>
+                     <span class="err">↓</span>                    <span class="err">↓</span>
+              <span class="n">Primary</span> <span class="n">Language</span>    <span class="n">Template</span> <span class="n">Variables</span>
+                                   <span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="n">repo_name</span><span class="p">,</span> <span class="n">etc</span><span class="p">.)</span>
+</code></pre></div></div>
+
+<h3 id="core-components-1">Core Components</h3>
+
+<h4 id="1-bootstrap-services-servicesbootstrappy">1. Bootstrap Services (<code class="language-python highlighter-rouge"><span class="n">services</span><span class="o">/</span><span class="n">bootstrap</span><span class="p">.</span><span class="n">py</span></code>)</h4>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="n">BootstrapGenerator</span></code></strong> — Main orchestration class:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BootstrapGenerator</span><span class="p">:</span>
+    <span class="s">"""Generate agent-ready infrastructure for repositories."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="s">"""Initialize with template directory path."""</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">template_dir</span> <span class="o">=</span> <span class="n">template_dir</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">jinja_env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">loader</span><span class="o">=</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="n">template_dir</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">,</span>
+        <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">"auto"</span><span class="p">,</span>
+        <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneratedFile</span><span class="p">]:</span>
+        <span class="s">"""
+        Generate infrastructure files for repository.
+
+        Args:
+            repository: Repository object
+            language: Primary language (auto-detected if "auto")
+            dry_run: Preview only, don't create files
+
+        Returns:
+            List of GeneratedFile objects with paths and content
+        """</span>
+</code></pre></div></div>
+
+<p><strong>Key Methods</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">_detect_language</span><span class="p">()</span></code> — Auto-detect primary language via LanguageDetector</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">_render_template</span><span class="p">()</span></code> — Render Jinja2 template with context variables</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">_get_templates_for_language</span><span class="p">()</span></code> — Map language to template files</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">_write_file</span><span class="p">()</span></code> — Create file on disk (respects dry_run)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">_file_exists</span><span class="p">()</span></code> — Check for conflicts (never overwrites)</li>
+</ul>
+
+<h4 id="2-bootstrap-cli-clibootstrappy">2. Bootstrap CLI (<code class="language-python highlighter-rouge"><span class="n">cli</span><span class="o">/</span><span class="n">bootstrap</span><span class="p">.</span><span class="n">py</span></code>)</h4>
+
+<p>Command-line interface for Bootstrap:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="n">click</span><span class="p">.</span><span class="n">command</span><span class="p">()</span>
+<span class="o">@</span><span class="n">click</span><span class="p">.</span><span class="n">argument</span><span class="p">(</span><span class="s">"repository"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="p">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="s">"."</span><span class="p">)</span>
+<span class="o">@</span><span class="n">click</span><span class="p">.</span><span class="n">option</span><span class="p">(</span><span class="s">"--dry-run"</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">"Preview without creating files"</span><span class="p">)</span>
+<span class="o">@</span><span class="n">click</span><span class="p">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s">"--language"</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="p">.</span><span class="n">Choice</span><span class="p">([</span><span class="s">"python"</span><span class="p">,</span> <span class="s">"javascript"</span><span class="p">,</span> <span class="s">"go"</span><span class="p">,</span> <span class="s">"auto"</span><span class="p">]),</span>
+    <span class="n">default</span><span class="o">=</span><span class="s">"auto"</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s">"Primary language override"</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">bootstrap</span><span class="p">(</span><span class="n">repository</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">,</span> <span class="n">language</span><span class="p">):</span>
+    <span class="s">"""Bootstrap agent-ready infrastructure for repository."""</span>
+</code></pre></div></div>
+
+<p><strong>Responsibilities</strong>:</p>
+
+<ul>
+  <li>Parse command-line arguments</li>
+  <li>Create Repository object</li>
+  <li>Instantiate BootstrapGenerator</li>
+  <li>Display progress and results</li>
+  <li>Handle errors gracefully</li>
+</ul>
+
+<h4 id="3-templates-templatesbootstrap">3. Templates (<code class="language-python highlighter-rouge"><span class="n">templates</span><span class="o">/</span><span class="n">bootstrap</span><span class="o">/</span></code>)</h4>
+
+<p>Jinja2 templates for generated files:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">templates</span><span class="o">/</span><span class="n">bootstrap</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">common</span><span class="o">/</span>                          <span class="c1"># Language-agnostic templates
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">CODEOWNERS</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">CONTRIBUTING</span><span class="p">.</span><span class="n">md</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">CODE_OF_CONDUCT</span><span class="p">.</span><span class="n">md</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">bug_report</span><span class="p">.</span><span class="n">md</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">feature_request</span><span class="p">.</span><span class="n">md</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">pull_request_template</span><span class="p">.</span><span class="n">md</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">├──</span> <span class="n">python</span><span class="o">/</span>                          <span class="c1"># Python-specific
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">agentready</span><span class="o">-</span><span class="n">assessment</span><span class="p">.</span><span class="n">yml</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">tests</span><span class="p">.</span><span class="n">yml</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">security</span><span class="p">.</span><span class="n">yml</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">dependabot</span><span class="p">.</span><span class="n">yml</span><span class="p">.</span><span class="n">j2</span>
+<span class="err">├──</span> <span class="n">javascript</span><span class="o">/</span>                      <span class="c1"># JavaScript-specific
+</span><span class="err">│</span>   <span class="err">└──</span> <span class="p">...</span> <span class="p">(</span><span class="n">similar</span> <span class="n">structure</span><span class="p">)</span>
+<span class="err">└──</span> <span class="n">go</span><span class="o">/</span>                              <span class="c1"># Go-specific
+</span>    <span class="err">└──</span> <span class="p">...</span> <span class="p">(</span><span class="n">similar</span> <span class="n">structure</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="template-variables">Template Variables</h3>
+
+<p>All templates receive these context variables:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"repository_name"</span><span class="p">:</span> <span class="n">repository</span><span class="p">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="s">"language"</span><span class="p">:</span> <span class="n">detected_language</span><span class="p">,</span>
+    <span class="s">"has_tests_directory"</span><span class="p">:</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">repo_path</span><span class="si">}</span><span class="s">/tests"</span><span class="p">),</span>
+    <span class="s">"has_src_directory"</span><span class="p">:</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">repo_path</span><span class="si">}</span><span class="s">/src"</span><span class="p">),</span>
+    <span class="s">"python_version"</span><span class="p">:</span> <span class="s">"3.11"</span><span class="p">,</span>  <span class="c1"># Or detected version
+</span>    <span class="s">"node_version"</span><span class="p">:</span> <span class="s">"18"</span><span class="p">,</span>      <span class="c1"># Or detected version
+</span>    <span class="s">"go_version"</span><span class="p">:</span> <span class="s">"1.21"</span><span class="p">,</span>      <span class="c1"># Or detected version
+</span>    <span class="s">"year"</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">now</span><span class="p">().</span><span class="n">year</span><span class="p">,</span>
+    <span class="s">"organization"</span><span class="p">:</span> <span class="n">extract_org_from_remote</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>  <span class="c1"># From git remote
+</span><span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="language-detection-logic">Language Detection Logic</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LanguageDetector</span><span class="p">:</span>
+    <span class="s">"""Detect primary language from repository files."""</span>
+
+    <span class="n">EXTENSION_MAP</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">".py"</span><span class="p">:</span> <span class="s">"Python"</span><span class="p">,</span>
+        <span class="s">".js"</span><span class="p">:</span> <span class="s">"JavaScript"</span><span class="p">,</span>
+        <span class="s">".ts"</span><span class="p">:</span> <span class="s">"TypeScript"</span><span class="p">,</span>
+        <span class="s">".go"</span><span class="p">:</span> <span class="s">"Go"</span><span class="p">,</span>
+        <span class="s">".java"</span><span class="p">:</span> <span class="s">"Java"</span><span class="p">,</span>
+        <span class="c1"># ... more extensions
+</span>    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repo_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="s">"""
+        Count files by language.
+
+        Returns:
+            Dict mapping language name to file count
+            Example: {"Python": 42, "JavaScript": 18}
+        """</span>
+
+    <span class="k">def</span> <span class="nf">get_primary_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">languages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""Return language with most files."""</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">languages</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">languages</span><span class="p">.</span><span class="n">get</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="file-generation-flow">File Generation Flow</h3>
+
+<ol>
+  <li>
+    <p><strong>Detect Language</strong>:</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">language</span> <span class="o">==</span> <span class="s">"auto"</span><span class="p">:</span>
+    <span class="n">languages</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">().</span><span class="n">detect</span><span class="p">(</span><span class="n">repository</span><span class="p">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">primary</span> <span class="o">=</span> <span class="n">LanguageDetector</span><span class="p">().</span><span class="n">get_primary_language</span><span class="p">(</span><span class="n">languages</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">primary</span> <span class="o">=</span> <span class="n">language</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Select Templates</strong>:</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">templates</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"python"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s">"python/agentready-assessment.yml.j2"</span><span class="p">,</span>
+        <span class="s">"python/tests.yml.j2"</span><span class="p">,</span>
+        <span class="s">"python/pre-commit-config.yaml.j2"</span><span class="p">,</span>
+        <span class="c1"># ... common templates
+</span>    <span class="p">],</span>
+    <span class="s">"javascript"</span><span class="p">:</span> <span class="p">[...],</span>
+    <span class="s">"go"</span><span class="p">:</span> <span class="p">[...]</span>
+<span class="p">}</span>
+<span class="n">selected</span> <span class="o">=</span> <span class="n">templates</span><span class="p">[</span><span class="n">primary</span><span class="p">]</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Render Each Template</strong>:</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">template_path</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">:</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">jinja_env</span><span class="p">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">template</span><span class="p">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">determine_output_path</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+        <span class="n">write_file</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Return Results</strong>:</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">return</span> <span class="p">[</span>
+    <span class="n">GeneratedFile</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="s">".github/workflows/tests.yml"</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="n">rendered_content</span><span class="p">,</span>
+        <span class="n">created</span><span class="o">=</span><span class="bp">True</span>
+    <span class="p">),</span>
+    <span class="c1"># ... more files
+</span><span class="p">]</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h3 id="error-handling">Error Handling</h3>
+
+<p>Bootstrap implements defensive programming:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BootstrapError</span><span class="p">(</span><span class="nb">Exception</span><span class="p">):</span>
+    <span class="s">"""Base exception for Bootstrap errors."""</span>
+
+<span class="k">class</span> <span class="nc">LanguageDetectionError</span><span class="p">(</span><span class="n">BootstrapError</span><span class="p">):</span>
+    <span class="s">"""Raised when language detection fails."""</span>
+
+<span class="k">class</span> <span class="nc">TemplateRenderError</span><span class="p">(</span><span class="n">BootstrapError</span><span class="p">):</span>
+    <span class="s">"""Raised when template rendering fails."""</span>
+
+<span class="k">class</span> <span class="nc">FileWriteError</span><span class="p">(</span><span class="n">BootstrapError</span><span class="p">):</span>
+    <span class="s">"""Raised when file write fails (permissions, etc.)."""</span>
+</code></pre></div></div>
+
+<p><strong>Error scenarios</strong>:</p>
+
+<ul>
+  <li>Not a git repository → Fail early with clear message</li>
+  <li>Language detection fails → Require <code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">language</span></code> flag</li>
+  <li>Template not found → Report missing template name</li>
+  <li>File already exists → Skip gracefully, report in output</li>
+  <li>Permission denied → Report path and suggest fix</li>
+</ul>
+
+<h3 id="dry-run-implementation">Dry Run Implementation</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s">"auto"</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="s">"""Generate infrastructure."""</span>
+
+    <span class="n">generated_files</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">template_path</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_render_template</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_determine_output_path</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+            <span class="c1"># Don't write, just report what would happen
+</span>            <span class="n">generated_files</span><span class="p">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">GeneratedFile</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+                    <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+                    <span class="n">created</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>  <span class="c1"># Would be created
+</span>                    <span class="n">dry_run</span><span class="o">=</span><span class="bp">True</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">_write_file</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+                <span class="n">generated_files</span><span class="p">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">GeneratedFile</span><span class="p">(</span>
+                        <span class="n">path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+                        <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+                        <span class="n">created</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">generated_files</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="creating-bootstrap-templates">Creating Bootstrap Templates</h2>
+
+<h3 id="template-structure">Template Structure</h3>
+
+<p>All Bootstrap templates follow consistent patterns for maintainability.</p>
+
+<h3 id="1-github-actions-workflow-template">1. GitHub Actions Workflow Template</h3>
+
+<p><strong>Location</strong>: <code class="language-python highlighter-rouge"><span class="n">templates</span><span class="o">/</span><span class="n">bootstrap</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="n">agentready</span><span class="o">-</span><span class="n">assessment</span><span class="p">.</span><span class="n">yml</span><span class="p">.</span><span class="n">j2</span></code></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">name</span><span class="pi">:</span> <span class="s">AgentReady Assessment</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">,</span> <span class="nv">master</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">assess</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">permissions</span><span class="pi">:</span>
+      <span class="na">contents</span><span class="pi">:</span> <span class="s">read</span>
+      <span class="na">pull-requests</span><span class="pi">:</span> <span class="s">write</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/setup-python@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">python-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">'</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install AgentReady</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">pip install agentready</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run Assessment</span>
+        <span class="na">id</span><span class="pi">:</span> <span class="s">assessment</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">agentready assess . --output-dir .agentready</span>
+          <span class="s">score=$(jq '.overall_score' .agentready/assessment-latest.json)</span>
+          <span class="s">echo "score=$score" &gt;&gt; $GITHUB_OUTPUT</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload Report</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/upload-artifact@v3</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">agentready-report</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">.agentready/report-latest.html</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Comment PR</span>
+        <span class="na">if</span><span class="pi">:</span> <span class="s">github.event_name == 'pull_request'</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/github-script@v6</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">script</span><span class="pi">:</span> <span class="pi">|</span>
+            <span class="s">const fs = require('fs');</span>
+            <span class="s">const report = fs.readFileSync('.agentready/report-latest.md', 'utf8');</span>
+            <span class="s">github.rest.issues.createComment({</span>
+              <span class="s">issue_number: context.issue.number,</span>
+              <span class="s">owner: context.repo.owner,</span>
+              <span class="s">repo: context.repo.repo,</span>
+              <span class="s">body: report</span>
+            <span class="s">});</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check Score Threshold</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">if (( $(echo "$ &lt; 60" | bc -l) )); then</span>
+            <span class="s">echo "Score below threshold: $"</span>
+            <span class="s">exit 1</span>
+          <span class="s">fi</span>
+</code></pre></div></div>
+
+<p><strong>Template variables used</strong>:</p>
+
+<ul>
+  <li>`` — Python version from context</li>
+  <li>Could add: <code class="language-python highlighter-rouge"><span class="p">,</span></code> for customization</li>
+</ul>
+
+<h3 id="2-pre-commit-config-template">2. Pre-commit Config Template</h3>
+
+<p><strong>Location</strong>: <code class="language-python highlighter-rouge"><span class="n">templates</span><span class="o">/</span><span class="n">bootstrap</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span><span class="p">.</span><span class="n">j2</span></code></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">repos</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/psf/black</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">23.12.0</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">black</span>
+        <span class="na">language_version</span><span class="pi">:</span> <span class="s">python</span>
+
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/pycqa/isort</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">5.13.0</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">isort</span>
+
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/astral-sh/ruff-pre-commit</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">v0.1.9</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">ruff</span>
+        <span class="na">args</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">--fix</span><span class="pi">]</span>
+
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/pre-commit/pre-commit-hooks</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">v4.5.0</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">trailing-whitespace</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">end-of-file-fixer</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">check-yaml</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">check-added-large-files</span>
+</code></pre></div></div>
+
+<h3 id="3-issue-template">3. Issue Template</h3>
+
+<p><strong>Location</strong>: <code class="language-python highlighter-rouge"><span class="n">templates</span><span class="o">/</span><span class="n">bootstrap</span><span class="o">/</span><span class="n">common</span><span class="o">/</span><span class="n">bug_report</span><span class="p">.</span><span class="n">md</span><span class="p">.</span><span class="n">j2</span></code></p>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">Bug Report</span>
+<span class="na">about</span><span class="pi">:</span> <span class="s">Create a report to help us improve</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s1">'</span><span class="s">[BUG]</span><span class="nv"> </span><span class="s">'</span>
+<span class="na">labels</span><span class="pi">:</span> <span class="s">bug</span>
+<span class="na">assignees</span><span class="pi">:</span> <span class="s1">'</span><span class="s">'</span>
+<span class="nn">---</span>
+
+<span class="gs">**Describe the bug**</span>
+A clear and concise description of what the bug is.
+
+<span class="gs">**To Reproduce**</span>
+Steps to reproduce the behavior:
+<span class="p">1.</span> Go to '...'
+<span class="p">2.</span> Click on '....'
+<span class="p">3.</span> Scroll down to '....'
+<span class="p">4.</span> See error
+
+<span class="gs">**Expected behavior**</span>
+A clear and concise description of what you expected to happen.
+
+<span class="gs">**Environment**</span>
+<span class="p">-</span> OS: [e.g., Ubuntu 22.04, macOS 14.0, Windows 11]
+<span class="p">-</span>  Version: [e.g., ]
+<span class="p">-</span>  Version: [e.g., 1.0.0]
+
+<span class="gs">**Additional context**</span>
+Add any other context about the problem here.
+</code></pre></div></div>
+
+<h3 id="4-conditional-template-logic">4. Conditional Template Logic</h3>
+
+<p>Templates can use Jinja2 conditionals:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># In tests.yml.j2</span>
+
+
+</code></pre></div></div>
+
+<h3 id="template-development-workflow">Template Development Workflow</h3>
+
+<ol>
+  <li>
+    <p><strong>Create template</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim src/agentready/templates/bootstrap/python/mytemplate.yml.j2
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Add template variables</strong>:</p>
+
+    <pre><code class="language-jinja2">name:  CI
+version:
+</code></pre>
+  </li>
+  <li>
+    <p><strong>Register in BootstrapGenerator</strong>:</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">TEMPLATES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"python"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="c1"># ... existing templates
+</span>        <span class="s">"python/mytemplate.yml.j2"</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Test with dry-run</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready bootstrap <span class="nb">.</span> <span class="nt">--dry-run</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Verify rendered output</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check generated content</span>
+<span class="nb">cat</span> .github/workflows/mytemplate.yml
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h3 id="template-best-practices">Template Best Practices</h3>
+
+<ol>
+  <li>
+    <p><strong>Use descriptive variable names</strong>:</p>
+
+    <pre><code class="language-jinja2"># Good
+
+
+
+# Bad
+
+
+</code></pre>
+  </li>
+  <li>
+    <p><strong>Provide defaults</strong>:</p>
+
+    <pre><code class="language-jinja2">python-version: ''
+</code></pre>
+  </li>
+  <li>
+    <p><strong>Add comments</strong>:</p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># This workflow runs on every PR to main</span>
+<span class="c1"># Generated by AgentReady Bootstrap</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">Tests</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Handle optional sections</strong>:</p>
+
+    <pre><code class="language-jinja2">
+# No tests directory found - add tests to enable this step
+
+</code></pre>
+  </li>
+  <li>
+    <p><strong>Include generation metadata</strong>:</p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Generated by AgentReady Bootstrap v</span>
+<span class="c1"># Date: </span>
+<span class="c1"># Language: </span>
+<span class="c1"># Do not edit - regenerate with: agentready bootstrap .</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="implementing-new-assessors">Implementing New Assessors</h2>
+
+<p>Follow this step-by-step guide to add a new assessor.</p>
+
+<h3 id="step-1-choose-an-attribute">Step 1: Choose an Attribute</h3>
+
+<p>Check <code class="language-python highlighter-rouge"><span class="n">src</span><span class="o">/</span><span class="n">agentready</span><span class="o">/</span><span class="n">assessors</span><span class="o">/</span><span class="n">stub_assessors</span><span class="p">.</span><span class="n">py</span></code> for not-yet-implemented attributes:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Example stub assessor
+</span><span class="k">class</span> <span class="nc">InlineDocumentationAssessor</span><span class="p">(</span><span class="n">BaseAssessor</span><span class="p">):</span>
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">attribute_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">"inline_documentation"</span>
+
+    <span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+        <span class="c1"># TODO: Implement actual assessment logic
+</span>        <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_skip</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+            <span class="n">reason</span><span class="o">=</span><span class="s">"Assessor not yet implemented"</span>
+        <span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="step-2-create-assessor-class">Step 2: Create Assessor Class</h3>
+
+<p>Create a new file or expand existing category file in <code class="language-python highlighter-rouge"><span class="n">src</span><span class="o">/</span><span class="n">agentready</span><span class="o">/</span><span class="n">assessors</span><span class="o">/</span></code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># src/agentready/assessors/documentation.py
+</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">Finding</span><span class="p">,</span> <span class="n">Attribute</span><span class="p">,</span> <span class="n">Remediation</span>
+<span class="kn">from</span> <span class="nn">agentready.assessors.base</span> <span class="kn">import</span> <span class="n">BaseAssessor</span>
+
+<span class="k">class</span> <span class="nc">InlineDocumentationAssessor</span><span class="p">(</span><span class="n">BaseAssessor</span><span class="p">):</span>
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">attribute_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">"inline_documentation"</span>
+
+    <span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+        <span class="s">"""
+        Assess inline documentation coverage (docstrings/JSDoc).
+
+        Checks:
+        - Python: Presence of docstrings in .py files
+        - JavaScript/TypeScript: JSDoc comments
+        - Coverage: &gt;80% of public functions documented
+        """</span>
+        <span class="c1"># Implement assessment logic here
+</span>        <span class="k">pass</span>
+</code></pre></div></div>
+
+<h3 id="step-3-implement-assessment-logic">Step 3: Implement Assessment Logic</h3>
+
+<p>Use the <code class="language-python highlighter-rouge"><span class="n">calculate_proportional_score</span><span class="p">()</span></code> helper for partial compliance:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+    <span class="c1"># Example: Check Python docstrings
+</span>    <span class="k">if</span> <span class="s">"Python"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">repository</span><span class="p">.</span><span class="n">languages</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_skip</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+            <span class="n">reason</span><span class="o">=</span><span class="s">"No Python files detected"</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Count functions and docstrings
+</span>    <span class="n">total_functions</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_count_functions</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span>
+    <span class="n">documented_functions</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_count_documented_functions</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">total_functions</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_skip</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+            <span class="n">reason</span><span class="o">=</span><span class="s">"No functions found"</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Calculate coverage
+</span>    <span class="n">coverage</span> <span class="o">=</span> <span class="n">documented_functions</span> <span class="o">/</span> <span class="n">total_functions</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">calculate_proportional_score</span><span class="p">(</span><span class="n">coverage</span><span class="p">,</span> <span class="mf">0.80</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">80</span><span class="p">:</span>  <span class="c1"># Passes if &gt;= 80% of target
+</span>        <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+            <span class="n">evidence</span><span class="o">=</span><span class="sa">f</span><span class="s">"Documented </span><span class="si">{</span><span class="n">documented_functions</span><span class="si">}</span><span class="s">/</span><span class="si">{</span><span class="n">total_functions</span><span class="si">}</span><span class="s"> functions (</span><span class="si">{</span><span class="n">coverage</span><span class="si">:</span><span class="p">.</span><span class="mi">1</span><span class="o">%</span><span class="si">}</span><span class="s">)"</span><span class="p">,</span>
+            <span class="n">remediation</span><span class="o">=</span><span class="bp">None</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_fail</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">attribute</span><span class="p">,</span>
+            <span class="n">evidence</span><span class="o">=</span><span class="sa">f</span><span class="s">"Only </span><span class="si">{</span><span class="n">documented_functions</span><span class="si">}</span><span class="s">/</span><span class="si">{</span><span class="n">total_functions</span><span class="si">}</span><span class="s"> functions documented (</span><span class="si">{</span><span class="n">coverage</span><span class="si">:</span><span class="p">.</span><span class="mi">1</span><span class="o">%</span><span class="si">}</span><span class="s">)"</span><span class="p">,</span>
+            <span class="n">remediation</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">_create_remediation</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span>
+        <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_count_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="s">"""Count total functions in Python files."""</span>
+    <span class="c1"># Implementation using ast or grep
+</span>    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">_count_documented_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="s">"""Count functions with docstrings."""</span>
+    <span class="c1"># Implementation using ast
+</span>    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">_create_remediation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_coverage</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Remediation</span><span class="p">:</span>
+    <span class="s">"""Generate remediation guidance."""</span>
+    <span class="k">return</span> <span class="n">Remediation</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+            <span class="s">"Install pydocstyle: `pip install pydocstyle`"</span><span class="p">,</span>
+            <span class="s">"Run docstring linter: `pydocstyle src/`"</span><span class="p">,</span>
+            <span class="s">"Add docstrings to flagged functions"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s">"Target: </span><span class="si">{</span><span class="p">(</span><span class="mf">0.80</span> <span class="o">-</span> <span class="n">current_coverage</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="p">.</span><span class="mi">0</span><span class="n">f</span><span class="si">}</span><span class="s">% more functions need documentation"</span>
+        <span class="p">],</span>
+        <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s">"pydocstyle"</span><span class="p">,</span> <span class="s">"pylint"</span><span class="p">],</span>
+        <span class="n">commands</span><span class="o">=</span><span class="p">[</span>
+            <span class="s">"pydocstyle src/"</span><span class="p">,</span>
+            <span class="s">"pylint --disable=all --enable=missing-docstring src/"</span>
+        <span class="p">],</span>
+        <span class="n">examples</span><span class="o">=</span><span class="p">[</span>
+            <span class="s">'''def calculate_total(items: List[Item]) -&gt; float:
+    """
+    Calculate total price of items.
+
+    Args:
+        items: List of items to sum
+
+    Returns:
+        Total price in USD
+
+    Example:
+        &gt;&gt;&gt; calculate_total([Item(5.0), Item(3.0)])
+        8.0
+    """
+    return sum(item.price for item in items)'''</span>
+        <span class="p">],</span>
+        <span class="n">citations</span><span class="o">=</span><span class="p">[</span>
+            <span class="s">"PEP 257 - Docstring Conventions"</span><span class="p">,</span>
+            <span class="s">"Google Python Style Guide"</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="step-4-register-assessor">Step 4: Register Assessor</h3>
+
+<p>Add to scanner’s assessor list in <code class="language-python highlighter-rouge"><span class="n">src</span><span class="o">/</span><span class="n">agentready</span><span class="o">/</span><span class="n">services</span><span class="o">/</span><span class="n">scanner</span><span class="p">.</span><span class="n">py</span></code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="p">.</span><span class="n">assessors</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># Existing assessors...
+</span>        <span class="n">InlineDocumentationAssessor</span><span class="p">(),</span>
+    <span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="step-5-write-tests">Step 5: Write Tests</h3>
+
+<p>Create comprehensive unit tests in <code class="language-python highlighter-rouge"><span class="n">tests</span><span class="o">/</span><span class="n">unit</span><span class="o">/</span><span class="n">test_assessors_documentation</span><span class="p">.</span><span class="n">py</span></code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pytest</span>
+<span class="kn">from</span> <span class="nn">agentready.models</span> <span class="kn">import</span> <span class="n">Repository</span>
+<span class="kn">from</span> <span class="nn">agentready.assessors.documentation</span> <span class="kn">import</span> <span class="n">InlineDocumentationAssessor</span>
+
+<span class="k">class</span> <span class="nc">TestInlineDocumentationAssessor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">test_python_well_documented_passes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmp_path</span><span class="p">):</span>
+        <span class="s">"""Well-documented Python code should pass."""</span>
+        <span class="c1"># Create test repository
+</span>        <span class="n">repo_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s">"test_repo"</span>
+        <span class="n">repo_path</span><span class="p">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">".git"</span><span class="p">).</span><span class="n">mkdir</span><span class="p">()</span>
+
+        <span class="c1"># Create Python file with docstrings
+</span>        <span class="n">code</span> <span class="o">=</span> <span class="s">'''
+def add(a: int, b: int) -&gt; int:
+    """Add two numbers."""
+    return a + b
+
+def subtract(a: int, b: int) -&gt; int:
+    """Subtract b from a."""
+    return a - b
+'''</span>
+        <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">"main.py"</span><span class="p">).</span><span class="n">write_text</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+        <span class="c1"># Create repository object
+</span>        <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s">"test_repo"</span><span class="p">,</span>
+            <span class="n">languages</span><span class="o">=</span><span class="p">{</span><span class="s">"Python"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Run assessment
+</span>        <span class="n">assessor</span> <span class="o">=</span> <span class="n">InlineDocumentationAssessor</span><span class="p">()</span>
+        <span class="n">finding</span> <span class="o">=</span> <span class="n">assessor</span><span class="p">.</span><span class="n">assess</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+        <span class="c1"># Verify result
+</span>        <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"pass"</span>
+        <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">score</span> <span class="o">==</span> <span class="mi">100</span>
+        <span class="k">assert</span> <span class="s">"2/2 functions"</span> <span class="ow">in</span> <span class="n">finding</span><span class="p">.</span><span class="n">evidence</span>
+
+    <span class="k">def</span> <span class="nf">test_python_poorly_documented_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmp_path</span><span class="p">):</span>
+        <span class="s">"""Poorly documented Python code should fail."""</span>
+        <span class="c1"># Create test repository
+</span>        <span class="n">repo_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s">"test_repo"</span>
+        <span class="n">repo_path</span><span class="p">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">".git"</span><span class="p">).</span><span class="n">mkdir</span><span class="p">()</span>
+
+        <span class="c1"># Create Python file with no docstrings
+</span>        <span class="n">code</span> <span class="o">=</span> <span class="s">'''
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+'''</span>
+        <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">"main.py"</span><span class="p">).</span><span class="n">write_text</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s">"test_repo"</span><span class="p">,</span>
+            <span class="n">languages</span><span class="o">=</span><span class="p">{</span><span class="s">"Python"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">assessor</span> <span class="o">=</span> <span class="n">InlineDocumentationAssessor</span><span class="p">()</span>
+        <span class="n">finding</span> <span class="o">=</span> <span class="n">assessor</span><span class="p">.</span><span class="n">assess</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"fail"</span>
+        <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">score</span> <span class="o">&lt;</span> <span class="mi">80</span>
+        <span class="k">assert</span> <span class="s">"0/2 functions"</span> <span class="ow">in</span> <span class="n">finding</span><span class="p">.</span><span class="n">evidence</span>
+        <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">remediation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">assert</span> <span class="s">"pydocstyle"</span> <span class="ow">in</span> <span class="n">finding</span><span class="p">.</span><span class="n">remediation</span><span class="p">.</span><span class="n">tools</span>
+
+    <span class="k">def</span> <span class="nf">test_non_python_skips</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmp_path</span><span class="p">):</span>
+        <span class="s">"""Non-Python repositories should skip."""</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s">"test_repo"</span><span class="p">,</span>
+            <span class="n">languages</span><span class="o">=</span><span class="p">{</span><span class="s">"JavaScript"</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">assessor</span> <span class="o">=</span> <span class="n">InlineDocumentationAssessor</span><span class="p">()</span>
+        <span class="n">finding</span> <span class="o">=</span> <span class="n">assessor</span><span class="p">.</span><span class="n">assess</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"skipped"</span>
+        <span class="k">assert</span> <span class="s">"No Python files"</span> <span class="ow">in</span> <span class="n">finding</span><span class="p">.</span><span class="n">reason</span>
+</code></pre></div></div>
+
+<h3 id="step-6-test-manually">Step 6: Test Manually</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run your new tests</span>
+pytest tests/unit/test_assessors_documentation.py <span class="nt">-v</span>
+
+<span class="c"># Run full assessment on AgentReady itself</span>
+agentready assess <span class="nb">.</span> <span class="nt">--verbose</span>
+
+<span class="c"># Verify your assessor appears in output</span>
+</code></pre></div></div>
+
+<h3 id="best-practices-for-assessors">Best Practices for Assessors</h3>
+
+<ol>
+  <li><strong>Fail Gracefully</strong>: Return “skipped” if required tools missing, don’t crash</li>
+  <li><strong>Provide Rich Remediation</strong>: Include steps, tools, commands, examples, citations</li>
+  <li><strong>Use Proportional Scoring</strong>: <code class="language-python highlighter-rouge"><span class="n">calculate_proportional_score</span><span class="p">()</span></code> for partial compliance</li>
+  <li><strong>Language-Specific Logic</strong>: Check <code class="language-python highlighter-rouge"><span class="n">repository</span><span class="p">.</span><span class="n">languages</span></code> before assessing</li>
+  <li><strong>Avoid External Dependencies</strong>: Use stdlib when possible (ast, re, pathlib)</li>
+  <li><strong>Performance</strong>: Keep assessments fast (&lt;1 second per assessor)</li>
+  <li><strong>Idempotent</strong>: Same repository → same result</li>
+  <li><strong>Evidence</strong>: Provide specific, actionable evidence (file paths, counts, examples)</li>
+</ol>
+
+<hr />
+
+<h2 id="testing-guidelines">Testing Guidelines</h2>
+
+<p>AgentReady maintains high test quality standards.</p>
+
+<h3 id="test-organization">Test Organization</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tests</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">unit</span><span class="o">/</span>                  <span class="c1"># Fast, isolated tests
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">test_models</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">test_assessors_</span><span class="o">*</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">test_reporters</span><span class="p">.</span><span class="n">py</span>
+<span class="err">├──</span> <span class="n">integration</span><span class="o">/</span>           <span class="c1"># End-to-end tests
+</span><span class="err">│</span>   <span class="err">└──</span> <span class="n">test_full_assessment</span><span class="p">.</span><span class="n">py</span>
+<span class="err">└──</span> <span class="n">fixtures</span><span class="o">/</span>              <span class="c1"># Shared test data
+</span>    <span class="err">└──</span> <span class="n">sample_repos</span><span class="o">/</span>
+</code></pre></div></div>
+
+<h3 id="test-types">Test Types</h3>
+
+<h4 id="unit-tests">Unit Tests</h4>
+
+<ul>
+  <li><strong>Purpose</strong>: Test individual components in isolation</li>
+  <li><strong>Speed</strong>: Very fast (&lt;1s total)</li>
+  <li><strong>Coverage</strong>: Models, assessors, services, reporters</li>
+  <li><strong>Mocking</strong>: Use <code class="language-python highlighter-rouge"><span class="n">pytest</span></code> fixtures and mocks</li>
+</ul>
+
+<h4 id="integration-tests">Integration Tests</h4>
+
+<ul>
+  <li><strong>Purpose</strong>: Test complete workflows end-to-end</li>
+  <li><strong>Speed</strong>: Slower (acceptable up to 10s total)</li>
+  <li><strong>Coverage</strong>: Full assessment pipeline</li>
+  <li><strong>Real Data</strong>: Use fixture repositories</li>
+</ul>
+
+<h3 id="writing-good-tests">Writing Good Tests</h3>
+
+<h4 id="test-naming">Test Naming</h4>
+
+<p>Use descriptive names following pattern: <code class="language-python highlighter-rouge"><span class="n">test_</span><span class="o">&lt;</span><span class="n">what</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">when</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">expected</span><span class="o">&gt;</span></code></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Good
+</span><span class="k">def</span> <span class="nf">test_claude_md_assessor_with_existing_file_passes</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">test_readme_assessor_missing_quick_start_fails</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">test_type_annotations_assessor_javascript_repo_skips</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="c1"># Bad
+</span><span class="k">def</span> <span class="nf">test_assessor</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">test_pass_case</span><span class="p">():</span>
+    <span class="k">pass</span>
+</code></pre></div></div>
+
+<h4 id="arrange-act-assert-pattern">Arrange-Act-Assert Pattern</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">test_finding_create_pass_sets_correct_attributes</span><span class="p">():</span>
+    <span class="c1"># Arrange
+</span>    <span class="n">attribute</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">"test_attr"</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">"Test Attribute"</span><span class="p">,</span>
+        <span class="n">tier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">weight</span><span class="o">=</span><span class="mf">0.10</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Act
+</span>    <span class="n">finding</span> <span class="o">=</span> <span class="n">Finding</span><span class="p">.</span><span class="n">create_pass</span><span class="p">(</span>
+        <span class="n">attribute</span><span class="o">=</span><span class="n">attribute</span><span class="p">,</span>
+        <span class="n">evidence</span><span class="o">=</span><span class="s">"Test evidence"</span><span class="p">,</span>
+        <span class="n">remediation</span><span class="o">=</span><span class="bp">None</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Assert
+</span>    <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">"pass"</span>
+    <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">score</span> <span class="o">==</span> <span class="mi">100</span>
+    <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">evidence</span> <span class="o">==</span> <span class="s">"Test evidence"</span>
+    <span class="k">assert</span> <span class="n">finding</span><span class="p">.</span><span class="n">remediation</span> <span class="ow">is</span> <span class="bp">None</span>
+</code></pre></div></div>
+
+<h4 id="use-fixtures">Use Fixtures</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="n">pytest</span><span class="p">.</span><span class="n">fixture</span>
+<span class="k">def</span> <span class="nf">sample_repository</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">):</span>
+    <span class="s">"""Create a sample repository for testing."""</span>
+    <span class="n">repo_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s">"sample_repo"</span>
+    <span class="n">repo_path</span><span class="p">.</span><span class="n">mkdir</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">".git"</span><span class="p">).</span><span class="n">mkdir</span><span class="p">()</span>
+
+    <span class="c1"># Add files
+</span>    <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">"README.md"</span><span class="p">).</span><span class="n">write_text</span><span class="p">(</span><span class="s">"# Sample Repo"</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">repo_path</span> <span class="o">/</span> <span class="s">"CLAUDE.md"</span><span class="p">).</span><span class="n">write_text</span><span class="p">(</span><span class="s">"# Tech Stack"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Repository</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">"sample_repo"</span><span class="p">,</span>
+        <span class="n">languages</span><span class="o">=</span><span class="p">{</span><span class="s">"Python"</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+    <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">test_with_fixture</span><span class="p">(</span><span class="n">sample_repository</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">sample_repository</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">"sample_repo"</span>
+</code></pre></div></div>
+
+<h3 id="coverage-requirements">Coverage Requirements</h3>
+
+<ul>
+  <li><strong>Target</strong>: &gt;80% line coverage for new code</li>
+  <li><strong>Minimum</strong>: &gt;70% overall coverage</li>
+  <li><strong>Critical Paths</strong>: 100% coverage (scoring algorithm, finding creation)</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Generate coverage report</span>
+pytest <span class="nt">--cov</span><span class="o">=</span>src/agentready <span class="nt">--cov-report</span><span class="o">=</span>html
+
+<span class="c"># View report</span>
+open htmlcov/index.html
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="code-quality-standards">Code Quality Standards</h2>
+
+<h3 id="formatting">Formatting</h3>
+
+<p><strong>Black</strong> (88 character line length, opinionated formatting):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>black src/ tests/
+</code></pre></div></div>
+
+<p>Configuration in <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code>:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[tool.black]</span>
+<span class="py">line-length</span> <span class="p">=</span> <span class="mi">88</span>
+<span class="py">target-version</span> <span class="p">=</span> <span class="p">[</span><span class="s">'py311'</span><span class="p">,</span> <span class="s">'py312'</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="import-sorting">Import Sorting</h3>
+
+<p><strong>isort</strong> (consistent import organization):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>isort src/ tests/
+</code></pre></div></div>
+
+<p>Configuration in <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code>:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[tool.isort]</span>
+<span class="py">profile</span> <span class="p">=</span> <span class="s">"black"</span>
+<span class="py">line_length</span> <span class="p">=</span> <span class="mi">88</span>
+</code></pre></div></div>
+
+<h3 id="linting">Linting</h3>
+
+<p><strong>Ruff</strong> (fast Python linter):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ruff check src/ tests/
+</code></pre></div></div>
+
+<p>Configuration in <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code>:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[tool.ruff]</span>
+<span class="py">line-length</span> <span class="p">=</span> <span class="mi">88</span>
+<span class="py">select</span> <span class="p">=</span> <span class="p">[</span><span class="s">"E"</span><span class="p">,</span> <span class="s">"F"</span><span class="p">,</span> <span class="s">"W"</span><span class="p">,</span> <span class="s">"I"</span><span class="p">]</span>
+<span class="py">ignore</span> <span class="p">=</span> <span class="nn">["E501"]</span>  <span class="c"># Line too long (handled by black)</span>
+</code></pre></div></div>
+
+<h3 id="type-checking-future">Type Checking (Future)</h3>
+
+<p><strong>mypy</strong> (static type checking):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mypy src/
+</code></pre></div></div>
+
+<p>Configuration in <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code>:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[tool.mypy]</span>
+<span class="py">python_version</span> <span class="p">=</span> <span class="s">"3.11"</span>
+<span class="py">strict</span> <span class="p">=</span> <span class="kc">true</span>
+<span class="py">warn_return_any</span> <span class="p">=</span> <span class="kc">true</span>
+<span class="py">warn_unused_configs</span> <span class="p">=</span> <span class="kc">true</span>
+</code></pre></div></div>
+
+<h3 id="documentation-standards">Documentation Standards</h3>
+
+<ul>
+  <li><strong>Docstrings</strong>: All public functions, classes, methods</li>
+  <li><strong>Format</strong>: Google-style docstrings</li>
+  <li><strong>Type hints</strong>: All function parameters and return types</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">calculate_weighted_score</span><span class="p">(</span><span class="n">findings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Finding</span><span class="p">],</span> <span class="n">weights</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="s">"""
+    Calculate weighted average score from findings.
+
+    Args:
+        findings: List of assessment findings
+        weights: Attribute ID to weight mapping
+
+    Returns:
+        Weighted score from 0.0 to 100.0
+
+    Raises:
+        ValueError: If weights don't sum to 1.0
+
+    Example:
+        &gt;&gt;&gt; findings = [Finding(score=80), Finding(score=90)]
+        &gt;&gt;&gt; weights = {"attr1": 0.5, "attr2": 0.5}
+        &gt;&gt;&gt; calculate_weighted_score(findings, weights)
+        85.0
+    """</span>
+    <span class="k">pass</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="contributing-workflow">Contributing Workflow</h2>
+
+<h3 id="1-create-feature-branch">1. Create Feature Branch</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Update main</span>
+git checkout main
+git pull upstream main
+
+<span class="c"># Create feature branch</span>
+git checkout <span class="nt">-b</span> feature/inline-documentation-assessor
+</code></pre></div></div>
+
+<h3 id="2-implement-changes">2. Implement Changes</h3>
+
+<ul>
+  <li>Write code following style guide</li>
+  <li>Add comprehensive tests</li>
+  <li>Update documentation (CLAUDE.md, README.md if needed)</li>
+</ul>
+
+<h3 id="3-run-quality-checks">3. Run Quality Checks</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Format code</span>
+black src/ tests/
+isort src/ tests/
+
+<span class="c"># Lint</span>
+ruff check src/ tests/
+
+<span class="c"># Run tests</span>
+pytest <span class="nt">--cov</span>
+
+<span class="c"># All checks must pass</span>
+</code></pre></div></div>
+
+<h3 id="4-commit-changes">4. Commit Changes</h3>
+
+<p>Use <strong>conventional commits</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s2">"feat(assessors): add inline documentation assessor
+
+- Implement Python docstring coverage assessment
+- Add test coverage for various documentation levels
+- Include rich remediation guidance with examples
+- Support JSDoc detection for JavaScript/TypeScript (future)"</span>
+</code></pre></div></div>
+
+<p><strong>Commit types</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">feat</span></code>: New feature</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">fix</span></code>: Bug fix</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">docs</span></code>: Documentation changes</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">test</span></code>: Test additions/changes</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">refactor</span></code>: Code refactoring</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">chore</span></code>: Maintenance tasks</li>
+</ul>
+
+<h3 id="5-push-and-create-pr">5. Push and Create PR</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push origin feature/inline-documentation-assessor
+</code></pre></div></div>
+
+<p>Create pull request on GitHub with:</p>
+
+<ul>
+  <li><strong>Title</strong>: Clear, descriptive (e.g., “Add inline documentation assessor”)</li>
+  <li><strong>Description</strong>:
+    <ul>
+      <li>What changed</li>
+      <li>Why (link to issue if applicable)</li>
+      <li>Testing performed</li>
+      <li>Screenshots/examples (if UI changes)</li>
+    </ul>
+  </li>
+  <li><strong>Checklist</strong>:
+    <ul class="task-list">
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Tests added and passing</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Code formatted (black, isort)</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Linting passes (ruff)</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Documentation updated</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Changelog entry (if user-facing)</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="6-address-review-feedback">6. Address Review Feedback</h3>
+
+<ul>
+  <li>Respond to comments</li>
+  <li>Make requested changes</li>
+  <li>Push updates to same branch</li>
+  <li>Re-request review</li>
+</ul>
+
+<hr />
+
+<h2 id="release-process">Release Process</h2>
+
+<p>AgentReady follows <strong>semantic versioning</strong> (SemVer):</p>
+
+<ul>
+  <li><strong>Major (X.0.0)</strong>: Breaking changes</li>
+  <li><strong>Minor (x.Y.0)</strong>: New features, backward-compatible</li>
+  <li><strong>Patch (x.y.Z)</strong>: Bug fixes, backward-compatible</li>
+</ul>
+
+<h3 id="release-checklist">Release Checklist</h3>
+
+<ol>
+  <li><strong>Update version</strong> in <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code></li>
+  <li><strong>Update CHANGELOG.md</strong> with release notes</li>
+  <li><strong>Run full test suite</strong>: <code class="language-python highlighter-rouge"><span class="n">pytest</span> <span class="o">--</span><span class="n">cov</span></code></li>
+  <li><strong>Run quality checks</strong>: <code class="language-python highlighter-rouge"><span class="n">black</span> <span class="p">.</span> <span class="o">&amp;&amp;</span> <span class="n">isort</span> <span class="p">.</span> <span class="o">&amp;&amp;</span> <span class="n">ruff</span> <span class="n">check</span> <span class="p">.</span></code></li>
+  <li><strong>Build package</strong>: <code class="language-python highlighter-rouge"><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">build</span></code></li>
+  <li><strong>Test package locally</strong>: <code class="language-python highlighter-rouge"><span class="n">pip</span> <span class="n">install</span> <span class="n">dist</span><span class="o">/</span><span class="n">agentready</span><span class="o">-</span><span class="n">X</span><span class="p">.</span><span class="n">Y</span><span class="p">.</span><span class="n">Z</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span></code></li>
+  <li><strong>Create git tag</strong>: <code class="language-python highlighter-rouge"><span class="n">git</span> <span class="n">tag</span> <span class="o">-</span><span class="n">a</span> <span class="n">vX</span><span class="p">.</span><span class="n">Y</span><span class="p">.</span><span class="n">Z</span> <span class="o">-</span><span class="n">m</span> <span class="s">"Release vX.Y.Z"</span></code></li>
+  <li><strong>Push tag</strong>: <code class="language-python highlighter-rouge"><span class="n">git</span> <span class="n">push</span> <span class="n">upstream</span> <span class="n">vX</span><span class="p">.</span><span class="n">Y</span><span class="p">.</span><span class="n">Z</span></code></li>
+  <li><strong>Upload to PyPI</strong>: <code class="language-python highlighter-rouge"><span class="n">twine</span> <span class="n">upload</span> <span class="n">dist</span><span class="o">/*</span></code></li>
+  <li><strong>Create GitHub release</strong> with changelog</li>
+</ol>
+
+<hr />
+
+<h2 id="additional-resources">Additional Resources</h2>
+
+<ul>
+  <li><strong><a href="attributes.html">Attributes Reference</a></strong> — Detailed attribute definitions</li>
+  <li><strong><a href="api-reference.html">API Reference</a></strong> — Public API documentation</li>
+  <li><strong><a href="examples.html">Examples</a></strong> — Real-world assessment reports</li>
+  <li><strong>CLAUDE.md</strong> — Project context for AI agents</li>
+  <li><strong>BACKLOG.md</strong> — Planned features and enhancements</li>
+</ul>
+
+<hr />
+
+<p><strong>Ready to contribute?</strong> Check out <a href="https://github.com/ambient-code/agentready/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">good first issues</a> on GitHub!</p>
+
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

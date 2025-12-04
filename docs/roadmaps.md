@@ -3,8 +3,6 @@ layout: page
 title: Strategic Roadmaps
 ---
 
-# Strategic Roadmaps
-
 Three paths to transform AgentReady from quality assessment tool to essential infrastructure for Red Hat's AI-assisted development initiative.
 
 **Current Status**: v1.27.2 with LLM-powered learning, research commands, and batch assessment ([learn more](user-guide.html#bootstrap-your-repository))

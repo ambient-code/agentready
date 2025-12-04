@@ -1,0 +1,201 @@
+/* AgentReady Leaderboard Styles */
+
+/* Top 10 Cards */
+.leaderboard-top10 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.leaderboard-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid #e1e4e8;
+  border-radius: 8px;
+  background: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.leaderboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Tier-based borders */
+.leaderboard-card.tier-platinum { border-color: #b8b5ff; background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%); }
+.leaderboard-card.tier-gold { border-color: #ffd700; background: linear-gradient(135deg, #ffffff 0%, #fffef7 100%); }
+.leaderboard-card.tier-silver { border-color: #c0c0c0; background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%); }
+.leaderboard-card.tier-bronze { border-color: #cd7f32; background: linear-gradient(135deg, #ffffff 0%, #fff8f3 100%); }
+
+.leaderboard-card .rank {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #586069;
+  min-width: 50px;
+  text-align: center;
+}
+
+.leaderboard-card .repo-info {
+  flex: 1;
+}
+
+.leaderboard-card .repo-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.leaderboard-card .repo-info h3 a {
+  color: #0366d6;
+  text-decoration: none;
+}
+
+.leaderboard-card .repo-info h3 a:hover {
+  text-decoration: underline;
+}
+
+.leaderboard-card .meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #586069;
+}
+
+.leaderboard-card .score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #f6f8fa;
+  border-radius: 6px;
+}
+
+.leaderboard-card .score {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.leaderboard-card .tier {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #586069;
+  margin-top: 0.25rem;
+}
+
+/* Tier colors for scores */
+.tier-platinum .score { color: #7c3aed; }
+.tier-gold .score { color: #ca8a04; }
+.tier-silver .score { color: #71717a; }
+.tier-bronze .score { color: #c2410c; }
+
+/* Leaderboard Table */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.9rem;
+}
+
+.leaderboard-table thead {
+  background: #f6f8fa;
+  border-bottom: 2px solid #e1e4e8;
+}
+
+.leaderboard-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #24292e;
+}
+
+.leaderboard-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.leaderboard-table tr:hover {
+  background: #f6f8fa;
+}
+
+.leaderboard-table .rank {
+  font-weight: bold;
+  color: #586069;
+  text-align: center;
+  width: 60px;
+}
+
+.leaderboard-table .score {
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+  width: 80px;
+}
+
+.leaderboard-table .repo-name a {
+  color: #0366d6;
+  text-decoration: none;
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.leaderboard-table .repo-name a:hover {
+  text-decoration: underline;
+}
+
+.leaderboard-table .version {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #586069;
+  text-align: center;
+}
+
+/* Tier badges */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.platinum { background: #ede9fe; color: #7c3aed; }
+.badge.gold { background: #fef3c7; color: #ca8a04; }
+.badge.silver { background: #f4f4f5; color: #71717a; }
+.badge.bronze { background: #fed7aa; color: #c2410c; }
+.badge.needs-improvement { background: #fee2e2; color: #dc2626; }
+
+/* Improvement column */
+.improvement {
+  color: #22c55e;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .leaderboard-top10 {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-table {
+    font-size: 0.8rem;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0.5rem;
+  }
+
+  .leaderboard-card .rank {
+    font-size: 1.5rem;
+    min-width: 40px;
+  }
+
+  .leaderboard-card .score {
+    font-size: 1.5rem;
+  }
+}

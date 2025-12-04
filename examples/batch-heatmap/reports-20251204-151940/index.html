@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'unsafe-inline'; object-src 'none'; style-src 'unsafe-inline';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Repository Assessment Report</title>
+    <style>
+        :root {
+            --color-primary: #4CAF50;
+            --color-bg: #f5f5f5;
+            --color-card: #ffffff;
+            --color-border: #ddd;
+            --color-text: #333;
+            --color-text-light: #666;
+            --color-platinum: linear-gradient(to right, #BCC6CC, #E5E4E2);
+            --color-gold: linear-gradient(to right, #FFD700, #FFA500);
+            --color-silver: linear-gradient(to right, #C0C0C0, #A8A8A8);
+            --color-bronze: linear-gradient(to right, #CD7F32, #B8733C);
+            --color-error: #f44336;
+            --color-error-bg: #FFEBEE;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--color-card);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--color-text);
+            border-bottom: 3px solid var(--color-primary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            color: #555;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .timestamp {
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: #f9f9f9;
+            padding: 1.25rem;
+            border-radius: 6px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--color-text);
+        }
+
+        .cert-list, .lang-list, .attr-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .cert-list li {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--color-primary);
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .cert-description {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .lang-list li, .attr-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .lang-list li:last-child, .attr-list li:last-child {
+            border-bottom: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--color-card);
+        }
+
+        th, td {
+            border: 1px solid var(--color-border);
+            padding: 0.875rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background-color: #45a049;
+        }
+
+        th::after {
+            content: ' ↕';
+            opacity: 0.5;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .platinum {
+            background: var(--color-platinum);
+            color: #4A4A4A;
+        }
+
+        .gold {
+            background: var(--color-gold);
+            color: #3D2817;
+        }
+
+        .silver {
+            background: var(--color-silver);
+            color: #4A4A4A;
+        }
+
+        .bronze {
+            background: var(--color-bronze);
+            color: #fff;
+        }
+
+        .needs-improvement {
+            background: var(--color-error-bg);
+            color: var(--color-error);
+        }
+
+        a {
+            color: #2196F3;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #1976D2;
+        }
+
+        .error-table {
+            border-left: 4px solid var(--color-error);
+        }
+
+        .error-table th {
+            background-color: var(--color-error);
+        }
+
+        .truncate {
+            max-width: 400px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-light);
+            font-style: italic;
+        }
+
+        .section-intro {
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .section-intro a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .section-intro a:hover {
+            text-decoration: underline;
+        }
+
+        .filter-box {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .filter-box input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        /* Heatmap styles */
+        .heatmap-container {
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .heatmap {
+            display: table;
+            border-collapse: collapse;
+            min-width: 100%;
+        }
+
+        .heatmap-row {
+            display: table-row;
+        }
+
+        .heatmap-header {
+            display: table-cell;
+            background: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid #fff;
+        }
+
+        .heatmap-row-label {
+            display: table-cell;
+            background: #f5f5f5;
+            font-weight: 600;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            min-width: 150px;
+        }
+
+        .heatmap-cell {
+            display: table-cell;
+            text-align: center;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            min-width: 80px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .heatmap-cell:hover {
+            opacity: 0.8;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid var(--color-border);
+        }
+
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 1024px) {
+            .two-column-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Multi-Repository Assessment Report</h1>
+        <p class="timestamp">Generated: 2025-12-04T15:19:40.512613</p>
+
+        <h2>📊 Summary Statistics</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Repositories</div>
+                <div class="stat-value">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Successful Assessments</div>
+                <div class="stat-value">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Failed Assessments</div>
+                <div class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Average Score</div>
+                <div class="stat-value">77.8</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Success Rate</div>
+                <div class="stat-value">100.0%</div>
+            </div>
+        </div>
+
+
+        <h2>🏆 Certification Distribution</h2>
+        <ul class="cert-list">
+
+
+
+
+            <li>
+                <div>
+                    <span class="badge gold">Gold</span>
+                    <strong>1</strong> repository
+                </div>
+
+                <div class="cert-description">
+                    Highly optimized for AI-assisted development with strong documentation and code quality (75-89 score). Minor improvements needed.
+                </div>
+
+            </li>
+
+
+
+
+
+
+
+
+        </ul>
+
+
+        <h2>📋 Repository Results</h2>
+        <p class="section-intro">
+            Each repository is assessed against agent-ready best practices. Click repository name for detailed reports.
+            <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md" target="_blank">View complete attribute definitions →</a>
+        </p>
+
+        <div class="filter-box">
+            <input type="text" id="tableFilter" placeholder="Filter by repository name, certification, or language..." onkeyup="filterTable()">
+        </div>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Repository</th>
+                    <th onclick="sortTable(1)">Score</th>
+                    <th onclick="sortTable(2)">Certification</th>
+                    <th onclick="sortTable(3)">Language</th>
+                    <th onclick="sortTable(4)">Duration</th>
+                    <th>Reports</th>
+                </tr>
+            </thead>
+            <tbody>
+
+
+                <tr>
+
+                    <td class="truncate" title="/Users/jeder/repos/agentready">/Users/jeder/repos/agentready</td>
+                    <td data-value="77.8">77.8</td>
+                    <td>
+                        <span class="badge gold">
+                            Gold
+                        </span>
+                    </td>
+                    <td>Python</td>
+                    <td data-value="6.300867080688477">6.3s</td>
+                    <td>
+
+
+                        <a href="agentready-20251204-151940.html">HTML</a> |
+                        <a href="agentready-20251204-151940.json">JSON</a> |
+                        <a href="agentready-20251204-151940.md">MD</a>
+                    </td>
+                </tr>
+
+
+            </tbody>
+        </table>
+
+
+        <div class="two-column-layout">
+            <div>
+
+                <h2>💻 Language Distribution</h2>
+                <p class="section-intro">Programming languages detected across all repositories.</p>
+                <ul class="lang-list">
+
+                    <li><strong>Python</strong>: 140 repositories</li>
+
+                    <li><strong>Markdown</strong>: 113 repositories</li>
+
+                    <li><strong>YAML</strong>: 25 repositories</li>
+
+                    <li><strong>JSON</strong>: 12 repositories</li>
+
+                    <li><strong>Shell</strong>: 6 repositories</li>
+
+                    <li><strong>XML</strong>: 4 repositories</li>
+
+                </ul>
+
+            </div>
+
+            <div>
+
+                <h2>⚠️ Top Failing Attributes</h2>
+                <p class="section-intro">Most frequently failed attributes across all repositories.</p>
+                <ul class="attr-list">
+
+                    <li>
+                        <strong>type_annotations</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>conventional_commits</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>file_size_limits</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>separation_of_concerns</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>concise_documentation</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>architecture_decisions</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>cicd_pipeline_visibility</strong>:
+                        1 failure
+                    </li>
+
+                    <li>
+                        <strong>structured_logging</strong>:
+                        1 failure
+                    </li>
+
+                </ul>
+
+            </div>
+        </div>
+
+
+        <h2>🔥 Attribute Failure Heatmap</h2>
+        <p class="section-intro">
+            Visual overview of attribute scores across repositories. Cells show scores with color-coded backgrounds.
+        </p>
+        <div class="heatmap-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #22c55e;"></div>
+                <span>Pass (≥80)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #eab308;"></div>
+                <span>Partial (60-79)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #f97316;"></div>
+                <span>Warning (40-59)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ef4444;"></div>
+                <span>Fail (&lt;40)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #cccccc;"></div>
+                <span>N/A</span>
+            </div>
+        </div>
+        <div class="heatmap-container">
+            <div class="heatmap">
+                <div class="heatmap-row">
+                    <div class="heatmap-header">Repository</div>
+
+                    <div class="heatmap-header" title="type_annotations">
+                        type_annotation...
+                    </div>
+
+                    <div class="heatmap-header" title="conventional_commits">
+                        conventional_co...
+                    </div>
+
+                    <div class="heatmap-header" title="file_size_limits">
+                        file_size_limit...
+                    </div>
+
+                    <div class="heatmap-header" title="separation_of_concerns">
+                        separation_of_c...
+                    </div>
+
+                    <div class="heatmap-header" title="concise_documentation">
+                        concise_documen...
+                    </div>
+
+                    <div class="heatmap-header" title="architecture_decisions">
+                        architecture_de...
+                    </div>
+
+                    <div class="heatmap-header" title="cicd_pipeline_visibility">
+                        cicd_pipeline_v...
+                    </div>
+
+                    <div class="heatmap-header" title="structured_logging">
+                        structured_logg...
+                    </div>
+
+                </div>
+
+
+                    <div class="heatmap-row">
+                        <div class="heatmap-row-label">agentready</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #f97316; color: white;"
+                                     title="agentready - type_annotations: 41/100">
+                                    41
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #ef4444; color: white;"
+                                     title="agentready - conventional_commits: 0/100">
+                                    0
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #ef4444; color: white;"
+                                     title="agentready - file_size_limits: 19/100">
+                                    19
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #eab308; color: white;"
+                                     title="agentready - separation_of_concerns: 67/100">
+                                    67
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #eab308; color: white;"
+                                     title="agentready - concise_documentation: 70/100">
+                                    70
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #cccccc; color: #333;"
+                                     title="agentready - architecture_decisions: 0/100">
+                                    N/A
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #eab308; color: white;"
+                                     title="agentready - cicd_pipeline_visibility: 70/100">
+                                    70
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="heatmap-cell"
+                                     style="background-color: #ef4444; color: white;"
+                                     title="agentready - structured_logging: 0/100">
+                                    0
+                                </div>
+
+
+                    </div>
+
+
+            </div>
+        </div>
+
+
+
+
+
+        <hr style="margin: 3rem 0; border: none; border-top: 1px solid #ddd;">
+        <p style="text-align: center; color: var(--color-text-light); font-size: 0.875rem;">
+            Generated by <strong>AgentReady 2.9.0</strong>
+            • Batch ID: 818e1a29-9e1a-40ea-bb3e-a0c784d38c62
+        </p>
+    </div>
+    <script>
+// Table sorting functionality
+let sortDirections = {};
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('resultsTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const headers = table.querySelectorAll('th');
+
+    // Toggle sort direction
+    const currentDir = sortDirections[columnIndex] || 'none';
+    const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+    sortDirections[columnIndex] = newDir;
+
+    // Update header indicators
+    headers.forEach((h, i) => {
+        h.classList.remove('sort-asc', 'sort-desc');
+        if (i === columnIndex) {
+            h.classList.add(`sort-${newDir}`);
+        }
+    });
+
+    // Sort rows
+    rows.sort((a, b) => {
+        let aVal = a.cells[columnIndex].textContent.trim();
+        let bVal = b.cells[columnIndex].textContent.trim();
+
+        // Use data-value attribute if available (for numeric sorting)
+        const aData = a.cells[columnIndex].getAttribute('data-value');
+        const bData = b.cells[columnIndex].getAttribute('data-value');
+        if (aData && bData) {
+            aVal = parseFloat(aData);
+            bVal = parseFloat(bData);
+        } else {
+            // Try numeric comparison first
+            const aNum = parseFloat(aVal);
+            const bNum = parseFloat(bVal);
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                aVal = aNum;
+                bVal = bNum;
+            }
+        }
+
+        if (aVal < bVal) return newDir === 'asc' ? -1 : 1;
+        if (aVal > bVal) return newDir === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    // Re-append sorted rows
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+// Table filtering functionality
+function filterTable() {
+    const input = document.getElementById('tableFilter');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('resultsTable');
+    const rows = table.querySelectorAll('tbody tr');
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+// Initial sort by score (descending)
+window.addEventListener('DOMContentLoaded', () => {
+    sortTable(1); // Sort by score column
+    sortTable(1); // Sort again to get descending order
+});
+    </script>
+</body>
+</html>

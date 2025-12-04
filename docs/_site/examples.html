@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Examples | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Examples | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Examples" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/examples.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/examples.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Examples" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Examples","url":"http://localhost:4000/agentready/examples.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1>Examples</h1>
+
+<p>Real-world AgentReady assessments demonstrating report formats, interpretation guidance, and remediation patterns.</p>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#agentready-self-assessment">AgentReady Self-Assessment</a></li>
+  <li><a href="#report-interpretation-guide">Report Interpretation Guide</a></li>
+  <li><a href="#common-remediation-patterns">Common Remediation Patterns</a></li>
+  <li><a href="#integration-examples">Integration Examples</a></li>
+</ul>
+
+<hr />
+
+<h2 id="agentready-self-assessment">AgentReady Self-Assessment</h2>
+
+<p>AgentReady assesses itself to validate the scoring algorithm and demonstrate expected output.</p>
+
+<h3 id="assessment-summary">Assessment Summary</h3>
+
+<p><strong>Date</strong>: 2025-11-23
+<strong>Score</strong>: 80.0/100
+<strong>Certification</strong>: 🥇 Gold
+<strong>Version</strong>: v1.27.2</p>
+
+<p><strong>Breakdown</strong>:</p>
+
+<ul>
+  <li>Attributes Assessed: 19/31 (22 implemented, 9 stubs, 12 not applicable to AgentReady)</li>
+  <li>Passing: 8/10</li>
+  <li>Failing: 2/10</li>
+  <li>Skipped: 15/25</li>
+</ul>
+
+<h3 id="tier-scores">Tier Scores</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tier</th>
+      <th>Score</th>
+      <th>Weighted Contribution</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Tier 1 (Essential)</td>
+      <td>85.0/100</td>
+      <td>42.5/50 points</td>
+    </tr>
+    <tr>
+      <td>Tier 2 (Critical)</td>
+      <td>75.0/100</td>
+      <td>22.5/30 points</td>
+    </tr>
+    <tr>
+      <td>Tier 3 (Important)</td>
+      <td>100.0/100</td>
+      <td>15.0/15 points</td>
+    </tr>
+    <tr>
+      <td>Tier 4 (Advanced)</td>
+      <td>0.0/100</td>
+      <td>0.0/5 points</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Analysis</strong>: Excellent essential attributes (Tier 1), strong documentation and code quality. Recent v1.27.2 improvements resolved 35 pytest failures and enhanced model validation. Tier 4 attributes not yet implemented.</p>
+
+<h3 id="passing-attributes-7">Passing Attributes (7)</h3>
+
+<h4 id="1--claudemd-file-tier-1-10">1. ✅ CLAUDE.md File (Tier 1, 10%)</h4>
+
+<p><strong>Evidence</strong>: Found CLAUDE.md at repository root (482 lines)</p>
+
+<p><strong>Why it passes</strong>: Comprehensive project documentation covering:</p>
+
+<ul>
+  <li>Tech stack (Python 3.12+, pytest, black, isort, ruff)</li>
+  <li>Repository structure (src/, tests/, docs/, examples/)</li>
+  <li>Standard commands (setup, test, lint, format)</li>
+  <li>Development workflow (GitHub Flow, feature branches)</li>
+  <li>Testing strategy (unit, integration, contract tests)</li>
+</ul>
+
+<p><strong>Impact</strong>: Immediate project context for AI agents, ~40% reduction in prompt engineering.</p>
+
+<hr />
+
+<h4 id="2--readme-structure-tier-1-10">2. ✅ README Structure (Tier 1, 10%)</h4>
+
+<p><strong>Evidence</strong>: Well-structured README.md with all essential sections</p>
+
+<p><strong>Sections present</strong>:</p>
+
+<ul>
+  <li>✅ Project title and description</li>
+  <li>✅ Installation instructions (pip install)</li>
+  <li>✅ Quick start with code examples</li>
+  <li>✅ Feature overview (25 attributes, tier-based scoring)</li>
+  <li>✅ CLI reference</li>
+  <li>✅ Architecture overview</li>
+  <li>✅ Development setup</li>
+  <li>✅ License (MIT)</li>
+</ul>
+
+<p><strong>Impact</strong>: Fast project comprehension for both users and AI agents.</p>
+
+<hr />
+
+<h4 id="3--type-annotations-tier-1-10">3. ✅ Type Annotations (Tier 1, 10%)</h4>
+
+<p><strong>Evidence</strong>: Python type hints present in 95% of functions</p>
+
+<p><strong>Examples from codebase</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">assess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">Repository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Finding</span><span class="p">:</span>
+    <span class="s">"""Assess repository for this attribute."""</span>
+
+<span class="k">def</span> <span class="nf">calculate_overall_score</span><span class="p">(</span><span class="n">findings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Finding</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="s">"""Calculate weighted average score."""</span>
+
+<span class="k">class</span> <span class="nc">Repository</span><span class="p">:</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">languages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p><strong>Impact</strong>: Better AI comprehension, type-safe refactoring, improved autocomplete.</p>
+
+<hr />
+
+<h4 id="4--standard-layout-tier-2-3">4. ✅ Standard Layout (Tier 2, 3%)</h4>
+
+<p><strong>Evidence</strong>: Follows Python src/ layout convention</p>
+
+<p><strong>Structure</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">agentready</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">src</span><span class="o">/</span><span class="n">agentready</span><span class="o">/</span>    <span class="c1"># Source code
+</span><span class="err">├──</span> <span class="n">tests</span><span class="o">/</span>             <span class="c1"># Tests mirror src/
+</span><span class="err">├──</span> <span class="n">docs</span><span class="o">/</span>              <span class="c1"># Documentation
+</span><span class="err">├──</span> <span class="n">examples</span><span class="o">/</span>          <span class="c1"># Example reports
+</span><span class="err">├──</span> <span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span>     <span class="c1"># Package config
+</span><span class="err">└──</span> <span class="n">README</span><span class="p">.</span><span class="n">md</span>          <span class="c1"># Entry point
+</span></code></pre></div></div>
+
+<p><strong>Impact</strong>: Predictable file locations, AI navigates efficiently.</p>
+
+<hr />
+
+<h4 id="5--test-coverage-tier-2-3">5. ✅ Test Coverage (Tier 2, 3%)</h4>
+
+<p><strong>Evidence</strong>: 37% coverage with focused unit tests</p>
+
+<p><strong>Coverage details</strong>:</p>
+
+<ul>
+  <li>Unit tests for models: 95% coverage</li>
+  <li>Assessor tests: 60% coverage</li>
+  <li>Integration tests: End-to-end workflow</li>
+  <li>Total lines covered: 890/2400</li>
+</ul>
+
+<p><strong>Note</strong>: While below 80% target, core logic (models, scoring) has excellent coverage. Future work: expand assessor coverage.</p>
+
+<p><strong>Impact</strong>: Safety net for AI-assisted refactoring of critical paths.</p>
+
+<hr />
+
+<h4 id="6--gitignore-completeness-tier-2-3">6. ✅ Gitignore Completeness (Tier 2, 3%)</h4>
+
+<p><strong>Evidence</strong>: Comprehensive .gitignore covering all necessary patterns</p>
+
+<p><strong>Excluded</strong>:</p>
+
+<ul>
+  <li>✅ Python artifacts (__pycache__, *.pyc, *.pyo, .pytest_cache)</li>
+  <li>✅ Virtual environments (.venv, venv, env)</li>
+  <li>✅ IDE files (.vscode/, .idea/, *.swp)</li>
+  <li>✅ OS files (.DS_Store, Thumbs.db)</li>
+  <li>✅ Build artifacts (dist/, build/, *.egg-info)</li>
+  <li>✅ Reports (.agentready/)</li>
+</ul>
+
+<p><strong>Impact</strong>: Clean repository, no context pollution for AI.</p>
+
+<hr />
+
+<h4 id="7--cyclomatic-complexity-tier-3-15">7. ✅ Cyclomatic Complexity (Tier 3, 1.5%)</h4>
+
+<p><strong>Evidence</strong>: Low complexity across codebase (average: 4.2, max: 12)</p>
+
+<p><strong>Analysis</strong> (via radon):</p>
+
+<ul>
+  <li>Functions with complexity &gt;10: 2/180 (1%)</li>
+  <li>Average complexity: 4.2 (excellent)</li>
+  <li>Most complex function: <code class="language-python highlighter-rouge"><span class="n">Scanner</span><span class="p">.</span><span class="n">scan</span><span class="p">()</span></code> (12)</li>
+</ul>
+
+<p><strong>Impact</strong>: Easy comprehension for AI, low cognitive load.</p>
+
+<hr />
+
+<h3 id="failing-attributes-3">Failing Attributes (3)</h3>
+
+<h4 id="1--lock-files-tier-2-3">1. ❌ Lock Files (Tier 2, 3%)</h4>
+
+<p><strong>Evidence</strong>: No requirements.txt, poetry.lock, or uv.lock present</p>
+
+<p><strong>Why it fails</strong>: Intentional decision for library projects (libraries specify version ranges, not exact pins). Applications should have lock files.</p>
+
+<p><strong>Remediation</strong> (if this were an application):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Using poetry</span>
+poetry lock
+
+<span class="c"># Using pip</span>
+pip freeze <span class="o">&gt;</span> requirements.txt
+
+<span class="c"># Using uv</span>
+uv pip compile pyproject.toml <span class="nt">-o</span> requirements.txt
+</code></pre></div></div>
+
+<p><strong>Note</strong>: This is acceptable for libraries. AgentReady recognizes this pattern and adjusts scoring accordingly in future versions.</p>
+
+<hr />
+
+<h4 id="2--pre-commit-hooks-tier-2-3">2. ❌ Pre-commit Hooks (Tier 2, 3%)</h4>
+
+<p><strong>Evidence</strong>: No .pre-commit-config.yaml found</p>
+
+<p><strong>Why it fails</strong>: Missing automation for code quality enforcement. Currently relying on manual <code class="language-python highlighter-rouge"><span class="n">black</span></code>, <code class="language-python highlighter-rouge"><span class="n">isort</span></code>, <code class="language-python highlighter-rouge"><span class="n">ruff</span></code> runs.</p>
+
+<p><strong>Remediation</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Install pre-commit</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>pre-commit
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Create .pre-commit-config.yaml</strong>:</p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">repos</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/psf/black</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">23.12.0</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">black</span>
+
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/pycqa/isort</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">5.13.0</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">isort</span>
+
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/astral-sh/ruff-pre-commit</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s">v0.1.9</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">ruff</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Install hooks</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pre-commit <span class="nb">install</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Test</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pre-commit run <span class="nt">--all-files</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p><strong>Impact</strong>: +3 points (78.4/100 total, still Gold)</p>
+
+<p><strong>Priority</strong>: P0 fix (identified in BACKLOG.md)</p>
+
+<hr />
+
+<h4 id="3--conventional-commits-tier-3-15">3. ❌ Conventional Commits (Tier 3, 1.5%)</h4>
+
+<p><strong>Evidence</strong>: Git history uses conventional commits, but not enforced via tooling</p>
+
+<p><strong>Sample commits</strong>:</p>
+
+<ul>
+  <li>✅ <code class="language-python highlighter-rouge"><span class="n">feat</span><span class="p">(</span><span class="n">assessors</span><span class="p">):</span> <span class="n">add</span> <span class="n">inline</span> <span class="n">documentation</span> <span class="n">assessor</span></code></li>
+  <li>✅ <code class="language-python highlighter-rouge"><span class="n">fix</span><span class="p">:</span> <span class="n">correct</span> <span class="nb">type</span> <span class="n">annotation</span> <span class="n">detection</span> <span class="ow">in</span> <span class="n">Python</span> <span class="mf">3.12</span></code></li>
+  <li>✅ <code class="language-python highlighter-rouge"><span class="n">docs</span><span class="p">:</span> <span class="n">update</span> <span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span> <span class="k">with</span> <span class="n">architecture</span> <span class="n">details</span></code></li>
+</ul>
+
+<p><strong>Why it fails</strong>: No commitlint or automated enforcement (could be bypassed).</p>
+
+<p><strong>Remediation</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Install commitlint</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm <span class="nb">install</span> <span class="nt">-g</span> @commitlint/cli @commitlint/config-conventional
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Create commitlint.config.js</strong>:</p>
+
+    <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span><span class="na">extends</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">@commitlint/config-conventional</span><span class="dl">'</span><span class="p">]};</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Add to pre-commit hooks</strong>:</p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">https://github.com/alessandrojcm/commitlint-pre-commit-hook</span>
+  <span class="na">rev</span><span class="pi">:</span> <span class="s">v9.5.0</span>
+  <span class="na">hooks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">commitlint</span>
+      <span class="na">stages</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">commit-msg</span><span class="pi">]</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p><strong>Impact</strong>: +1.5 points (76.9/100 total)</p>
+
+<p><strong>Priority</strong>: P1 enhancement</p>
+
+<hr />
+
+<h3 id="next-steps-for-agentready">Next Steps for AgentReady</h3>
+
+<p><strong>Immediate improvements</strong> (would reach 79.9/100):</p>
+
+<ol>
+  <li>Add pre-commit hooks (+3 points)</li>
+  <li>Enforce conventional commits (+1.5 points)</li>
+</ol>
+
+<p><strong>Path to Platinum (90+)</strong>:</p>
+
+<ol>
+  <li>Expand 9 remaining stub assessors to full implementations</li>
+  <li>Increase test coverage to 80%+</li>
+  <li>Add GitHub Actions CI/CD workflow</li>
+  <li>Implement remaining Tier 4 attributes</li>
+</ol>
+
+<hr />
+
+<h2 id="batch-assessment-example">Batch Assessment Example</h2>
+
+<p><strong>Scenario</strong>: Assess 5 microservices in a multi-repo project.</p>
+
+<h3 id="setup">Setup</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Directory structure</span>
+projects/
+├── service-auth/
+├── service-api/
+├── service-data/
+├── service-web/
+└── service-worker/
+</code></pre></div></div>
+
+<h3 id="running-batch-assessment">Running Batch Assessment</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd </span>projects/
+agentready batch service-<span class="k">*</span>/ <span class="nt">--output-dir</span> ./batch-reports
+</code></pre></div></div>
+
+<h3 id="results">Results</h3>
+
+<p><strong>comparison-summary.md excerpt:</strong></p>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh"># Batch Assessment Summary</span>
+
+<span class="gs">**Date**</span>: 2025-11-23
+<span class="gs">**Repositories Assessed**</span>: 5
+<span class="gs">**Average Score**</span>: 73.4/100
+<span class="gs">**Certification Distribution**</span>:
+<span class="p">-</span> Gold: 3 repositories
+<span class="p">-</span> Silver: 2 repositories
+
+<span class="gu">## Comparison Table</span>
+
+| Repository | Overall Score | Cert Level | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|------------|---------------|------------|--------|--------|--------|--------|
+| service-auth | 82.5/100 | Gold | 90.0 | 80.0 | 75.0 | 60.0 |
+| service-api | 78.0/100 | Gold | 85.0 | 75.0 | 70.0 | 55.0 |
+| service-web | 76.2/100 | Gold | 80.0 | 75.0 | 72.0 | 58.0 |
+| service-data | 68.5/100 | Silver | 75.0 | 65.0 | 60.0 | 50.0 |
+| service-worker | 61.8/100 | Silver | 70.0 | 60.0 | 55.0 | 45.0 |
+
+<span class="gu">## Common Failures</span>
+<span class="p">
+-</span> <span class="gs">**pre_commit_hooks**</span> (4/5 repos): Missing .pre-commit-config.yaml
+<span class="p">-</span> <span class="gs">**lock_files**</span> (3/5 repos): No dependency lock files
+<span class="p">-</span> <span class="gs">**conventional_commits**</span> (3/5 repos): No commitlint enforcement
+
+<span class="gu">## Recommendations</span>
+<span class="p">
+1.</span> <span class="gs">**High Priority**</span>: Add pre-commit hooks to all services (+3-5 points each)
+<span class="p">2.</span> <span class="gs">**Medium Priority**</span>: Add lock files to services without them (+3 points each)
+<span class="p">3.</span> <span class="gs">**Quick Win**</span>: Run <span class="sb">`agentready bootstrap .`</span> in each service for automated setup
+</code></pre></div></div>
+
+<p><strong>aggregate-stats.json:</strong></p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"total_repositories"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"average_score"</span><span class="p">:</span><span class="w"> </span><span class="mf">73.4</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"median_score"</span><span class="p">:</span><span class="w"> </span><span class="mf">76.2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"score_range"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">61.8</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">82.5</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"spread"</span><span class="p">:</span><span class="w"> </span><span class="mf">20.7</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"certification_distribution"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"Platinum"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Gold"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Silver"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Bronze"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Needs Improvement"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"tier_averages"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"tier_1"</span><span class="p">:</span><span class="w"> </span><span class="mf">80.0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_2"</span><span class="p">:</span><span class="w"> </span><span class="mf">71.0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_3"</span><span class="p">:</span><span class="w"> </span><span class="mf">66.4</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_4"</span><span class="p">:</span><span class="w"> </span><span class="mf">53.6</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"common_failures"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"attribute"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pre_commit_hooks"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"failure_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"failure_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.80</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"attribute"</span><span class="p">:</span><span class="w"> </span><span class="s2">"lock_files"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"failure_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"failure_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.60</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"attribute"</span><span class="p">:</span><span class="w"> </span><span class="s2">"conventional_commits"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"failure_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"failure_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.60</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"outliers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"high_performers"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"service-auth"</span><span class="p">],</span><span class="w">
+    </span><span class="nl">"low_performers"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"service-worker"</span><span class="p">]</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="action-plan">Action Plan</h3>
+
+<p>Based on batch assessment results:</p>
+
+<p><strong>Week 1</strong>: Fix common failures across all repos</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Add pre-commit hooks to all services</span>
+<span class="k">for </span>service <span class="k">in </span>service-<span class="k">*</span>/<span class="p">;</span> <span class="k">do
+  </span><span class="nb">cd</span> <span class="nv">$service</span>
+  agentready bootstrap <span class="nb">.</span> <span class="nt">--dry-run</span>  <span class="c"># Preview changes</span>
+  agentready bootstrap <span class="nb">.</span>            <span class="c"># Generate infrastructure</span>
+  pre-commit <span class="nb">install
+  cd</span> ..
+<span class="k">done</span>
+</code></pre></div></div>
+
+<p><strong>Week 2</strong>: Focus on low-performers (service-data, service-worker)</p>
+
+<ul>
+  <li>Add lock files (poetry.lock or requirements.txt)</li>
+  <li>Improve README structure</li>
+  <li>Add type annotations to core modules</li>
+</ul>
+
+<p><strong>Week 3</strong>: Re-assess and track improvement</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready batch service-<span class="k">*</span>/ <span class="nt">--output-dir</span> ./batch-reports-week3
+<span class="c"># Compare with initial assessment</span>
+</code></pre></div></div>
+
+<p><strong>Expected Impact</strong>: +8-12 points average score improvement</p>
+
+<hr />
+
+<h2 id="report-interpretation-guide">Report Interpretation Guide</h2>
+
+<h3 id="understanding-your-score">Understanding Your Score</h3>
+
+<h4 id="certification-levels">Certification Levels</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Level</th>
+      <th>Range</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>🏆 Platinum</td>
+      <td>90-100</td>
+      <td>Exemplary agent-ready codebase</td>
+    </tr>
+    <tr>
+      <td>🥇 Gold</td>
+      <td>75-89</td>
+      <td>Highly optimized for AI agents</td>
+    </tr>
+    <tr>
+      <td>🥈 Silver</td>
+      <td>60-74</td>
+      <td>Well-suited for AI development</td>
+    </tr>
+    <tr>
+      <td>🥉 Bronze</td>
+      <td>40-59</td>
+      <td>Basic agent compatibility</td>
+    </tr>
+    <tr>
+      <td>📈 Needs Improvement</td>
+      <td>0-39</td>
+      <td>Significant friction for AI agents</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>What the ranges mean</strong>:</p>
+
+<ul>
+  <li><strong>90+</strong>: World-class. Few improvements possible.</li>
+  <li><strong>75-89</strong>: Excellent foundation. Some gaps in advanced areas.</li>
+  <li><strong>60-74</strong>: Good baseline. Missing some critical attributes.</li>
+  <li><strong>40-59</strong>: Functional but friction-heavy. Major improvements needed.</li>
+  <li><strong>&lt;40</strong>: Difficult for AI agents. Focus on essential attributes first.</li>
+</ul>
+
+<hr />
+
+<h3 id="reading-the-html-report">Reading the HTML Report</h3>
+
+<h4 id="1-score-card-top-section">1. Score Card (Top Section)</h4>
+
+<p><strong>Overall Score</strong>: Weighted average across all attributes
+<strong>Certification Level</strong>: Your badge (Platinum/Gold/Silver/Bronze)
+<strong>Visual Gauge</strong>: Color-coded progress bar</p>
+
+<p><strong>Tier Breakdown Table</strong>:</p>
+
+<ul>
+  <li>Shows score for each tier</li>
+  <li>Weighted contribution to overall score</li>
+  <li>Quickly identifies weak areas</li>
+</ul>
+
+<p><strong>Example interpretation</strong>:</p>
+
+<ul>
+  <li>Tier 1: 80/100 → Contributing 40/50 points (good)</li>
+  <li>Tier 2: 50/100 → Contributing 15/30 points (needs work)</li>
+  <li>Tier 3: 100/100 → Contributing 15/15 points (perfect)</li>
+  <li>Tier 4: 0/100 → Contributing 0/5 points (not critical)</li>
+</ul>
+
+<p><strong>Analysis</strong>: Focus on Tier 2 for highest impact (+15 points possible).</p>
+
+<hr />
+
+<h4 id="2-attribute-table-middle-section">2. Attribute Table (Middle Section)</h4>
+
+<p><strong>Columns</strong>:</p>
+
+<ul>
+  <li><strong>Status</strong>: ✅ Pass, ❌ Fail, ⊘ Skipped</li>
+  <li><strong>Attribute</strong>: Name and ID</li>
+  <li><strong>Tier</strong>: 1-4 (importance)</li>
+  <li><strong>Weight</strong>: Percentage contribution to score</li>
+  <li><strong>Score</strong>: 0-100 for this attribute</li>
+  <li><strong>Evidence</strong>: What was found</li>
+</ul>
+
+<p><strong>Sorting</strong>:</p>
+
+<ul>
+  <li>By score (ascending): See worst attributes first</li>
+  <li>By tier: Focus on high-tier failures</li>
+  <li>By weight: Maximize point gains</li>
+</ul>
+
+<p><strong>Filtering</strong>:</p>
+
+<ul>
+  <li>“Failed only”: Focus on remediation opportunities</li>
+  <li>“Tier 1 only”: Essential attributes</li>
+  <li>Search: Find specific attribute by name</li>
+</ul>
+
+<hr />
+
+<h4 id="3-detailed-findings-expandable-sections">3. Detailed Findings (Expandable Sections)</h4>
+
+<p>Click any attribute to expand:</p>
+
+<p><strong>For passing attributes</strong>:</p>
+
+<ul>
+  <li>Evidence of compliance</li>
+  <li>Examples from your codebase</li>
+  <li>Why this matters for AI agents</li>
+</ul>
+
+<p><strong>For failing attributes</strong>:</p>
+
+<ul>
+  <li>Specific evidence of what’s missing</li>
+  <li><strong>Remediation section</strong>:
+    <ul>
+      <li>Ordered steps to fix</li>
+      <li>Required tools</li>
+      <li>Copy-paste ready commands</li>
+      <li>Code/config examples</li>
+      <li>Reference citations</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>For skipped attributes</strong>:</p>
+
+<ul>
+  <li>Reason (not applicable, not implemented, or tool missing)</li>
+</ul>
+
+<hr />
+
+<h3 id="prioritizing-improvements">Prioritizing Improvements</h3>
+
+<h4 id="strategy-1-maximize-points-tier--weight">Strategy 1: Maximize Points (Tier × Weight)</h4>
+
+<p>Focus on high-tier, high-weight failures:</p>
+
+<ol>
+  <li><strong>Calculate potential gain</strong>: <code class="language-python highlighter-rouge"><span class="n">weight</span> <span class="err">×</span> <span class="p">(</span><span class="mi">100</span> <span class="o">-</span> <span class="n">current_score</span><span class="p">)</span></code></li>
+  <li><strong>Sort by potential gain</strong> (descending)</li>
+  <li><strong>Fix top 3-5 attributes</strong></li>
+</ol>
+
+<p><strong>Example</strong>:</p>
+
+<ul>
+  <li>❌ CLAUDE.md (Tier 1, 10%, score 0) → +10 points</li>
+  <li>❌ Pre-commit hooks (Tier 2, 3%, score 0) → +3 points</li>
+  <li>❌ Type annotations (Tier 1, 10%, score 50) → +5 points</li>
+</ul>
+
+<p><strong>Best ROI</strong>: Fix CLAUDE.md first (+10), then type annotations (+5).</p>
+
+<hr />
+
+<h4 id="strategy-2-quick-wins-1-hour">Strategy 2: Quick Wins (&lt;1 hour)</h4>
+
+<p>Some attributes are fast to fix:</p>
+
+<p><strong>&lt;15 minutes</strong>:</p>
+
+<ul>
+  <li>Create CLAUDE.md (outline version)</li>
+  <li>Add .gitignore from template</li>
+  <li>Create .env.example</li>
+</ul>
+
+<p><strong>&lt;30 minutes</strong>:</p>
+
+<ul>
+  <li>Add README sections</li>
+  <li>Configure pre-commit hooks</li>
+  <li>Add PR/issue templates</li>
+</ul>
+
+<p><strong>&lt;1 hour</strong>:</p>
+
+<ul>
+  <li>Write initial tests</li>
+  <li>Add type hints to 10 key functions</li>
+  <li>Create ADR template</li>
+</ul>
+
+<hr />
+
+<h4 id="strategy-3-foundational-first-tier-1">Strategy 3: Foundational First (Tier 1)</h4>
+
+<p>Ensure all Tier 1 attributes pass before moving to Tier 2:</p>
+
+<p><strong>Tier 1 checklist</strong>:</p>
+
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />CLAUDE.md exists and comprehensive</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />README has all essential sections</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Type annotations &gt;80% coverage</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Standard project layout</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Lock file committed</li>
+</ul>
+
+<p><strong>Why</strong>: Tier 1 = 50% of score. Missing one Tier 1 attribute (-10 points) hurts more than missing five Tier 4 attributes (-5 points total).</p>
+
+<hr />
+
+<h2 id="common-remediation-patterns">Common Remediation Patterns</h2>
+
+<h3 id="pattern-1-documentation-gaps">Pattern 1: Documentation Gaps</h3>
+
+<p><strong>Symptoms</strong>:</p>
+
+<ul>
+  <li>Missing CLAUDE.md</li>
+  <li>Incomplete README</li>
+  <li>No inline documentation</li>
+</ul>
+
+<p><strong>Solution Template</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Create CLAUDE.md</strong> (15 min):</p>
+
+    <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh"># Tech Stack</span>
+<span class="p">-</span> [Language] [Version]
+<span class="p">-</span> [Framework] [Version]
+
+<span class="gh"># Standard Commands</span>
+<span class="p">-</span> Setup: [command]
+<span class="p">-</span> Test: [command]
+<span class="p">-</span> Build: [command]
+
+<span class="gh"># Repository Structure</span>
+<span class="p">-</span> src/ - [description]
+<span class="p">-</span> tests/ - [description]
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Enhance README</strong> (30 min):
+    <ul>
+      <li>Add Quick Start section</li>
+      <li>Include code examples</li>
+      <li>Document installation steps</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Add docstrings</strong> (ongoing):</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">function_name</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReturnType</span><span class="p">:</span>
+    <span class="s">"""
+    Brief description.
+
+    Args:
+        param: Description
+
+    Returns:
+        Description
+    """</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<hr />
+
+<h3 id="pattern-2-missing-automation">Pattern 2: Missing Automation</h3>
+
+<p><strong>Symptoms</strong>:</p>
+
+<ul>
+  <li>No pre-commit hooks</li>
+  <li>No CI/CD</li>
+  <li>Manual testing only</li>
+</ul>
+
+<p><strong>Solution Template</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Pre-commit hooks</strong> (15 min):</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>pre-commit
+pre-commit sample-config <span class="o">&gt;</span> .pre-commit-config.yaml
+<span class="c"># Edit to add language-specific hooks</span>
+pre-commit <span class="nb">install</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>GitHub Actions</strong> (30 min):</p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># .github/workflows/ci.yml</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">CI</span>
+<span class="na">on</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">push</span><span class="pi">,</span> <span class="nv">pull_request</span><span class="pi">]</span>
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/setup-python@v4</span>
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">pip install -e ".[dev]"</span>
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">pytest --cov</span>
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">black --check .</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Automated dependency updates</strong> (10 min):</p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># .github/dependabot.yml</span>
+<span class="na">version</span><span class="pi">:</span> <span class="m">2</span>
+<span class="na">updates</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">package-ecosystem</span><span class="pi">:</span> <span class="s2">"</span><span class="s">pip"</span>
+    <span class="na">directory</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/"</span>
+    <span class="na">schedule</span><span class="pi">:</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s2">"</span><span class="s">weekly"</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<hr />
+
+<h3 id="pattern-3-code-quality-deficits">Pattern 3: Code Quality Deficits</h3>
+
+<p><strong>Symptoms</strong>:</p>
+
+<ul>
+  <li>No type annotations</li>
+  <li>High cyclomatic complexity</li>
+  <li>Code smells</li>
+</ul>
+
+<p><strong>Solution Template</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Add type hints incrementally</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install mypy</span>
+pip <span class="nb">install </span>mypy
+
+<span class="c"># Check current state</span>
+mypy src/
+
+<span class="c"># Add hints to 5 functions per day</span>
+<span class="c"># Focus on public APIs first</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Reduce complexity</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Measure complexity</span>
+pip <span class="nb">install </span>radon
+radon cc src/ <span class="nt">-a</span> <span class="nt">-nb</span>
+
+<span class="c"># Refactor functions with CC &gt;10</span>
+<span class="c"># Extract helper functions</span>
+<span class="c"># Replace nested ifs with early returns</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Eliminate code smells</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install SonarQube or use pylint</span>
+pip <span class="nb">install </span>pylint
+pylint src/
+
+<span class="c"># Fix critical/high issues first</span>
+<span class="c"># DRY violations: extract shared code</span>
+<span class="c"># Long functions: split into smaller functions</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="integration-examples">Integration Examples</h2>
+
+<h3 id="example-1-github-actions-ci">Example 1: GitHub Actions CI</h3>
+
+<p>Fail builds if AgentReady score drops below threshold:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># .github/workflows/agentready.yml</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">AgentReady Assessment</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">assess</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/setup-python@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">python-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.11'</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install AgentReady</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">pip install agentready</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run Assessment</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">agentready assess . --output-dir ./reports</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check Score Threshold</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">score=$(jq '.overall_score' .agentready/assessment-latest.json)</span>
+          <span class="s">echo "AgentReady Score: $score/100"</span>
+
+          <span class="s">if (( $(echo "$score &lt; 70" | bc -l) )); then</span>
+            <span class="s">echo "❌ Score below threshold (70)"</span>
+            <span class="s">exit 1</span>
+          <span class="s">fi</span>
+
+          <span class="s">echo "✅ Score meets threshold"</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload Report</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/upload-artifact@v3</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">agentready-report</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">.agentready/report-latest.html</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="example-2-pre-commit-hook">Example 2: Pre-commit Hook</h3>
+
+<p>Run AgentReady assessment before commits:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># .pre-commit-config.yaml</span>
+<span class="na">repos</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s">local</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">agentready</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">AgentReady Assessment</span>
+        <span class="na">entry</span><span class="pi">:</span> <span class="s">agentready assess .</span>
+        <span class="na">language</span><span class="pi">:</span> <span class="s">system</span>
+        <span class="na">pass_filenames</span><span class="pi">:</span> <span class="no">false</span>
+        <span class="na">always_run</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p><strong>Note</strong>: This runs on every commit (slow). Better to run in CI/CD and use pre-commit for formatting/linting only.</p>
+
+<hr />
+
+<h3 id="example-3-badge-in-readme">Example 3: Badge in README</h3>
+
+<p>Display AgentReady score badge:</p>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh"># MyProject</span>
+
+<span class="p">![</span><span class="nv">AgentReady Score</span><span class="p">](</span><span class="sx">https://img.shields.io/badge/AgentReady-75.4%2F100-gold</span><span class="p">)</span>
+
+<span class="c">&lt;!-- Update badge after each assessment --&gt;</span>
+</code></pre></div></div>
+
+<p><strong>Automation</strong> (via GitHub Actions):</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Update Badge</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">score=$(jq '.overall_score' .agentready/assessment-latest.json)</span>
+    <span class="s">cert=$(jq -r '.certification_level' .agentready/assessment-latest.json)</span>
+
+    <span class="s"># Update README badge via script</span>
+    <span class="s">./scripts/update-badge.sh $score $cert</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="example-4-historical-tracking">Example 4: Historical Tracking</h3>
+
+<p>Track score improvements over time:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># scripts/track-improvements.py
+</span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="c1"># Load all assessments
+</span><span class="n">assessments</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="p">.</span><span class="n">glob</span><span class="p">(</span><span class="s">'.agentready/assessment-*.json'</span><span class="p">)):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">'metadata'</span><span class="p">][</span><span class="s">'timestamp'</span><span class="p">])</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">'overall_score'</span><span class="p">]</span>
+        <span class="n">assessments</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">score</span><span class="p">))</span>
+
+<span class="c1"># Plot trend
+</span><span class="n">timestamps</span><span class="p">,</span> <span class="n">scores</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">assessments</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">'o'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Date'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'AgentReady Score'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">'AgentReady Score Progression'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">savefig</span><span class="p">(</span><span class="s">'agentready-trend.png'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Trend chart saved: agentready-trend.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ul>
+  <li><strong><a href="user-guide.html">User Guide</a></strong> — Learn how to run assessments</li>
+  <li><strong><a href="developer-guide.html">Developer Guide</a></strong> — Implement custom assessors</li>
+  <li><strong><a href="attributes.html">Attributes</a></strong> — Complete attribute reference</li>
+  <li><strong><a href="api-reference.html">API Reference</a></strong> — Integrate AgentReady programmatically</li>
+</ul>
+
+<hr />
+
+<p><strong>View full reports</strong>: Check out <a href="https://github.com/ambient-code/agentready/tree/main/examples/self-assessment"><code class="language-python highlighter-rouge"><span class="n">examples</span><span class="o">/</span><span class="bp">self</span><span class="o">-</span><span class="n">assessment</span><span class="o">/</span></code></a> in the repository for complete HTML, Markdown, and JSON reports.</p>
+
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

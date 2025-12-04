@@ -3,8 +3,6 @@ layout: page
 title: Developer Guide
 ---
 
-# Developer Guide
-
 Comprehensive guide for contributors and developers extending AgentReady.
 
 ## Table of Contents

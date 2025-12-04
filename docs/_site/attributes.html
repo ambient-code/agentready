@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Attributes Reference | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Attributes Reference | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Attributes Reference" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/attributes.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/attributes.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Attributes Reference" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Attributes Reference","url":"http://localhost:4000/agentready/attributes.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1>Attributes Reference</h1>
+
+<p>Complete reference for all 25 agent-ready attributes assessed by AgentReady.</p>
+
+<div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
+  <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
+  <p><strong>AgentReady Bootstrap automatically implements many of these attributes.</strong> Look for the <strong>✅ Bootstrap Addresses This</strong> marker to see which infrastructure Bootstrap generates for you.</p>
+  <p>Instead of manually implementing each attribute, run <code>agentready bootstrap .</code> to generate complete GitHub setup in seconds.</p>
+  <p><a href="user-guide.html#bootstrap-your-repository">Learn about Bootstrap →</a></p>
+</div>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#tier-system">Tier System</a></li>
+  <li><a href="#tier-1-essential-attributes">Tier 1: Essential Attributes</a></li>
+  <li><a href="#tier-2-critical-attributes">Tier 2: Critical Attributes</a></li>
+  <li><a href="#tier-3-important-attributes">Tier 3: Important Attributes</a></li>
+  <li><a href="#tier-4-advanced-attributes">Tier 4: Advanced Attributes</a></li>
+  <li><a href="#implementation-status">Implementation Status</a></li>
+</ul>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>AgentReady evaluates repositories against <strong>25 evidence-based attributes</strong> that improve AI agent effectiveness. Each attribute is:</p>
+
+<ul>
+  <li><strong>Research-backed</strong>: Derived from 50+ authoritative sources (Anthropic, Microsoft, Google, academic research)</li>
+  <li><strong>Measurable</strong>: Specific criteria with clear pass/fail thresholds</li>
+  <li><strong>Actionable</strong>: Concrete tools, commands, and examples for remediation</li>
+  <li><strong>Weighted</strong>: Importance reflected in tier-based scoring (50/30/15/5 distribution)</li>
+</ul>
+
+<p><strong>Every attribute includes</strong>:</p>
+
+<ul>
+  <li>Definition and importance for AI agents</li>
+  <li>Impact on agent behavior</li>
+  <li>Measurable criteria</li>
+  <li>Authoritative citations</li>
+  <li>Good vs. bad examples</li>
+  <li>Remediation guidance</li>
+</ul>
+
+<hr />
+
+<h2 id="tier-system">Tier System</h2>
+
+<p>Attributes are organized into four weighted tiers:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tier</th>
+      <th>Weight</th>
+      <th>Focus</th>
+      <th>Attribute Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Tier 1: Essential</strong></td>
+      <td>50%</td>
+      <td>Fundamentals enabling basic AI functionality</td>
+      <td>5 attributes</td>
+    </tr>
+    <tr>
+      <td><strong>Tier 2: Critical</strong></td>
+      <td>30%</td>
+      <td>Major quality improvements and safety nets</td>
+      <td>6 attributes</td>
+    </tr>
+    <tr>
+      <td><strong>Tier 3: Important</strong></td>
+      <td>15%</td>
+      <td>Significant improvements in specific areas</td>
+      <td>9 attributes</td>
+    </tr>
+    <tr>
+      <td><strong>Tier 4: Advanced</strong></td>
+      <td>5%</td>
+      <td>Refinement and optimization</td>
+      <td>5 attributes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Impact</strong>: Missing a Tier 1 attribute (10% weight) has <strong>10x the impact</strong> of missing a Tier 4 attribute (1% weight).</p>
+
+<hr />
+
+<h2 id="tier-1-essential-attributes">Tier 1: Essential Attributes</h2>
+
+<p><em>Fundamentals that enable basic AI agent functionality — 50% of total score</em></p>
+
+<h3 id="1-claudemd-configuration-file">1. CLAUDE.md Configuration File</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">claude_md_file</span></code>
+<strong>Weight</strong>: 10%
+<strong>Category</strong>: Context Window Optimization
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition">Definition</h4>
+
+<p>Markdown file at repository root (<code class="language-python highlighter-rouge"><span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span></code> or <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">claude</span><span class="o">/</span><span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span></code>) automatically ingested by Claude Code at conversation start.</p>
+
+<h4 id="why-it-matters">Why It Matters</h4>
+
+<p>CLAUDE.md files provide <strong>immediate project context</strong> without repeated explanations. Research shows they reduce prompt engineering time by ~40% and frame entire sessions with project-specific guidance.</p>
+
+<h4 id="impact-on-ai-agents">Impact on AI Agents</h4>
+
+<ul>
+  <li>Immediate understanding of tech stack, repository structure, standard commands</li>
+  <li>Consistent adherence to project conventions</li>
+  <li>Reduced need for repeated context-setting</li>
+  <li>Proper framing for all AI suggestions</li>
+</ul>
+
+<h4 id="measurable-criteria">Measurable Criteria</h4>
+
+<p><strong>Passes if</strong>:</p>
+
+<ul>
+  <li>File exists at <code class="language-python highlighter-rouge"><span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span></code> or <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">claude</span><span class="o">/</span><span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span></code></li>
+  <li>File size: &lt;1000 lines (concise, focused)</li>
+  <li>Contains essential sections:
+    <ul>
+      <li>Tech stack with versions</li>
+      <li>Repository map/structure</li>
+      <li>Standard commands (build, test, lint, format)</li>
+      <li>Testing strategy</li>
+      <li>Style/lint rules</li>
+      <li>Branch/PR workflow</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>Bonus points</strong> (not required for pass):</p>
+
+<ul>
+  <li>“Do not touch” zones documented</li>
+  <li>Security/compliance notes included</li>
+  <li>Common gotchas and edge cases</li>
+</ul>
+
+<h4 id="example-good-claudemd">Example: Good CLAUDE.md</h4>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh"># Tech Stack</span>
+<span class="p">-</span> Python 3.12+, pytest, black + isort
+<span class="p">-</span> FastAPI, PostgreSQL, Redis
+
+<span class="gh"># Standard Commands</span>
+<span class="p">-</span> Setup: <span class="sb">`make setup`</span> (installs deps, runs migrations)
+<span class="p">-</span> Test: <span class="sb">`pytest tests/`</span> (requires Redis running)
+<span class="p">-</span> Format: <span class="sb">`black . &amp;&amp; isort .`</span>
+<span class="p">-</span> Lint: <span class="sb">`ruff check .`</span>
+<span class="p">-</span> Build: <span class="sb">`docker build -t myapp .`</span>
+
+<span class="gh"># Repository Structure</span>
+<span class="p">-</span> src/myapp/ - Main application code
+<span class="p">-</span> tests/ - Test files mirror src/
+<span class="p">-</span> docs/ - Sphinx documentation
+<span class="p">-</span> migrations/ - Database migrations
+
+<span class="gh"># Boundaries</span>
+<span class="p">-</span> Never modify files in legacy/ (deprecated, scheduled for removal)
+<span class="p">-</span> Require approval before changing config.yaml
+<span class="p">-</span> All database changes must have reversible migrations
+
+<span class="gh"># Testing Strategy</span>
+<span class="p">-</span> Unit tests: Fast, isolated, no external dependencies
+<span class="p">-</span> Integration tests: Require PostgreSQL and Redis
+<span class="p">-</span> Run integration tests: <span class="sb">`make test-integration`</span>
+</code></pre></div></div>
+
+<h4 id="remediation">Remediation</h4>
+
+<p><strong>If missing</strong>:</p>
+
+<ol>
+  <li><strong>Create CLAUDE.md</strong> in repository root</li>
+  <li><strong>Add tech stack</strong> section with language/framework versions</li>
+  <li><strong>Document standard commands</strong> (essential: setup, test, build)</li>
+  <li><strong>Map repository structure</strong> (key directories and their purpose)</li>
+  <li><strong>Define boundaries</strong> (files/areas not to modify)</li>
+</ol>
+
+<p><strong>Tools</strong>: Any text editor</p>
+
+<p><strong>Time</strong>: 15-30 minutes for initial creation</p>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Anthropic Engineering Blog: “Claude Code Best Practices” (2025)</li>
+  <li>AgentReady Research: “Context Window Optimization”</li>
+</ul>
+
+<hr />
+
+<h3 id="2-readme-structure">2. README Structure</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">readme_structure</span></code>
+<strong>Weight</strong>: 10%
+<strong>Category</strong>: Documentation Standards
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-1">Definition</h4>
+
+<p>Standardized README.md with essential sections in predictable order, serving as primary entry point for understanding the project.</p>
+
+<h4 id="why-it-matters-1">Why It Matters</h4>
+
+<p>Repositories with well-structured READMEs receive more engagement (GitHub data). README serves as AI agent’s entry point for understanding project purpose, setup, and usage.</p>
+
+<h4 id="impact-on-ai-agents-1">Impact on AI Agents</h4>
+
+<ul>
+  <li>Faster project comprehension</li>
+  <li>Accurate answers to onboarding questions</li>
+  <li>Better architectural understanding without exploring entire codebase</li>
+  <li>Consistent expectations across projects</li>
+</ul>
+
+<h4 id="measurable-criteria-1">Measurable Criteria</h4>
+
+<p><strong>Passes if README.md contains (in order)</strong>:</p>
+
+<ol>
+  <li>Project title and description</li>
+  <li>Installation/setup instructions</li>
+  <li>Quick start/usage examples</li>
+  <li>Core features</li>
+  <li>Dependencies and requirements</li>
+  <li>Testing instructions</li>
+  <li>Contributing guidelines</li>
+  <li>License</li>
+</ol>
+
+<p><strong>Bonus sections</strong>:</p>
+
+<ul>
+  <li>Table of contents (for longer READMEs)</li>
+  <li>Badges (build status, coverage, version)</li>
+  <li>Screenshots or demos</li>
+  <li>FAQ section</li>
+  <li>Changelog link</li>
+</ul>
+
+<h4 id="example-well-structured-readme">Example: Well-Structured README</h4>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh"># MyProject</span>
+
+Brief description of what this project does and why it exists.
+
+<span class="gu">## Installation</span>
+
+<span class="se">\`</span><span class="sb">``bash
+pip install myproject
+\```</span>
+
+<span class="gu">## Quick Start</span>
+
+<span class="se">\`</span><span class="sb">``python
+from myproject import Client
+
+client = Client(api_key="your-key")
+result = client.do_something()
+print(result)
+\```</span>
+
+<span class="gu">## Features</span>
+<span class="p">
+-</span> Feature 1: Does X efficiently
+<span class="p">-</span> Feature 2: Supports Y protocol
+<span class="p">-</span> Feature 3: Integrates with Z
+
+<span class="gu">## Requirements</span>
+<span class="p">
+-</span> Python 3.12+
+<span class="p">-</span> PostgreSQL 14+
+<span class="p">-</span> Redis 7+ (optional, for caching)
+
+<span class="gu">## Testing</span>
+
+<span class="se">\`</span><span class="sb">``bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov
+\```</span>
+
+<span class="gu">## Contributing</span>
+
+See <span class="p">[</span><span class="nv">CONTRIBUTING.md</span><span class="p">](</span><span class="sx">https://github.com/ambient-code/agentready/blob/main/CONTRIBUTING.md</span><span class="p">)</span> for development setup and guidelines.
+
+<span class="gu">## License</span>
+
+MIT License - see <span class="p">[</span><span class="nv">LICENSE</span><span class="p">](</span><span class="sx">https://github.com/ambient-code/agentready/blob/main/LICENSE</span><span class="p">)</span> for details.
+</code></pre></div></div>
+
+<h4 id="remediation-1">Remediation</h4>
+
+<p><strong>If missing sections</strong>:</p>
+
+<ol>
+  <li><strong>Audit current README</strong>: Check which required sections are present</li>
+  <li><strong>Add missing sections</strong>: Use template above as guide</li>
+  <li><strong>Reorder if needed</strong>: Follow standard section order</li>
+  <li><strong>Add examples</strong>: Include code snippets for quick start</li>
+  <li><strong>Keep concise</strong>: Aim for &lt;500 lines, link to detailed docs</li>
+</ol>
+
+<p><strong>Tools</strong>: Any text editor, Markdown linters</p>
+
+<p><strong>Commands</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Validate Markdown syntax</span>
+markdownlint README.md
+
+<span class="c"># Check for common issues</span>
+npx markdown-link-check README.md
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>GitHub Blog: “How to write a great README”</li>
+  <li>Make a README project documentation</li>
+</ul>
+
+<hr />
+
+<h3 id="3-type-annotations-static-typing">3. Type Annotations (Static Typing)</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">type_annotations</span></code>
+<strong>Weight</strong>: 10%
+<strong>Category</strong>: Code Quality
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-2">Definition</h4>
+
+<p>Explicit type declarations for variables, function parameters, and return values in statically-typed or optionally-typed languages.</p>
+
+<h4 id="why-it-matters-2">Why It Matters</h4>
+
+<p>Type hints <strong>significantly improve LLM code understanding</strong>. Research shows higher-quality codebases have type annotations, directing LLMs toward higher-quality latent space regions—similar to how LaTeX-formatted math gets better results.</p>
+
+<h4 id="impact-on-ai-agents-2">Impact on AI Agents</h4>
+
+<ul>
+  <li>Better input validation suggestions</li>
+  <li>Type error detection before execution</li>
+  <li>Structured output generation</li>
+  <li>Improved autocomplete accuracy</li>
+  <li>Enhanced refactoring safety</li>
+  <li>More confident code modifications</li>
+</ul>
+
+<h4 id="measurable-criteria-2">Measurable Criteria</h4>
+
+<p><strong>Python</strong>:</p>
+
+<ul>
+  <li>All public functions have parameter and return type hints</li>
+  <li>Generic types from <code class="language-python highlighter-rouge"><span class="n">typing</span></code> module used appropriately</li>
+  <li>Coverage: &gt;80% of functions typed</li>
+  <li>Tools: mypy, pyright</li>
+</ul>
+
+<p><strong>TypeScript</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">strict</span></code> mode enabled in tsconfig.json</li>
+  <li>No <code class="language-python highlighter-rouge"><span class="nb">any</span></code> types (use <code class="language-python highlighter-rouge"><span class="n">unknown</span></code> if needed)</li>
+  <li>Interfaces for complex objects</li>
+</ul>
+
+<p><strong>Go</strong>:</p>
+
+<ul>
+  <li>Inherently typed (always passes)</li>
+</ul>
+
+<p><strong>JavaScript</strong>:</p>
+
+<ul>
+  <li>JSDoc type annotations OR migrate to TypeScript</li>
+</ul>
+
+<h4 id="example-good-type-annotations-python">Example: Good Type Annotations (Python)</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="k">def</span> <span class="nf">find_users</span><span class="p">(</span>
+    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">active</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="s">"""
+    Find users matching criteria.
+
+    Args:
+        role: User role to filter by
+        active: Include only active users
+        limit: Maximum number of results
+
+    Returns:
+        List of user dictionaries
+    """</span>
+    <span class="c1"># Implementation
+</span>    <span class="k">pass</span>
+
+<span class="c1"># Complex types
+</span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="o">@</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">User</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">active</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">role</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
+    <span class="s">"""Create new user with validation."""</span>
+    <span class="k">return</span> <span class="n">User</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">generate_id</span><span class="p">(),</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="example-bad-no-type-hints">Example: Bad (No Type Hints)</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">find_users</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c1"># What types? AI must guess
+</span>    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+    <span class="c1"># Return type unclear
+</span>    <span class="k">pass</span>
+</code></pre></div></div>
+
+<h4 id="remediation-2">Remediation</h4>
+
+<p><strong>Python</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Install type checker</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>mypy
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Add type hints</strong> to public functions:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Use tool to auto-generate hints</span>
+pip <span class="nb">install </span>monkeytype
+monkeytype run pytest tests/
+monkeytype apply module_name
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Run type checker</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mypy src/
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Fix errors iteratively</strong></p>
+  </li>
+</ol>
+
+<p><strong>TypeScript</strong>:</p>
+
+<ol>
+  <li>
+    <p><strong>Enable strict mode</strong> in <code class="language-python highlighter-rouge"><span class="n">tsconfig</span><span class="p">.</span><span class="n">json</span></code>:</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"compilerOptions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"strict"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"noImplicitAny"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Fix type errors</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tsc <span class="nt">--noEmit</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p><strong>Tools</strong>: mypy, pyright, pytype (Python); tsc (TypeScript)</p>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Medium: “LLM Coding Concepts: Static Typing”</li>
+  <li>ArXiv: “Automated Type Annotation in Python Using LLMs”</li>
+  <li>Dropbox: “Our journey to type checking 4 million lines of Python”</li>
+</ul>
+
+<hr />
+
+<h3 id="4-standard-project-layout">4. Standard Project Layout</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">standard_layout</span></code>
+<strong>Weight</strong>: 10%
+<strong>Category</strong>: Repository Structure
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-3">Definition</h4>
+
+<p>Using community-recognized directory structures for each language/framework (e.g., Python’s <code class="language-python highlighter-rouge"><span class="n">src</span><span class="o">/</span></code> layout, Go’s <code class="language-python highlighter-rouge"><span class="n">cmd</span><span class="o">/</span></code> and <code class="language-python highlighter-rouge"><span class="n">internal</span><span class="o">/</span></code>, Maven structure for Java).</p>
+
+<h4 id="why-it-matters-3">Why It Matters</h4>
+
+<p>Standard layouts reduce cognitive overhead. AI models trained on open-source code recognize patterns and navigate predictably.</p>
+
+<h4 id="impact-on-ai-agents-3">Impact on AI Agents</h4>
+
+<ul>
+  <li>Faster file location</li>
+  <li>Accurate placement suggestions for new files</li>
+  <li>Automatic adherence to established conventions</li>
+  <li>Reduced confusion about file organization</li>
+</ul>
+
+<h4 id="measurable-criteria-3">Measurable Criteria</h4>
+
+<p><strong>Python (src/ layout)</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">project</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">src</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">package</span><span class="o">/</span>
+<span class="err">│</span>       <span class="err">├──</span> <span class="n">__init__</span><span class="p">.</span><span class="n">py</span>
+<span class="err">│</span>       <span class="err">└──</span> <span class="n">module</span><span class="p">.</span><span class="n">py</span>
+<span class="err">├──</span> <span class="n">tests</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">docs</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">README</span><span class="p">.</span><span class="n">md</span>
+<span class="err">├──</span> <span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span>
+<span class="err">└──</span> <span class="n">requirements</span><span class="p">.</span><span class="n">txt</span>
+</code></pre></div></div>
+
+<p><strong>Go</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">project</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">cmd</span><span class="o">/</span>           <span class="c1"># Main applications
+</span><span class="err">│</span>   <span class="err">└──</span> <span class="n">app</span><span class="o">/</span>
+<span class="err">│</span>       <span class="err">└──</span> <span class="n">main</span><span class="p">.</span><span class="n">go</span>
+<span class="err">├──</span> <span class="n">internal</span><span class="o">/</span>      <span class="c1"># Private code
+</span><span class="err">├──</span> <span class="n">pkg</span><span class="o">/</span>           <span class="c1"># Public libraries
+</span><span class="err">├──</span> <span class="n">go</span><span class="p">.</span><span class="n">mod</span>
+<span class="err">└──</span> <span class="n">go</span><span class="p">.</span><span class="nb">sum</span>
+</code></pre></div></div>
+
+<p><strong>JavaScript/TypeScript</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">project</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">src</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">test</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">dist</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">package</span><span class="p">.</span><span class="n">json</span>
+<span class="err">├──</span> <span class="n">package</span><span class="o">-</span><span class="n">lock</span><span class="p">.</span><span class="n">json</span>
+<span class="err">└──</span> <span class="n">tsconfig</span><span class="p">.</span><span class="n">json</span> <span class="p">(</span><span class="k">if</span> <span class="n">TypeScript</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Java (Maven)</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">project</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">src</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">main</span><span class="o">/</span><span class="n">java</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">test</span><span class="o">/</span><span class="n">java</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">pom</span><span class="p">.</span><span class="n">xml</span>
+<span class="err">└──</span> <span class="n">target</span><span class="o">/</span>
+</code></pre></div></div>
+
+<h4 id="remediation-3">Remediation</h4>
+
+<p><strong>If non-standard layout</strong>:</p>
+
+<ol>
+  <li><strong>Identify target layout</strong> for your language</li>
+  <li><strong>Create migration plan</strong> (avoid breaking changes)</li>
+  <li>
+    <p><strong>Move files incrementally</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Python: Migrate to src/ layout</span>
+<span class="nb">mkdir</span> <span class="nt">-p</span> src/mypackage
+git <span class="nb">mv </span>mypackage/<span class="k">*</span> src/mypackage/
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Update imports/references</strong></li>
+  <li><strong>Update build configuration</strong> (setup.py, pyproject.toml, etc.)</li>
+  <li><strong>Test thoroughly</strong></li>
+</ol>
+
+<p><strong>Tools</strong>: IDE refactoring tools, git mv</p>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Real Python: “Python Application Layouts”</li>
+  <li>GitHub: golang-standards/project-layout</li>
+  <li>Maven standard directory layout</li>
+</ul>
+
+<hr />
+
+<h3 id="5-dependency-lock-files">5. Dependency Lock Files</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">lock_files</span></code>
+<strong>Weight</strong>: 10%
+<strong>Category</strong>: Dependency Management
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-4">Definition</h4>
+
+<p>Pinning exact dependency versions including transitive dependencies (e.g., <code class="language-python highlighter-rouge"><span class="n">package</span><span class="o">-</span><span class="n">lock</span><span class="p">.</span><span class="n">json</span></code>, <code class="language-python highlighter-rouge"><span class="n">poetry</span><span class="p">.</span><span class="n">lock</span></code>, <code class="language-python highlighter-rouge"><span class="n">go</span><span class="p">.</span><span class="nb">sum</span></code>).</p>
+
+<h4 id="why-it-matters-4">Why It Matters</h4>
+
+<p>Lock files ensure <strong>reproducible builds</strong> across environments. Without them, “works on my machine” problems plague AI-generated code. Different dependency versions can break builds, fail tests, or introduce bugs.</p>
+
+<h4 id="impact-on-ai-agents-4">Impact on AI Agents</h4>
+
+<ul>
+  <li>Confident dependency-related suggestions</li>
+  <li>Accurate compatibility issue diagnosis</li>
+  <li>Reproducible environment recommendations</li>
+  <li>Version-specific API usage</li>
+</ul>
+
+<h4 id="measurable-criteria-4">Measurable Criteria</h4>
+
+<p><strong>Passes if lock file exists and committed</strong>:</p>
+
+<ul>
+  <li><strong>npm</strong>: <code class="language-python highlighter-rouge"><span class="n">package</span><span class="o">-</span><span class="n">lock</span><span class="p">.</span><span class="n">json</span></code> or <code class="language-python highlighter-rouge"><span class="n">yarn</span><span class="p">.</span><span class="n">lock</span></code></li>
+  <li><strong>Python</strong>: <code class="language-python highlighter-rouge"><span class="n">poetry</span><span class="p">.</span><span class="n">lock</span></code>, <code class="language-python highlighter-rouge"><span class="n">Pipfile</span><span class="p">.</span><span class="n">lock</span></code>, or <code class="language-python highlighter-rouge"><span class="n">requirements</span><span class="p">.</span><span class="n">txt</span></code> from <code class="language-python highlighter-rouge"><span class="n">pip</span> <span class="n">freeze</span></code> (or <code class="language-python highlighter-rouge"><span class="n">uv</span><span class="p">.</span><span class="n">lock</span></code>)</li>
+  <li><strong>Go</strong>: <code class="language-python highlighter-rouge"><span class="n">go</span><span class="p">.</span><span class="nb">sum</span></code> (automatically managed)</li>
+  <li><strong>Ruby</strong>: <code class="language-python highlighter-rouge"><span class="n">Gemfile</span><span class="p">.</span><span class="n">lock</span></code></li>
+  <li><strong>Rust</strong>: <code class="language-python highlighter-rouge"><span class="n">Cargo</span><span class="p">.</span><span class="n">lock</span></code></li>
+</ul>
+
+<p><strong>Additional requirements</strong>:</p>
+
+<ul>
+  <li>Lock file updated with every dependency change</li>
+  <li>CI/CD uses lock file for installation</li>
+  <li>Lock file not in <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">gitignore</span></code></li>
+</ul>
+
+<p><strong>Note</strong>: Library projects may intentionally exclude lock files. AgentReady recognizes this pattern and adjusts scoring.</p>
+
+<h4 id="remediation-4">Remediation</h4>
+
+<p><strong>Python (poetry)</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install poetry</span>
+pip <span class="nb">install </span>poetry
+
+<span class="c"># Create lock file</span>
+poetry lock
+
+<span class="c"># Install from lock file</span>
+poetry <span class="nb">install</span>
+</code></pre></div></div>
+
+<p><strong>Python (pip)</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create requirements with exact versions</span>
+pip freeze <span class="o">&gt;</span> requirements.txt
+
+<span class="c"># Install from requirements</span>
+pip <span class="nb">install</span> <span class="nt">-r</span> requirements.txt
+</code></pre></div></div>
+
+<p><strong>npm</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Generate lock file</span>
+npm <span class="nb">install</span>
+
+<span class="c"># Commit package-lock.json</span>
+git add package-lock.json
+</code></pre></div></div>
+
+<p><strong>Go</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Lock file auto-generated</span>
+go mod download
+go mod tidy
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>npm Blog: “Why Keep package-lock.json?”</li>
+  <li>Python Packaging User Guide</li>
+  <li>Go Modules documentation</li>
+</ul>
+
+<hr />
+
+<h2 id="tier-2-critical-attributes">Tier 2: Critical Attributes</h2>
+
+<p><em>Major quality improvements and safety nets — 30% of total score</em></p>
+
+<h3 id="6-test-coverage">6. Test Coverage</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">test_coverage</span></code>
+<strong>Weight</strong>: 5%
+<strong>Category</strong>: Testing &amp; CI/CD
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-5">Definition</h4>
+
+<p>Percentage of code executed by automated tests, measured by line coverage, branch coverage, or function coverage.</p>
+
+<h4 id="why-it-matters-5">Why It Matters</h4>
+
+<p>High test coverage enables <strong>confident AI modifications</strong>. Research shows AI tools can cut test coverage time by 85% while maintaining quality—but only when good tests exist as foundation.</p>
+
+<h4 id="measurable-criteria-5">Measurable Criteria</h4>
+
+<p><strong>Minimum thresholds</strong>:</p>
+
+<ul>
+  <li>70% line coverage (Bronze)</li>
+  <li>80% line coverage (Silver/Gold)</li>
+  <li>90% line coverage (Platinum)</li>
+</ul>
+
+<p><strong>Critical paths</strong>: 100% coverage for core business logic</p>
+
+<p><strong>Measured via</strong>:</p>
+
+<ul>
+  <li>pytest-cov (Python)</li>
+  <li>Jest/Istanbul (JavaScript/TypeScript)</li>
+  <li>go test -cover (Go)</li>
+  <li>JaCoCo (Java)</li>
+</ul>
+
+<h4 id="remediation-5">Remediation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Python</span>
+pip <span class="nb">install </span>pytest pytest-cov
+pytest <span class="nt">--cov</span><span class="o">=</span>src <span class="nt">--cov-report</span><span class="o">=</span>html
+
+<span class="c"># JavaScript</span>
+npm <span class="nb">install</span> <span class="nt">--save-dev</span> jest
+jest <span class="nt">--coverage</span>
+
+<span class="c"># Go</span>
+go <span class="nb">test</span> <span class="nt">-cover</span> ./...
+go <span class="nb">test</span> <span class="nt">-coverprofile</span><span class="o">=</span>coverage.out
+go tool cover <span class="nt">-html</span><span class="o">=</span>coverage.out
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Salesforce Engineering: “How Cursor AI Cut Legacy Code Coverage Time by 85%”</li>
+</ul>
+
+<hr />
+
+<h3 id="7-pre-commit-hooks--cicd-linting">7. Pre-commit Hooks &amp; CI/CD Linting</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">precommit_hooks</span></code>
+<strong>Weight</strong>: 5%
+<strong>Category</strong>: Testing &amp; CI/CD
+<strong>Status</strong>: ✅ Implemented</p>
+
+<p><strong>✅ Bootstrap Addresses This</strong>: <code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="n">bootstrap</span></code> automatically creates <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code> with language-specific hooks and corresponding GitHub Actions workflow.</p>
+
+<h4 id="definition-6">Definition</h4>
+
+<p>Automated code quality checks before commits (pre-commit hooks) and in CI/CD pipeline, ensuring consistent standards.</p>
+
+<h4 id="why-it-matters-6">Why It Matters</h4>
+
+<p>Pre-commit hooks provide immediate feedback. Running same checks in CI/CD ensures enforcement (hooks can be bypassed). Prevents low-quality code from entering repository.</p>
+
+<h4 id="measurable-criteria-6">Measurable Criteria</h4>
+
+<p><strong>Passes if</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code> exists</li>
+  <li>Hooks include formatters (black, prettier) and linters (flake8, eslint)</li>
+  <li>Same checks run in CI/CD (GitHub Actions, GitLab CI, etc.)</li>
+  <li>CI fails on linting errors</li>
+</ul>
+
+<h4 id="remediation-6">Remediation</h4>
+
+<p><strong>Automated</strong> (recommended):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready bootstrap <span class="nb">.</span>  <span class="c"># Generates .pre-commit-config.yaml + GitHub Actions</span>
+pre-commit <span class="nb">install</span>      <span class="c"># Install git hooks locally</span>
+</code></pre></div></div>
+
+<p><strong>Manual</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install pre-commit</span>
+pip <span class="nb">install </span>pre-commit
+
+<span class="c"># Create .pre-commit-config.yaml</span>
+<span class="nb">cat</span> <span class="o">&gt;</span> .pre-commit-config.yaml <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.12.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+</span><span class="no">EOF
+
+</span><span class="c"># Install hooks</span>
+pre-commit <span class="nb">install</span>
+
+<span class="c"># Run manually</span>
+pre-commit run <span class="nt">--all-files</span>
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Memfault: “Automatically format and lint code with pre-commit”</li>
+  <li>GitHub: pre-commit/pre-commit</li>
+</ul>
+
+<hr />
+
+<h3 id="8-conventional-commit-messages">8. Conventional Commit Messages</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">conventional_commits</span></code>
+<strong>Weight</strong>: 5%
+<strong>Category</strong>: Git &amp; Version Control
+<strong>Status</strong>: 🔶 Partially Implemented</p>
+
+<h4 id="definition-7">Definition</h4>
+
+<p>Structured commit messages following format: <code class="language-python highlighter-rouge"><span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&lt;</span><span class="n">scope</span><span class="o">&gt;</span><span class="p">):</span> <span class="o">&lt;</span><span class="n">description</span><span class="o">&gt;</span></code>.</p>
+
+<h4 id="why-it-matters-7">Why It Matters</h4>
+
+<p>Conventional commits enable <strong>automated semantic versioning</strong>, changelog generation, and commit intent understanding. AI can parse history to understand feature evolution.</p>
+
+<h4 id="measurable-criteria-7">Measurable Criteria</h4>
+
+<p><strong>Format</strong>: <code class="language-python highlighter-rouge"><span class="nb">type</span><span class="p">(</span><span class="n">scope</span><span class="p">):</span> <span class="n">description</span></code></p>
+
+<p><strong>Types</strong>: feat, fix, docs, style, refactor, perf, test, chore, build, ci</p>
+
+<p><strong>Enforcement</strong>: commitlint in pre-commit hooks or CI</p>
+
+<p><strong>Examples</strong>:</p>
+
+<ul>
+  <li>✅ <code class="language-python highlighter-rouge"><span class="n">feat</span><span class="p">(</span><span class="n">auth</span><span class="p">):</span> <span class="n">add</span> <span class="n">OAuth2</span> <span class="n">login</span> <span class="n">support</span></code></li>
+  <li>✅ <code class="language-python highlighter-rouge"><span class="n">fix</span><span class="p">(</span><span class="n">api</span><span class="p">):</span> <span class="n">handle</span> <span class="n">null</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">user</span> <span class="n">response</span></code></li>
+  <li>✅ <code class="language-python highlighter-rouge"><span class="n">docs</span><span class="p">(</span><span class="n">readme</span><span class="p">):</span> <span class="n">update</span> <span class="n">installation</span> <span class="n">instructions</span></code></li>
+  <li>❌ <code class="language-python highlighter-rouge"><span class="n">update</span> <span class="n">stuff</span></code></li>
+  <li>❌ <code class="language-python highlighter-rouge"><span class="n">fixed</span> <span class="n">bug</span></code></li>
+</ul>
+
+<h4 id="remediation-7">Remediation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install commitlint</span>
+npm <span class="nb">install</span> <span class="nt">-g</span> @commitlint/cli @commitlint/config-conventional
+
+<span class="c"># Create commitlint.config.js</span>
+<span class="nb">echo</span> <span class="s2">"module.exports = {extends: ['@commitlint/config-conventional']}"</span> <span class="o">&gt;</span> commitlint.config.js
+
+<span class="c"># Add to pre-commit hooks</span>
+<span class="nb">cat</span> <span class="o">&gt;&gt;</span> .pre-commit-config.yaml <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.5.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+</span><span class="no">EOF
+</span></code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Conventional Commits specification v1.0.0</li>
+  <li>Medium: “GIT — Semantic versioning and conventional commits”</li>
+</ul>
+
+<hr />
+
+<h3 id="9-gitignore-completeness">9. .gitignore Completeness</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">gitignore_completeness</span></code>
+<strong>Weight</strong>: 5%
+<strong>Category</strong>: Git &amp; Version Control
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-8">Definition</h4>
+
+<p>Comprehensive <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">gitignore</span></code> preventing build artifacts, dependencies, IDE files, OS files, secrets, and logs from version control.</p>
+
+<h4 id="why-it-matters-8">Why It Matters</h4>
+
+<p>Incomplete <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">gitignore</span></code> pollutes repository with irrelevant files, consuming context window space and creating security risks (accidentally committing <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">env</span></code>, credentials).</p>
+
+<h4 id="measurable-criteria-8">Measurable Criteria</h4>
+
+<p><strong>Must exclude</strong>:</p>
+
+<ul>
+  <li>Build artifacts (<code class="language-python highlighter-rouge"><span class="n">dist</span><span class="o">/</span></code>, <code class="language-python highlighter-rouge"><span class="n">build</span><span class="o">/</span></code>, <code class="language-python highlighter-rouge"><span class="o">*</span><span class="p">.</span><span class="n">pyc</span></code>, <code class="language-python highlighter-rouge"><span class="o">*</span><span class="p">.</span><span class="n">class</span></code>)</li>
+  <li>Dependencies (<code class="language-python highlighter-rouge"><span class="n">node_modules</span><span class="o">/</span></code>, <code class="language-python highlighter-rouge"><span class="n">venv</span><span class="o">/</span></code>, <code class="language-python highlighter-rouge"><span class="n">vendor</span><span class="o">/</span></code>)</li>
+  <li>IDE files (<code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">vscode</span><span class="o">/</span></code>, <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">idea</span><span class="o">/</span></code>, <code class="language-python highlighter-rouge"><span class="o">*</span><span class="p">.</span><span class="n">swp</span></code>)</li>
+  <li>OS files (<code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">DS_Store</span></code>, <code class="language-python highlighter-rouge"><span class="n">Thumbs</span><span class="p">.</span><span class="n">db</span></code>)</li>
+  <li>Environment variables (<code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">env</span></code>, <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">local</span></code>)</li>
+  <li>Credentials (<code class="language-python highlighter-rouge"><span class="o">*</span><span class="p">.</span><span class="n">pem</span></code>, <code class="language-python highlighter-rouge"><span class="o">*</span><span class="p">.</span><span class="n">key</span></code>, <code class="language-python highlighter-rouge"><span class="n">credentials</span><span class="p">.</span><span class="n">json</span></code>)</li>
+  <li>Logs (<code class="language-python highlighter-rouge"><span class="o">*</span><span class="p">.</span><span class="n">log</span></code>, <code class="language-python highlighter-rouge"><span class="n">logs</span><span class="o">/</span></code>)</li>
+</ul>
+
+<p><strong>Best practice</strong>: Use templates from <a href="https://github.com/github/gitignore">github/gitignore</a></p>
+
+<h4 id="remediation-8">Remediation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Download language-specific template</span>
+curl https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore <span class="o">&gt;</span> .gitignore
+
+<span class="c"># Or generate with gitignore.io</span>
+curl <span class="nt">-sL</span> https://www.toptal.com/developers/gitignore/api/python,node,visualstudiocode <span class="o">&gt;</span> .gitignore
+
+<span class="c"># Add custom patterns</span>
+<span class="nb">echo</span> <span class="s2">".env"</span> <span class="o">&gt;&gt;</span> .gitignore
+<span class="nb">echo</span> <span class="s2">"*.log"</span> <span class="o">&gt;&gt;</span> .gitignore
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>GitHub: github/gitignore</li>
+  <li>Medium: “Mastering .gitignore”</li>
+</ul>
+
+<hr />
+
+<h3 id="10-one-command-buildsetup">10. One-Command Build/Setup</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">one_command_setup</span></code>
+<strong>Weight</strong>: 5%
+<strong>Category</strong>: Build &amp; Development
+<strong>Status</strong>: 🔶 Partially Implemented</p>
+
+<h4 id="definition-9">Definition</h4>
+
+<p>Single command to set up development environment from fresh clone (<code class="language-python highlighter-rouge"><span class="n">make</span> <span class="n">setup</span></code>, <code class="language-python highlighter-rouge"><span class="n">npm</span> <span class="n">install</span></code>, <code class="language-python highlighter-rouge"><span class="p">.</span><span class="o">/</span><span class="n">bootstrap</span><span class="p">.</span><span class="n">sh</span></code>).</p>
+
+<h4 id="why-it-matters-9">Why It Matters</h4>
+
+<p>One-command setup enables AI to quickly reproduce environments and test changes. Reduces “works on my machine” problems.</p>
+
+<h4 id="measurable-criteria-9">Measurable Criteria</h4>
+
+<p><strong>Passes if</strong>:</p>
+
+<ul>
+  <li>Single command documented in README</li>
+  <li>Command handles:
+    <ul>
+      <li>Dependency installation</li>
+      <li>Virtual environment creation</li>
+      <li>Database setup/migrations</li>
+      <li>Configuration file creation</li>
+      <li>Pre-commit hooks installation</li>
+    </ul>
+  </li>
+  <li>Success in &lt;5 minutes on fresh clone</li>
+  <li>Idempotent (safe to run multiple times)</li>
+</ul>
+
+<h4 id="example-makefile">Example: Makefile</h4>
+
+<div class="language-makefile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">setup</span>
+<span class="nl">setup</span><span class="o">:</span>
+ <span class="err">python</span> <span class="err">-m</span> <span class="err">venv</span> <span class="err">venv</span>
+ <span class="err">.</span> <span class="err">venv/bin/activate</span> <span class="err">&amp;&amp;</span> <span class="err">pip</span> <span class="err">install</span> <span class="err">-r</span> <span class="err">requirements.txt</span>
+ <span class="err">pre-commit</span> <span class="err">install</span>
+ <span class="err">cp</span> <span class="err">.env.example</span> <span class="err">.env</span>
+ <span class="err">python</span> <span class="err">manage.py</span> <span class="err">migrate</span>
+ <span class="err">@echo</span> <span class="s2">"✓ Setup complete! Run 'make test' to verify."</span>
+</code></pre></div></div>
+
+<h4 id="remediation-9">Remediation</h4>
+
+<ol>
+  <li><strong>Create setup script</strong> (Makefile, package.json script, or shell script)</li>
+  <li><strong>Document in README</strong> quick start section</li>
+  <li><strong>Test on fresh clone</strong></li>
+  <li><strong>Automate common setup steps</strong></li>
+</ol>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>freeCodeCamp: “Using Make as a Build Tool”</li>
+</ul>
+
+<hr />
+
+<h3 id="11-development-environment-documentation">11. Development Environment Documentation</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">dev_environment_docs</span></code>
+<strong>Weight</strong>: 5%
+<strong>Category</strong>: Build &amp; Development
+<strong>Status</strong>: 🔶 Partially Implemented</p>
+
+<h4 id="definition-10">Definition</h4>
+
+<p>Clear documentation of prerequisites, environment variables, and configuration requirements.</p>
+
+<h4 id="measurable-criteria-10">Measurable Criteria</h4>
+
+<p><strong>Must document</strong>:</p>
+
+<ul>
+  <li>Language/runtime version (Python 3.12+, Node.js 18+)</li>
+  <li>System dependencies (PostgreSQL, Redis, etc.)</li>
+  <li>Environment variables (<code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">example</span></code> with all variables)</li>
+  <li>Optional: IDE setup, debugging config</li>
+</ul>
+
+<h4 id="example-envexample">Example: .env.example</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Database</span>
+<span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://user:pass@localhost:5432/myapp
+
+<span class="c"># Redis (optional, for caching)</span>
+<span class="nv">REDIS_URL</span><span class="o">=</span>redis://localhost:6379
+
+<span class="c"># API Keys (get from https://example.com/api)</span>
+<span class="nv">API_KEY</span><span class="o">=</span>your-key-here
+<span class="nv">API_SECRET</span><span class="o">=</span>your-secret-here
+
+<span class="c"># Feature Flags</span>
+<span class="nv">ENABLE_FEATURE_X</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Medium: “Creating Reproducible Development Environments”</li>
+</ul>
+
+<hr />
+
+<h2 id="tier-3-important-attributes">Tier 3: Important Attributes</h2>
+
+<p><em>Significant improvements in specific areas — 15% of total score</em></p>
+
+<h3 id="12-cyclomatic-complexity-limits">12. Cyclomatic Complexity Limits</h3>
+
+<p><strong>ID</strong>: <code class="language-python highlighter-rouge"><span class="n">cyclomatic_complexity</span></code>
+<strong>Weight</strong>: 3%
+<strong>Category</strong>: Code Quality
+<strong>Status</strong>: ✅ Implemented</p>
+
+<h4 id="definition-11">Definition</h4>
+
+<p>Measurement of linearly independent paths through code (decision point density). Target: &lt;10 per function.</p>
+
+<h4 id="why-it-matters-10">Why It Matters</h4>
+
+<p>High complexity confuses both humans and AI. Functions with complexity &gt;25 are error-prone and hard to test.</p>
+
+<h4 id="measurable-criteria-11">Measurable Criteria</h4>
+
+<ul>
+  <li>Target: &lt;10 per function</li>
+  <li>Warning: 15</li>
+  <li>Error: 25</li>
+</ul>
+
+<p><strong>Tools</strong>:</p>
+
+<ul>
+  <li>radon (Python)</li>
+  <li>complexity-report (JavaScript)</li>
+  <li>gocyclo (Go)</li>
+  <li>clang-tidy (C++)</li>
+</ul>
+
+<h4 id="remediation-10">Remediation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Python</span>
+pip <span class="nb">install </span>radon
+radon cc src/ <span class="nt">-a</span> <span class="nt">-nb</span>
+
+<span class="c"># JavaScript</span>
+npm <span class="nb">install</span> <span class="nt">-g</span> complexity-report
+cr src/<span class="k">**</span>/<span class="k">*</span>.js
+
+<span class="c"># Refactor complex functions</span>
+<span class="c"># Break into smaller helper functions</span>
+<span class="c"># Extract conditional logic</span>
+<span class="c"># Use polymorphism instead of switch statements</span>
+</code></pre></div></div>
+
+<p><strong>Citations</strong>:</p>
+
+<ul>
+  <li>Microsoft Learn: “Code metrics - Cyclomatic complexity”</li>
+</ul>
+
+<hr />
+
+<h3 id="13-20-additional-tier-3-attributes">13-20. Additional Tier 3 Attributes</h3>
+
+<p><strong>13. Function/Method Length Limits</strong> (<code class="language-python highlighter-rouge"><span class="n">function_length</span></code>) — Target: &lt;50 lines per function
+<strong>14. Code Smell Elimination</strong> (<code class="language-python highlighter-rouge"><span class="n">code_smells</span></code>) — DRY violations, long methods, magic numbers
+<strong>15. Separation of Concerns</strong> (<code class="language-python highlighter-rouge"><span class="n">separation_of_concerns</span></code>) — SOLID principles adherence
+<strong>16. Inline Documentation</strong> (<code class="language-python highlighter-rouge"><span class="n">inline_documentation</span></code>) — Docstrings &gt;80% coverage
+<strong>17. Architecture Decision Records</strong> (<code class="language-python highlighter-rouge"><span class="n">adrs</span></code>) — Document major decisions in <code class="language-python highlighter-rouge"><span class="n">docs</span><span class="o">/</span><span class="n">adr</span><span class="o">/</span></code>
+<strong>18. Structured Logging</strong> (<code class="language-python highlighter-rouge"><span class="n">structured_logging</span></code>) — JSON logs with consistent fields
+<strong>19. OpenAPI/Swagger Specs</strong> (<code class="language-python highlighter-rouge"><span class="n">api_documentation</span></code>) — Machine-readable API docs
+<strong>20. DRY Principle</strong> (<code class="language-python highlighter-rouge"><span class="n">dry_principle</span></code>) — &lt;5% duplicate code</p>
+
+<p><em>Full details for each attribute available in the <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md">research document</a>.</em></p>
+
+<hr />
+
+<h2 id="tier-4-advanced-attributes">Tier 4: Advanced Attributes</h2>
+
+<p><em>Refinement and optimization — 5% of total score</em></p>
+
+<h3 id="21-25-tier-4-attributes">21-25. Tier 4 Attributes</h3>
+
+<p><strong>21. Issue &amp; PR Templates</strong> (<code class="language-python highlighter-rouge"><span class="n">pr_issue_templates</span></code>) — <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span></code> templates
+<strong>22. Container/Virtualization Setup</strong> (<code class="language-python highlighter-rouge"><span class="n">container_setup</span></code>) — Dockerfile, docker-compose.yml
+<strong>23. Dependency Security Scanning</strong> (<code class="language-python highlighter-rouge"><span class="n">dependency_security</span></code>) — Snyk, Dependabot, npm audit
+<strong>24. Secrets Management</strong> (<code class="language-python highlighter-rouge"><span class="n">secrets_management</span></code>) — No hardcoded secrets, use env vars
+<strong>25. Performance Benchmarks</strong> (<code class="language-python highlighter-rouge"><span class="n">performance_benchmarks</span></code>) — Automated perf tests in CI</p>
+
+<p><em>Full details for each attribute available in the <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md">research document</a>.</em></p>
+
+<hr />
+
+<h2 id="implementation-status">Implementation Status</h2>
+
+<p>AgentReady’s assessor implementations are actively maintained across four tiers. Most essential and critical attributes (Tier 1 and Tier 2) are fully implemented with rich remediation guidance.</p>
+
+<p><strong>Current State</strong>:</p>
+<ul>
+  <li>✅ <strong>Tier 1 (Essential)</strong>: Fully implemented</li>
+  <li>✅ <strong>Tier 2 (Critical)</strong>: Majority implemented</li>
+  <li>🚧 <strong>Tier 3 (Important)</strong>: Active development</li>
+  <li>🚧 <strong>Tier 4 (Advanced)</strong>: Planned implementations</li>
+</ul>
+
+<p>See the <a href="https://github.com/ambient-code/agentready">GitHub repository</a> for current implementation details.</p>
+
+<hr />
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ul>
+  <li><strong><a href="user-guide.html">User Guide</a></strong> — Learn how to run assessments</li>
+  <li><strong><a href="developer-guide.html">Developer Guide</a></strong> — Implement new assessors</li>
+  <li><strong><a href="api-reference.html">API Reference</a></strong> — Integrate AgentReady</li>
+  <li><strong><a href="examples.html">Examples</a></strong> — View real assessment reports</li>
+</ul>
+
+<hr />
+
+<p><strong>Complete attribute research</strong>: See <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md">agent-ready-codebase-attributes.md</a> for full citations, examples, and detailed criteria.</p>
+
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

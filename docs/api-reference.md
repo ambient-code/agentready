@@ -3,8 +3,6 @@ layout: page
 title: API Reference
 ---
 
-# API Reference
-
 Complete reference for AgentReady's Python API. Use these APIs to integrate AgentReady into your own tools, CI/CD pipelines, or custom workflows.
 
 ## Table of Contents

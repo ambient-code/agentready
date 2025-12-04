@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>User Guide | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>User Guide | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="User Guide" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="http://localhost:4000/agentready/user-guide.html" />
+<meta property="og:url" content="http://localhost:4000/agentready/user-guide.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="User Guide" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"User Guide","url":"http://localhost:4000/agentready/user-guide.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1>User Guide</h1>
+
+<p>Complete guide to installing, configuring, and using AgentReady to assess your repositories.</p>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#installation">Installation</a></li>
+  <li><a href="#quick-start">Quick Start</a></li>
+  <li><a href="#bootstrap-your-repository">Bootstrap Your Repository</a> ⭐ <strong>NEW</strong>
+    <ul>
+      <li><a href="#what-is-bootstrap">What is Bootstrap?</a></li>
+      <li><a href="#when-to-use-bootstrap-vs-assess">When to Use Bootstrap vs Assess</a></li>
+      <li><a href="#step-by-step-tutorial">Step-by-Step Tutorial</a></li>
+      <li><a href="#generated-files-explained">Generated Files Explained</a></li>
+      <li><a href="#post-bootstrap-checklist">Post-Bootstrap Checklist</a></li>
+    </ul>
+  </li>
+  <li><a href="#running-assessments">Running Assessments</a></li>
+  <li><a href="#understanding-reports">Understanding Reports</a></li>
+  <li><a href="#configuration">Configuration</a></li>
+  <li><a href="#cli-reference">CLI Reference</a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+
+<hr />
+
+<h2 id="installation">Installation</h2>
+
+<h3 id="prerequisites">Prerequisites</h3>
+
+<ul>
+  <li><strong>Python 3.12 or 3.13</strong> (AgentReady supports versions N and N-1)</li>
+  <li><strong>Git</strong> (for repository analysis)</li>
+  <li><strong>pip</strong> or <strong>uv</strong> (Python package manager)</li>
+</ul>
+
+<h3 id="install-from-pypi">Install from PyPI</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Using pip</span>
+pip <span class="nb">install </span>agentready
+
+<span class="c"># Using uv (recommended)</span>
+uv pip <span class="nb">install </span>agentready
+
+<span class="c"># Verify installation</span>
+agentready <span class="nt">--version</span>
+</code></pre></div></div>
+
+<h3 id="install-from-source">Install from Source</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Clone the repository</span>
+git clone https://github.com/ambient-code/agentready.git
+<span class="nb">cd </span>agentready
+
+<span class="c"># Create virtual environment</span>
+python3 <span class="nt">-m</span> venv .venv
+<span class="nb">source</span> .venv/bin/activate  <span class="c"># On Windows: .venv\Scripts\activate</span>
+
+<span class="c"># Install in development mode</span>
+pip <span class="nb">install</span> <span class="nt">-e</span> <span class="nb">.</span>
+
+<span class="c"># Or using uv</span>
+uv pip <span class="nb">install</span> <span class="nt">-e</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3 id="bootstrap-first-approach-recommended">Bootstrap-First Approach (Recommended)</h3>
+
+<p>Transform your repository with one command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Navigate to your repository</span>
+<span class="nb">cd</span> /path/to/your/repo
+
+<span class="c"># Bootstrap infrastructure</span>
+agentready bootstrap <span class="nb">.</span>
+
+<span class="c"># Review generated files</span>
+git status
+
+<span class="c"># Commit and push</span>
+git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s2">"build: Bootstrap agent-ready infrastructure"</span>
+git push
+</code></pre></div></div>
+
+<p>Bootstrap generates complete CI/CD infrastructure: GitHub Actions workflows (tests, security, assessment), pre-commit hooks, issue/PR templates, and Dependabot configuration. Assessment runs automatically on your next PR. <strong>Duration</strong>: &lt;60 seconds.</p>
+
+<p><a href="#bootstrap-your-repository">See detailed Bootstrap tutorial →</a></p>
+
+<h3 id="batch-assessment-approach">Batch Assessment Approach</h3>
+
+<p>Assess multiple repositories at once for organizational insights:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Navigate to directory containing multiple repos</span>
+<span class="nb">cd</span> /path/to/repos
+
+<span class="c"># Run batch assessment</span>
+agentready batch repo1/ repo2/ repo3/ <span class="nt">--output-dir</span> ./batch-reports
+
+<span class="c"># View comparison report</span>
+open batch-reports/comparison-summary.html
+</code></pre></div></div>
+
+<p>Batch assessment generates individual reports for each repository plus a comparison table, aggregate statistics, and trend analysis for multi-repo projects. <strong>Duration</strong>: ~5 seconds per repository.</p>
+
+<p><a href="#batch-assessment">See detailed batch assessment guide →</a></p>
+
+<h3 id="manual-assessment-approach">Manual Assessment Approach</h3>
+
+<p>For one-time analysis without infrastructure changes:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Navigate to your repository</span>
+<span class="nb">cd</span> /path/to/your/repo
+
+<span class="c"># Run assessment</span>
+agentready assess <span class="nb">.</span>
+
+<span class="c"># View the HTML report</span>
+open .agentready/report-latest.html  <span class="c"># macOS</span>
+xdg-open .agentready/report-latest.html  <span class="c"># Linux</span>
+start .agentready/report-latest.html  <span class="c"># Windows</span>
+</code></pre></div></div>
+
+<p><strong>Output location</strong>: <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">agentready</span><span class="o">/</span></code> directory in your repository root.</p>
+
+<p><strong>Duration</strong>: Most assessments complete in under 5 seconds.</p>
+
+<hr />
+
+<h2 id="bootstrap-your-repository">Bootstrap Your Repository</h2>
+
+<h3 id="what-is-bootstrap">What is Bootstrap?</h3>
+
+<p><strong>Bootstrap is AgentReady’s automated infrastructure generator.</strong> Instead of manually implementing recommendations from assessment reports, Bootstrap creates complete GitHub setup in one command:</p>
+
+<p><strong>Generated Infrastructure:</strong></p>
+
+<ul>
+  <li><strong>GitHub Actions workflows</strong> — Tests, security scanning, AgentReady assessment</li>
+  <li><strong>Pre-commit hooks</strong> — Language-specific formatters and linters</li>
+  <li><strong>Issue/PR templates</strong> — Structured bug reports, feature requests, PR checklist</li>
+  <li><strong>CODEOWNERS</strong> — Automated review assignments</li>
+  <li><strong>Dependabot</strong> — Weekly dependency updates</li>
+  <li><strong>Contributing guidelines</strong> — If not present</li>
+  <li><strong>Code of Conduct</strong> — Red Hat standard (if not present)</li>
+</ul>
+
+<p><strong>Language Detection:</strong>
+Bootstrap automatically detects your primary language (Python, JavaScript, Go) via <code class="language-python highlighter-rouge"><span class="n">git</span> <span class="n">ls</span><span class="o">-</span><span class="n">files</span></code> and generates appropriate configurations.</p>
+
+<p><strong>Safe to Use:</strong></p>
+
+<ul>
+  <li>Use <code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span></code> to preview changes without creating files</li>
+  <li>All files are created, never overwritten</li>
+  <li>Review with <code class="language-python highlighter-rouge"><span class="n">git</span> <span class="n">status</span></code> before committing</li>
+</ul>
+
+<hr />
+
+<h3 id="when-to-use-bootstrap-vs-assess">When to Use Bootstrap vs Assess</h3>
+
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Use Bootstrap</th>
+<th>Use Assess</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>New project</strong></td>
+<td>✅ Start with best practices</td>
+<td>Later, to track progress</td>
+</tr>
+<tr>
+<td><strong>Missing GitHub Actions</strong></td>
+<td>✅ Generate workflows instantly</td>
+<td>Shows it's missing</td>
+</tr>
+<tr>
+<td><strong>No pre-commit hooks</strong></td>
+<td>✅ Configure automatically</td>
+<td>Shows it's missing</td>
+</tr>
+<tr>
+<td><strong>Understanding current state</strong></td>
+<td>Use after bootstrapping</td>
+<td>✅ Detailed analysis</td>
+</tr>
+<tr>
+<td><strong>Existing infrastructure</strong></td>
+<td>Safe (won't overwrite)</td>
+<td>✅ Validate setup</td>
+</tr>
+<tr>
+<td><strong>Tracking improvements</strong></td>
+<td>One-time setup</td>
+<td>✅ Run repeatedly</td>
+</tr>
+<tr>
+<td><strong>CI/CD integration</strong></td>
+<td>Generates the workflows</td>
+<td>✅ Runs in CI (via Bootstrap)</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Recommended workflow:</strong></p>
+
+<ol>
+  <li><strong>Bootstrap first</strong> — Generate infrastructure</li>
+  <li><strong>Review and commit</strong> — Inspect generated files</li>
+  <li><strong>Assess automatically</strong> — Every PR via GitHub Actions</li>
+  <li><strong>Manual assess</strong> — When validating improvements</li>
+</ol>
+
+<hr />
+
+<h3 id="step-by-step-tutorial">Step-by-Step Tutorial</h3>
+
+<h4 id="step-1-preview-changes-dry-run">Step 1: Preview Changes (Dry Run)</h4>
+
+<p>Always start with <code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span></code> to see what will be created:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> /path/to/your/repo
+agentready bootstrap <span class="nb">.</span> <span class="nt">--dry-run</span>
+</code></pre></div></div>
+
+<p><strong>Example output:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Detecting</span> <span class="n">primary</span> <span class="n">language</span><span class="p">...</span>
+<span class="err">✓</span> <span class="n">Detected</span><span class="p">:</span> <span class="n">Python</span> <span class="p">(</span><span class="mi">42</span> <span class="n">files</span><span class="p">)</span>
+
+<span class="n">Files</span> <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">created</span><span class="p">:</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">agentready</span><span class="o">-</span><span class="n">assessment</span><span class="p">.</span><span class="n">yml</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">tests</span><span class="p">.</span><span class="n">yml</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">security</span><span class="p">.</span><span class="n">yml</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">ISSUE_TEMPLATE</span><span class="o">/</span><span class="n">bug_report</span><span class="p">.</span><span class="n">md</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">ISSUE_TEMPLATE</span><span class="o">/</span><span class="n">feature_request</span><span class="p">.</span><span class="n">md</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">PULL_REQUEST_TEMPLATE</span><span class="p">.</span><span class="n">md</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">CODEOWNERS</span>
+  <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">dependabot</span><span class="p">.</span><span class="n">yml</span>
+  <span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span>
+  <span class="n">CONTRIBUTING</span><span class="p">.</span><span class="n">md</span> <span class="p">(</span><span class="ow">not</span> <span class="n">present</span><span class="p">,</span> <span class="n">will</span> <span class="n">create</span><span class="p">)</span>
+  <span class="n">CODE_OF_CONDUCT</span><span class="p">.</span><span class="n">md</span> <span class="p">(</span><span class="ow">not</span> <span class="n">present</span><span class="p">,</span> <span class="n">will</span> <span class="n">create</span><span class="p">)</span>
+
+<span class="n">Run</span> <span class="n">without</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span> <span class="n">to</span> <span class="n">create</span> <span class="n">these</span> <span class="n">files</span><span class="p">.</span>
+</code></pre></div></div>
+
+<p><strong>Review the list carefully:</strong></p>
+
+<ul>
+  <li>Files marked “(not present, will create)” are new</li>
+  <li>Existing files are never overwritten</li>
+  <li>Check for conflicts with existing workflows</li>
+</ul>
+
+<hr />
+
+<h4 id="step-2-run-bootstrap">Step 2: Run Bootstrap</h4>
+
+<p>If dry-run output looks good, run without flag:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready bootstrap <span class="nb">.</span>
+</code></pre></div></div>
+
+<p><strong>Example output:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Detecting</span> <span class="n">primary</span> <span class="n">language</span><span class="p">...</span>
+<span class="err">✓</span> <span class="n">Detected</span><span class="p">:</span> <span class="n">Python</span> <span class="p">(</span><span class="mi">42</span> <span class="n">files</span><span class="p">)</span>
+
+<span class="n">Creating</span> <span class="n">infrastructure</span><span class="p">...</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">agentready</span><span class="o">-</span><span class="n">assessment</span><span class="p">.</span><span class="n">yml</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">tests</span><span class="p">.</span><span class="n">yml</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">security</span><span class="p">.</span><span class="n">yml</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">ISSUE_TEMPLATE</span><span class="o">/</span><span class="n">bug_report</span><span class="p">.</span><span class="n">md</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">ISSUE_TEMPLATE</span><span class="o">/</span><span class="n">feature_request</span><span class="p">.</span><span class="n">md</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">PULL_REQUEST_TEMPLATE</span><span class="p">.</span><span class="n">md</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">CODEOWNERS</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">dependabot</span><span class="p">.</span><span class="n">yml</span>
+  <span class="err">✓</span> <span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span>
+  <span class="err">✓</span> <span class="n">CONTRIBUTING</span><span class="p">.</span><span class="n">md</span>
+  <span class="err">✓</span> <span class="n">CODE_OF_CONDUCT</span><span class="p">.</span><span class="n">md</span>
+
+<span class="n">Bootstrap</span> <span class="n">complete</span><span class="err">!</span> <span class="mi">11</span> <span class="n">files</span> <span class="n">created</span><span class="p">.</span>
+
+<span class="n">Next</span> <span class="n">steps</span><span class="p">:</span>
+<span class="mf">1.</span> <span class="n">Review</span> <span class="n">generated</span> <span class="n">files</span><span class="p">:</span> <span class="n">git</span> <span class="n">status</span>
+<span class="mf">2.</span> <span class="n">Customize</span> <span class="k">as</span> <span class="n">needed</span> <span class="p">(</span><span class="n">CODEOWNERS</span><span class="p">,</span> <span class="n">workflow</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">etc</span><span class="p">.)</span>
+<span class="mf">3.</span> <span class="n">Commit</span><span class="p">:</span> <span class="n">git</span> <span class="n">add</span> <span class="p">.</span> <span class="o">&amp;&amp;</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s">"build: Bootstrap infrastructure"</span>
+<span class="mf">4.</span> <span class="n">Enable</span> <span class="n">GitHub</span> <span class="n">Actions</span> <span class="ow">in</span> <span class="n">repository</span> <span class="n">settings</span>
+<span class="mf">5.</span> <span class="n">Push</span> <span class="ow">and</span> <span class="n">create</span> <span class="n">PR</span> <span class="n">to</span> <span class="n">see</span> <span class="n">assessment</span> <span class="ow">in</span> <span class="n">action</span><span class="err">!</span>
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="step-3-review-generated-files">Step 3: Review Generated Files</h4>
+
+<p>Inspect what was created:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># View all new files</span>
+git status
+
+<span class="c"># Inspect key files</span>
+<span class="nb">cat</span> .github/workflows/agentready-assessment.yml
+<span class="nb">cat</span> .pre-commit-config.yaml
+<span class="nb">cat</span> .github/CODEOWNERS
+</code></pre></div></div>
+
+<p><strong>What to check:</strong></p>
+
+<ul>
+  <li><strong>CODEOWNERS</strong> — Add actual team member GitHub usernames</li>
+  <li><strong>Workflows</strong> — Adjust triggers (e.g., only main branch, specific paths)</li>
+  <li><strong>Pre-commit hooks</strong> — Add/remove tools based on your stack</li>
+  <li><strong>Issue templates</strong> — Customize labels and assignees</li>
+</ul>
+
+<hr />
+
+<h4 id="step-4-install-pre-commit-hooks-local">Step 4: Install Pre-commit Hooks (Local)</h4>
+
+<p>Bootstrap creates <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code>, but you must install locally:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install pre-commit (if not already)</span>
+pip <span class="nb">install </span>pre-commit
+
+<span class="c"># Install git hooks</span>
+pre-commit <span class="nb">install</span>
+
+<span class="c"># Test hooks on all files</span>
+pre-commit run <span class="nt">--all-files</span>
+</code></pre></div></div>
+
+<p><strong>Expected output:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">black</span><span class="p">....................................................................</span><span class="n">Passed</span>
+<span class="n">isort</span><span class="p">....................................................................</span><span class="n">Passed</span>
+<span class="n">ruff</span><span class="p">.....................................................................</span><span class="n">Passed</span>
+</code></pre></div></div>
+
+<p><strong>If failures occur:</strong></p>
+
+<ul>
+  <li>Review suggested fixes</li>
+  <li>Run formatters: <code class="language-python highlighter-rouge"><span class="n">black</span> <span class="p">.</span></code> and <code class="language-python highlighter-rouge"><span class="n">isort</span> <span class="p">.</span></code></li>
+  <li>Fix linting errors: <code class="language-python highlighter-rouge"><span class="n">ruff</span> <span class="n">check</span> <span class="p">.</span> <span class="o">--</span><span class="n">fix</span></code></li>
+  <li>Re-run: <code class="language-python highlighter-rouge"><span class="n">pre</span><span class="o">-</span><span class="n">commit</span> <span class="n">run</span> <span class="o">--</span><span class="nb">all</span><span class="o">-</span><span class="n">files</span></code></li>
+</ul>
+
+<hr />
+
+<h4 id="step-5-commit-and-push">Step 5: Commit and Push</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Stage all generated files</span>
+git add <span class="nb">.</span>
+
+<span class="c"># Commit with conventional commit message</span>
+git commit <span class="nt">-m</span> <span class="s2">"build: Bootstrap agent-ready infrastructure
+
+- Add GitHub Actions workflows (tests, security, assessment)
+- Configure pre-commit hooks (black, isort, ruff)
+- Add issue and PR templates
+- Enable Dependabot for weekly updates
+- Add CONTRIBUTING.md and CODE_OF_CONDUCT.md"</span>
+
+<span class="c"># Push to repository</span>
+git push origin main
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="step-6-enable-github-actions">Step 6: Enable GitHub Actions</h4>
+
+<p>If this is the first time using Actions:</p>
+
+<ol>
+  <li><strong>Navigate to repository on GitHub</strong></li>
+  <li><strong>Go to Settings → Actions → General</strong></li>
+  <li><strong>Enable Actions</strong> (select “Allow all actions”)</li>
+  <li><strong>Set workflow permissions</strong> to “Read and write permissions”</li>
+  <li><strong>Save</strong></li>
+</ol>
+
+<hr />
+
+<h4 id="step-7-test-with-a-pr">Step 7: Test with a PR</h4>
+
+<p>Create a test PR to see Bootstrap in action:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create feature branch</span>
+git checkout <span class="nt">-b</span> test-agentready-bootstrap
+
+<span class="c"># Make trivial change</span>
+<span class="nb">echo</span> <span class="s2">"# Test"</span> <span class="o">&gt;&gt;</span> README.md
+
+<span class="c"># Commit and push</span>
+git add README.md
+git commit <span class="nt">-m</span> <span class="s2">"test: Verify AgentReady assessment workflow"</span>
+git push origin test-agentready-bootstrap
+
+<span class="c"># Create PR on GitHub</span>
+gh <span class="nb">pr </span>create <span class="nt">--title</span> <span class="s2">"Test: AgentReady Bootstrap"</span> <span class="nt">--body</span> <span class="s2">"Testing automated assessment"</span>
+</code></pre></div></div>
+
+<p><strong>What happens automatically:</strong></p>
+
+<ol>
+  <li><strong>Tests workflow</strong> runs pytest (Python) or appropriate tests</li>
+  <li><strong>Security workflow</strong> runs CodeQL analysis</li>
+  <li><strong>AgentReady assessment workflow</strong> runs assessment and posts results as PR comment</li>
+</ol>
+
+<p><strong>PR comment example:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## AgentReady Assessment
+</span>
+<span class="o">**</span><span class="n">Score</span><span class="p">:</span><span class="o">**</span> <span class="mf">75.4</span><span class="o">/</span><span class="mi">100</span> <span class="p">(</span><span class="err">🥇</span> <span class="n">Gold</span><span class="p">)</span>
+
+<span class="o">**</span><span class="n">Tier</span> <span class="n">Breakdown</span><span class="p">:</span><span class="o">**</span>
+<span class="o">-</span> <span class="n">Tier</span> <span class="mi">1</span> <span class="p">(</span><span class="n">Essential</span><span class="p">):</span> <span class="mi">80</span><span class="o">/</span><span class="mi">100</span>
+<span class="o">-</span> <span class="n">Tier</span> <span class="mi">2</span> <span class="p">(</span><span class="n">Critical</span><span class="p">):</span> <span class="mi">70</span><span class="o">/</span><span class="mi">100</span>
+<span class="o">-</span> <span class="n">Tier</span> <span class="mi">3</span> <span class="p">(</span><span class="n">Important</span><span class="p">):</span> <span class="mi">65</span><span class="o">/</span><span class="mi">100</span>
+<span class="o">-</span> <span class="n">Tier</span> <span class="mi">4</span> <span class="p">(</span><span class="n">Advanced</span><span class="p">):</span> <span class="mi">50</span><span class="o">/</span><span class="mi">100</span>
+
+<span class="o">**</span><span class="n">Passing</span><span class="p">:</span><span class="o">**</span> <span class="mi">15</span><span class="o">/</span><span class="mi">25</span> <span class="o">|</span> <span class="o">**</span><span class="n">Failing</span><span class="p">:</span><span class="o">**</span> <span class="mi">8</span><span class="o">/</span><span class="mi">25</span> <span class="o">|</span> <span class="o">**</span><span class="n">Skipped</span><span class="p">:</span><span class="o">**</span> <span class="mi">2</span><span class="o">/</span><span class="mi">25</span>
+
+<span class="p">[</span><span class="n">View</span> <span class="n">full</span> <span class="n">HTML</span> <span class="n">report</span><span class="p">](</span><span class="n">link</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">artifact</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="generated-files-explained">Generated Files Explained</h3>
+
+<h4 id="github-actions-workflows">GitHub Actions Workflows</h4>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">agentready</span><span class="o">-</span><span class="n">assessment</span><span class="p">.</span><span class="n">yml</span></code></strong></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Runs on every PR and push to main</span>
+<span class="c1"># Posts assessment results as PR comment</span>
+<span class="c1"># Fails if score drops below configured threshold (default: 60)</span>
+
+<span class="na">Triggers</span><span class="pi">:</span> <span class="s">pull_request, push (main branch)</span>
+<span class="na">Duration</span><span class="pi">:</span> <span class="s">~30 seconds</span>
+<span class="na">Artifacts</span><span class="pi">:</span> <span class="s">HTML report, JSON data</span>
+</code></pre></div></div>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">tests</span><span class="p">.</span><span class="n">yml</span></code></strong></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Language-specific test workflow</span>
+
+<span class="na">Python</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">Runs pytest with coverage</span>
+  <span class="pi">-</span> <span class="s">Coverage report posted as PR comment</span>
+  <span class="pi">-</span> <span class="s">Requires test/ directory</span>
+
+<span class="na">JavaScript</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">Runs jest with coverage</span>
+  <span class="pi">-</span> <span class="s">Generates lcov report</span>
+
+<span class="na">Go</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">Runs go test with race detection</span>
+  <span class="pi">-</span> <span class="s">Coverage profiling enabled</span>
+</code></pre></div></div>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">workflows</span><span class="o">/</span><span class="n">security</span><span class="p">.</span><span class="n">yml</span></code></strong></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Comprehensive security scanning</span>
+
+<span class="na">CodeQL</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">Analyzes code for vulnerabilities</span>
+  <span class="pi">-</span> <span class="s">Runs on push to main and PR</span>
+  <span class="pi">-</span> <span class="s">Supports 10+ languages</span>
+
+<span class="na">Dependency Scanning</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">GitHub Advisory Database</span>
+  <span class="pi">-</span> <span class="s">Fails on high/critical vulnerabilities</span>
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="pre-commit-configuration">Pre-commit Configuration</h4>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code></strong></p>
+
+<p>Language-specific hooks configured:</p>
+
+<p><strong>Python:</strong></p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">black</span></code> — Code formatter (88 char line length)</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">isort</span></code> — Import sorter</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">ruff</span></code> — Fast linter</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">trailing</span><span class="o">-</span><span class="n">whitespace</span></code> — Remove trailing spaces</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">end</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="nb">file</span><span class="o">-</span><span class="n">fixer</span></code> — Ensure newline at EOF</li>
+</ul>
+
+<p><strong>JavaScript/TypeScript:</strong></p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">prettier</span></code> — Code formatter</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">eslint</span></code> — Linter</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">trailing</span><span class="o">-</span><span class="n">whitespace</span></code></li>
+  <li><code class="language-python highlighter-rouge"><span class="n">end</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="nb">file</span><span class="o">-</span><span class="n">fixer</span></code></li>
+</ul>
+
+<p><strong>Go:</strong></p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">gofmt</span></code> — Code formatter</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">golint</span></code> — Linter</li>
+  <li><code class="language-python highlighter-rouge"><span class="n">go</span><span class="o">-</span><span class="n">vet</span></code> — Static analysis</li>
+</ul>
+
+<p><strong>To customize:</strong>
+Edit <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code> and adjust hook versions or add new repos.</p>
+
+<hr />
+
+<h4 id="github-templates">GitHub Templates</h4>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">ISSUE_TEMPLATE</span><span class="o">/</span><span class="n">bug_report</span><span class="p">.</span><span class="n">md</span></code></strong></p>
+
+<ul>
+  <li>Structured bug report with reproduction steps</li>
+  <li>Environment details (OS, version)</li>
+  <li>Expected vs actual behavior</li>
+  <li>Auto-labels as <code class="language-python highlighter-rouge"><span class="n">bug</span></code></li>
+</ul>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">ISSUE_TEMPLATE</span><span class="o">/</span><span class="n">feature_request</span><span class="p">.</span><span class="n">md</span></code></strong></p>
+
+<ul>
+  <li>Structured feature proposal</li>
+  <li>Use case and motivation</li>
+  <li>Proposed solution</li>
+  <li>Auto-labels as <code class="language-python highlighter-rouge"><span class="n">enhancement</span></code></li>
+</ul>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">PULL_REQUEST_TEMPLATE</span><span class="p">.</span><span class="n">md</span></code></strong></p>
+
+<ul>
+  <li>Checklist for PR authors:
+    <ul class="task-list">
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Tests added/updated</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Documentation updated</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Passes all checks</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Breaking changes documented</li>
+    </ul>
+  </li>
+  <li>Links to related issues</li>
+  <li>Change description</li>
+</ul>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">CODEOWNERS</span></code></strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Auto-assign reviewers based on file paths
+# CUSTOMIZE: Replace with actual GitHub usernames
+</span>
+<span class="o">*</span> <span class="o">@</span><span class="n">yourteam</span><span class="o">/</span><span class="n">maintainers</span>
+<span class="o">/</span><span class="n">docs</span><span class="o">/</span> <span class="o">@</span><span class="n">yourteam</span><span class="o">/</span><span class="n">docs</span>
+<span class="o">/</span><span class="p">.</span><span class="n">github</span><span class="o">/</span> <span class="o">@</span><span class="n">yourteam</span><span class="o">/</span><span class="n">devops</span>
+</code></pre></div></div>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">github</span><span class="o">/</span><span class="n">dependabot</span><span class="p">.</span><span class="n">yml</span></code></strong></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Weekly dependency update checks</span>
+<span class="c1"># Creates PRs for outdated dependencies</span>
+<span class="c1"># Supports Python, npm, Go modules</span>
+
+<span class="na">Updates</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">package-ecosystem</span><span class="pi">:</span> <span class="s">pip (or npm, gomod)</span>
+    <span class="na">schedule</span><span class="pi">:</span> <span class="s">weekly</span>
+    <span class="na">labels</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">dependencies</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="development-guidelines">Development Guidelines</h4>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="n">CONTRIBUTING</span><span class="p">.</span><span class="n">md</span></code></strong> (created if missing)</p>
+
+<ul>
+  <li>Setup instructions</li>
+  <li>Development workflow</li>
+  <li>Code style guidelines</li>
+  <li>PR process</li>
+  <li>Testing requirements</li>
+</ul>
+
+<p><strong><code class="language-python highlighter-rouge"><span class="n">CODE_OF_CONDUCT</span><span class="p">.</span><span class="n">md</span></code></strong> (created if missing)</p>
+
+<ul>
+  <li>Red Hat standard Code of Conduct</li>
+  <li>Community guidelines</li>
+  <li>Reporting process</li>
+  <li>Enforcement policy</li>
+</ul>
+
+<hr />
+
+<h3 id="post-bootstrap-checklist">Post-Bootstrap Checklist</h3>
+
+<p>After running <code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="n">bootstrap</span></code>, complete these steps:</p>
+
+<h4 id="1-customize-codeowners">1. Customize CODEOWNERS</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Edit .github/CODEOWNERS</span>
+vim .github/CODEOWNERS
+
+<span class="c"># Replace placeholder usernames with actual team members</span>
+<span class="c"># * @yourteam/maintainers  →  * @alice @bob</span>
+<span class="c"># /docs/ @yourteam/docs    →  /docs/ @carol</span>
+</code></pre></div></div>
+
+<h4 id="2-review-workflow-triggers">2. Review Workflow Triggers</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check if workflow triggers match your branching strategy</span>
+<span class="nb">cat</span> .github/workflows/<span class="k">*</span>.yml | <span class="nb">grep</span> <span class="s2">"on:"</span>
+
+<span class="c"># Common adjustments:</span>
+<span class="c"># - Change 'main' to 'master' or 'develop'</span>
+<span class="c"># - Add path filters (e.g., only run tests when src/ changes)</span>
+<span class="c"># - Adjust schedule (e.g., nightly instead of push)</span>
+</code></pre></div></div>
+
+<h4 id="3-install-pre-commit-hooks">3. Install Pre-commit Hooks</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>pre-commit
+pre-commit <span class="nb">install
+</span>pre-commit run <span class="nt">--all-files</span>  <span class="c"># Test on existing code</span>
+</code></pre></div></div>
+
+<h4 id="4-enable-github-actions">4. Enable GitHub Actions</h4>
+
+<ul>
+  <li>Repository Settings → Actions → General</li>
+  <li>Enable “Allow all actions”</li>
+  <li>Set “Read and write permissions” for workflows</li>
+</ul>
+
+<h4 id="5-configure-branch-protection-recommended">5. Configure Branch Protection (Recommended)</h4>
+
+<ul>
+  <li>Settings → Branches → Add rule for <code class="language-python highlighter-rouge"><span class="n">main</span></code></li>
+  <li>Require status checks: <code class="language-python highlighter-rouge"><span class="n">tests</span></code>, <code class="language-python highlighter-rouge"><span class="n">security</span></code>, <code class="language-python highlighter-rouge"><span class="n">agentready</span><span class="o">-</span><span class="n">assessment</span></code></li>
+  <li>Require PR reviews (at least 1 approval)</li>
+  <li>Require branches to be up to date</li>
+</ul>
+
+<h4 id="6-test-the-workflows">6. Test the Workflows</h4>
+
+<p>Create a test PR to verify:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout <span class="nt">-b</span> test-workflows
+<span class="nb">echo</span> <span class="s2">"# Test"</span> <span class="o">&gt;&gt;</span> README.md
+git add README.md
+git commit <span class="nt">-m</span> <span class="s2">"test: Verify automated workflows"</span>
+git push origin test-workflows
+gh <span class="nb">pr </span>create <span class="nt">--title</span> <span class="s2">"Test: Verify workflows"</span> <span class="nt">--body</span> <span class="s2">"Testing Bootstrap"</span>
+</code></pre></div></div>
+
+<p><strong>Verify:</strong></p>
+
+<ul>
+  <li>✅ All workflows run successfully</li>
+  <li>✅ AgentReady posts PR comment with assessment results</li>
+  <li>✅ Test coverage report appears</li>
+  <li>✅ Security scan completes without errors</li>
+</ul>
+
+<h4 id="7-update-documentation">7. Update Documentation</h4>
+
+<p>Add Badge to README.md:</p>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh"># MyProject</span>
+
+<span class="p">![</span><span class="nv">AgentReady</span><span class="p">](</span><span class="sx">https://img.shields.io/badge/AgentReady-Bootstrap-blue</span><span class="p">)</span>
+<span class="p">![</span><span class="nv">Tests</span><span class="p">](</span><span class="sx">https://github.com/yourusername/repo/workflows/tests/badge.svg</span><span class="p">)</span>
+<span class="p">![</span><span class="nv">Security</span><span class="p">](</span><span class="sx">https://github.com/yourusername/repo/workflows/security/badge.svg</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Mention Bootstrap in README:</p>
+
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gu">## Development Setup</span>
+
+This repository uses AgentReady Bootstrap for automated quality assurance.
+
+All PRs are automatically assessed for agent-readiness. See the PR comment
+for detailed findings and remediation guidance.
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="language-specific-notes">Language-Specific Notes</h3>
+
+<h4 id="python-projects">Python Projects</h4>
+
+<p>Bootstrap generates:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">pytest</span></code> workflow with coverage (<code class="language-python highlighter-rouge"><span class="n">pytest</span><span class="o">-</span><span class="n">cov</span></code>)</li>
+  <li>Pre-commit hooks: <code class="language-python highlighter-rouge"><span class="n">black</span></code>, <code class="language-python highlighter-rouge"><span class="n">isort</span></code>, <code class="language-python highlighter-rouge"><span class="n">ruff</span></code>, <code class="language-python highlighter-rouge"><span class="n">mypy</span></code></li>
+  <li>Dependabot for pip dependencies</li>
+</ul>
+
+<p><strong>Customizations:</strong></p>
+
+<ul>
+  <li>Adjust <code class="language-python highlighter-rouge"><span class="n">pytest</span></code> command in <code class="language-python highlighter-rouge"><span class="n">tests</span><span class="p">.</span><span class="n">yml</span></code> if using different test directory</li>
+  <li>Add <code class="language-python highlighter-rouge"><span class="n">mypy</span></code> configuration in <code class="language-python highlighter-rouge"><span class="n">pyproject</span><span class="p">.</span><span class="n">toml</span></code> if type checking required</li>
+  <li>Modify <code class="language-python highlighter-rouge"><span class="n">black</span></code> line length in <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">pre</span><span class="o">-</span><span class="n">commit</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code> if needed</li>
+</ul>
+
+<h4 id="javascripttypescript-projects">JavaScript/TypeScript Projects</h4>
+
+<p>Bootstrap generates:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">jest</span></code> or <code class="language-python highlighter-rouge"><span class="n">npm</span> <span class="n">test</span></code> workflow</li>
+  <li>Pre-commit hooks: <code class="language-python highlighter-rouge"><span class="n">prettier</span></code>, <code class="language-python highlighter-rouge"><span class="n">eslint</span></code></li>
+  <li>Dependabot for npm dependencies</li>
+</ul>
+
+<p><strong>Customizations:</strong></p>
+
+<ul>
+  <li>Update test command in <code class="language-python highlighter-rouge"><span class="n">tests</span><span class="p">.</span><span class="n">yml</span></code> to match <code class="language-python highlighter-rouge"><span class="n">package</span><span class="p">.</span><span class="n">json</span></code> scripts</li>
+  <li>Adjust <code class="language-python highlighter-rouge"><span class="n">prettier</span></code> config (<code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">prettierrc</span></code>) if different style</li>
+  <li>Add TypeScript type checking (<code class="language-python highlighter-rouge"><span class="n">tsc</span> <span class="o">--</span><span class="n">noEmit</span></code>) to workflow</li>
+</ul>
+
+<h4 id="go-projects">Go Projects</h4>
+
+<p>Bootstrap generates:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">go</span> <span class="n">test</span></code> workflow with race detection</li>
+  <li>Pre-commit hooks: <code class="language-python highlighter-rouge"><span class="n">gofmt</span></code>, <code class="language-python highlighter-rouge"><span class="n">golint</span></code>, <code class="language-python highlighter-rouge"><span class="n">go</span><span class="o">-</span><span class="n">vet</span></code></li>
+  <li>Dependabot for Go modules</li>
+</ul>
+
+<p><strong>Customizations:</strong></p>
+
+<ul>
+  <li>Add build step to workflow if needed (<code class="language-python highlighter-rouge"><span class="n">go</span> <span class="n">build</span> <span class="p">.</span><span class="o">/</span><span class="p">...</span></code>)</li>
+  <li>Configure <code class="language-python highlighter-rouge"><span class="n">golangci</span><span class="o">-</span><span class="n">lint</span></code> for advanced linting</li>
+  <li>Add coverage reporting (<code class="language-python highlighter-rouge"><span class="n">go</span> <span class="n">test</span> <span class="o">-</span><span class="n">coverprofile</span><span class="o">=</span><span class="n">coverage</span><span class="p">.</span><span class="n">out</span></code>)</li>
+</ul>
+
+<hr />
+
+<h3 id="bootstrap-command-reference">Bootstrap Command Reference</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready bootstrap <span class="o">[</span>REPOSITORY] <span class="o">[</span>OPTIONS]
+</code></pre></div></div>
+
+<p><strong>Arguments:</strong></p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">REPOSITORY</span></code> — Path to repository (default: current directory)</li>
+</ul>
+
+<p><strong>Options:</strong></p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span></code> — Preview files without creating</li>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">language</span> <span class="n">TEXT</span></code> — Override auto-detection: <code class="language-python highlighter-rouge"><span class="n">python</span><span class="o">|</span><span class="n">javascript</span><span class="o">|</span><span class="n">go</span><span class="o">|</span><span class="n">auto</span></code> (default: auto)</li>
+</ul>
+
+<p><strong>Examples:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Bootstrap current directory (auto-detect language)</span>
+agentready bootstrap <span class="nb">.</span>
+
+<span class="c"># Preview without creating files</span>
+agentready bootstrap <span class="nb">.</span> <span class="nt">--dry-run</span>
+
+<span class="c"># Force Python configuration</span>
+agentready bootstrap <span class="nb">.</span> <span class="nt">--language</span> python
+
+<span class="c"># Bootstrap different directory</span>
+agentready bootstrap /path/to/repo
+
+<span class="c"># Combine dry-run and language override</span>
+agentready bootstrap /path/to/repo <span class="nt">--dry-run</span> <span class="nt">--language</span> go
+</code></pre></div></div>
+
+<p><strong>Exit codes:</strong></p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="mi">0</span></code> — Success</li>
+  <li><code class="language-python highlighter-rouge"><span class="mi">1</span></code> — Error (not a git repository, permission denied, etc.)</li>
+</ul>
+
+<hr />
+
+<h2 id="running-assessments">Running Assessments</h2>
+
+<h3 id="basic-usage">Basic Usage</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Assess current directory</span>
+agentready assess <span class="nb">.</span>
+
+<span class="c"># Assess specific repository</span>
+agentready assess /path/to/repo
+
+<span class="c"># Assess with verbose output</span>
+agentready assess <span class="nb">.</span> <span class="nt">--verbose</span>
+
+<span class="c"># Custom output directory</span>
+agentready assess <span class="nb">.</span> <span class="nt">--output-dir</span> ./custom-reports
+</code></pre></div></div>
+
+<h3 id="assessment-output">Assessment Output</h3>
+
+<p>AgentReady creates a <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">agentready</span><span class="o">/</span></code> directory containing:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="n">agentready</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">assessment</span><span class="o">-</span><span class="n">YYYYMMDD</span><span class="o">-</span><span class="n">HHMMSS</span><span class="p">.</span><span class="n">json</span>    <span class="c1"># Machine-readable data
+</span><span class="err">├──</span> <span class="n">report</span><span class="o">-</span><span class="n">YYYYMMDD</span><span class="o">-</span><span class="n">HHMMSS</span><span class="p">.</span><span class="n">html</span>        <span class="c1"># Interactive web report
+</span><span class="err">├──</span> <span class="n">report</span><span class="o">-</span><span class="n">YYYYMMDD</span><span class="o">-</span><span class="n">HHMMSS</span><span class="p">.</span><span class="n">md</span>          <span class="c1"># Markdown report
+</span><span class="err">├──</span> <span class="n">assessment</span><span class="o">-</span><span class="n">latest</span><span class="p">.</span><span class="n">json</span>             <span class="c1"># Symlink to latest
+</span><span class="err">├──</span> <span class="n">report</span><span class="o">-</span><span class="n">latest</span><span class="p">.</span><span class="n">html</span>                 <span class="c1"># Symlink to latest
+</span><span class="err">└──</span> <span class="n">report</span><span class="o">-</span><span class="n">latest</span><span class="p">.</span><span class="n">md</span>                   <span class="c1"># Symlink to latest
+</span></code></pre></div></div>
+
+<p><strong>Timestamps</strong>: All files are timestamped for historical tracking.</p>
+
+<p><strong>Latest links</strong>: Symlinks always point to the most recent assessment.</p>
+
+<h3 id="verbose-mode">Verbose Mode</h3>
+
+<p>Get detailed progress information during assessment:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready assess <span class="nb">.</span> <span class="nt">--verbose</span>
+</code></pre></div></div>
+
+<p><strong>Output includes</strong>:</p>
+
+<ul>
+  <li>Repository path and detected languages</li>
+  <li>Each assessor’s execution status</li>
+  <li>Finding summaries (pass/fail/skip)</li>
+  <li>Final score calculation breakdown</li>
+  <li>Report generation progress</li>
+</ul>
+
+<hr />
+
+<h2 id="batch-assessment">Batch Assessment</h2>
+
+<p>Assess multiple repositories in one command to gain organizational insights and identify patterns across projects.</p>
+
+<h3 id="basic-usage-1">Basic Usage</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Assess all repos in a directory</span>
+agentready batch /path/to/repos <span class="nt">--output-dir</span> ./reports
+
+<span class="c"># Assess specific repos</span>
+agentready batch /path/repo1 /path/repo2 /path/repo3
+
+<span class="c"># Generate comparison report</span>
+agentready batch <span class="nb">.</span> <span class="nt">--compare</span>
+</code></pre></div></div>
+
+<h3 id="batch-output">Batch Output</h3>
+
+<p>AgentReady batch assessment creates:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">reports</span><span class="o">/</span>
+<span class="err">├──</span> <span class="n">comparison</span><span class="o">-</span><span class="n">summary</span><span class="p">.</span><span class="n">html</span>      <span class="c1"># Interactive comparison table
+</span><span class="err">├──</span> <span class="n">comparison</span><span class="o">-</span><span class="n">summary</span><span class="p">.</span><span class="n">md</span>        <span class="c1"># Markdown summary
+</span><span class="err">├──</span> <span class="n">aggregate</span><span class="o">-</span><span class="n">stats</span><span class="p">.</span><span class="n">json</span>         <span class="c1"># Machine-readable statistics
+</span><span class="err">├──</span> <span class="n">repo1</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">assessment</span><span class="o">-</span><span class="n">latest</span><span class="p">.</span><span class="n">json</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">report</span><span class="o">-</span><span class="n">latest</span><span class="p">.</span><span class="n">html</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">report</span><span class="o">-</span><span class="n">latest</span><span class="p">.</span><span class="n">md</span>
+<span class="err">├──</span> <span class="n">repo2</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="p">...</span>
+<span class="err">└──</span> <span class="n">repo3</span><span class="o">/</span>
+    <span class="err">└──</span> <span class="p">...</span>
+</code></pre></div></div>
+
+<h3 id="comparison-report-features">Comparison Report Features</h3>
+
+<p><strong>comparison-summary.html</strong> includes:</p>
+
+<ul>
+  <li>Side-by-side score comparison table</li>
+  <li>Certification level distribution (Platinum/Gold/Silver/Bronze)</li>
+  <li>Average scores by tier</li>
+  <li>Outlier detection (repos significantly above/below average)</li>
+  <li>Sortable columns (by score, name, certification)</li>
+  <li>Filterable view (show only failing repos)</li>
+</ul>
+
+<p><strong>Example comparison table:</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Repository</th>
+      <th>Overall Score</th>
+      <th>Cert Level</th>
+      <th>Tier 1</th>
+      <th>Tier 2</th>
+      <th>Tier 3</th>
+      <th>Tier 4</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>agentready</td>
+      <td>80.0/100</td>
+      <td>Gold</td>
+      <td>90.0</td>
+      <td>75.0</td>
+      <td>70.0</td>
+      <td>60.0</td>
+    </tr>
+    <tr>
+      <td>project-a</td>
+      <td>75.2/100</td>
+      <td>Gold</td>
+      <td>85.0</td>
+      <td>70.0</td>
+      <td>65.0</td>
+      <td>55.0</td>
+    </tr>
+    <tr>
+      <td>project-b</td>
+      <td>62.5/100</td>
+      <td>Silver</td>
+      <td>70.0</td>
+      <td>60.0</td>
+      <td>55.0</td>
+      <td>45.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="aggregate-statistics">Aggregate Statistics</h3>
+
+<p><strong>aggregate-stats.json</strong> provides:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"total_repositories"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"average_score"</span><span class="p">:</span><span class="w"> </span><span class="mf">72.6</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"median_score"</span><span class="p">:</span><span class="w"> </span><span class="mf">75.2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"certification_distribution"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"Platinum"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Gold"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Silver"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Bronze"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Needs Improvement"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"tier_averages"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"tier_1"</span><span class="p">:</span><span class="w"> </span><span class="mf">81.7</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_2"</span><span class="p">:</span><span class="w"> </span><span class="mf">68.3</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_3"</span><span class="p">:</span><span class="w"> </span><span class="mf">63.3</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_4"</span><span class="p">:</span><span class="w"> </span><span class="mf">53.3</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"common_failures"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="nl">"attribute"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pre_commit_hooks"</span><span class="p">,</span><span class="w"> </span><span class="nl">"failure_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.67</span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="nl">"attribute"</span><span class="p">:</span><span class="w"> </span><span class="s2">"lock_files"</span><span class="p">,</span><span class="w"> </span><span class="nl">"failure_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.33</span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="interactive-heatmap-visualization">Interactive Heatmap Visualization</h3>
+
+<p>Generate an interactive Plotly heatmap showing attribute scores across all repositories:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Generate heatmap with batch assessment</span>
+agentready assess-batch <span class="nt">--repos</span> /path/repo1 <span class="nt">--repos</span> /path/repo2 <span class="nt">--generate-heatmap</span>
+
+<span class="c"># Custom heatmap output path</span>
+agentready assess-batch <span class="nt">--repos-file</span> repos.txt <span class="nt">--generate-heatmap</span> <span class="nt">--heatmap-output</span> ./heatmap.html
+</code></pre></div></div>
+
+<p>The heatmap visualization includes color-coded scores for instant visual identification of strong/weak attributes, cross-repo comparison to see patterns, interactive exploration with hover details and zoom, and export capability as a self-contained HTML file for sharing with teams. Use heatmaps to identify organization-wide patterns, spot outliers, track improvements over time, and guide training efforts on commonly failing attributes.</p>
+
+<h3 id="use-cases">Use Cases</h3>
+
+<p><strong>Organization-wide assessment</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Clone all org repos, then batch assess</span>
+gh repo list myorg <span class="nt">--limit</span> 100 <span class="nt">--json</span> name <span class="nt">--jq</span> <span class="s1">'.[].name'</span> | <span class="se">\</span>
+  xargs <span class="nt">-I</span> <span class="o">{}</span> gh repo clone myorg/<span class="o">{}</span>
+
+agentready batch repos/<span class="k">*</span> <span class="nt">--output-dir</span> ./org-assessment
+</code></pre></div></div>
+
+<p><strong>Multi-repo project</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Assess all microservices</span>
+agentready batch services/<span class="k">*</span> <span class="nt">--compare</span>
+</code></pre></div></div>
+
+<p><strong>Trend tracking</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Monthly assessment</span>
+agentready batch repos/<span class="k">*</span> <span class="nt">--output-dir</span> ./assessments/2025-11
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="report-validation--migration">Report Validation &amp; Migration</h2>
+
+<p>AgentReady v1.27.2 includes schema versioning for backwards compatibility and evolution.</p>
+
+<h3 id="validate-reports">Validate Reports</h3>
+
+<p>Verify assessment reports conform to their schema version:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Strict validation (default)</span>
+agentready validate-report .agentready/assessment-latest.json
+
+<span class="c"># Lenient validation (allow extra fields)</span>
+agentready validate-report <span class="nt">--no-strict</span> .agentready/assessment-latest.json
+</code></pre></div></div>
+
+<p><strong>Output examples:</strong></p>
+
+<p><strong>Valid report:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">✅</span> <span class="n">Report</span> <span class="ow">is</span> <span class="n">valid</span><span class="err">!</span>
+<span class="n">Schema</span> <span class="n">version</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span>
+<span class="n">Repository</span><span class="p">:</span> <span class="n">agentready</span>
+<span class="n">Overall</span> <span class="n">score</span><span class="p">:</span> <span class="mf">80.0</span><span class="o">/</span><span class="mi">100</span>
+</code></pre></div></div>
+
+<p><strong>Invalid report:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">❌</span> <span class="n">Validation</span> <span class="n">failed</span><span class="err">!</span> <span class="mi">3</span> <span class="n">errors</span> <span class="n">found</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">Missing</span> <span class="n">required</span> <span class="n">field</span><span class="p">:</span> <span class="s">'schema_version'</span>
+  <span class="o">-</span> <span class="n">Invalid</span> <span class="nb">type</span> <span class="k">for</span> <span class="s">'overall_score'</span><span class="p">:</span> <span class="n">expected</span> <span class="n">number</span><span class="p">,</span> <span class="n">got</span> <span class="n">string</span>
+  <span class="o">-</span> <span class="n">Extra</span> <span class="n">field</span> <span class="ow">not</span> <span class="n">allowed</span> <span class="ow">in</span> <span class="n">strict</span> <span class="n">mode</span><span class="p">:</span> <span class="s">'custom_field'</span>
+</code></pre></div></div>
+
+<h3 id="migrate-reports">Migrate Reports</h3>
+
+<p>Convert reports between schema versions:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Migrate to specific version</span>
+agentready migrate-report old-report.json <span class="nt">--to</span> 2.0.0
+
+<span class="c"># Custom output path</span>
+agentready migrate-report old.json <span class="nt">--to</span> 2.0.0 <span class="nt">--output</span> new.json
+
+<span class="c"># Explicit source version (auto-detected by default)</span>
+agentready migrate-report old.json <span class="nt">--from</span> 1.0.0 <span class="nt">--to</span> 2.0.0
+</code></pre></div></div>
+
+<p><strong>Migration output:</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">🔄</span> <span class="n">Migrating</span> <span class="n">report</span><span class="p">...</span>
+<span class="n">Source</span> <span class="n">version</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span>
+<span class="n">Target</span> <span class="n">version</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">.</span><span class="mi">0</span>
+
+<span class="err">✅</span> <span class="n">Migration</span> <span class="n">successful</span><span class="err">!</span>
+<span class="n">Migrated</span> <span class="n">report</span> <span class="n">saved</span> <span class="n">to</span><span class="p">:</span> <span class="n">assessment</span><span class="o">-</span><span class="mi">20251123</span><span class="o">-</span><span class="n">migrated</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></div>
+
+<h3 id="schema-compatibility">Schema Compatibility</h3>
+
+<p><strong>Current schema version</strong>: 1.0.0</p>
+
+<p><strong>Supported versions</strong>:</p>
+
+<ul>
+  <li>1.0.0 (current)</li>
+</ul>
+
+<p><strong>Future versions</strong> will maintain backwards compatibility:</p>
+
+<ul>
+  <li>Read old versions via migration</li>
+  <li>Write new versions with latest schema</li>
+  <li>Migration paths provided for all versions</li>
+</ul>
+
+<p><a href="schema-versioning.html">Learn more about schema versioning →</a></p>
+
+<hr />
+
+<h2 id="understanding-reports">Understanding Reports</h2>
+
+<p>AgentReady generates three complementary report formats.</p>
+
+<h3 id="html-report-interactive">HTML Report (Interactive)</h3>
+
+<p><strong>File</strong>: <code class="language-python highlighter-rouge"><span class="n">report</span><span class="o">-</span><span class="n">YYYYMMDD</span><span class="o">-</span><span class="n">HHMMSS</span><span class="p">.</span><span class="n">html</span></code></p>
+
+<p>The HTML report provides an interactive, visual interface:</p>
+
+<h4 id="features">Features</h4>
+
+<ul>
+  <li><strong>Overall Score Card</strong>: Certification level, score, and visual gauge</li>
+  <li><strong>Tier Summary</strong>: Breakdown by attribute tier (Essential/Critical/Important/Advanced)</li>
+  <li><strong>Attribute Table</strong>: Sortable, filterable list of all attributes</li>
+  <li><strong>Detailed Findings</strong>: Expandable sections for each attribute</li>
+  <li><strong>Search</strong>: Find specific attributes by name or ID</li>
+  <li><strong>Filters</strong>: Show only passed, failed, or skipped attributes</li>
+  <li><strong>Copy Buttons</strong>: One-click code example copying</li>
+  <li><strong>Offline</strong>: No CDN dependencies, works anywhere</li>
+</ul>
+
+<h4 id="how-to-use">How to Use</h4>
+
+<ol>
+  <li><strong>Open in browser</strong>: Double-click the HTML file</li>
+  <li><strong>Review overall score</strong>: Check certification level and tier breakdown</li>
+  <li><strong>Explore findings</strong>:
+    <ul>
+      <li>Green ✅ = Passed</li>
+      <li>Red ❌ = Failed (needs remediation)</li>
+      <li>Gray ⊘ = Skipped (not applicable or not yet implemented)</li>
+    </ul>
+  </li>
+  <li><strong>Click to expand</strong>: View detailed evidence and remediation steps</li>
+  <li><strong>Filter results</strong>: Focus on specific attribute statuses</li>
+  <li><strong>Copy remediation commands</strong>: Use one-click copy for code examples</li>
+</ol>
+
+<h4 id="security">Security</h4>
+
+<p>HTML reports include Content Security Policy (CSP) headers for defense-in-depth:</p>
+
+<ul>
+  <li>Prevents unauthorized script execution</li>
+  <li>Mitigates XSS attack vectors</li>
+  <li>Safe to share and view in any browser</li>
+</ul>
+
+<p>The CSP policy allows only inline styles and scripts needed for interactivity.</p>
+
+<h4 id="sharing">Sharing</h4>
+
+<p>The HTML report is self-contained and can be:</p>
+
+<ul>
+  <li>Emailed to stakeholders</li>
+  <li>Uploaded to internal wikis</li>
+  <li>Viewed on any device with a browser</li>
+  <li>Archived for compliance/audit purposes</li>
+</ul>
+
+<h3 id="markdown-report-version-control-friendly">Markdown Report (Version Control Friendly)</h3>
+
+<p><strong>File</strong>: <code class="language-python highlighter-rouge"><span class="n">report</span><span class="o">-</span><span class="n">YYYYMMDD</span><span class="o">-</span><span class="n">HHMMSS</span><span class="p">.</span><span class="n">md</span></code></p>
+
+<p>The Markdown report is optimized for git tracking:</p>
+
+<h4 id="features-1">Features</h4>
+
+<ul>
+  <li><strong>GitHub-Flavored Markdown</strong>: Renders beautifully on GitHub</li>
+  <li><strong>Git-Diffable</strong>: Track score improvements over time</li>
+  <li><strong>ASCII Tables</strong>: Attribute summaries without HTML</li>
+  <li><strong>Emoji Indicators</strong>: ✅❌⊘ for visual status</li>
+  <li><strong>Certification Ladder</strong>: Visual progress chart</li>
+  <li><strong>Prioritized Next Steps</strong>: Highest-impact improvements first</li>
+</ul>
+
+<h4 id="how-to-use-1">How to Use</h4>
+
+<ol>
+  <li>
+    <p><strong>Commit to repository</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add .agentready/report-latest.md
+git commit <span class="nt">-m</span> <span class="s2">"docs: Add AgentReady assessment report"</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Track progress</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run new assessment</span>
+agentready assess <span class="nb">.</span>
+
+<span class="c"># Compare to previous</span>
+git diff .agentready/report-latest.md
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Review on GitHub</strong>: Push and view formatted Markdown</p>
+  </li>
+  <li>
+    <p><strong>Share in PRs</strong>: Reference in pull request descriptions</p>
+  </li>
+</ol>
+
+<h4 id="recommended-workflow">Recommended Workflow</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Initial baseline</span>
+agentready assess <span class="nb">.</span>
+git add .agentready/report-latest.md
+git commit <span class="nt">-m</span> <span class="s2">"docs: AgentReady baseline (Score: 65.2)"</span>
+
+<span class="c"># Make improvements</span>
+<span class="c"># ... implement recommendations ...</span>
+
+<span class="c"># Re-assess</span>
+agentready assess <span class="nb">.</span>
+git add .agentready/report-latest.md
+git commit <span class="nt">-m</span> <span class="s2">"docs: AgentReady improvements (Score: 72.8, +7.6)"</span>
+</code></pre></div></div>
+
+<h3 id="json-report-machine-readable">JSON Report (Machine-Readable)</h3>
+
+<p><strong>File</strong>: <code class="language-python highlighter-rouge"><span class="n">assessment</span><span class="o">-</span><span class="n">YYYYMMDD</span><span class="o">-</span><span class="n">HHMMSS</span><span class="p">.</span><span class="n">json</span></code></p>
+
+<p>The JSON report contains complete assessment data:</p>
+
+<h4 id="structure">Structure</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-11-21T10:30:00Z"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"repository_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/repo"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"agentready_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"duration_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.35</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"repository"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/repo"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"myproject"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"languages"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"Python"</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="nl">"JavaScript"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"overall_score"</span><span class="p">:</span><span class="w"> </span><span class="mf">75.4</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"certification_level"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Gold"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"tier_scores"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"tier_1"</span><span class="p">:</span><span class="w"> </span><span class="mf">85.0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_2"</span><span class="p">:</span><span class="w"> </span><span class="mf">70.0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_3"</span><span class="p">:</span><span class="w"> </span><span class="mf">65.0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tier_4"</span><span class="p">:</span><span class="w"> </span><span class="mf">50.0</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"findings"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"attribute_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"claude_md_file"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"attribute_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CLAUDE.md File"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"tier"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"weight"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.10</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pass"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"score"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"evidence"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Found CLAUDE.md at repository root"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"remediation"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="use-cases-1">Use Cases</h4>
+
+<p><strong>CI/CD Integration</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Fail build if score &lt; 70</span>
+<span class="nv">score</span><span class="o">=</span><span class="si">$(</span>jq <span class="s1">'.overall_score'</span> .agentready/assessment-latest.json<span class="si">)</span>
+<span class="k">if</span> <span class="o">((</span> <span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$score</span><span class="s2"> &lt; 70"</span> | bc <span class="nt">-l</span><span class="si">)</span> <span class="o">))</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"AgentReady score too low: </span><span class="nv">$score</span><span class="s2">"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi</span>
+</code></pre></div></div>
+
+<p><strong>Trend Analysis</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+
+<span class="c1"># Load all historical assessments
+</span><span class="n">assessments</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="p">.</span><span class="n">glob</span><span class="p">(</span><span class="s">'.agentready/assessment-*.json'</span><span class="p">)):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">assessments</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+
+<span class="c1"># Track score over time
+</span><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">assessments</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s">'metadata'</span><span class="p">][</span><span class="s">'timestamp'</span><span class="p">]</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s">'overall_score'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Custom Reporting</strong>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">json</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">'.agentready/assessment-latest.json'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">assessment</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Extract failed attributes
+</span><span class="n">failed</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">assessment</span><span class="p">[</span><span class="s">'findings'</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s">'status'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'fail'</span>
+<span class="p">]</span>
+
+<span class="c1"># Create custom report
+</span><span class="k">for</span> <span class="n">finding</span> <span class="ow">in</span> <span class="n">failed</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"❌ </span><span class="si">{</span><span class="n">finding</span><span class="p">[</span><span class="s">'attribute_name'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"   </span><span class="si">{</span><span class="n">finding</span><span class="p">[</span><span class="s">'evidence'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="configuration">Configuration</h2>
+
+<h3 id="default-behavior">Default Behavior</h3>
+
+<p>AgentReady works out-of-the-box with sensible defaults. No configuration required for basic usage.</p>
+
+<h3 id="custom-configuration-file">Custom Configuration File</h3>
+
+<p>Create <code class="language-python highlighter-rouge"><span class="p">.</span><span class="n">agentready</span><span class="o">-</span><span class="n">config</span><span class="p">.</span><span class="n">yaml</span></code> to customize:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Custom attribute weights (must sum to 1.0)</span>
+<span class="na">weights</span><span class="pi">:</span>
+  <span class="na">claude_md_file</span><span class="pi">:</span> <span class="m">0.15</span>      <span class="c1"># Increase from default 0.10</span>
+  <span class="na">readme_structure</span><span class="pi">:</span> <span class="m">0.12</span>    <span class="c1"># Increase from default 0.10</span>
+  <span class="na">type_annotations</span><span class="pi">:</span> <span class="m">0.08</span>    <span class="c1"># Decrease from default 0.10</span>
+  <span class="c1"># ... other 22 attributes</span>
+
+<span class="c1"># Exclude specific attributes</span>
+<span class="na">excluded_attributes</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">performance_benchmarks</span>  <span class="c1"># Skip this assessment</span>
+  <span class="pi">-</span> <span class="s">container_setup</span>         <span class="c1"># Not applicable to our project</span>
+
+<span class="c1"># Custom output directory</span>
+<span class="na">output_dir</span><span class="pi">:</span> <span class="s">./reports</span>
+
+<span class="c1"># Verbosity (true/false)</span>
+<span class="na">verbose</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
+
+<h3 id="weight-customization-rules">Weight Customization Rules</h3>
+
+<ol>
+  <li><strong>Must sum to 1.0</strong>: Total weight across all attributes (excluding excluded ones)</li>
+  <li><strong>Minimum weight</strong>: 0.01 (1%)</li>
+  <li><strong>Maximum weight</strong>: 0.20 (20%)</li>
+  <li><strong>Automatic rebalancing</strong>: Excluded attributes’ weights redistribute proportionally</li>
+</ol>
+
+<h3 id="example-security-focused-configuration">Example: Security-Focused Configuration</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Emphasize security attributes</span>
+<span class="na">weights</span><span class="pi">:</span>
+  <span class="na">dependency_security</span><span class="pi">:</span> <span class="m">0.15</span>    <span class="c1"># Default: 0.05</span>
+  <span class="na">secrets_management</span><span class="pi">:</span> <span class="m">0.12</span>     <span class="c1"># Default: 0.05</span>
+  <span class="na">security_scanning</span><span class="pi">:</span> <span class="m">0.10</span>      <span class="c1"># Default: 0.03</span>
+  <span class="c1"># Other weights adjusted to sum to 1.0</span>
+
+<span class="na">excluded_attributes</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">performance_benchmarks</span>
+</code></pre></div></div>
+
+<h3 id="example-documentation-focused-configuration">Example: Documentation-Focused Configuration</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Emphasize documentation quality</span>
+<span class="na">weights</span><span class="pi">:</span>
+  <span class="na">claude_md_file</span><span class="pi">:</span> <span class="m">0.20</span>         <span class="c1"># Default: 0.10</span>
+  <span class="na">readme_structure</span><span class="pi">:</span> <span class="m">0.15</span>       <span class="c1"># Default: 0.10</span>
+  <span class="na">inline_documentation</span><span class="pi">:</span> <span class="m">0.12</span>   <span class="c1"># Default: 0.08</span>
+  <span class="na">api_documentation</span><span class="pi">:</span> <span class="m">0.10</span>      <span class="c1"># Default: 0.05</span>
+  <span class="c1"># Other weights adjusted to sum to 1.0</span>
+</code></pre></div></div>
+
+<h3 id="validate-configuration">Validate Configuration</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Validate configuration file</span>
+agentready <span class="nt">--validate-config</span> .agentready-config.yaml
+
+<span class="c"># Generate example configuration</span>
+agentready <span class="nt">--generate-config</span> <span class="o">&gt;</span> .agentready-config.yaml
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="cli-reference">CLI Reference</h2>
+
+<h3 id="main-commands">Main Commands</h3>
+
+<h4 id="agentready-assess-path"><code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="n">assess</span> <span class="n">PATH</span></code></h4>
+
+<p>Assess a repository at the specified path.</p>
+
+<p><strong>Arguments</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="n">PATH</span></code> — Repository path to assess (required)</li>
+</ul>
+
+<p><strong>Options</strong>:</p>
+
+<ul>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">verbose</span><span class="p">,</span> <span class="o">-</span><span class="n">v</span></code> — Show detailed progress information</li>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">config</span> <span class="n">FILE</span><span class="p">,</span> <span class="o">-</span><span class="n">c</span> <span class="n">FILE</span></code> — Use custom configuration file</li>
+  <li><code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">dir</span> <span class="n">DIR</span><span class="p">,</span> <span class="o">-</span><span class="n">o</span> <span class="n">DIR</span></code> — Custom report output directory</li>
+</ul>
+
+<p><strong>Examples</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready assess <span class="nb">.</span>
+agentready assess /path/to/repo
+agentready assess <span class="nb">.</span> <span class="nt">--verbose</span>
+agentready assess <span class="nb">.</span> <span class="nt">--config</span> custom.yaml
+agentready assess <span class="nb">.</span> <span class="nt">--output-dir</span> ./reports
+</code></pre></div></div>
+
+<h3 id="configuration-commands">Configuration Commands</h3>
+
+<h4 id="agentready---generate-config"><code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="o">--</span><span class="n">generate</span><span class="o">-</span><span class="n">config</span></code></h4>
+
+<p>Generate example configuration file.</p>
+
+<p><strong>Output</strong>: Prints YAML configuration to stdout.</p>
+
+<p><strong>Example</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready <span class="nt">--generate-config</span> <span class="o">&gt;</span> .agentready-config.yaml
+</code></pre></div></div>
+
+<h4 id="agentready---validate-config-file"><code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="o">--</span><span class="n">validate</span><span class="o">-</span><span class="n">config</span> <span class="n">FILE</span></code></h4>
+
+<p>Validate configuration file syntax and weights.</p>
+
+<p><strong>Example</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready <span class="nt">--validate-config</span> .agentready-config.yaml
+</code></pre></div></div>
+
+<h3 id="research-commands">Research Commands</h3>
+
+<h4 id="agentready---research-version"><code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="o">--</span><span class="n">research</span><span class="o">-</span><span class="n">version</span></code></h4>
+
+<p>Show bundled research document version.</p>
+
+<p><strong>Example</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready <span class="nt">--research-version</span>
+<span class="c"># Output: Research version: 1.0.0 (2025-11-20)</span>
+</code></pre></div></div>
+
+<h3 id="utility-commands">Utility Commands</h3>
+
+<h4 id="agentready---version"><code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="o">--</span><span class="n">version</span></code></h4>
+
+<p>Show AgentReady version.</p>
+
+<h4 id="agentready---help"><code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="o">--</span><span class="n">help</span></code></h4>
+
+<p>Show help message with all commands.</p>
+
+<hr />
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="common-issues">Common Issues</h3>
+
+<h4 id="no-module-named-agentready">“No module named ‘agentready’”</h4>
+
+<p><strong>Cause</strong>: AgentReady not installed or wrong Python environment.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Verify Python version</span>
+python <span class="nt">--version</span>  <span class="c"># Should be 3.11 or 3.12</span>
+
+<span class="c"># Check installation</span>
+pip list | <span class="nb">grep </span>agentready
+
+<span class="c"># Reinstall if missing</span>
+pip <span class="nb">install </span>agentready
+</code></pre></div></div>
+
+<h4 id="permission-denied-agentready">“Permission denied: .agentready/”</h4>
+
+<p><strong>Cause</strong>: No write permissions in repository directory.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Use custom output directory</span>
+agentready assess <span class="nb">.</span> <span class="nt">--output-dir</span> ~/agentready-reports
+
+<span class="c"># Or fix permissions</span>
+<span class="nb">chmod </span>u+w <span class="nb">.</span>
+</code></pre></div></div>
+
+<h4 id="repository-not-found">“Repository not found”</h4>
+
+<p><strong>Cause</strong>: Path does not point to a git repository.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Verify git repository</span>
+git status
+
+<span class="c"># If not a git repo, initialize one</span>
+git init
+</code></pre></div></div>
+
+<h4 id="assessment-taking-too-long">“Assessment taking too long”</h4>
+
+<p><strong>Cause</strong>: Large repository with many files.</p>
+
+<p><strong>Solution</strong>:
+AgentReady should complete in &lt;10 seconds for most repositories. If it hangs:</p>
+
+<ol>
+  <li>
+    <p><strong>Check verbose output</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agentready assess <span class="nb">.</span> <span class="nt">--verbose</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Verify git performance</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">time </span>git ls-files
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Report issue</strong> with repository size and language breakdown.</p>
+  </li>
+</ol>
+
+<p><strong>Note</strong>: AgentReady will now warn you before scanning repositories with more than 10,000 files:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">⚠️</span>  <span class="nb">Warning</span><span class="p">:</span> <span class="n">Large</span> <span class="n">repository</span> <span class="n">detected</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">543</span> <span class="n">files</span><span class="p">).</span>
+<span class="n">Assessment</span> <span class="n">may</span> <span class="n">take</span> <span class="n">several</span> <span class="n">minutes</span><span class="p">.</span> <span class="n">Continue</span><span class="err">?</span> <span class="p">[</span><span class="n">y</span><span class="o">/</span><span class="n">N</span><span class="p">]:</span>
+</code></pre></div></div>
+
+<h4 id="warning-scanning-sensitive-directory">“Warning: Scanning sensitive directory”</h4>
+
+<p><strong>Cause</strong>: Attempting to scan system directories like <code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">etc</span></code>, <code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">sys</span></code>, <code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">proc</span></code>, <code class="language-python highlighter-rouge"><span class="o">/</span><span class="p">.</span><span class="n">ssh</span></code>, or <code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">var</span></code>.</p>
+
+<p><strong>Solution</strong>:
+AgentReady includes safety checks to prevent accidental scanning of sensitive system directories:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">⚠️</span>  <span class="nb">Warning</span><span class="p">:</span> <span class="n">Scanning</span> <span class="n">sensitive</span> <span class="n">directory</span> <span class="o">/</span><span class="n">etc</span><span class="p">.</span> <span class="n">Continue</span><span class="err">?</span> <span class="p">[</span><span class="n">y</span><span class="o">/</span><span class="n">N</span><span class="p">]:</span>
+</code></pre></div></div>
+
+<p><strong>Best practices</strong>:</p>
+
+<ul>
+  <li>Only scan your own project repositories</li>
+  <li>Never scan system directories or sensitive configuration folders</li>
+  <li>If you need to assess a project in <code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">www</span></code>, copy it to a user directory first</li>
+  <li>Use <code class="language-python highlighter-rouge"><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">dir</span></code> to avoid writing reports to sensitive locations</li>
+</ul>
+
+<h4 id="invalid-configuration-file">“Invalid configuration file”</h4>
+
+<p><strong>Cause</strong>: Malformed YAML or incorrect weight values.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Validate configuration</span>
+agentready <span class="nt">--validate-config</span> .agentready-config.yaml
+
+<span class="c"># Check YAML syntax</span>
+python <span class="nt">-c</span> <span class="s2">"import yaml; yaml.safe_load(open('.agentready-config.yaml'))"</span>
+
+<span class="c"># Regenerate from template</span>
+agentready <span class="nt">--generate-config</span> <span class="o">&gt;</span> .agentready-config.yaml
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="bootstrap-specific-issues">Bootstrap-Specific Issues</h3>
+
+<h4 id="file-already-exists-error">“File already exists” error</h4>
+
+<p><strong>Cause</strong>: Bootstrap refuses to overwrite existing files.</p>
+
+<p><strong>Solution</strong>:
+Bootstrap is safe by design—it never overwrites existing files. This is expected behavior:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Review what files already exist</span>
+<span class="nb">ls</span> <span class="nt">-la</span> .github/workflows/
+<span class="nb">ls</span> <span class="nt">-la</span> .pre-commit-config.yaml
+
+<span class="c"># If you want to regenerate, manually remove first</span>
+<span class="nb">rm</span> .github/workflows/agentready-assessment.yml
+agentready bootstrap <span class="nb">.</span>
+
+<span class="c"># Or keep existing and only add missing files</span>
+agentready bootstrap <span class="nb">.</span>  <span class="c"># Safely skips existing</span>
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="language-detection-failed">“Language detection failed”</h4>
+
+<p><strong>Cause</strong>: No recognizable language files in repository.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check what files git tracks</span>
+git ls-files
+
+<span class="c"># If empty, add some files first</span>
+git add <span class="k">*</span>.py  <span class="c"># or *.js, *.go</span>
+
+<span class="c"># Force specific language</span>
+agentready bootstrap <span class="nb">.</span> <span class="nt">--language</span> python
+
+<span class="c"># Or if mixed language project</span>
+agentready bootstrap <span class="nb">.</span> <span class="nt">--language</span> auto  <span class="c"># Uses majority language</span>
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="github-actions-not-running">“GitHub Actions not running”</h4>
+
+<p><strong>Cause</strong>: Actions not enabled or insufficient permissions.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<ol>
+  <li><strong>Enable Actions</strong>:
+    <ul>
+      <li>Repository Settings → Actions → General</li>
+      <li>Select “Allow all actions”</li>
+      <li>Save</li>
+    </ul>
+  </li>
+  <li><strong>Check workflow permissions</strong>:
+    <ul>
+      <li>Settings → Actions → General → Workflow permissions</li>
+      <li>Select “Read and write permissions”</li>
+      <li>Save</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Verify workflow files</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check files were created</span>
+<span class="nb">ls</span> <span class="nt">-la</span> .github/workflows/
+
+<span class="c"># Validate YAML syntax</span>
+<span class="nb">cat</span> .github/workflows/agentready-assessment.yml
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Trigger manually</strong>:
+    <ul>
+      <li>Actions tab → Select workflow → “Run workflow”</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h4 id="pre-commit-hooks-not-running">“Pre-commit hooks not running”</h4>
+
+<p><strong>Cause</strong>: Hooks not installed locally.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install pre-commit framework</span>
+pip <span class="nb">install </span>pre-commit
+
+<span class="c"># Install git hooks</span>
+pre-commit <span class="nb">install</span>
+
+<span class="c"># Verify installation</span>
+<span class="nb">ls</span> <span class="nt">-la</span> .git/hooks/
+<span class="c"># Should see pre-commit file</span>
+
+<span class="c"># Test hooks</span>
+pre-commit run <span class="nt">--all-files</span>
+</code></pre></div></div>
+
+<p><strong>If hooks fail:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Update hook versions</span>
+pre-commit autoupdate
+
+<span class="c"># Clear cache</span>
+pre-commit clean
+
+<span class="c"># Reinstall</span>
+pre-commit uninstall
+pre-commit <span class="nb">install</span>
+</code></pre></div></div>
+
+<hr />
+
+<h4 id="dependabot-prs-not-appearing">“Dependabot PRs not appearing”</h4>
+
+<p><strong>Cause</strong>: Dependabot not enabled for repository or incorrect config.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<ol>
+  <li><strong>Check Dependabot is enabled</strong>:
+    <ul>
+      <li>Repository Settings → Security &amp; analysis</li>
+      <li>Enable “Dependabot alerts” and “Dependabot security updates”</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Verify config</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat</span> .github/dependabot.yml
+
+<span class="c"># Should have correct package-ecosystem:</span>
+<span class="c"># - pip (for Python)</span>
+<span class="c"># - npm (for JavaScript)</span>
+<span class="c"># - gomod (for Go)</span>
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Check for existing dependency issues</strong>:
+    <ul>
+      <li>Security tab → Dependabot</li>
+      <li>View pending updates</li>
+    </ul>
+  </li>
+  <li><strong>Manual trigger</strong>:
+    <ul>
+      <li>Wait up to 1 week for first scheduled run</li>
+      <li>Or manually trigger via GitHub API</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h4 id="codeowners-not-assigning-reviewers">“CODEOWNERS not assigning reviewers”</h4>
+
+<p><strong>Cause</strong>: Invalid usernames or team names in CODEOWNERS.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Edit CODEOWNERS</span>
+vim .github/CODEOWNERS
+
+<span class="c"># Use valid GitHub usernames (check they exist)</span>
+<span class="k">*</span> @alice @bob
+
+<span class="c"># Or use teams (requires org ownership)</span>
+<span class="k">*</span> @myorg/team-name
+
+<span class="c"># Verify syntax</span>
+<span class="c"># Each line: &lt;file pattern&gt; &lt;owner1&gt; &lt;owner2&gt;</span>
+<span class="k">*</span>.py @python-experts
+/docs/ @documentation-team
+</code></pre></div></div>
+
+<p><strong>Common mistakes:</strong></p>
+
+<ul>
+  <li>Using email instead of GitHub username</li>
+  <li>Typo in username</li>
+  <li>Team name without org prefix (@myorg/team)</li>
+  <li>Missing @ symbol</li>
+</ul>
+
+<hr />
+
+<h4 id="assessment-workflow-failing">“Assessment workflow failing”</h4>
+
+<p><strong>Cause</strong>: Various potential issues with workflow execution.</p>
+
+<p><strong>Solution</strong>:</p>
+
+<ol>
+  <li><strong>Check workflow logs</strong>:
+    <ul>
+      <li>Actions tab → Select failed run → View logs</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Common failures</strong>:</p>
+
+    <p><strong>Python not found:</strong></p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># In .github/workflows/agentready-assessment.yml</span>
+<span class="c1"># Ensure correct Python version</span>
+<span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/setup-python@v4</span>
+  <span class="na">with</span><span class="pi">:</span>
+    <span class="na">python-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.11'</span>  <span class="c1"># Or '3.12'</span>
+</code></pre></div>    </div>
+
+    <p><strong>AgentReady not installing:</strong></p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Check pip install step</span>
+<span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">pip install agentready</span>
+
+<span class="c1"># Or use specific version</span>
+<span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">pip install agentready==1.1.0</span>
+</code></pre></div>    </div>
+
+    <p><strong>Permission denied:</strong></p>
+
+    <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Add permissions to workflow</span>
+<span class="na">permissions</span><span class="pi">:</span>
+  <span class="na">contents</span><span class="pi">:</span> <span class="s">read</span>
+  <span class="na">pull-requests</span><span class="pi">:</span> <span class="s">write</span>  <span class="c1"># For PR comments</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Test locally</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run same commands as workflow</span>
+pip <span class="nb">install </span>agentready
+agentready assess <span class="nb">.</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<hr />
+
+<h3 id="report-issues">Report Issues</h3>
+
+<p>If you encounter issues not covered here:</p>
+
+<ol>
+  <li><strong>Check GitHub Issues</strong>: <a href="https://github.com/ambient-code/agentready/issues">github.com/ambient-code/agentready/issues</a></li>
+  <li><strong>Search Discussions</strong>: Someone may have encountered similar problems</li>
+  <li><strong>Create New Issue</strong>: Use the bug report template with:
+    <ul>
+      <li>AgentReady version (<code class="language-python highlighter-rouge"><span class="n">agentready</span> <span class="o">--</span><span class="n">version</span></code>)</li>
+      <li>Python version (<code class="language-python highlighter-rouge"><span class="n">python</span> <span class="o">--</span><span class="n">version</span></code>)</li>
+      <li>Operating system</li>
+      <li>Complete error message</li>
+      <li>Steps to reproduce</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ul>
+  <li><strong><a href="developer-guide.html">Developer Guide</a></strong> — Learn how to contribute and extend AgentReady</li>
+  <li><strong><a href="attributes.html">Attributes Reference</a></strong> — Understand each of the 25 attributes</li>
+  <li><strong><a href="api-reference.html">API Reference</a></strong> — Integrate AgentReady into your tools</li>
+  <li><strong><a href="examples.html">Examples</a></strong> — See real-world assessment reports</li>
+</ul>
+
+<hr />
+
+<p><strong>Questions?</strong> Join the discussion on <a href="https://github.com/ambient-code/agentready/discussions">GitHub</a>.</p>
+
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v1.0.0 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

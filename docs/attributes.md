@@ -3,8 +3,6 @@ layout: page
 title: Attributes Reference
 ---
 
-# Attributes Reference
-
 Complete reference for all 25 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
