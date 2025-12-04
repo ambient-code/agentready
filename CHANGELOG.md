@@ -1,3 +1,25 @@
+# [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-04)
+
+
+### Bug Fixes
+
+* disable attestations for Test PyPI to avoid conflict ([#155](https://github.com/jeremyeder/agentready/issues/155)) ([a33e3cd](https://github.com/jeremyeder/agentready/commit/a33e3cd2d86d4a461701e906070ab3eae8ca8082)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* leaderboard workflow and SSH URL support ([#147](https://github.com/jeremyeder/agentready/issues/147)) ([de28cd0](https://github.com/jeremyeder/agentready/commit/de28cd0a6037a0951ba370aa73832553c088cfb8))
+
+
+### Features
+
+* add ambient-code/agentready to leaderboard ([#148](https://github.com/jeremyeder/agentready/issues/148)) ([621152e](https://github.com/jeremyeder/agentready/commit/621152e46bd8e9505e3bc1775d2cd61a80af5a62))
+* Add release workflow housekeeping ([7d3136c](https://github.com/jeremyeder/agentready/commit/7d3136c79ba18d604b3e6b2b8ddaacb9f6d9b55f)), closes [#156](https://github.com/jeremyeder/agentready/issues/156)
+* Add weekly research update skill and automation ([#145](https://github.com/jeremyeder/agentready/issues/145)) ([7ba17a6](https://github.com/jeremyeder/agentready/commit/7ba17a6b045251cbc9f26b5c2f4a0ec31d89dd11))
+* automate PyPI publishing with trusted publishing (OIDC) ([#154](https://github.com/jeremyeder/agentready/issues/154)) ([71f4632](https://github.com/jeremyeder/agentready/commit/71f4632cb188d8c9db377c9f216c047e20727f99)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* trigger release to demonstrate new housekeeping features ([3beffe4](https://github.com/jeremyeder/agentready/commit/3beffe472cbd3fc5f3264e515d21ec46d9de1c76))
+
+
+### Performance Improvements
+
+* implement lazy loading for heavy CLI commands ([#151](https://github.com/jeremyeder/agentready/issues/151)) ([6a7cd4e](https://github.com/jeremyeder/agentready/commit/6a7cd4e147ebfdfc95921b86599a5b650db76153))
+
 # [2.12.0](https://github.com/ambient-code/agentready/compare/v2.11.1...v2.12.0) (2025-12-04)
 
 
