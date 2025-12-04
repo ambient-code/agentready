@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/jeremyeder/agentready/compare/v2.10.0...v2.11.0) (2025-12-04)
+
+
+### Features
+
+* add release pipeline visualization to homepage ([ab9db59](https://github.com/jeremyeder/agentready/commit/ab9db592d92faca923ce290a03e35518993d7a94))
+
 # [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-04)
 
 
