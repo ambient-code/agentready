@@ -1,0 +1,43 @@
+# Pre-commit hooks for TypeScript projects
+# See https://pre-commit.com for more information
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-json
+      - id: mixed-line-ending
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.39.1
+    hooks:
+      - id: eslint
+        files: \.[jt]sx?$
+        types: [file]
+        args: ["--fix"]
+        additional_dependencies:
+          - eslint@9.39.1
+          - "@typescript-eslint/parser@8.48.1"
+          - "@typescript-eslint/eslint-plugin@8.48.1"
+          - eslint-config-standard@17.1.0
+          - eslint-plugin-import@2.29.1
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.7.4
+    hooks:
+      - id: prettier
+        types_or: [javascript, jsx, ts, tsx, json, yaml, markdown]
+
+  # Security scanning (commented out by default - may slow down commits)
+  # - repo: local
+  #   hooks:
+  #     - id: npm-audit
+  #       name: npm audit
+  #       entry: npm audit --audit-level=moderate
+  #       language: system
+  #       pass_filenames: false

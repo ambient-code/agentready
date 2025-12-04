@@ -1,14 +1,17 @@
 """Fixers for testing-related attributes."""
 
+import logging
 from pathlib import Path
 from typing import Optional
 
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, PackageLoader, TemplateError, TemplateNotFound
 
 from ..models.finding import Finding
 from ..models.fix import CommandFix, FileCreationFix, Fix, MultiStepFix
 from ..models.repository import Repository
 from .base import BaseFixer
+
+logger = logging.getLogger(__name__)
 
 
 class PrecommitHooksFixer(BaseFixer):
@@ -39,19 +42,36 @@ class PrecommitHooksFixer(BaseFixer):
         # Determine primary language (use Python as default)
         primary_lang = "python"
         if repository.languages:
-            primary_lang = max(
-                repository.languages, key=repository.languages.get
-            ).lower()
+            detected_lang = max(repository.languages, key=repository.languages.get)
+            primary_lang = detected_lang.lower()
+            logger.debug(
+                f"Detected primary language: {detected_lang} (normalized: {primary_lang})"
+            )
 
         # Try to load language-specific template, fallback to python
+        template_name = f"precommit-{primary_lang}.yaml.j2"
         try:
-            template = self.env_bootstrap.get_template(
-                f"precommit-{primary_lang}.yaml.j2"
+            template = self.env_bootstrap.get_template(template_name)
+            logger.info(f"Using pre-commit template for {primary_lang}")
+        except TemplateNotFound:
+            logger.warning(
+                f"Template {template_name} not found, falling back to Python template"
             )
-        except Exception:
-            template = self.env_bootstrap.get_template("precommit-python.yaml.j2")
+            try:
+                template = self.env_bootstrap.get_template("precommit-python.yaml.j2")
+            except (TemplateNotFound, TemplateError) as e:
+                logger.error(f"Cannot load pre-commit template: {e}")
+                return None
+        except TemplateError as e:
+            logger.error(f"Template error for {template_name}: {e}")
+            return None
 
-        content = template.render()
+        # Render and validate template
+        try:
+            content = template.render()
+        except TemplateError as e:
+            logger.error(f"Failed to render pre-commit template: {e}")
+            return None
 
         # Create file creation fix
         file_fix = FileCreationFix(
