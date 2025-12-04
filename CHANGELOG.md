@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/ambient-code/agentready/compare/v2.12.3...v2.13.0) (2025-12-04)
+
+
+### Features
+
+* add quay/quay to leaderboard ([#162](https://github.com/ambient-code/agentready/issues/162)) ([d6e8df0](https://github.com/ambient-code/agentready/commit/d6e8df0e9d92c4ec82004c5e62c798986feb1000))
+
 ## [2.12.3](https://github.com/ambient-code/agentready/compare/v2.12.2...v2.12.3) (2025-12-04)
 
 
