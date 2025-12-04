@@ -8,9 +8,9 @@
 
 ## Overview
 
-AgentReady is a Python CLI tool that evaluates repositories against 25 carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
+AgentReady is a Python CLI tool that evaluates repositories against a comprehensive set of carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v2.9.0 - Core assessment engine complete, 22/31 attributes implemented (9 stubs), LLM-powered learning, research report management
+**Current Status**: v2.9.0 - Core assessment engine complete, most essential assessors implemented, LLM-powered learning, research report management
 
 **Self-Assessment Score**: 80.0/100 (Gold) - See `examples/self-assessment/`
 
@@ -36,7 +36,7 @@ src/agentready/
 │   ├── testing.py         # Test coverage, pre-commit hooks
 │   ├── structure.py       # Standard layout, gitignore
 │   ├── repomix.py         # Repomix configuration assessor
-│   └── stub_assessors.py  # 9 stub assessors (22 implemented)
+│   └── stub_assessors.py  # Remaining assessors in development
 ├── learners/        # Pattern extraction and LLM enrichment
 │   ├── pattern_extractor.py  # Heuristic skill extraction
 │   ├── skill_generator.py    # SKILL.md generation
@@ -283,7 +283,7 @@ chore: Update dependencies
 ## Roadmap
 
 ### v2.x - Current Development (In Progress)
-- **In Progress**: Expand remaining 9 stub assessors (22/31 implemented)
+- **In Progress**: Expand remaining stub assessors
 - **In Progress**: Improve test coverage to >80%
 - **Planned**: Bootstrap command (automated remediation)
 - **Planned**: Align command (automated alignment)

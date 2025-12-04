@@ -3,15 +3,15 @@
 [![codecov](https://codecov.io/gh/ambient-code/agentready/branch/main/graph/badge.svg)](https://codecov.io/gh/ambient-code/agentready)
 [![Tests](https://github.com/ambient-code/agentready/workflows/Tests/badge.svg)](https://github.com/ambient-code/agentready/actions/workflows/tests.yml)
 
-Assess git repositories against 25 evidence-based attributes for AI-assisted development readiness.
+Assess git repositories against evidence-based attributes for AI-assisted development readiness.
 
-> **📚 Research-Based Assessment**: AgentReady's 25 attributes are derived from [comprehensive research](agent-ready-codebase-attributes.md) analyzing 50+ authoritative sources including **Anthropic**, **Microsoft**, **Google**, **ArXiv**, and **IEEE/ACM**. Each attribute is backed by peer-reviewed research and industry best practices. [View full research report →](agent-ready-codebase-attributes.md)
+> **📚 Research-Based Assessment**: AgentReady's attributes are derived from [comprehensive research](agent-ready-codebase-attributes.md) analyzing 50+ authoritative sources including **Anthropic**, **Microsoft**, **Google**, **ArXiv**, and **IEEE/ACM**. Each attribute is backed by peer-reviewed research and industry best practices. [View full research report →](agent-ready-codebase-attributes.md)
 
 ## Overview
 
 AgentReady evaluates your repository across multiple dimensions of code quality, documentation, testing, and infrastructure to determine how well-suited it is for AI-assisted development workflows. The tool generates comprehensive reports with:
 
-- **Overall Score & Certification**: Platinum/Gold/Silver/Bronze based on 25 attributes
+- **Overall Score & Certification**: Platinum/Gold/Silver/Bronze based on comprehensive attribute assessment
 - **Interactive HTML Reports**: Filter, sort, and explore findings with embedded guidance
 - **Version-Control-Friendly Markdown**: Track progress over time with git-diffable reports
 - **Actionable Remediation**: Specific tools, commands, and examples to improve each attribute
@@ -82,7 +82,7 @@ Assessing repository: myproject
 Repository: /Users/username/myproject
 Languages detected: Python (42 files), JavaScript (18 files)
 
-Evaluating 25 attributes...
+Evaluating attributes...
 [████████████████████████░░░░░░░░] 23/25 (2 skipped)
 
 Overall Score: 72.5/100 (Silver)
@@ -96,7 +96,7 @@ Reports generated:
 
 ## Features
 
-### 25 Evidence-Based Attributes
+### Evidence-Based Attributes
 
 Evaluated across 13 categories:
 
@@ -144,7 +144,7 @@ weights:
   claude_md_file: 0.15      # Increase importance (default: 0.10)
   test_coverage: 0.05       # Increase importance (default: 0.03)
   conventional_commits: 0.01  # Decrease importance (default: 0.03)
-  # Other 22 attributes use defaults, rescaled to sum to 1.0
+  # Other attributes use defaults, rescaled to sum to 1.0
 
 excluded_attributes:
   - performance_benchmarks  # Skip this attribute
@@ -242,7 +242,7 @@ tests/
 
 ## Research Foundation
 
-All 25 attributes are derived from evidence-based research with 50+ citations from:
+All attributes are derived from evidence-based research with 50+ citations from:
 
 - Anthropic (Claude Code documentation, engineering blog)
 - Microsoft (Code metrics, Azure DevOps best practices)
