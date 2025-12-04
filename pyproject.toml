@@ -1,6 +1,6 @@
 [project]
 name = "agentready"
-version = "2.11.0"
+version = "2.11.2"
 description = "Assess and bootstrap git repositories for AI-assisted development with automated remediation and continuous learning"
 authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
 readme = "README.md"
@@ -51,7 +51,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["agentready", "agentready.cli", "agentready.assessors", "agentready.models", "agentready.services", "agentready.reporters", "agentready.learners"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 agentready = [
