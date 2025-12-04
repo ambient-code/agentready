@@ -51,7 +51,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["agentready", "agentready.cli", "agentready.assessors", "agentready.models", "agentready.services", "agentready.reporters", "agentready.learners", "agentready.utils", "agentready.fixers", "agentready.github"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 agentready = [
