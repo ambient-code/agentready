@@ -21,17 +21,17 @@ from ..reporters.markdown import MarkdownReporter
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
 from ..utils.subprocess_utils import safe_subprocess_run
+
+# Lightweight commands - imported immediately
 from .align import align
-from .assess_batch import assess_batch
 from .bootstrap import bootstrap
 from .demo import demo
-from .experiment import experiment
-from .extract_skills import extract_skills
-from .learn import learn
 from .repomix import repomix_generate
 from .research import research
 from .schema import migrate_report, validate_report
-from .submit import submit
+
+# Heavy commands - lazy loaded via LazyGroup
+# (assess_batch, experiment, extract_skills, learn, submit)
 
 
 def get_agentready_version() -> str:
@@ -46,7 +46,55 @@ def get_agentready_version() -> str:
         return "unknown"
 
 
-@click.group(invoke_without_command=True)
+class LazyGroup(click.Group):
+    """Click group that lazily loads heavy commands to improve startup time.
+
+    Commands like 'experiment', 'extract-skills', and 'assess-batch' import heavy
+    dependencies (scipy, pandas, anthropic) that add ~1 second to startup time.
+    This class defers those imports until the command is actually invoked.
+    """
+
+    def __init__(self, *args, lazy_subcommands=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.lazy_subcommands = lazy_subcommands or {}
+
+    def list_commands(self, ctx):
+        """Return list of all command names (including lazy ones)."""
+        base_commands = super().list_commands(ctx)
+        return sorted(list(base_commands) + list(self.lazy_subcommands.keys()))
+
+    def get_command(self, ctx, cmd_name):
+        """Load command on-demand."""
+        # Try normal (already loaded) commands first
+        command = super().get_command(ctx, cmd_name)
+        if command:
+            return command
+
+        # Try lazy commands
+        if cmd_name in self.lazy_subcommands:
+            module_name, command_name = self.lazy_subcommands[cmd_name]
+            module = __import__(
+                f"agentready.cli.{module_name}", fromlist=[command_name]
+            )
+            command = getattr(module, command_name)
+            # Cache the loaded command for future use
+            self.add_command(command, cmd_name)
+            return command
+
+        return None
+
+
+@click.group(
+    invoke_without_command=True,
+    cls=LazyGroup,
+    lazy_subcommands={
+        "assess-batch": ("assess_batch", "assess_batch"),
+        "experiment": ("experiment", "experiment"),
+        "extract-skills": ("extract_skills", "extract_skills"),
+        "learn": ("learn", "learn"),
+        "submit": ("submit", "submit"),
+    },
+)
 @click.option("--version", is_flag=True, help="Show version information")
 @click.pass_context
 def cli(ctx, version):
@@ -337,19 +385,20 @@ def generate_config():
     click.echo("Edit this file to customize weights and behavior.")
 
 
-# Register commands
+# Register lightweight commands (heavy commands loaded lazily via LazyGroup)
 cli.add_command(align)
-cli.add_command(assess_batch)
 cli.add_command(bootstrap)
 cli.add_command(demo)
-cli.add_command(experiment)
-cli.add_command(extract_skills)
-cli.add_command(learn)
 cli.add_command(migrate_report)
 cli.add_command(repomix_generate)
 cli.add_command(research)
-cli.add_command(submit)
 cli.add_command(validate_report)
+# Lazy-loaded commands (not registered here):
+#   - assess-batch (imports pandas)
+#   - experiment (imports scipy, pandas)
+#   - extract-skills (imports anthropic)
+#   - learn (imports anthropic)
+#   - submit (imports github)
 
 
 def show_version():
