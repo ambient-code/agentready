@@ -592,6 +592,29 @@
             </div>
         </div>
 
+        <!-- Configuration Summary -->
+        {% if config %}
+        <div class="config-summary" style="margin: 30px 0; padding: 20px; background: var(--surface-elevated); border-radius: 8px; border: 2px solid var(--primary);">
+            <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 22px;">⚙️ Configuration Used</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">This assessment used custom configuration:</p>
+            <ul style="list-style: none; padding-left: 0; color: var(--text-secondary); font-size: 17px;">
+                {% if config.weights %}
+                <li style="padding: 5px 0;">📊 <strong>Custom weights:</strong> {{ config.weights|length }} attributes</li>
+                {% endif %}
+                {% if config.excluded_attributes %}
+                <li style="padding: 5px 0;">⊘ <strong>Excluded attributes:</strong> {{ config.excluded_attributes|join(", ") }}</li>
+                {% endif %}
+                {% if config.output_dir %}
+                <li style="padding: 5px 0;">📁 <strong>Output directory:</strong> <code style="background: var(--surface); padding: 2px 6px; border-radius: 3px;">{{ config.output_dir }}</code></li>
+                {% endif %}
+                {% if config.language_overrides %}
+                <li style="padding: 5px 0;">🔧 <strong>Language overrides:</strong> {{ config.language_overrides|length }} languages</li>
+                {% endif %}
+                <li style="padding: 5px 0;">🎨 <strong>Theme:</strong> {{ config.report_theme }}</li>
+            </ul>
+        </div>
+        {% endif %}
+
         <!-- Controls -->
         <div class="controls">
             <div class="control-group">

@@ -42,6 +42,10 @@ class MarkdownReporter(BaseReporter):
         # Certification Ladder
         sections.append(self._generate_certification_ladder(assessment))
 
+        # Configuration Summary (if config used)
+        if assessment.config:
+            sections.append(self._generate_config_summary(assessment))
+
         # Findings by Category
         sections.append(self._generate_findings(assessment))
 
@@ -135,6 +139,32 @@ class MarkdownReporter(BaseReporter):
         for name, emoji, range_str, is_active in levels:
             marker = "**→ YOUR LEVEL ←**" if is_active else ""
             lines.append(f"- {emoji} **{name}** ({range_str}) {marker}")
+
+        return "\n".join(lines)
+
+    def _generate_config_summary(self, assessment: Assessment) -> str:
+        """Generate configuration summary section."""
+        config = assessment.config
+        lines = ["## ⚙️ Configuration Used", ""]
+        lines.append("This assessment used custom configuration:")
+        lines.append("")
+
+        if config.weights:
+            lines.append(f"- 📊 **Custom weights**: {len(config.weights)} attributes")
+
+        if config.excluded_attributes:
+            excluded = ", ".join(config.excluded_attributes)
+            lines.append(f"- ⊘ **Excluded attributes**: {excluded}")
+
+        if config.output_dir:
+            lines.append(f"- 📁 **Output directory**: `{config.output_dir}`")
+
+        if config.language_overrides:
+            lines.append(
+                f"- 🔧 **Language overrides**: {len(config.language_overrides)} languages"
+            )
+
+        lines.append(f"- 🎨 **Theme**: {config.report_theme}")
 
         return "\n".join(lines)
 
