@@ -106,21 +106,6 @@ pip <span class="nb">install</span> <span class="nt">-e</span> <span class="nb">
 uv pip <span class="nb">install</span> <span class="nt">-e</span> <span class="nb">.</span>
 </code></pre></div></div>
 
-<h3 id="development-installation">Development Installation</h3>
-
-<p>If you plan to contribute or modify AgentReady:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install with development dependencies</span>
-pip <span class="nb">install</span> <span class="nt">-e</span> <span class="s2">".[dev]"</span>
-
-<span class="c"># Or using uv</span>
-uv pip <span class="nb">install</span> <span class="nt">-e</span> <span class="s2">".[dev]"</span>
-
-<span class="c"># Verify installation</span>
-pytest <span class="nt">--version</span>
-black <span class="nt">--version</span>
-</code></pre></div></div>
-
 <hr />
 
 <h2 id="quick-start">Quick Start</h2>
@@ -144,17 +129,7 @@ git commit <span class="nt">-m</span> <span class="s2">"build: Bootstrap agent-r
 git push
 </code></pre></div></div>
 
-<p><strong>What happens:</strong></p>
-
-<ul>
-  <li>✅ GitHub Actions workflows created (tests, security, assessment)</li>
-  <li>✅ Pre-commit hooks configured</li>
-  <li>✅ Issue/PR templates added</li>
-  <li>✅ Dependabot enabled</li>
-  <li>✅ Assessment runs automatically on next PR</li>
-</ul>
-
-<p><strong>Duration</strong>: &lt;60 seconds including review time.</p>
+<p>Bootstrap generates complete CI/CD infrastructure: GitHub Actions workflows (tests, security, assessment), pre-commit hooks, issue/PR templates, and Dependabot configuration. Assessment runs automatically on your next PR. <strong>Duration</strong>: &lt;60 seconds.</p>
 
 <p><a href="#bootstrap-your-repository">See detailed Bootstrap tutorial →</a></p>
 
@@ -172,16 +147,7 @@ agentready batch repo1/ repo2/ repo3/ <span class="nt">--output-dir</span> ./bat
 open batch-reports/comparison-summary.html
 </code></pre></div></div>
 
-<p><strong>What you get:</strong></p>
-
-<ul>
-  <li>✅ Individual reports for each repository</li>
-  <li>✅ Comparison table showing scores side-by-side</li>
-  <li>✅ Aggregate statistics across all repositories</li>
-  <li>✅ Trend analysis for multi-repo projects</li>
-</ul>
-
-<p><strong>Duration</strong>: Varies by number of repositories (~5 seconds per repo).</p>
+<p>Batch assessment generates individual reports for each repository plus a comparison table, aggregate statistics, and trend analysis for multi-repo projects. <strong>Duration</strong>: ~5 seconds per repository.</p>
 
 <p><a href="#batch-assessment">See detailed batch assessment guide →</a></p>
 
@@ -1049,6 +1015,19 @@ agentready batch <span class="nb">.</span> <span class="nt">--compare</span>
   </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
+
+<h3 id="interactive-heatmap-visualization">Interactive Heatmap Visualization</h3>
+
+<p>Generate an interactive Plotly heatmap showing attribute scores across all repositories:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Generate heatmap with batch assessment</span>
+agentready assess-batch <span class="nt">--repos</span> /path/repo1 <span class="nt">--repos</span> /path/repo2 <span class="nt">--generate-heatmap</span>
+
+<span class="c"># Custom heatmap output path</span>
+agentready assess-batch <span class="nt">--repos-file</span> repos.txt <span class="nt">--generate-heatmap</span> <span class="nt">--heatmap-output</span> ./heatmap.html
+</code></pre></div></div>
+
+<p>The heatmap visualization includes color-coded scores for instant visual identification of strong/weak attributes, cross-repo comparison to see patterns, interactive exploration with hover details and zoom, and export capability as a self-contained HTML file for sharing with teams. Use heatmaps to identify organization-wide patterns, spot outliers, track improvements over time, and guide training efforts on commonly failing attributes.</p>
 
 <h3 id="use-cases">Use Cases</h3>
 
@@ -1927,8 +1906,7 @@ agentready assess <span class="nb">.</span>
       </p>
       <p style="margin-top: var(--space-4);">
         <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
-        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a> •
-        <a href="https://github.com/ambient-code/agentready/discussions" target="_blank" rel="noopener">Discussions</a>
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
       </p>
     </div>
   </footer>
