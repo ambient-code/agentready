@@ -3,6 +3,7 @@
 import hashlib
 import json
 import logging
+import random
 from pathlib import Path
 from time import sleep
 
@@ -44,6 +45,8 @@ class LLMEnricher:
         repository: Repository,
         finding: Finding,
         use_cache: bool = True,
+        max_retries: int = 3,
+        _retry_count: int = 0,
     ) -> DiscoveredSkill:
         """Enrich skill with LLM-generated content.
 
@@ -52,9 +55,11 @@ class LLMEnricher:
             repository: Repository being assessed
             finding: Finding that generated this skill
             use_cache: Whether to use cached responses
+            max_retries: Maximum retry attempts for rate limits (default: 3)
+            _retry_count: Internal retry counter (do not set manually)
 
         Returns:
-            Enriched DiscoveredSkill with LLM-generated content
+            Enriched DiscoveredSkill with LLM-generated content, or original skill if enrichment fails
         """
         # Generate cache key
         evidence_str = "".join(finding.evidence) if finding.evidence else ""
@@ -91,12 +96,31 @@ class LLMEnricher:
             return enriched_skill
 
         except RateLimitError as e:
-            logger.warning(f"Rate limit hit for {skill.skill_id}: {e}")
-            # Exponential backoff
+            # Check if max retries exceeded
+            if _retry_count >= max_retries:
+                logger.error(
+                    f"Max retries ({max_retries}) exceeded for {skill.skill_id}. "
+                    f"Falling back to heuristic skill. "
+                    f"Check API quota: https://console.anthropic.com/settings/limits"
+                )
+                return skill  # Graceful fallback
+
+            # Calculate backoff with jitter
             retry_after = int(getattr(e, "retry_after", 60))
-            logger.info(f"Retrying after {retry_after} seconds...")
-            sleep(retry_after)
-            return self.enrich_skill(skill, repository, finding, use_cache)
+            jitter = random.uniform(0, min(retry_after * 0.1, 5))
+            total_wait = retry_after + jitter
+
+            logger.warning(
+                f"Rate limit hit for {skill.skill_id} "
+                f"(retry {_retry_count + 1}/{max_retries}): {e}"
+            )
+            logger.info(f"Retrying after {total_wait:.1f} seconds...")
+
+            sleep(total_wait)
+
+            return self.enrich_skill(
+                skill, repository, finding, use_cache, max_retries, _retry_count + 1
+            )
 
         except APIError as e:
             # Security: Sanitize error message to prevent API key exposure

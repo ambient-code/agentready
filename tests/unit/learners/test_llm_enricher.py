@@ -444,3 +444,136 @@ def test_enrich_skill_initializes_code_sampler(
 
     # Should be initialized after enrichment
     assert enricher.code_sampler is not None
+
+
+def test_llm_enricher_max_retries(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
+    """Test that max retries limit is respected."""
+    from unittest.mock import patch
+
+    from anthropic import RateLimitError
+
+    client = Mock(spec=Anthropic)
+
+    # Always raise rate limit error
+    rate_limit_error = RateLimitError("Rate limit")
+    rate_limit_error.retry_after = 1
+    client.messages.create.side_effect = rate_limit_error
+
+    cache_dir = tmp_path / "cache"
+    enricher = LLMEnricher(client, cache_dir=cache_dir)
+
+    # Mock sleep to avoid actual delay
+    with patch("agentready.learners.llm_enricher.sleep"):
+        enriched = enricher.enrich_skill(
+            basic_skill, sample_repository, sample_finding, max_retries=3
+        )
+
+    # Should fallback to original skill after max retries
+    assert enriched == basic_skill
+    # Should have tried 4 times total (initial + 3 retries)
+    assert client.messages.create.call_count == 4
+
+
+def test_llm_enricher_successful_retry(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
+    """Test successful enrichment after retry."""
+    from unittest.mock import patch
+
+    from anthropic import RateLimitError
+
+    client = Mock(spec=Anthropic)
+
+    # First two calls raise rate limit, third succeeds
+    rate_limit_error = RateLimitError("Rate limit")
+    rate_limit_error.retry_after = 1
+
+    success_response = Mock()
+    success_response.content = [
+        Mock(text='{"skill_description": "Success after retry", "instructions": []}')
+    ]
+
+    client.messages.create.side_effect = [
+        rate_limit_error,
+        rate_limit_error,
+        success_response,
+    ]
+
+    cache_dir = tmp_path / "cache"
+    enricher = LLMEnricher(client, cache_dir=cache_dir)
+
+    # Mock sleep to avoid actual delay
+    with patch("agentready.learners.llm_enricher.sleep"):
+        enriched = enricher.enrich_skill(
+            basic_skill, sample_repository, sample_finding, max_retries=3
+        )
+
+    # Should succeed after retries
+    assert enriched.description == "Success after retry"
+    # Should have made 3 calls (initial + 2 retries)
+    assert client.messages.create.call_count == 3
+
+
+def test_llm_enricher_retry_with_jitter(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
+    """Test that jitter is applied to retry backoff."""
+    from unittest.mock import patch
+
+    from anthropic import RateLimitError
+
+    client = Mock(spec=Anthropic)
+
+    rate_limit_error = RateLimitError("Rate limit")
+    rate_limit_error.retry_after = 60
+
+    success_response = Mock()
+    success_response.content = [Mock(text='{"skill_description": "Test", "instructions": []}')]
+
+    client.messages.create.side_effect = [rate_limit_error, success_response]
+
+    cache_dir = tmp_path / "cache"
+    enricher = LLMEnricher(client, cache_dir=cache_dir)
+
+    # Mock sleep and random to verify jitter is used
+    with patch("agentready.learners.llm_enricher.sleep") as mock_sleep, patch(
+        "agentready.learners.llm_enricher.random.uniform", return_value=3.0
+    ):
+        enricher.enrich_skill(basic_skill, sample_repository, sample_finding)
+
+    # Verify sleep was called with retry_after + jitter
+    mock_sleep.assert_called_once()
+    sleep_duration = mock_sleep.call_args[0][0]
+    # Should be retry_after (60) + jitter (3.0) = 63.0
+    assert sleep_duration == 63.0
+
+
+def test_llm_enricher_custom_max_retries(
+    basic_skill, sample_repository, sample_finding, tmp_path
+):
+    """Test custom max_retries parameter."""
+    from unittest.mock import patch
+
+    from anthropic import RateLimitError
+
+    client = Mock(spec=Anthropic)
+
+    rate_limit_error = RateLimitError("Rate limit")
+    rate_limit_error.retry_after = 1
+    client.messages.create.side_effect = rate_limit_error
+
+    cache_dir = tmp_path / "cache"
+    enricher = LLMEnricher(client, cache_dir=cache_dir)
+
+    # Mock sleep to avoid actual delay
+    with patch("agentready.learners.llm_enricher.sleep"):
+        enriched = enricher.enrich_skill(
+            basic_skill, sample_repository, sample_finding, max_retries=1
+        )
+
+    # Should fallback after 1 retry
+    assert enriched == basic_skill
+    # Should have tried 2 times total (initial + 1 retry)
+    assert client.messages.create.call_count == 2

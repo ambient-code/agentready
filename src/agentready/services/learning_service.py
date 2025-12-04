@@ -66,6 +66,7 @@ class LearningService:
         attribute_ids: list[str] | None = None,
         enable_llm: bool = False,
         llm_budget: int = 5,
+        llm_max_retries: int = 3,
     ) -> list[DiscoveredSkill]:
         """Extract patterns from an assessment file.
 
@@ -74,6 +75,7 @@ class LearningService:
             attribute_ids: Optional list of specific attributes to extract
             enable_llm: Enable LLM enrichment
             llm_budget: Max number of skills to enrich with LLM
+            llm_max_retries: Maximum retry attempts for rate limits (default: 3)
 
         Returns:
             List of discovered skills meeting confidence threshold
@@ -163,7 +165,7 @@ class LearningService:
         # Optionally enrich with LLM
         if enable_llm and discovered_skills:
             discovered_skills = self._enrich_with_llm(
-                discovered_skills, assessment, llm_budget
+                discovered_skills, assessment, llm_budget, llm_max_retries
             )
 
         return discovered_skills
@@ -238,7 +240,11 @@ class LearningService:
         return json_file
 
     def _enrich_with_llm(
-        self, skills: list[DiscoveredSkill], assessment: Assessment, budget: int
+        self,
+        skills: list[DiscoveredSkill],
+        assessment: Assessment,
+        budget: int,
+        max_retries: int = 3,
     ) -> list[DiscoveredSkill]:
         """Enrich top N skills with LLM analysis.
 
@@ -246,6 +252,7 @@ class LearningService:
             skills: List of discovered skills
             assessment: Full assessment with findings
             budget: Max skills to enrich
+            max_retries: Maximum retry attempts for rate limits (default: 3)
 
         Returns:
             List with top skills enriched
@@ -283,7 +290,7 @@ class LearningService:
                 if finding:
                     try:
                         enriched = enricher.enrich_skill(
-                            skill, assessment.repository, finding
+                            skill, assessment.repository, finding, max_retries=max_retries
                         )
                         enriched_skills.append(enriched)
                     except Exception as e:
@@ -313,6 +320,7 @@ class LearningService:
         attribute_ids: list[str] | None = None,
         enable_llm: bool = False,
         llm_budget: int = 5,
+        llm_max_retries: int = 3,
     ) -> dict:
         """Run complete learning workflow: extract + generate.
 
@@ -322,6 +330,7 @@ class LearningService:
             attribute_ids: Optional specific attributes to extract
             enable_llm: Enable LLM enrichment
             llm_budget: Max skills to enrich with LLM
+            llm_max_retries: Maximum retry attempts for rate limits (default: 3)
 
         Returns:
             Dictionary with workflow results
@@ -332,6 +341,7 @@ class LearningService:
             attribute_ids,
             enable_llm=enable_llm,
             llm_budget=llm_budget,
+            llm_max_retries=llm_max_retries,
         )
 
         # Generate output files
