@@ -17,7 +17,7 @@ title: Home
   <div class="hero-buttons">
     <a href="user-guide.html#bootstrap-your-repository" class="button button-primary">Bootstrap Your Repo</a>
     <a href="user-guide.html#running-assessments" class="button button-secondary">Run Assessment</a>
-    <a href="leaderboard.html" class="button button-tertiary">🏆 Leaderboard</a>
+    <a href="leaderboard/" class="button button-tertiary">🏆 Leaderboard</a>
   </div>
 </div>
 
@@ -179,7 +179,7 @@ Commands:
   </div>
 
   <div class="command-box">
-    <h4>🏆 <a href="leaderboard.html">submit</a></h4>
+    <h4>🏆 <a href="leaderboard/">submit</a></h4>
     <p>Submit your score to the public leaderboard. Track improvements and compare with other repositories.</p>
     <code>agentready submit</code>
   </div>
