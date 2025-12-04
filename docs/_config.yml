@@ -33,8 +33,6 @@ plugins:
 navigation:
   - title: Home
     url: /
-  - title: About
-    url: /about
   - title: User Guide
     url: /user-guide
   - title: Developer Guide

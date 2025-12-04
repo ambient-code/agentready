@@ -101,11 +101,11 @@ agentready submit
     <p>Auto-detects your primary language (Python, JavaScript, Go) and generates appropriate workflows, linters, and test configurations.</p>
   </div>
   <div class="feature">
-    <h3>📈 Continuous Assessment</h3>
+    <h3>📈 CI-friendly</h3>
     <p>Generated GitHub Actions run AgentReady on every PR, posting results as comments. Track improvements over time with Markdown reports.</p>
   </div>
   <div class="feature">
-    <h3>🏆 Certification Levels</h3>
+    <h3>🏆 Readiness Tiers</h3>
     <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality. Bootstrap helps you achieve Gold (75+) immediately.</p>
   </div>
   <div class="feature">
@@ -114,11 +114,9 @@ agentready submit
   </div>
   <div class="feature">
     <h3>🔬 Research-Backed</h3>
-    <p>Every generated file and assessed attribute is backed by 50+ citations from Anthropic, Microsoft, Google, and academic research.</p>
+    <p>Every generated file and assessed attribute is backed by <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md">50+ citations</a> from Anthropic, Microsoft, Google, and academic research.</p>
   </div>
 </div>
-
-[Learn more about AgentReady →](about.html)
 
 ---
 
@@ -148,3 +146,42 @@ agentready submit
 *Leaderboard updated: {{ site.data.leaderboard.generated_at }}*
 *Total repositories: {{ site.data.leaderboard.total_repositories }}*
 {% endif %}
+
+---
+
+## CLI Reference
+
+AgentReady provides a comprehensive CLI with multiple commands for different workflows:
+
+```
+Usage: agentready [OPTIONS] COMMAND [ARGS]...
+
+  AgentReady Repository Scorer - Assess repositories for AI-assisted
+  development.
+
+  Evaluates repositories against 25 evidence-based attributes and generates
+  comprehensive reports with scores, findings, and remediation guidance.
+
+Options:
+  --version  Show version information
+  --help     Show this message and exit.
+
+Commands:
+  align             Align repository with best practices by applying fixes
+  assess            Assess a repository against agent-ready criteria
+  assess-batch      Assess multiple repositories in a batch operation
+  bootstrap         Bootstrap repository with GitHub infrastructure
+  demo              Run an automated demonstration of AgentReady
+  experiment        SWE-bench experiment commands
+  extract-skills    Extract reusable patterns and generate Claude Code skills
+  generate-config   Generate example configuration file
+  learn             Extract reusable patterns and generate skills (alias)
+  migrate-report    Migrate assessment report to different schema version
+  repomix-generate  Generate Repomix repository context for AI consumption
+  research          Manage and validate research reports
+  research-version  Show bundled research report version
+  submit            Submit assessment results to AgentReady leaderboard
+  validate-report   Validate assessment report against schema version
+```
+
+[View detailed command documentation →](user-guide.html#command-reference)
