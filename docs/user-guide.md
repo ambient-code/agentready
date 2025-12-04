@@ -80,6 +80,26 @@ pytest --version
 black --version
 ```
 
+### Run Directly via uv (Optional, No Install Required)
+
+If you use **uv**, you can run AgentReady directly from GitHub without cloning or installing:
+
+```bash
+uvx --from git+https://github.com/ambient-code/agentready agentready -- assess .
+```
+
+To install it as a reusable global tool:
+
+```bash
+uv tool install --from git+https://github.com/ambient-code/agentready agentready
+```
+
+After installing globally:
+
+```bash
+agentready assess .
+```
+
 ---
 
 ## Quick Start

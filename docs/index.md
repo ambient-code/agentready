@@ -77,6 +77,9 @@ AI-assisted development tools like Claude Code, GitHub Copilot, and Cursor AI wo
 # Install AgentReady
 pip install agentready
 
+# Or run directly with uvx (no install required)
+# uvx --from git+https://github.com/ambient-code/agentready agentready -- bootstrap .
+
 # Bootstrap your repository (generates all infrastructure)
 cd /path/to/your/repo
 agentready bootstrap .
