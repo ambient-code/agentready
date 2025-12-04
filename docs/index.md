@@ -5,7 +5,7 @@ title: Home
 
 <div class="announcement-banner">
   <span class="announcement-icon">🚀</span>
-  <span class="announcement-text">New: <a href="release-process-visualization.html">Interactive Release Pipeline Visualization</a> - See how AgentReady's automated release process works end-to-end with real-world examples</span>
+  <span class="announcement-text">New: <a href="https://github.com/ambient-code/agentready#cli-reference">Enhanced CLI Reference</a> - Complete command documentation with interactive examples and visual guides</span>
 </div>
 
 # AgentReady
@@ -17,7 +17,7 @@ title: Home
   <div class="hero-buttons">
     <a href="user-guide.html#bootstrap-your-repository" class="button button-primary">Bootstrap Your Repo</a>
     <a href="user-guide.html#running-assessments" class="button button-secondary">Run Assessment</a>
-    <a href="release-process-visualization.html" class="button button-tertiary">📊 Release Pipeline</a>
+    <a href="leaderboard.html" class="button button-tertiary">🏆 Leaderboard</a>
   </div>
 </div>
 

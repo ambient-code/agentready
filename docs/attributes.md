@@ -249,11 +249,11 @@ pytest --cov
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+See [CONTRIBUTING.md](https://github.com/ambient-code/agentready/blob/main/CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](https://github.com/ambient-code/agentready/blob/main/LICENSE) for details.
 ```
 
 #### Remediation

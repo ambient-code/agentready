@@ -24,6 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Create documentation update issue
+        id: create-issue
         uses: actions/github-script@v7
         env:
           REVISION_REASON: ${{ github.event.inputs.revision_reason }}

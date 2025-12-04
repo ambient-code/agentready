@@ -44,6 +44,7 @@ jobs:
 
       - name: Install AgentReady
         run: |
+          uv venv
           uv pip install -e .
 
       - name: Run self-assessment
