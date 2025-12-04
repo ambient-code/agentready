@@ -3,6 +3,11 @@ layout: home
 title: Home
 ---
 
+<div class="announcement-banner">
+  <span class="announcement-icon">🚀</span>
+  <span class="announcement-text">New: <a href="release-process-visualization.html">Interactive Release Pipeline Visualization</a> - See how AgentReady's automated release process works end-to-end with real-world examples</span>
+</div>
+
 # AgentReady
 
 **Build and maintain agent-ready codebases with automated infrastructure generation and continuous quality assessment.**
@@ -12,6 +17,7 @@ title: Home
   <div class="hero-buttons">
     <a href="user-guide.html#bootstrap-your-repository" class="button button-primary">Bootstrap Your Repo</a>
     <a href="user-guide.html#running-assessments" class="button button-secondary">Run Assessment</a>
+    <a href="release-process-visualization.html" class="button button-tertiary">📊 Release Pipeline</a>
   </div>
 </div>
 
@@ -115,6 +121,81 @@ open .agentready/report-latest.html
 - Three report formats (HTML, Markdown, JSON)
 
 [Read the complete user guide →](user-guide.html)
+
+## CLI Reference
+
+AgentReady provides a comprehensive CLI with multiple commands for different workflows:
+
+```
+Usage: agentready [OPTIONS] COMMAND [ARGS]...
+
+  AgentReady Repository Scorer - Assess repositories for AI-assisted
+  development.
+
+  Evaluates repositories against 25 evidence-based attributes and generates
+  comprehensive reports with scores, findings, and remediation guidance.
+
+Options:
+  --version  Show version information
+  --help     Show this message and exit.
+
+Commands:
+  align             Align repository with best practices by applying fixes
+  assess            Assess a repository against agent-ready criteria
+  assess-batch      Assess multiple repositories in a batch operation
+  bootstrap         Bootstrap repository with GitHub infrastructure
+  demo              Run an automated demonstration of AgentReady
+  experiment        SWE-bench experiment commands
+  extract-skills    Extract reusable patterns and generate Claude Code skills
+  generate-config   Generate example configuration file
+  learn             Extract reusable patterns and generate skills (alias)
+  migrate-report    Migrate assessment report to different schema version
+  repomix-generate  Generate Repomix repository context for AI consumption
+  research          Manage and validate research reports
+  research-version  Show bundled research report version
+  submit            Submit assessment results to AgentReady leaderboard
+  validate-report   Validate assessment report against schema version
+```
+
+### Core Commands
+
+<div class="command-grid">
+  <div class="command-box">
+    <h4>🚀 <a href="user-guide.html#bootstrap-your-repository">bootstrap</a></h4>
+    <p>One-command infrastructure generation. Creates GitHub Actions, pre-commit hooks, issue/PR templates, and more.</p>
+    <code>agentready bootstrap .</code>
+  </div>
+
+  <div class="command-box">
+    <h4>🔧 <a href="user-guide.html#align-command">align</a></h4>
+    <p>Automated remediation. Applies fixes to improve your score (create CLAUDE.md, add pre-commit hooks, update .gitignore).</p>
+    <code>agentready align --dry-run .</code>
+  </div>
+
+  <div class="command-box">
+    <h4>📊 <a href="user-guide.html#running-assessments">assess</a></h4>
+    <p>Deep analysis of 25 attributes. Generates HTML, Markdown, and JSON reports with remediation guidance.</p>
+    <code>agentready assess .</code>
+  </div>
+
+  <div class="command-box">
+    <h4>🏆 <a href="leaderboard.html">submit</a></h4>
+    <p>Submit your score to the public leaderboard. Track improvements and compare with other repositories.</p>
+    <code>agentready submit</code>
+  </div>
+</div>
+
+### Specialized Commands
+
+- **`assess-batch`** - Assess multiple repositories in parallel ([batch documentation →](user-guide.html#batch-assessment))
+- **`demo`** - Interactive demonstration mode showing AgentReady in action
+- **`extract-skills`/`learn`** - Generate Claude Code skills from repository patterns
+- **`repomix-generate`** - Create AI-optimized repository context files
+- **`experiment`** - Run SWE-bench validation studies ([experiments →](developer-guide.html#experiments))
+- **`research`** - Manage research report versions and validation
+- **`migrate-report`/`validate-report`** - Schema management and migration tools
+
+[View detailed command documentation →](user-guide.html#command-reference)
 
 ## Certification Levels
 
@@ -259,16 +340,25 @@ Every attribute includes specific citations and measurable criteria. No subjecti
   </div>
 </div>
 
-## What Users Are Saying
+## What The AI Bubble Taught Us
 
-> "Running AgentReady on our codebase identified 5 quick wins that immediately improved Claude Code's suggestions. The actionable remediation made it easy to implement changes in under an hour."
-> — *Engineering Team Lead*
+> "Fired all our junior developers because 'AI can code now,' then spent $2M on GitHub Copilot Enterprise only to discover it works better with... documentation? And tests? Turns out you can't replace humans with spicy autocomplete and vibes."
+> — *CTO, Currently Rehiring*
 
-> "The research backing each attribute gave me confidence these weren't arbitrary rules. Every recommendation is cited and measurable."
-> — *Principal Engineer*
+> "My AI coding assistant told me it was 'very confident' about a solution that would have deleted production. Running AgentReady revealed our codebase has the readability of a ransom note. The AI was confident because it had no idea what it was doing. Just like us!"
+> — *Senior Developer, Trust Issues Intensifying*
 
-> "We use AgentReady in CI to prevent regression. It's become part of our definition of done for new features."
-> — *DevOps Engineer*
+> "We added 'AI-driven development' to the Series B deck before checking if our monolith had a README. AgentReady scored us 23/100. The AI couldn't figure out our codebase because *we* couldn't figure out our codebase. Investors were not impressed."
+> — *VP Engineering, Learning About README Files The Hard Way*
+
+> "Spent the year at conferences saying 'AI will 10x productivity' while our agents hallucinated imports, invented APIs, and confidently suggested `rm -rf /`. AgentReady showed us we're missing pre-commit hooks, type annotations, and basic self-awareness. The only thing getting 10x'd was our incident rate."
+> — *Tech Lead, Reformed Hype Man*
+
+> "Asked ChatGPT to refactor our auth system. It wrote beautiful code that compiled perfectly and had zero relation to our actual database schema. Turns out when you have no CLAUDE.md file, no ADRs, and variable names like `data2_final_FINAL`, even AGI would just be guessing. And AGI doesn't exist yet."
+> — *Staff Engineer, Back to Documentation Basics*
+
+> "My manager saw a demo where AI 'wrote an entire app' and asked why I'm still employed. I showed him our AgentReady score of 31/100, explained that missing lock files and zero test coverage make AI as useful as a Magic 8-Ball, and we spent the next quarter actually engineering instead of prompt-debugging. AI didn't replace me. Basic hygiene saved me."
+> — *Developer, Still Employed, Surprisingly*
 
 ## Ready to Get Started?
 
