@@ -1,3 +1,10 @@
+## [2.12.3](https://github.com/ambient-code/agentready/compare/v2.12.2...v2.12.3) (2025-12-04)
+
+
+### Bug Fixes
+
+* skip PR comments for external forks to prevent permission errors ([#163](https://github.com/ambient-code/agentready/issues/163)) ([2a29fb8](https://github.com/ambient-code/agentready/commit/2a29fb84485a1ac6beff1675131bf50c1b702585))
+
 ## [2.12.2](https://github.com/ambient-code/agentready/compare/v2.12.1...v2.12.2) (2025-12-04)
 
 
