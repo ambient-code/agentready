@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/ambient-code/agentready/compare/v2.11.1...v2.12.0) (2025-12-04)
+
+
+### Features
+
+* automate PyPI publishing with trusted publishing (OIDC) ([#154](https://github.com/ambient-code/agentready/issues/154)) ([71f4632](https://github.com/ambient-code/agentready/commit/71f4632cb188d8c9db377c9f216c047e20727f99)), closes [pypa/#action-pypi-publish](https://github.com/ambient-code/agentready/issues/action-pypi-publish)
+
 ## [2.11.1](https://github.com/ambient-code/agentready/compare/v2.11.0...v2.11.1) (2025-12-04)
 
 
