@@ -24,12 +24,29 @@
   <!-- Header -->
   <header>
     <nav>
-      <div class="container">
-        <ul>
-          {% for item in site.navigation %}
-            <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
-          {% endfor %}
-          <li><a href="{{ site.repository }}" target="_blank" rel="noopener">GitHub</a></li>
+      <div class="container nav-container">
+        <a href="{{ '/' | relative_url }}" class="nav-brand">
+          <span class="brand-icon">🤖</span>
+          <span class="brand-text">AgentReady</span>
+        </a>
+
+        <ul class="nav-menu">
+          <li class="nav-item nav-dropdown">
+            <a href="#" class="nav-link">Documentation ▾</a>
+            <ul class="dropdown-menu">
+              <li><a href="{{ '/user-guide' | relative_url }}">User Guide</a></li>
+              <li><a href="{{ '/developer-guide' | relative_url }}">Developer Guide</a></li>
+              <li><a href="{{ '/attributes' | relative_url }}">Attributes</a></li>
+              <li><a href="{{ '/api-reference' | relative_url }}">API Reference</a></li>
+              <li><a href="{{ '/examples' | relative_url }}">Examples</a></li>
+              <li class="dropdown-divider"></li>
+              <li><a href="{{ '/RELEASE_PROCESS' | relative_url }}">Release Process</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a href="{{ '/leaderboard/' | relative_url }}" class="nav-link">Leaderboard</a></li>
+          <li class="nav-item"><a href="{{ '/roadmaps' | relative_url }}" class="nav-link">Roadmaps</a></li>
+          <li class="nav-item nav-highlight"><a href="{{ '/release-process-visualization' | relative_url }}" class="nav-link">📊 Pipeline</a></li>
+          <li class="nav-item nav-external"><a href="{{ site.repository }}" target="_blank" rel="noopener" class="nav-link">GitHub ↗</a></li>
         </ul>
       </div>
     </nav>
