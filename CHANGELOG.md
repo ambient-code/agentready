@@ -1,3 +1,10 @@
+## [2.14.1](https://github.com/ambient-code/agentready/compare/v2.14.0...v2.14.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* resolve YAML syntax error in continuous-learning workflow ([#172](https://github.com/ambient-code/agentready/issues/172)) ([3d40fcc](https://github.com/ambient-code/agentready/commit/3d40fcccd4e8d722303d322716454869ca7db9d0))
+
 # [2.14.0](https://github.com/ambient-code/agentready/compare/v2.13.0...v2.14.0) (2025-12-05)
 
 
