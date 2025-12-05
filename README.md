@@ -19,35 +19,45 @@ AgentReady evaluates your repository across multiple dimensions of code quality,
 
 ## Quick Start
 
-### Bootstrap (Recommended)
-
-Transform your repository with one command:
+### Container (Recommended)
 
 ```bash
-cd /path/to/your/repo
-agentready bootstrap .
-git add . && git commit -m "build: Bootstrap agent-ready infrastructure"
-git push
+# Pull container
+podman pull ghcr.io/ambient-code/agentready:latest
+
+# Create output directory
+mkdir -p ~/agentready-reports
+
+# Assess AgentReady itself
+git clone https://github.com/ambient-code/agentready /tmp/agentready
+podman run --rm \
+  -v /tmp/agentready:/repo:ro \
+  -v ~/agentready-reports:/reports \
+  ghcr.io/ambient-code/agentready:latest \
+  assess /repo --output-dir /reports
+
+# Assess your repository
+podman run --rm \
+  -v /path/to/your/repo:/repo:ro \
+  -v ~/agentready-reports:/reports \
+  ghcr.io/ambient-code/agentready:latest \
+  assess /repo --output-dir /reports
+
+# Open reports
+open ~/agentready-reports/report-latest.html
 ```
 
-**What you get:**
+[See full container documentation →](CONTAINER.md)
 
-- ✅ GitHub Actions workflows (tests, security, AgentReady assessment)
-- ✅ Pre-commit hooks (formatters, linters)
-- ✅ Issue/PR templates
-- ✅ Dependabot configuration
-- ✅ Automated assessment on every PR
-
-**Duration**: <60 seconds
-
-[See detailed Bootstrap tutorial →](docs/user-guide.md#bootstrap-your-repository)
-
-### Installation
+### Python Package
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/agentready.git
-cd agentready
+# Install
+pip install agentready
+
+# Assess AgentReady itself
+git clone https://github.com/ambient-code/agentready /tmp/agentready
+agentready assess /tmp/agentready
 
 # Create virtual environment
 python3 -m venv .venv
