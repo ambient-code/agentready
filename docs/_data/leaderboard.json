@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-04T19:24:27.444845Z",
+  "generated_at": "2025-12-05T17:38:42.696860Z",
   "total_repositories": 2,
   "overall": [
     {
@@ -8,10 +8,10 @@
       "name": "agentready",
       "score": 78.6,
       "tier": "Gold",
-      "language": "Python",
-      "size": "Medium",
+      "language": "Unknown",
+      "size": "Unknown",
       "last_updated": "2025-12-03",
-      "url": "https://github.com/ambient-code/agentready",
+      "url": "git@github.com:ambient-code/agentready.git",
       "agentready_version": "2.9.0",
       "research_version": "1.0.0",
       "history": [
@@ -24,7 +24,7 @@
       ],
       "rank": 1,
       "lang_rank": {
-        "Python": 1
+        "Unknown": 1
       }
     },
     {
@@ -33,10 +33,10 @@
       "name": "quay",
       "score": 51.0,
       "tier": "Bronze",
-      "language": "Python",
-      "size": "Large",
+      "language": "Unknown",
+      "size": "Unknown",
       "last_updated": "2025-12-04",
-      "url": "https://github.com/quay/quay",
+      "url": "git@github.com:quay/quay.git",
       "agentready_version": "2.12.2",
       "research_version": "1.0.0",
       "history": [
@@ -49,22 +49,22 @@
       ],
       "rank": 2,
       "lang_rank": {
-        "Python": 2
+        "Unknown": 2
       }
     }
   ],
   "by_language": {
-    "Python": [
+    "Unknown": [
       {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
         "score": 78.6,
         "tier": "Gold",
-        "language": "Python",
-        "size": "Medium",
+        "language": "Unknown",
+        "size": "Unknown",
         "last_updated": "2025-12-03",
-        "url": "https://github.com/ambient-code/agentready",
+        "url": "git@github.com:ambient-code/agentready.git",
         "agentready_version": "2.9.0",
         "research_version": "1.0.0",
         "history": [
@@ -77,7 +77,7 @@
         ],
         "rank": 1,
         "lang_rank": {
-          "Python": 1
+          "Unknown": 1
         }
       },
       {
@@ -86,10 +86,10 @@
         "name": "quay",
         "score": 51.0,
         "tier": "Bronze",
-        "language": "Python",
-        "size": "Large",
+        "language": "Unknown",
+        "size": "Unknown",
         "last_updated": "2025-12-04",
-        "url": "https://github.com/quay/quay",
+        "url": "git@github.com:quay/quay.git",
         "agentready_version": "2.12.2",
         "research_version": "1.0.0",
         "history": [
@@ -102,23 +102,23 @@
         ],
         "rank": 2,
         "lang_rank": {
-          "Python": 2
+          "Unknown": 2
         }
       }
     ]
   },
   "by_size": {
-    "Medium": [
+    "Unknown": [
       {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
         "score": 78.6,
         "tier": "Gold",
-        "language": "Python",
-        "size": "Medium",
+        "language": "Unknown",
+        "size": "Unknown",
         "last_updated": "2025-12-03",
-        "url": "https://github.com/ambient-code/agentready",
+        "url": "git@github.com:ambient-code/agentready.git",
         "agentready_version": "2.9.0",
         "research_version": "1.0.0",
         "history": [
@@ -131,21 +131,19 @@
         ],
         "rank": 1,
         "lang_rank": {
-          "Python": 1
+          "Unknown": 1
         }
-      }
-    ],
-    "Large": [
+      },
       {
         "repo": "quay/quay",
         "org": "quay",
         "name": "quay",
         "score": 51.0,
         "tier": "Bronze",
-        "language": "Python",
-        "size": "Large",
+        "language": "Unknown",
+        "size": "Unknown",
         "last_updated": "2025-12-04",
-        "url": "https://github.com/quay/quay",
+        "url": "git@github.com:quay/quay.git",
         "agentready_version": "2.12.2",
         "research_version": "1.0.0",
         "history": [
@@ -158,7 +156,7 @@
         ],
         "rank": 2,
         "lang_rank": {
-          "Python": 2
+          "Unknown": 2
         }
       }
     ]

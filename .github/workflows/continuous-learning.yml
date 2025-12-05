@@ -106,12 +106,12 @@ jobs:
 
           # Commit and push
           git add .claude/skills
-          git commit -m "feat: add discovered skills from continuous learning
-
-Automatically extracted skills from latest assessment.
-
-🤖 Generated with Claude Code
-Co-Authored-By: Claude <noreply@anthropic.com>"
+          git commit -m "feat: add discovered skills from continuous learning" \
+                     -m "" \
+                     -m "Automatically extracted skills from latest assessment." \
+                     -m "" \
+                     -m "🤖 Generated with Claude Code" \
+                     -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 
           git push origin "$BRANCH_NAME"
 
