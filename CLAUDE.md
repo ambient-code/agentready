@@ -2,7 +2,7 @@
 
 **Purpose**: Assess repositories against agent-ready best practices and generate actionable reports.
 
-**Last Updated**: 2025-12-04
+**Last Updated**: 2025-12-05
 
 ---
 
@@ -10,7 +10,7 @@
 
 AgentReady is a Python CLI tool that evaluates repositories against a comprehensive set of carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v2.13.0 - Core assessment engine complete, most essential assessors implemented, LLM-powered learning, research report management
+**Current Status**: v2.14.0 - Core assessment engine complete, most essential assessors implemented, LLM-powered learning, research report management
 
 **Self-Assessment Score**: 80.0/100 (Gold) - See `examples/self-assessment/`
 
@@ -390,6 +390,6 @@ Use the @agent-github-pages-docs to [action] based on:
 
 ---
 
-**Last Updated**: 2025-12-04 by Jeremy Eder
-**AgentReady Version**: 2.13.0
+**Last Updated**: 2025-12-05 by Jeremy Eder
+**AgentReady Version**: 2.14.0
 **Self-Assessment**: 80.0/100 (Gold) ✨
