@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/ambient-code/agentready/compare/v2.13.0...v2.14.0) (2025-12-05)
+
+
+### Features
+
+* container support ([#171](https://github.com/ambient-code/agentready/issues/171)) ([c6874ea](https://github.com/ambient-code/agentready/commit/c6874ea035775ac86ef5012bbfdf52e7b96f556f))
+
 # [2.13.0](https://github.com/ambient-code/agentready/compare/v2.12.3...v2.13.0) (2025-12-04)
 
 
