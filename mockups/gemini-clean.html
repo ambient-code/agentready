@@ -547,162 +547,234 @@
 
     .modal-content {
       position: relative;
-      background: var(--bg-white);
-      border-radius: 16px;
-      padding: 3rem;
-      max-width: 700px;
+      background: #2d2d2d;
+      border-radius: 12px;
+      padding: 0;
+      max-width: 800px;
       width: 90%;
-      max-height: 85vh;
+      max-height: 90vh;
       overflow-y: auto;
-      box-shadow: var(--shadow-xl);
-      border: 1px solid var(--border-light);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid #444;
+      font-family: 'Courier New', 'Monaco', monospace;
     }
 
     .modal-close {
       position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
+      top: 1rem;
+      right: 1rem;
       background: transparent;
       border: none;
-      font-size: 2rem;
-      color: var(--text-gray);
+      font-size: 1.5rem;
+      color: #888;
       cursor: pointer;
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
-      transition: all 0.3s;
+      border-radius: 4px;
+      transition: all 0.2s;
+      z-index: 10;
     }
 
     .modal-close:hover {
-      background: var(--bg-gray-100);
-      color: var(--text-dark);
+      background: #3a3a3a;
+      color: #bbb;
     }
 
-    .modal-content h2 {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
+    .modal-header {
+      padding: 2rem 2rem 1.5rem 2rem;
+      border-bottom: 1px solid #444;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .modal-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+      font-family: 'Courier New', monospace;
     }
 
     .modal-subtitle {
-      color: var(--text-gray);
-      margin-bottom: 2rem;
+      color: #888;
+      font-size: 0.85rem;
+      margin: 0;
     }
 
-    .modal-step {
-      margin-bottom: 2rem;
+    .copy-btn-header {
+      background: #3c5875;
+      color: #ffffff;
+      border: 1px solid #4a6a8a;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      transition: all 0.2s;
     }
 
-    .modal-step h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--primary);
+    .copy-btn-header:hover {
+      background: #4a6a8a;
+      color: #ffffff;
+    }
+
+    .terminal-section {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #444;
+    }
+
+    .terminal-label {
+      color: #e0e0e0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .terminal-badge {
+      display: inline-block;
+      background: #3a3a3a;
+      color: #aaa;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      margin-left: 0.5rem;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .terminal-block {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 1rem;
       margin-bottom: 0.75rem;
     }
 
-    .code-block-large {
-      flex-direction: column;
-      align-items: flex-end;
+    .terminal-block-workflow {
       max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 0.5rem;
     }
 
-    .code-block-large pre {
+    .terminal-line {
+      color: #ddd;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      font-family: 'Courier New', monospace;
+    }
+
+    .terminal-prompt {
+      color: #8ab4f8;
+      margin-right: 0.5rem;
+      user-select: none;
+    }
+
+    .terminal-command {
+      color: #fff;
+    }
+
+    .terminal-comment {
+      color: #888;
+    }
+
+    .terminal-link {
+      color: #8ab4f8;
+      text-decoration: none;
+      border-bottom: 1px dotted #8ab4f8;
+    }
+
+    .terminal-link:hover {
+      color: #aac7ff;
+      border-bottom-color: #aac7ff;
+    }
+
+    .terminal-note {
+      color: #888;
+      font-size: 0.85rem;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .show-workflow-btn {
+      background: transparent;
+      color: #8ab4f8;
+      border: 1px solid #444;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      transition: all 0.2s;
       width: 100%;
-      margin: 0 0 1rem 0;
-      overflow-x: auto;
     }
 
-    .code-block-large code {
-      font-size: 0.8rem;
+    .show-workflow-btn:hover {
+      border-color: #8ab4f8;
+      background: rgba(138, 180, 248, 0.1);
+    }
+
+    .workflow-container {
+      margin-top: 1rem;
+    }
+
+    .copy-btn-inline {
+      background: #3c5875;
+      color: #ffffff;
+      border: 1px solid #4a6a8a;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .copy-btn-inline:hover {
+      border-color: #5a7a9a;
+      background: #4a6a8a;
+    }
+
+    .copy-btn-inline.copied {
+      background: #5a9a7a;
+      color: #ffffff;
+      border-color: #6aaa8a;
+    }
+
+    .modal-footer-minimal {
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    .modal-footer-minimal a {
+      color: #999;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .modal-footer-minimal a:hover {
+      color: #8ab4f8;
+    }
+
+    .footer-separator {
+      color: #555;
+      margin: 0 0.75rem;
+    }
+
+    #workflowContent {
+      color: #ddd;
+      font-size: 0.75rem;
       line-height: 1.6;
       white-space: pre;
-    }
-
-    .modal-list {
-      margin: 1rem 0;
-      padding-left: 1.5rem;
-      color: var(--text-gray);
-    }
-
-    .modal-list li {
-      margin-bottom: 0.75rem;
-      line-height: 1.6;
-    }
-
-    .modal-list-simple {
-      list-style: decimal;
-      padding-left: 1.25rem;
-    }
-
-    .modal-list-simple li {
-      margin-bottom: 1rem;
-      color: var(--text-dark);
-      font-size: 0.95rem;
-    }
-
-    .modal-list code {
-      background: var(--bg-gray-50);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    .modal-list a {
-      color: var(--primary);
-      text-decoration: none;
-      border-bottom: 1px solid var(--primary);
-    }
-
-    .modal-list a:hover {
-      color: var(--primary-hover);
-      border-bottom-color: var(--primary-hover);
-    }
-
-    .modal-note {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--text-gray);
-    }
-
-    .modal-link {
-      display: inline-block;
-      margin-top: 0.5rem;
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      border-bottom: 2px solid var(--primary);
-      transition: all 0.3s;
-    }
-
-    .modal-link:hover {
-      color: var(--primary-hover);
-      border-bottom-color: var(--primary-hover);
-    }
-
-    .modal-footer {
-      margin-top: 2rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border-light);
-      display: flex;
-      gap: 2rem;
-      justify-content: center;
-    }
-
-    .modal-footer a {
-      color: var(--text-gray);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.3s;
-    }
-
-    .modal-footer a:hover {
-      color: var(--primary);
+      margin: 0;
     }
 
     @media (max-width: 768px) {
@@ -798,28 +870,57 @@
     <div class="modal-content">
       <button class="modal-close" onclick="closeScanModal()">×</button>
 
-      <h2>Enable AgentReady for <span id="modalRepoName"></span></h2>
-      <p class="modal-subtitle">Get weekly assessments like Dependabot</p>
-
-      <div class="modal-step">
-        <ol class="modal-list modal-list-simple">
-          <li>Copy the workflow below to <code>.github/workflows/agentready.yml</code></li>
-          <li>Add <code>ANTHROPIC_API_KEY</code> to your <a href="" id="secretsLink" target="_blank">repo secrets</a></li>
-          <li>Weekly PRs with assessment results will be created automatically</li>
-          <li>Repos scoring 60+ auto-submit to the leaderboard</li>
-        </ol>
+      <div class="modal-header">
+        <div>
+          <h2>Assess <span id="modalRepoName"></span></h2>
+          <p class="modal-subtitle">Run AgentReady assessment</p>
+        </div>
+        <button onclick="copyAllCommands()" class="copy-btn-header">Copy All</button>
       </div>
 
-      <div class="modal-step">
-        <div class="code-block code-block-large">
-          <pre><code id="workflowContent"># Workflow content will be inserted here</code></pre>
-          <button onclick="copyWorkflow()" class="copy-btn">Copy Workflow</button>
+      <!-- Quick Start -->
+      <div class="terminal-section">
+        <div class="terminal-label">Quick Start</div>
+        <div class="terminal-block">
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-command" id="installCmd">pip install agentready</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-command" id="assessCmd">agentready assess <span id="repoUrl"></span></span>
+          </div>
+        </div>
+        <p class="terminal-note">Assessment opens in browser automatically. Submit your score to the leaderboard from the report.</p>
+      </div>
+
+      <!-- Optional Automation -->
+      <div class="terminal-section">
+        <div class="terminal-label">Optional: Automate with GitHub Actions <span class="terminal-badge">Like Dependabot</span></div>
+        <div class="terminal-block">
+          <div class="terminal-line">
+            <span class="terminal-comment"># Add .github/workflows/agentready.yml</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-comment"># Set ANTHROPIC_API_KEY in <a href="" id="secretsLink2" target="_blank" class="terminal-link">repo secrets</a></span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-comment"># Weekly PRs with assessment results</span>
+          </div>
+        </div>
+        <button onclick="showWorkflow()" class="show-workflow-btn" id="showWorkflowBtn">Show Workflow File →</button>
+        <div class="workflow-container" id="workflowContainer" style="display: none;">
+          <div class="terminal-block terminal-block-workflow">
+            <pre><code id="workflowContent"></code></pre>
+          </div>
+          <button onclick="copyWorkflow()" class="copy-btn-inline">Copy Workflow</button>
         </div>
       </div>
 
-      <!-- Learn More -->
-      <div class="modal-footer">
-        <a href="https://github.com/ambient-code/agentready#readme" target="_blank">Documentation</a>
+      <!-- Footer -->
+      <div class="modal-footer-minimal">
+        <a href="https://github.com/ambient-code/agentready#readme" target="_blank">Docs</a>
+        <span class="footer-separator">•</span>
         <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md" target="_blank">How Scoring Works</a>
       </div>
     </div>
@@ -879,45 +980,12 @@ jobs:
 
             This PR contains the latest agent-readiness assessment for this repository.
 
-            **Generated**: \${{ github.run_id }}
-            **Workflow**: Weekly automated assessment
+            **View your score**: Check the HTML report in \`agentready-report-*/\`
 
-            See the attached HTML report for detailed findings and remediation guidance.
+            **Submit to leaderboard**: Visit https://agentready.dev/submit
           branch: agentready-assessment
           delete-branch: true
           labels: agentready, documentation
-
-      # Submit to leaderboard (if score >= 60)
-      - name: Submit to leaderboard
-        if: success()
-        env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Extract score from JSON report
-          SCORE=\$(jq -r '.score' agentready-report-*/assessment.json | head -1)
-
-          # Only submit if score >= 60 (Silver or higher)
-          if [ "\$SCORE" -ge 60 ]; then
-            # Create PR to AgentReady leaderboard repository
-            echo "Score \$SCORE qualifies for leaderboard. Submitting..."
-
-            # Fork and clone AgentReady repo
-            gh repo fork ambient-code/agentready --clone=true --remote=true
-
-            # Add entry to leaderboard data
-            cd agentready
-            echo "  - repo: \$REPO_FULL_NAME" >> data/leaderboard.yml
-            echo "    score: \$SCORE" >> data/leaderboard.yml
-            echo "    timestamp: \$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> data/leaderboard.yml
-
-            # Create PR
-            git add data/leaderboard.yml
-            git commit -m "feat: add \$REPO_FULL_NAME to leaderboard (score: \$SCORE)"
-            gh pr create --title "feat: Add \$REPO_FULL_NAME to leaderboard" \\
-              --body "Automated submission from AgentReady workflow. Score: \$SCORE"
-          else
-            echo "Score \$SCORE does not qualify for leaderboard (minimum: 60)"
-          fi
 `;
 
     // Track repo submission to Google Sheets
@@ -1074,11 +1142,16 @@ jobs:
 
       // Update modal content
       document.getElementById('modalRepoName').textContent = repoName;
+      document.getElementById('repoUrl').textContent = repoUrl;
       document.getElementById('workflowContent').textContent = WORKFLOW_TEMPLATE;
 
-      // Update secrets link to point to user's repo
+      // Update secrets links to point to user's repo
       const secretsUrl = `https://github.com/${repoName}/settings/secrets/actions`;
-      document.getElementById('secretsLink').href = secretsUrl;
+      document.getElementById('secretsLink2').href = secretsUrl;
+
+      // Reset workflow visibility
+      document.getElementById('workflowContainer').style.display = 'none';
+      document.getElementById('showWorkflowBtn').textContent = 'Show Workflow File →';
 
       // Show modal
       document.getElementById('scanModal').style.display = 'flex';
@@ -1086,6 +1159,34 @@ jobs:
 
     function closeScanModal() {
       document.getElementById('scanModal').style.display = 'none';
+    }
+
+    function copyAllCommands() {
+      const installCmd = document.getElementById('installCmd').textContent;
+      const assessCmd = document.getElementById('assessCmd').textContent;
+      const allCommands = `${installCmd}\n${assessCmd}`;
+
+      navigator.clipboard.writeText(allCommands).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      });
+    }
+
+    function showWorkflow() {
+      const container = document.getElementById('workflowContainer');
+      const btn = document.getElementById('showWorkflowBtn');
+
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+        btn.textContent = 'Hide Workflow File';
+      } else {
+        container.style.display = 'none';
+        btn.textContent = 'Show Workflow File →';
+      }
     }
 
     function copyWorkflow() {
