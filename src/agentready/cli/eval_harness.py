@@ -13,6 +13,7 @@ from ..assessors import create_all_assessors
 from ..services.eval_harness import (
     AssessorTester,
     BaselineEstablisher,
+    DashboardGenerator,
     ResultsAggregator,
     TbenchRunner,
 )
@@ -699,11 +700,88 @@ def summarize(repository, verbose):
 
 
 @eval_harness.command()
-def dashboard():
-    """Generate dashboard data for GitHub Pages.
+@click.argument("repository", type=click.Path(exists=True), default=".")
+@click.option(
+    "--docs-dir",
+    type=click.Path(),
+    default=None,
+    help="Docs data directory (default: docs/_data/tbench/)",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Show detailed file output information",
+)
+def dashboard(repository, docs_dir, verbose):
+    """Generate dashboard data files for GitHub Pages.
 
-    [NOT YET IMPLEMENTED]
+    Converts evaluation summary into Jekyll-compatible JSON data files
+    for visualization with Chart.js on the GitHub Pages dashboard.
+
+    REPOSITORY: Path to git repository (default: current directory)
+
+    Examples:
+
+        \b
+        # Generate dashboard data after testing
+        agentready eval-harness dashboard
+
+        \b
+        # Custom docs directory
+        agentready eval-harness dashboard --docs-dir /path/to/docs/_data/tbench
     """
-    click.echo("❌ Command not yet implemented")
-    click.echo("Coming in Phase 1E: Dashboard")
-    sys.exit(1)
+    repo_path = Path(repository).resolve()
+    eval_harness_dir = repo_path / ".agentready" / "eval_harness"
+
+    click.echo("📊 AgentReady Eval Harness - Dashboard Generator")
+    click.echo("=" * 60)
+
+    try:
+        generator = DashboardGenerator()
+
+        # Set docs directory if provided
+        if docs_dir:
+            docs_data_dir = Path(docs_dir)
+        else:
+            docs_data_dir = None  # Will use default (docs/_data/tbench/)
+
+        click.echo("\n🔄 Generating dashboard data...")
+        click.echo(f"Source: {eval_harness_dir / 'summary.json'}")
+
+        generated_files = generator.generate(eval_harness_dir, docs_data_dir)
+
+        click.echo("\n✅ Dashboard data generated successfully!")
+
+        click.echo("\n📁 Generated Files:")
+        for name, path in generated_files.items():
+            click.echo(f"  • {name}: {path.relative_to(repo_path)}")
+            if verbose:
+                # Show file size
+                size = path.stat().st_size
+                click.echo(f"    Size: {size:,} bytes")
+
+        click.echo("\n📈 Next Steps:")
+        click.echo("  1. Review generated data in docs/_data/tbench/")
+        click.echo("  2. Create dashboard page: docs/tbench.md")
+        click.echo("  3. Update navigation: docs/_config.yml")
+        click.echo("  4. Commit and push to GitHub Pages")
+
+        click.echo("\n💡 Tip:")
+        click.echo(
+            "  The dashboard will auto-update when you run 'eval-harness run-tier'"
+        )
+
+    except FileNotFoundError as e:
+        click.echo(f"❌ {str(e)}", err=True)
+        click.echo(
+            "\nRun 'agentready eval-harness run-tier --tier 1' first to generate summary."
+        )
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"❌ Error: {str(e)}", err=True)
+        if verbose:
+            import traceback
+
+            traceback.print_exc()
+        sys.exit(1)

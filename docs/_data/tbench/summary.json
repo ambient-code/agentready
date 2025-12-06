@@ -1,0 +1,219 @@
+{
+  "baseline": {
+    "mean_score": 73.41,
+    "std_dev": 0.0,
+    "median_score": 73.41,
+    "min_score": 73.41,
+    "max_score": 73.41,
+    "iterations": 3,
+    "raw_results": [
+      {
+        "score": 73.41,
+        "completion_rate": 71.12,
+        "pytest_pass_rate": 78.91,
+        "latency_ms": 2750.9,
+        "timestamp": "2025-12-06T16:03:49.212317",
+        "is_mocked": true
+      },
+      {
+        "score": 73.41,
+        "completion_rate": 71.12,
+        "pytest_pass_rate": 78.91,
+        "latency_ms": 2750.9,
+        "timestamp": "2025-12-06T16:03:49.264063",
+        "is_mocked": true
+      },
+      {
+        "score": 73.41,
+        "completion_rate": 71.12,
+        "pytest_pass_rate": 78.91,
+        "latency_ms": 2750.9,
+        "timestamp": "2025-12-06T16:03:49.314949",
+        "is_mocked": true
+      }
+    ]
+  },
+  "assessor_impacts": [
+    {
+      "assessor_id": "type_annotations",
+      "assessor_name": "Type Annotations",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "claude_md_file",
+      "assessor_name": "CLAUDE.md Configuration Files",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "standard_layout",
+      "assessor_name": "Standard Project Layouts",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "lock_files",
+      "assessor_name": "Lock Files for Reproducibility",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "readme_structure",
+      "assessor_name": "README Structure",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    }
+  ],
+  "ranked_assessors": [
+    {
+      "assessor_id": "type_annotations",
+      "assessor_name": "Type Annotations",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "claude_md_file",
+      "assessor_name": "CLAUDE.md Configuration Files",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "standard_layout",
+      "assessor_name": "Standard Project Layouts",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "lock_files",
+      "assessor_name": "Lock Files for Reproducibility",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    },
+    {
+      "assessor_id": "readme_structure",
+      "assessor_name": "README Structure",
+      "tier": 1,
+      "baseline_score": 73.41,
+      "post_remediation_score": 73.41,
+      "delta_score": 0.0,
+      "p_value": NaN,
+      "effect_size": 0.0,
+      "is_significant": false,
+      "significance_label": "negligible",
+      "iterations": 3,
+      "fixes_applied": 0,
+      "remediation_log": [
+        "No fixes available for this assessor"
+      ]
+    }
+  ],
+  "tier_impacts": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0
+  },
+  "total_assessors_tested": 5,
+  "significant_improvements": 0,
+  "timestamp": "2025-12-06T16:41:09.591973"
+}

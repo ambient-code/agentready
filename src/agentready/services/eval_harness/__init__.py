@@ -3,6 +3,7 @@
 from .aggregator import ResultsAggregator
 from .assessor_tester import AssessorTester
 from .baseline import BaselineEstablisher
+from .dashboard_generator import DashboardGenerator
 from .tbench_runner import TbenchRunner
 
 __all__ = [
@@ -10,4 +11,5 @@ __all__ = [
     "BaselineEstablisher",
     "AssessorTester",
     "ResultsAggregator",
+    "DashboardGenerator",
 ]

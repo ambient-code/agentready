@@ -1,0 +1,87 @@
+[
+  {
+    "assessor_id": "type_annotations",
+    "assessor_name": "Type Annotations",
+    "tier": 1,
+    "baseline_score": 73.41,
+    "post_remediation_score": 73.41,
+    "delta_score": 0.0,
+    "p_value": NaN,
+    "effect_size": 0.0,
+    "is_significant": false,
+    "significance_label": "negligible",
+    "iterations": 3,
+    "fixes_applied": 0,
+    "remediation_log": [
+      "No fixes available for this assessor"
+    ]
+  },
+  {
+    "assessor_id": "claude_md_file",
+    "assessor_name": "CLAUDE.md Configuration Files",
+    "tier": 1,
+    "baseline_score": 73.41,
+    "post_remediation_score": 73.41,
+    "delta_score": 0.0,
+    "p_value": NaN,
+    "effect_size": 0.0,
+    "is_significant": false,
+    "significance_label": "negligible",
+    "iterations": 3,
+    "fixes_applied": 0,
+    "remediation_log": [
+      "No fixes available for this assessor"
+    ]
+  },
+  {
+    "assessor_id": "standard_layout",
+    "assessor_name": "Standard Project Layouts",
+    "tier": 1,
+    "baseline_score": 73.41,
+    "post_remediation_score": 73.41,
+    "delta_score": 0.0,
+    "p_value": NaN,
+    "effect_size": 0.0,
+    "is_significant": false,
+    "significance_label": "negligible",
+    "iterations": 3,
+    "fixes_applied": 0,
+    "remediation_log": [
+      "No fixes available for this assessor"
+    ]
+  },
+  {
+    "assessor_id": "lock_files",
+    "assessor_name": "Lock Files for Reproducibility",
+    "tier": 1,
+    "baseline_score": 73.41,
+    "post_remediation_score": 73.41,
+    "delta_score": 0.0,
+    "p_value": NaN,
+    "effect_size": 0.0,
+    "is_significant": false,
+    "significance_label": "negligible",
+    "iterations": 3,
+    "fixes_applied": 0,
+    "remediation_log": [
+      "No fixes available for this assessor"
+    ]
+  },
+  {
+    "assessor_id": "readme_structure",
+    "assessor_name": "README Structure",
+    "tier": 1,
+    "baseline_score": 73.41,
+    "post_remediation_score": 73.41,
+    "delta_score": 0.0,
+    "p_value": NaN,
+    "effect_size": 0.0,
+    "is_significant": false,
+    "significance_label": "negligible",
+    "iterations": 3,
+    "fixes_applied": 0,
+    "remediation_log": [
+      "No fixes available for this assessor"
+    ]
+  }
+]
