@@ -89,6 +89,7 @@ class LazyGroup(click.Group):
     cls=LazyGroup,
     lazy_subcommands={
         "assess-batch": ("assess_batch", "assess_batch"),
+        "eval-harness": ("eval_harness", "eval_harness"),
         "experiment": ("experiment", "experiment"),
         "extract-skills": ("extract_skills", "extract_skills"),
         "learn": ("learn", "learn"),
