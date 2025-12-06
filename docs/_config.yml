@@ -41,6 +41,8 @@ navigation:
     url: /roadmaps
   - title: Attributes
     url: /attributes
+  - title: Terminal-Bench
+    url: /tbench
   - title: API Reference
     url: /api-reference
   - title: Examples

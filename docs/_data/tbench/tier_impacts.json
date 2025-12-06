@@ -1,0 +1,22 @@
+[
+  {
+    "tier": "1",
+    "delta": 0.0,
+    "tier_name": "Tier 1"
+  },
+  {
+    "tier": "2",
+    "delta": 0.0,
+    "tier_name": "Tier 2"
+  },
+  {
+    "tier": "3",
+    "delta": 0.0,
+    "tier_name": "Tier 3"
+  },
+  {
+    "tier": "4",
+    "delta": 0.0,
+    "tier_name": "Tier 4"
+  }
+]
