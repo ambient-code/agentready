@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentReady - Clean Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-white: #ffffff;
+      --bg-gray-50: #f8f9fa;
+      --bg-gray-100: #f1f3f4;
+      --navy: #3c5875;
+      --navy-dark: #2d4159;
+      --red-accent: #ff4757;
+      --red-glow: rgba(255, 71, 87, 0.3);
+      --text-dark: #202124;
+      --text-gray: #5f6368;
+      --text-light: #9aa0a6;
+      --primary: #3c5875;
+      --primary-hover: #2d4159;
+      --border-light: #e8eaed;
+      --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
+      --shadow-md: 0 2px 6px 0 rgba(60, 64, 67, 0.15);
+      --shadow-lg: 0 4px 12px 0 rgba(60, 64, 67, 0.15);
+      --shadow-xl: 0 8px 24px 0 rgba(60, 64, 67, 0.15);
+      --tier-platinum: #ede9fe;
+      --tier-platinum-text: #7c3aed;
+      --tier-gold: #fef3c7;
+      --tier-gold-text: #ca8a04;
+      --tier-silver: #f4f4f5;
+      --tier-silver-text: #71717a;
+      --tier-bronze: #fed7aa;
+      --tier-bronze-text: #c2410c;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gray-50);
+      color: var(--text-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-white);
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .logo {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--navy);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      transition: opacity 0.3s;
+      line-height: 1;
+    }
+
+    .logo .e-glow {
+      color: var(--red-accent);
+      text-shadow: 0 0 20px var(--red-glow);
+    }
+
+    .logo:hover {
+      opacity: 0.9;
+    }
+
+    .tagline {
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text-gray);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--primary);
+    }
+
+    nav a:hover::after {
+      width: 100%;
+    }
+
+    /* Hero Section */
+    .hero {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      color: var(--text-gray);
+      margin-bottom: 2rem;
+      font-size: 1.25rem;
+      font-weight: 400;
+    }
+
+    /* Input Section */
+    .input-container {
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 3rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .input-container:hover {
+      box-shadow: var(--shadow-xl);
+      transform: translateY(-2px);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      padding-right: 5rem;
+      background: var(--bg-gray-50);
+      border: 2px solid var(--border-light);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+
+    .input-wrapper.focus {
+      border-color: var(--primary);
+      background: var(--bg-white);
+      box-shadow: 0 0 0 4px rgba(60, 88, 117, 0.1);
+    }
+
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.05rem;
+      outline: none;
+      padding: 0;
+    }
+
+    input::placeholder {
+      color: var(--text-light);
+    }
+
+    .send-btn {
+      position: absolute;
+      bottom: 0.75rem;
+      right: 0.75rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .send-btn:hover:not(:disabled) {
+      background: var(--primary-hover);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .send-btn svg {
+      transform: rotate(45deg);
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      color: var(--text-gray);
+      margin-top: 2rem;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border-light);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Leaderboard Section */
+    .leaderboard {
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+      padding: 0 2rem;
+    }
+
+    .leaderboard h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 2rem;
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+
+    .leaderboard-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .leaderboard-column h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .refresh-note {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    .leaderboard-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .leaderboard-card {
+      background: var(--bg-white);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      transition: all 0.3s;
+      min-height: 70px;
+    }
+
+    .leaderboard-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+
+    .card-rank {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-light);
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .card-rank.top-3 {
+      color: var(--primary);
+    }
+
+    .card-content {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .card-repo {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .card-repo a {
+      color: var(--text-dark);
+      text-decoration: none;
+      transition: color 0.3s;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-repo a:hover {
+      color: var(--primary);
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .card-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+
+    .card-score {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .card-tier {
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .tier-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tier-badge.platinum {
+      background: var(--tier-platinum);
+      color: var(--tier-platinum-text);
+    }
+
+    .tier-badge.gold {
+      background: var(--tier-gold);
+      color: var(--tier-gold-text);
+    }
+
+    .tier-badge.silver {
+      background: var(--tier-silver);
+      color: var(--tier-silver-text);
+    }
+
+    .tier-badge.bronze {
+      background: var(--tier-bronze);
+      color: var(--tier-bronze-text);
+    }
+
+    /* Scoring Info Link */
+    .scoring-info {
+      text-align: center;
+      margin: -1rem 0 2rem 0;
+      font-size: 0.9rem;
+    }
+
+    .scoring-info a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      border-bottom: 1px dashed var(--primary);
+      transition: all 0.3s;
+    }
+
+    .scoring-info a:hover {
+      border-bottom-style: solid;
+      color: var(--primary-hover);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-gray);
+      background: var(--bg-white);
+      border-top: 1px solid var(--border-light);
+    }
+
+    footer strong {
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 2rem 1.5rem;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+      }
+
+      .input-container {
+        padding: 1.5rem;
+      }
+
+      .input-wrapper {
+        padding: 1rem 1.25rem;
+        padding-right: 4.5rem;
+      }
+
+      .leaderboard-columns {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .leaderboard-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+      }
+
+      .card-rank {
+        font-size: 1.25rem;
+      }
+
+      .card-score {
+        font-size: 1.5rem;
+      }
+
+      .card-meta {
+        justify-content: center;
+      }
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      position: relative;
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: 3rem;
+      max-width: 700px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--border-light);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: transparent;
+      border: none;
+      font-size: 2rem;
+      color: var(--text-gray);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-gray-100);
+      color: var(--text-dark);
+    }
+
+    .modal-content h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-subtitle {
+      color: var(--text-gray);
+      margin-bottom: 2rem;
+    }
+
+    .modal-step {
+      margin-bottom: 2rem;
+    }
+
+    .modal-step h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .code-block-large {
+      flex-direction: column;
+      align-items: flex-end;
+      max-height: 400px;
+    }
+
+    .code-block-large pre {
+      width: 100%;
+      margin: 0 0 1rem 0;
+      overflow-x: auto;
+    }
+
+    .code-block-large code {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    .modal-list {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+      color: var(--text-gray);
+    }
+
+    .modal-list li {
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .modal-list-simple {
+      list-style: decimal;
+      padding-left: 1.25rem;
+    }
+
+    .modal-list-simple li {
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+      font-size: 0.95rem;
+    }
+
+    .modal-list code {
+      background: var(--bg-gray-50);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .modal-list a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary);
+    }
+
+    .modal-list a:hover {
+      color: var(--primary-hover);
+      border-bottom-color: var(--primary-hover);
+    }
+
+    .modal-note {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-gray);
+    }
+
+    .modal-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 2px solid var(--primary);
+      transition: all 0.3s;
+    }
+
+    .modal-link:hover {
+      color: var(--primary-hover);
+      border-bottom-color: var(--primary-hover);
+    }
+
+    .modal-footer {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+    }
+
+    .modal-footer a {
+      color: var(--text-gray);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+
+    .modal-footer a:hover {
+      color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+      .modal-content {
+        padding: 2rem;
+        width: 95%;
+      }
+
+      .modal-footer {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <a href="#" class="logo">ag<span class="e-glow">e</span>ntready</a>
+        <div class="tagline">Assess | Align | Monitor</div>
+      </div>
+      <nav>
+        <a href="#docs">Docs</a>
+        <a href="https://github.com/ambient-code/agentready" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Assess Your Repository</h1>
+    <p>Discover how agent-ready your codebase is for AI-assisted development</p>
+
+    <div class="input-container">
+      <div class="input-wrapper" id="inputWrapper">
+        <input
+          type="text"
+          id="repoInput"
+          placeholder="https://github.com/username/repository"
+          aria-label="GitHub repository URL"
+        />
+        <button id="scanBtn" onclick="handleScan()" class="send-btn" aria-label="Scan repository">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"></path>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="loading" id="loading">
+        <span class="spinner"></span>
+        <span>Analyzing repository...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Leaderboard Section -->
+  <section class="leaderboard">
+    <h2>🏆 Leaderboard</h2>
+    <p class="scoring-info">
+      <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md" target="_blank">
+        How are scores calculated?
+      </a>
+    </p>
+    <div class="leaderboard-columns">
+      <div class="leaderboard-column">
+        <h3>Top 10 on GitHub <span class="refresh-note">• Refreshed daily</span></h3>
+        <div class="leaderboard-grid" id="githubLeaderboard">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+      <div class="leaderboard-column">
+        <h3>User Submissions</h3>
+        <div class="leaderboard-grid" id="userLeaderboard">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      <strong>AgentReady</strong> — Assess repositories for AI-assisted development<br>
+      Open source under MIT License • Built with ❤️ by <a href="https://github.com/ambient-code" target="_blank">Ambient Code</a>
+    </p>
+  </footer>
+
+  <!-- Scan Modal -->
+  <div id="scanModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeScanModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeScanModal()">×</button>
+
+      <h2>Enable AgentReady for <span id="modalRepoName"></span></h2>
+      <p class="modal-subtitle">Get weekly assessments like Dependabot</p>
+
+      <div class="modal-step">
+        <ol class="modal-list modal-list-simple">
+          <li>Copy the workflow below to <code>.github/workflows/agentready.yml</code></li>
+          <li>Add <code>ANTHROPIC_API_KEY</code> to your <a href="" id="secretsLink" target="_blank">repo secrets</a></li>
+          <li>Weekly PRs with assessment results will be created automatically</li>
+          <li>Repos scoring 60+ auto-submit to the leaderboard</li>
+        </ol>
+      </div>
+
+      <div class="modal-step">
+        <div class="code-block code-block-large">
+          <pre><code id="workflowContent"># Workflow content will be inserted here</code></pre>
+          <button onclick="copyWorkflow()" class="copy-btn">Copy Workflow</button>
+        </div>
+      </div>
+
+      <!-- Learn More -->
+      <div class="modal-footer">
+        <a href="https://github.com/ambient-code/agentready#readme" target="_blank">Documentation</a>
+        <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md" target="_blank">How Scoring Works</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Google Sheets Analytics Webhook
+    const GOOGLE_SHEETS_WEBHOOK_URL = 'YOUR_DEPLOYMENT_URL_HERE';
+
+    // GitHub Actions Workflow Template
+    const WORKFLOW_TEMPLATE = `name: AgentReady Assessment
+on:
+  # Run weekly on Mondays at 9am UTC (like Dependabot)
+  schedule:
+    - cron: '0 9 * * 1'
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Install AgentReady
+      - name: Install AgentReady
+        run: pip install agentready
+
+      # Run assessment with optional LLM enrichment
+      - name: Run AgentReady assessment
+        env:
+          ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          agentready assess . --format=json --format=markdown --format=html
+
+      # Create PR with results (if changes detected)
+      - name: Create assessment PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: \${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update AgentReady assessment'
+          title: 'chore: AgentReady Assessment Report'
+          body: |
+            ## AgentReady Assessment Results
+
+            This PR contains the latest agent-readiness assessment for this repository.
+
+            **Generated**: \${{ github.run_id }}
+            **Workflow**: Weekly automated assessment
+
+            See the attached HTML report for detailed findings and remediation guidance.
+          branch: agentready-assessment
+          delete-branch: true
+          labels: agentready, documentation
+
+      # Submit to leaderboard (if score >= 60)
+      - name: Submit to leaderboard
+        if: success()
+        env:
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract score from JSON report
+          SCORE=\$(jq -r '.score' agentready-report-*/assessment.json | head -1)
+
+          # Only submit if score >= 60 (Silver or higher)
+          if [ "\$SCORE" -ge 60 ]; then
+            # Create PR to AgentReady leaderboard repository
+            echo "Score \$SCORE qualifies for leaderboard. Submitting..."
+
+            # Fork and clone AgentReady repo
+            gh repo fork ambient-code/agentready --clone=true --remote=true
+
+            # Add entry to leaderboard data
+            cd agentready
+            echo "  - repo: \$REPO_FULL_NAME" >> data/leaderboard.yml
+            echo "    score: \$SCORE" >> data/leaderboard.yml
+            echo "    timestamp: \$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> data/leaderboard.yml
+
+            # Create PR
+            git add data/leaderboard.yml
+            git commit -m "feat: add \$REPO_FULL_NAME to leaderboard (score: \$SCORE)"
+            gh pr create --title "feat: Add \$REPO_FULL_NAME to leaderboard" \\
+              --body "Automated submission from AgentReady workflow. Score: \$SCORE"
+          else
+            echo "Score \$SCORE does not qualify for leaderboard (minimum: 60)"
+          fi
+`;
+
+    // Track repo submission to Google Sheets
+    function trackRepoSubmission(repoUrl) {
+      fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repoUrl: repoUrl,
+          userAgent: navigator.userAgent,
+          referrer: document.referrer,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(err => {
+        // Silent fail - don't block user experience
+        console.log('Analytics tracking failed:', err);
+      });
+    }
+
+    // Mock GitHub Top 10 data
+    const githubTop10 = [
+      { rank: 1, repo: "torvalds/linux", score: 92.0, tier: "Platinum", language: "C", stars: "165k" },
+      { rank: 2, repo: "kubernetes/kubernetes", score: 89.5, tier: "Gold", language: "Go", stars: "107k" },
+      { rank: 3, repo: "tensorflow/tensorflow", score: 88.0, tier: "Gold", language: "Python", stars: "182k" },
+      { rank: 4, repo: "nodejs/node", score: 85.5, tier: "Gold", language: "JavaScript", stars: "103k" },
+      { rank: 5, repo: "rust-lang/rust", score: 84.0, tier: "Gold", language: "Rust", stars: "92k" },
+      { rank: 6, repo: "microsoft/vscode", score: 81.5, tier: "Gold", language: "TypeScript", stars: "157k" },
+      { rank: 7, repo: "golang/go", score: 78.0, tier: "Gold", language: "Go", stars: "119k" },
+      { rank: 8, repo: "pytorch/pytorch", score: 75.5, tier: "Gold", language: "Python", stars: "77k" },
+      { rank: 9, repo: "facebook/react", score: 72.0, tier: "Silver", language: "JavaScript", stars: "223k" },
+      { rank: 10, repo: "python/cpython", score: 69.5, tier: "Silver", language: "Python", stars: "59k" }
+    ];
+
+    // Mock User Submissions data
+    const userSubmissions = [
+      { rank: 1, repo: "ambient-code/agentready", score: 95.0, tier: "Platinum", language: "Python", stars: "1.2k" },
+      { rank: 2, repo: "anthropics/claude-code-sdk", score: 87.5, tier: "Gold", language: "TypeScript", stars: "3.4k" },
+      { rank: 3, repo: "redhat/spec-kit", score: 82.0, tier: "Gold", language: "Python", stars: "892" },
+      { rank: 4, repo: "openai/openai-cookbook", score: 78.5, tier: "Gold", language: "Python", stars: "45k" },
+      { rank: 5, repo: "microsoft/semantic-kernel", score: 71.0, tier: "Silver", language: "C#", stars: "15k" },
+      { rank: 6, repo: "langchain-ai/langchain", score: 68.5, tier: "Silver", language: "Python", stars: "78k" },
+      { rank: 7, repo: "vercel/ai", score: 64.0, tier: "Silver", language: "TypeScript", stars: "12k" },
+      { rank: 8, repo: "ggerganov/llama.cpp", score: 58.5, tier: "Bronze", language: "C++", stars: "52k" },
+      { rank: 9, repo: "ollama/ollama", score: 52.0, tier: "Bronze", language: "Go", stars: "67k" },
+      { rank: 10, repo: "mlflow/mlflow", score: 45.5, tier: "Bronze", language: "Python", stars: "16k" }
+    ];
+
+    // Populate a leaderboard grid
+    function populateGrid(containerId, data) {
+      const grid = document.getElementById(containerId);
+
+      data.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'leaderboard-card';
+
+        // Rank
+        const rank = document.createElement('div');
+        rank.className = 'card-rank' + (entry.rank <= 3 ? ' top-3' : '');
+        rank.textContent = '#' + entry.rank;
+        card.appendChild(rank);
+
+        // Content
+        const content = document.createElement('div');
+        content.className = 'card-content';
+
+        const repoDiv = document.createElement('div');
+        repoDiv.className = 'card-repo';
+        const repoLink = document.createElement('a');
+        repoLink.href = 'https://github.com/' + entry.repo;
+        repoLink.target = '_blank';
+        repoLink.textContent = entry.repo;
+        repoLink.title = entry.repo;
+        repoDiv.appendChild(repoLink);
+        content.appendChild(repoDiv);
+
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+
+        const lang = document.createElement('span');
+        lang.textContent = '💻 ' + entry.language;
+        meta.appendChild(lang);
+
+        const stars = document.createElement('span');
+        stars.textContent = '⭐ ' + entry.stars;
+        meta.appendChild(stars);
+
+        content.appendChild(meta);
+        card.appendChild(content);
+
+        // Score
+        const score = document.createElement('div');
+        score.className = 'card-score';
+        score.textContent = entry.score.toFixed(1);
+        card.appendChild(score);
+
+        // Tier
+        const tierDiv = document.createElement('div');
+        tierDiv.className = 'card-tier';
+        const tierBadge = document.createElement('span');
+        tierBadge.className = 'tier-badge ' + entry.tier.toLowerCase();
+        tierBadge.textContent = entry.tier;
+        tierDiv.appendChild(tierBadge);
+        card.appendChild(tierDiv);
+
+        grid.appendChild(card);
+      });
+    }
+
+    // Input focus states
+    const inputWrapper = document.getElementById('inputWrapper');
+    const repoInput = document.getElementById('repoInput');
+
+    repoInput.addEventListener('focus', () => {
+      inputWrapper.classList.add('focus');
+    });
+
+    repoInput.addEventListener('blur', () => {
+      inputWrapper.classList.remove('focus');
+    });
+
+    // Handle scan
+    function handleScan() {
+      const input = document.getElementById('repoInput');
+
+      if (!input.value.trim()) {
+        input.placeholder = 'Please enter a repository URL';
+        input.style.borderColor = 'var(--red-accent)';
+        setTimeout(() => {
+          input.placeholder = 'https://github.com/username/repository';
+          input.style.borderColor = '';
+        }, 2000);
+        return;
+      }
+
+      if (!input.value.includes('github.com/')) {
+        input.placeholder = 'Please enter a valid GitHub URL';
+        input.style.borderColor = 'var(--red-accent)';
+        setTimeout(() => {
+          input.placeholder = 'https://github.com/username/repository';
+          input.style.borderColor = '';
+        }, 2000);
+        return;
+      }
+
+      // Extract repo info
+      const repoUrl = input.value.trim();
+      const repoName = repoUrl.split('github.com/')[1]?.replace(/\.git$/, '') || 'your-repo';
+
+      // Track analytics
+      trackRepoSubmission(repoUrl);
+
+      // Update modal content
+      document.getElementById('modalRepoName').textContent = repoName;
+      document.getElementById('workflowContent').textContent = WORKFLOW_TEMPLATE;
+
+      // Update secrets link to point to user's repo
+      const secretsUrl = `https://github.com/${repoName}/settings/secrets/actions`;
+      document.getElementById('secretsLink').href = secretsUrl;
+
+      // Show modal
+      document.getElementById('scanModal').style.display = 'flex';
+    }
+
+    function closeScanModal() {
+      document.getElementById('scanModal').style.display = 'none';
+    }
+
+    function copyWorkflow() {
+      const workflowText = document.getElementById('workflowContent').textContent;
+      navigator.clipboard.writeText(workflowText).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeScanModal();
+      }
+    });
+
+    // Initialize
+    populateGrid('githubLeaderboard', githubTop10);
+    populateGrid('userLeaderboard', userSubmissions);
+  </script>
+</body>
+</html>
