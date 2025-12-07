@@ -22,6 +22,9 @@ exclude = [
     "^http://localhost",
     "^http://127\\.0\\.0\\.1",
 
+    # File protocol URLs (Jekyll-generated files)
+    "^file://",
+
     # GitHub issue creation pages (always fail)
     "^https://github\\.com/.*/issues/new",
 
