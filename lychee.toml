@@ -42,10 +42,9 @@ exclude = [
 include_mail = false
 
 # Check fragments (anchors) in URLs
-check_anchors = false
+include_fragments = false
 
-# Follow redirects
-follow_redirects = true
+# Follow redirects (implicit, enabled by default)
 
 # User agent string
 user_agent = "lychee/agentready-link-checker"

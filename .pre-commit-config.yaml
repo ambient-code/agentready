@@ -41,9 +41,12 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
 
-  - repo: https://github.com/lycheeverse/lychee
-    rev: nightly
+  - repo: local
     hooks:
       - id: lychee
+        name: lychee
+        entry: /Users/jeder/.cargo/bin/lychee
         args: ['--config', 'lychee.toml', '--verbose']
+        language: system
         files: \.(md|html)$
+        pass_filenames: true
