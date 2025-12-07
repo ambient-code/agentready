@@ -749,8 +749,8 @@ A clear and concise description of what you expected to happen.
 
 **Environment**
 - OS: [e.g., Ubuntu 22.04, macOS 14.0, Windows 11]
-- {% if language == "python" %}Python{% elsif language == "javascript" %}Node.js{% elsif language == "go" %}Go{% endif %} Version: [e.g., {{ python_version if language == "python" else node_version if language == "javascript" else go_version }}]
-- {{ repository_name }} Version: [e.g., 1.0.0]
+- {% raw %}{% if language == "python" %}Python{% elsif language == "javascript" %}Node.js{% elsif language == "go" %}Go{% endif %} Version: [e.g., {{ python_version if language == "python" else node_version if language == "javascript" else go_version }}]
+- {{ repository_name }} Version: [e.g., 1.0.0]{% endraw %}
 
 **Additional context**
 Add any other context about the problem here.
@@ -836,7 +836,7 @@ Templates can use Jinja2 conditionals:
 2. **Provide defaults**:
 
    ```jinja2
-   python-version: '{{ python_version | default("3.11") }}'
+   {% raw %}python-version: '{{ python_version | default("3.11") }}'{% endraw %}
    ```
 
 3. **Add comments**:

@@ -1,0 +1,53 @@
+# Lychee link checker configuration
+# https://lychee.cli.rs/
+
+# Maximum number of concurrent network requests
+max_concurrency = 10
+
+# Accept status codes (HTTP codes to consider as success)
+accept = [200, 206, 301, 302, 308, 429]
+
+# Timeout for each request (in seconds)
+timeout = 20
+
+# Number of retries for failed requests
+max_retries = 3
+
+# Retry wait time (in seconds)
+retry_wait_time = 30
+
+# Exclude patterns (regex)
+exclude = [
+    # Localhost URLs
+    "^http://localhost",
+    "^http://127\\.0\\.0\\.1",
+
+    # File protocol URLs (Jekyll-generated files)
+    "^file://",
+
+    # GitHub issue creation pages (always fail)
+    "^https://github\\.com/.*/issues/new",
+
+    # Relative URLs for Jekyll site
+    "^/agentready/",
+
+    # Jinja2/Liquid template variables
+    "\\{\\{.*\\}\\}",
+
+    # GitHub discussions (may be private)
+    "^https://github\\.com/ambient-code/agentready/discussions",
+
+    # License file (avoid false positives)
+    "^https://github\\.com/ambient-code/agentready/blob/main/LICENSE",
+]
+
+# Include mail addresses
+include_mail = false
+
+# Check fragments (anchors) in URLs
+include_fragments = false
+
+# Follow redirects (implicit, enabled by default)
+
+# User agent string
+user_agent = "lychee/agentready-link-checker"
