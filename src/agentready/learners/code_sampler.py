@@ -105,6 +105,9 @@ class CodeSampler:
 
         for file_item in files[: self.max_files]:
             if isinstance(file_item, dict):
+                # Skip empty dicts (invalid entries)
+                if not file_item:
+                    continue
                 # Directory tree
                 samples.append(f"## Directory Structure: {file_item['path']}\n")
                 samples.append(self._format_tree(file_item))
