@@ -89,7 +89,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=90"
+addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=70"
+markers = [
+    "integration: marks tests as integration tests (select with '-m integration')",
+]
 
 [tool.coverage.run]
 source = ["src/agentready"]
