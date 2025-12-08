@@ -276,11 +276,11 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
         lines = [line.rstrip() for line in lines]
         content = "\n".join(lines)
 
-        # Ensure file ends with single newline
-        content = content.rstrip("\n") + "\n"
-
         # Remove multiple blank lines (max 2 consecutive blank lines)
         content = re.sub(r"\n{4,}", "\n\n\n", content)
+
+        # Ensure file ends with exactly one newline
+        content = content.rstrip("\n") + "\n"
 
         return content
 
@@ -292,12 +292,9 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
 
         Returns:
             List of attribute IDs (e.g., ["1.1", "1.2", "2.1", ...])
-            Note: Returns all potential attribute IDs including invalid ones
         """
-        # Match anything that looks like an attribute ID (must contain a dot)
-        # This allows validation to catch and report invalid formats like "1.a"
-        # while excluding non-attribute headers like "### Tier 1"
-        pattern = r"^###\s+([^\s]+\.[^\s]+)"
+        # Extract both valid and potentially malformed IDs for validation
+        pattern = r"^###\s+([\d]+\.[\w]+)\s+"
         matches = re.findall(pattern, content, re.MULTILINE)
         return matches
 
@@ -327,11 +324,6 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
         # Parse and sort
         parsed = []
         for attr_id in attribute_ids:
-            # Validate format first (must be exactly "N.M" where N and M are integers)
-            if not re.match(r"^\d+\.\d+$", attr_id):
-                errors.append(f"Invalid attribute ID format: {attr_id}")
-                continue
-
             try:
                 major, minor = map(int, attr_id.split("."))
                 parsed.append((major, minor, attr_id))

@@ -6,13 +6,42 @@ from datetime import datetime
 import pytest
 
 from src.agentready.models.assessment import Assessment
+from src.agentready.models.attribute import Attribute
 from src.agentready.models.batch_assessment import (
     BatchAssessment,
     BatchSummary,
     RepositoryResult,
 )
+from src.agentready.models.finding import Finding
 from src.agentready.models.repository import Repository
 from src.agentready.reporters.csv_reporter import CSVReporter
+
+
+def create_dummy_findings(count: int) -> list[Finding]:
+    """Create dummy findings for testing."""
+    findings = []
+    for i in range(count):
+        attr = Attribute(
+            id=f"test_attr_{i}",
+            name=f"Test Attribute {i}",
+            category="Testing",
+            tier=1,
+            description="Test attribute",
+            criteria="Test criteria",
+            default_weight=1.0,
+        )
+        finding = Finding(
+            attribute=attr,
+            status="not_applicable",
+            score=None,
+            measured_value=None,
+            threshold=None,
+            evidence=[],
+            remediation=None,
+            error_message=None,
+        )
+        findings.append(finding)
+    return findings
 
 
 @pytest.fixture
@@ -101,10 +130,10 @@ def mock_batch_assessment(mock_assessment, tmp_path):
         timestamp=datetime(2025, 1, 22, 14, 35, 30),
         overall_score=72.0,
         certification_level="Silver",
-        attributes_assessed=0,
-        attributes_not_assessed=0,
-        attributes_total=0,
-        findings=[],
+        attributes_assessed=20,
+        attributes_not_assessed=5,
+        attributes_total=25,
+        findings=create_dummy_findings(25),
         config=None,
         duration_seconds=38.0,
         discovered_skills=[],
@@ -285,7 +314,7 @@ class TestCSVReporter:
         assert "'=" in content or "\"'=" in content
 
     def test_csv_empty_batch(self, tmp_path):
-        """Test that empty batch raises ValueError."""
+        """Test CSV generation with no results."""
         # Create batch with no results (this should not happen in practice)
         summary = BatchSummary(
             total_repositories=0,
@@ -294,7 +323,7 @@ class TestCSVReporter:
             average_score=0.0,
         )
 
-        # Should raise ValueError when creating empty batch
+        # BatchAssessment validation should raise ValueError during construction
         with pytest.raises(ValueError, match="Batch must have at least one result"):
             BatchAssessment(
                 batch_id="empty-batch",
@@ -329,10 +358,10 @@ class TestCSVReporter:
             timestamp=datetime.now(),
             overall_score=50.0,
             certification_level="Bronze",
-            attributes_assessed=0,
+            attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=create_dummy_findings(1),
             config=None,
             duration_seconds=1.0,
             discovered_skills=[],

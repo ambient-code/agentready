@@ -147,15 +147,36 @@ class TestFixerService:
 
     def test_generate_fix_plan_no_failing_findings(self, sample_repository):
         """Test generating fix plan with no failing findings."""
+        # Create a passing finding
+        passing_attr = Attribute(
+            id="test_pass",
+            name="Test Pass",
+            category="Test",
+            tier=1,
+            description="Test attribute",
+            criteria="Pass",
+            default_weight=1.0,
+        )
+        passing_finding = Finding(
+            attribute=passing_attr,
+            status="pass",
+            score=100.0,
+            measured_value="good",
+            threshold="good",
+            evidence=["All tests pass"],
+            remediation=None,
+            error_message=None,
+        )
+
         assessment = Assessment(
             repository=sample_repository,
             timestamp=datetime.now(),
             overall_score=100.0,
             certification_level="Platinum",
-            attributes_assessed=0,
+            attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[passing_finding],
             config=None,
             duration_seconds=1.0,
         )

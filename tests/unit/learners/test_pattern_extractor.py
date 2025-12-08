@@ -9,6 +9,29 @@ from agentready.learners.pattern_extractor import PatternExtractor
 from agentready.models import Assessment, Attribute, Finding, Repository
 
 
+def create_dummy_finding() -> Finding:
+    """Create a dummy finding for testing (not_applicable status)."""
+    attr = Attribute(
+        id="test_attr",
+        name="Test Attribute",
+        category="Testing",
+        tier=1,
+        description="Test attribute",
+        criteria="Test criteria",
+        default_weight=1.0,
+    )
+    return Finding(
+        attribute=attr,
+        status="not_applicable",
+        score=None,
+        measured_value=None,
+        threshold=None,
+        evidence=[],
+        remediation=None,
+        error_message=None,
+    )
+
+
 def create_test_repository(tmp_path=None):
     """Create a test repository with valid path."""
     if tmp_path is None:
@@ -197,7 +220,7 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
+            attributes_total=1,
             findings=[sample_finding_high_score],
             config=None,
             duration_seconds=1.0,
@@ -229,7 +252,7 @@ class TestPatternExtractor:
             certification_level="Needs Improvement",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
+            attributes_total=1,
             findings=[sample_finding_failing],
             config=None,
             duration_seconds=1.0,
@@ -332,8 +355,8 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[create_dummy_finding()],
             config=None,
             duration_seconds=1.0,
         )
@@ -373,7 +396,7 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
+            attributes_total=1,
             findings=[finding],
             config=None,
             duration_seconds=1.0,
@@ -394,8 +417,8 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[create_dummy_finding()],
             config=None,
             duration_seconds=1.0,
         )
@@ -449,7 +472,7 @@ class TestPatternExtractor:
                 certification_level="Platinum",
                 attributes_assessed=1,
                 attributes_not_assessed=0,
-                attributes_total=0,
+                attributes_total=1,
                 findings=[finding],
                 config=None,
                 duration_seconds=1.0,
@@ -491,7 +514,7 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
+            attributes_total=1,
             findings=[finding_t1],
             config=None,
             duration_seconds=1.0,
@@ -512,8 +535,8 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[create_dummy_finding()],
             config=None,
             duration_seconds=1.0,
         )
@@ -553,8 +576,8 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[create_dummy_finding()],
             config=None,
             duration_seconds=1.0,
         )
@@ -573,8 +596,8 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[create_dummy_finding()],
             config=None,
             duration_seconds=1.0,
         )
@@ -614,8 +637,8 @@ class TestPatternExtractor:
             certification_level="Platinum",
             attributes_assessed=1,
             attributes_not_assessed=0,
-            attributes_total=0,
-            findings=[],
+            attributes_total=1,
+            findings=[create_dummy_finding()],
             config=None,
             duration_seconds=1.0,
         )
