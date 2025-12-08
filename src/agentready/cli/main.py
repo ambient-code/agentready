@@ -12,7 +12,6 @@ except ImportError:
     # Python 3.7 compatibility
     from importlib_metadata import version as get_version
 
-from pydantic import ValidationError
 
 from ..assessors import create_all_assessors
 from ..models.config import Config
@@ -339,48 +338,11 @@ def load_config(config_path: Path) -> Config:
     """
     import yaml
 
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+    with open(config_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
 
-        # Pydantic handles all validation automatically
-        return Config.from_yaml_dict(data)
-    except ValueError:
-        # Re-raise ValueError (from path validation, etc.)
-        raise
-    except ValidationError as e:
-        # Convert Pydantic validation errors to user-friendly messages
-        errors = []
-        for error in e.errors():
-            field_path = error["loc"]
-            field_name = field_path[0] if field_path else "config"
-            error_type = error["type"]
-            msg = error["msg"]
-
-            # Provide specific error messages that match test expectations
-            if error_type == "extra_forbidden":
-                unknown_keys = [str(loc) for loc in field_path]
-                raise ValueError(f"Unknown config keys: {', '.join(unknown_keys)}")
-            elif field_name == "weights":
-                if "dict" in msg.lower() or "mapping" in msg.lower():
-                    raise ValueError("'weights' must be a dict")
-                elif "float" in msg.lower() or "number" in msg.lower():
-                    raise ValueError("'weights' values must be numbers")
-            elif field_name == "excluded_attributes":
-                if "list" in msg.lower():
-                    raise ValueError("'excluded_attributes' must be a list")
-            elif field_name == "report_theme":
-                if "str" in msg.lower() or "string" in msg.lower():
-                    raise ValueError("'report_theme' must be str")
-
-            # Generic error for other cases
-            errors.append(f"  - {' → '.join(str(x) for x in field_path)}: {msg}")
-
-        if errors:
-            click.echo("Configuration validation failed:", err=True)
-            for error in errors:
-                click.echo(error, err=True)
-            sys.exit(1)
+    # Config.from_yaml_dict handles all validation and raises ValueError on errors
+    return Config.from_yaml_dict(data)
 
 
 @cli.command()
