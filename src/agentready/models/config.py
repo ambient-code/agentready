@@ -63,10 +63,20 @@ class Config(BaseModel):
     @field_validator("weights")
     @classmethod
     def validate_weights(cls, v: dict[str, float]) -> dict[str, float]:
-        """Validate weight values are positive (no upper limit - allow boosting)."""
+        """Validate weight values are positive and sum to 1.0 if not empty."""
+        if not v:
+            return v
+
         for attr_id, weight in v.items():
             if weight <= 0:
                 raise ValueError(f"Weight must be positive for {attr_id}: {weight}")
+
+        # Validate weights sum to 1.0 (with small tolerance for floating point)
+        total = sum(v.values())
+        if abs(total - 1.0) > 0.001:
+            raise ValueError(
+                f"Weights must sum to 1.0 (got {total:.3f}). " f"Provided weights: {v}"
+            )
         return v
 
     @field_validator("language_overrides")

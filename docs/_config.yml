@@ -37,6 +37,10 @@ navigation:
     url: /user-guide
   - title: Developer Guide
     url: /developer-guide
+  - title: Leaderboard
+    url: /leaderboard/
+  - title: Demos
+    url: /demos
   - title: Roadmaps
     url: /roadmaps
   - title: Attributes

@@ -13,8 +13,12 @@ from agentready.services.learning_service import LearningService
 
 @pytest.fixture
 def temp_dir():
-    """Create a temporary directory."""
+    """Create a temporary directory with git initialization."""
+    import subprocess
+
     with tempfile.TemporaryDirectory() as tmpdir:
+        # Initialize as git repo to satisfy Repository model validation
+        subprocess.run(["git", "init"], cwd=tmpdir, check=True, capture_output=True)
         yield Path(tmpdir)
 
 
@@ -161,7 +165,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [mock_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [mock_skill]
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(sample_assessment_file)
@@ -187,7 +191,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [mock_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [mock_skill]
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(
@@ -227,7 +231,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [
+        mock_extractor.return_value.extract_all_patterns.return_value = [
             high_confidence,
             low_confidence,
         ]
@@ -241,7 +245,7 @@ class TestLearningService:
         assert len(high_conf_skills) >= 1
 
     @patch("agentready.services.learning_service.PatternExtractor")
-    @patch("agentready.services.learning_service.LLMEnricher")
+    @patch("agentready.learners.llm_enricher.LLMEnricher")
     def test_extract_patterns_with_llm_enrichment(
         self, mock_enricher, mock_extractor, sample_assessment_file, temp_dir
     ):
@@ -259,7 +263,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [basic_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [basic_skill]
 
         # Mock enriched skill
         enriched_skill = DiscoveredSkill(
@@ -313,7 +317,7 @@ class TestLearningService:
 
         # Should handle gracefully (may return empty list)
         with patch("agentready.services.learning_service.PatternExtractor") as mock:
-            mock.return_value.extract_from_findings.return_value = []
+            mock.return_value.extract_all_patterns.return_value = []
             skills = service.extract_patterns_from_file(assessment_file)
             assert isinstance(skills, list)
 
@@ -347,7 +351,7 @@ class TestLearningService:
 
         # Should handle gracefully
         with patch("agentready.services.learning_service.PatternExtractor") as mock:
-            mock.return_value.extract_from_findings.return_value = []
+            mock.return_value.extract_all_patterns.return_value = []
             skills = service.extract_patterns_from_file(assessment_file)
             assert isinstance(skills, list)
 
@@ -399,7 +403,7 @@ class TestLearningServiceEdgeCases:
         with open(assessment_file, "w") as f:
             json.dump(assessment_data, f)
 
-        mock_extractor.return_value.extract_from_findings.return_value = []
+        mock_extractor.return_value.extract_all_patterns.return_value = []
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(assessment_file)
@@ -412,7 +416,7 @@ class TestLearningServiceEdgeCases:
         self, mock_extractor, sample_assessment_file, temp_dir
     ):
         """Test extract_patterns with multiple attribute IDs."""
-        mock_extractor.return_value.extract_from_findings.return_value = []
+        mock_extractor.return_value.extract_all_patterns.return_value = []
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(
@@ -440,7 +444,7 @@ class TestLearningServiceEdgeCases:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [mock_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [mock_skill]
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(
