@@ -303,8 +303,8 @@ class TestLearningService:
             },
             "overall_score": 75.0,
             "certification_level": "Gold",
-            "attributes_assessed": 1,
-            "attributes_total": 1,
+            "attributes_assessed": 0,
+            "attributes_total": 0,
             "findings": [],
             "duration_seconds": 1.0,
         }
@@ -336,9 +336,9 @@ class TestLearningService:
             },
             "overall_score": 75.0,
             "certification_level": "Gold",
-            "attributes_assessed": 1,
+            "attributes_assessed": 0,
             "attributes_skipped": 0,  # Old key
-            "attributes_total": 1,
+            "attributes_total": 0,
             "findings": [],
             "duration_seconds": 1.0,
         }
@@ -393,8 +393,8 @@ class TestLearningServiceEdgeCases:
             "overall_score": 0.0,
             "certification_level": "Needs Improvement",
             "attributes_assessed": 0,
-            "attributes_not_assessed": 1,
-            "attributes_total": 1,
+            "attributes_not_assessed": 0,
+            "attributes_total": 0,
             "findings": [],
             "duration_seconds": 1.0,
         }

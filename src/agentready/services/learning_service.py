@@ -89,9 +89,14 @@ class LearningService:
         # Reconstruct Assessment object from dict
         repo_data = assessment_data["repository"]
 
-        # Use the parent directory of the assessment file as the actual repo path
-        # This handles cases where the assessment was from a different path
-        actual_repo_path = assessment_file.parent.parent
+        # Try to use the path from the assessment data if it's a valid git repo
+        # Otherwise use the parent directory of the assessment file
+        repo_path_from_json = Path(repo_data.get("path", ""))
+        if repo_path_from_json.exists() and (repo_path_from_json / ".git").exists():
+            actual_repo_path = repo_path_from_json
+        else:
+            # Fallback: assume assessment is in .agentready/ subdirectory
+            actual_repo_path = assessment_file.parent.parent
 
         repo = Repository(
             path=actual_repo_path,

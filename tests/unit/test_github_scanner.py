@@ -106,25 +106,37 @@ def test_successful_org_scan(mock_get):
     """Test successful organization scan."""
     token = "ghp_" + "a" * 36
 
-    # Mock API response
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
-        {
-            "name": "repo1",
-            "clone_url": "https://github.com/org/repo1.git",
-            "private": False,
-            "archived": False,
-        },
-        {
-            "name": "repo2",
-            "clone_url": "https://github.com/org/repo2.git",
-            "private": False,
-            "archived": False,
-        },
-    ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    # Mock API response - return repos on first call, empty on second
+    def mock_get_side_effect(*args, **kwargs):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        # First call returns 2 repos, second call returns empty (no more pages)
+        if not hasattr(mock_get_side_effect, "call_count"):
+            mock_get_side_effect.call_count = 0
+
+        if mock_get_side_effect.call_count == 0:
+            mock_response.json.return_value = [
+                {
+                    "name": "repo1",
+                    "clone_url": "https://github.com/org/repo1.git",
+                    "private": False,
+                    "archived": False,
+                },
+                {
+                    "name": "repo2",
+                    "clone_url": "https://github.com/org/repo2.git",
+                    "private": False,
+                    "archived": False,
+                },
+            ]
+        else:
+            mock_response.json.return_value = []
+
+        mock_response.headers = {"X-RateLimit-Remaining": "5000"}
+        mock_get_side_effect.call_count += 1
+        return mock_response
+
+    mock_get.side_effect = mock_get_side_effect
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -140,24 +152,36 @@ def test_filters_private_repos(mock_get):
     """Test that private repos are filtered by default."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
-        {
-            "name": "public-repo",
-            "clone_url": "https://github.com/org/public.git",
-            "private": False,
-            "archived": False,
-        },
-        {
-            "name": "private-repo",
-            "clone_url": "https://github.com/org/private.git",
-            "private": True,
-            "archived": False,
-        },
-    ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    # Mock API response - return repos on first call, empty on second
+    def mock_get_side_effect(*args, **kwargs):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        if not hasattr(mock_get_side_effect, "call_count"):
+            mock_get_side_effect.call_count = 0
+
+        if mock_get_side_effect.call_count == 0:
+            mock_response.json.return_value = [
+                {
+                    "name": "public-repo",
+                    "clone_url": "https://github.com/org/public.git",
+                    "private": False,
+                    "archived": False,
+                },
+                {
+                    "name": "private-repo",
+                    "clone_url": "https://github.com/org/private.git",
+                    "private": True,
+                    "archived": False,
+                },
+            ]
+        else:
+            mock_response.json.return_value = []
+
+        mock_response.headers = {"X-RateLimit-Remaining": "5000"}
+        mock_get_side_effect.call_count += 1
+        return mock_response
+
+    mock_get.side_effect = mock_get_side_effect
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -172,24 +196,36 @@ def test_includes_private_repos_when_requested(mock_get):
     """Test that private repos are included when requested."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
-        {
-            "name": "public-repo",
-            "clone_url": "https://github.com/org/public.git",
-            "private": False,
-            "archived": False,
-        },
-        {
-            "name": "private-repo",
-            "clone_url": "https://github.com/org/private.git",
-            "private": True,
-            "archived": False,
-        },
-    ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    # Mock API response - return repos on first call, empty on second
+    def mock_get_side_effect(*args, **kwargs):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        if not hasattr(mock_get_side_effect, "call_count"):
+            mock_get_side_effect.call_count = 0
+
+        if mock_get_side_effect.call_count == 0:
+            mock_response.json.return_value = [
+                {
+                    "name": "public-repo",
+                    "clone_url": "https://github.com/org/public.git",
+                    "private": False,
+                    "archived": False,
+                },
+                {
+                    "name": "private-repo",
+                    "clone_url": "https://github.com/org/private.git",
+                    "private": True,
+                    "archived": False,
+                },
+            ]
+        else:
+            mock_response.json.return_value = []
+
+        mock_response.headers = {"X-RateLimit-Remaining": "5000"}
+        mock_get_side_effect.call_count += 1
+        return mock_response
+
+    mock_get.side_effect = mock_get_side_effect
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -205,24 +241,36 @@ def test_filters_archived_repos(mock_get):
     """Test that archived repos are always filtered."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
-        {
-            "name": "active-repo",
-            "clone_url": "https://github.com/org/active.git",
-            "private": False,
-            "archived": False,
-        },
-        {
-            "name": "archived-repo",
-            "clone_url": "https://github.com/org/archived.git",
-            "private": False,
-            "archived": True,
-        },
-    ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    # Mock API response - return repos on first call, empty on second
+    def mock_get_side_effect(*args, **kwargs):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        if not hasattr(mock_get_side_effect, "call_count"):
+            mock_get_side_effect.call_count = 0
+
+        if mock_get_side_effect.call_count == 0:
+            mock_response.json.return_value = [
+                {
+                    "name": "active-repo",
+                    "clone_url": "https://github.com/org/active.git",
+                    "private": False,
+                    "archived": False,
+                },
+                {
+                    "name": "archived-repo",
+                    "clone_url": "https://github.com/org/archived.git",
+                    "private": False,
+                    "archived": True,
+                },
+            ]
+        else:
+            mock_response.json.return_value = []
+
+        mock_response.headers = {"X-RateLimit-Remaining": "5000"}
+        mock_get_side_effect.call_count += 1
+        return mock_response
+
+    mock_get.side_effect = mock_get_side_effect
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -237,22 +285,32 @@ def test_respects_max_repos_limit(mock_get):
     """Test that max_repos limit is enforced."""
     token = "ghp_" + "a" * 36
 
-    # Return 150 repos in one batch
-    mock_repos = [
-        {
-            "name": f"repo{i}",
-            "clone_url": f"https://github.com/org/repo{i}.git",
-            "private": False,
-            "archived": False,
-        }
-        for i in range(150)
-    ]
+    # Return 150 repos in first batch, empty on second
+    def mock_get_side_effect(*args, **kwargs):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        if not hasattr(mock_get_side_effect, "call_count"):
+            mock_get_side_effect.call_count = 0
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = mock_repos
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+        if mock_get_side_effect.call_count == 0:
+            mock_repos = [
+                {
+                    "name": f"repo{i}",
+                    "clone_url": f"https://github.com/org/repo{i}.git",
+                    "private": False,
+                    "archived": False,
+                }
+                for i in range(150)
+            ]
+            mock_response.json.return_value = mock_repos
+        else:
+            mock_response.json.return_value = []
+
+        mock_response.headers = {"X-RateLimit-Remaining": "5000"}
+        mock_get_side_effect.call_count += 1
+        return mock_response
+
+    mock_get.side_effect = mock_get_side_effect
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -431,19 +489,31 @@ def test_rate_limit_warning(mock_get, caplog):
     """Test that low rate limit triggers warning."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
-        {
-            "name": "repo1",
-            "clone_url": "https://github.com/org/repo1.git",
-            "private": False,
-            "archived": False,
-        }
-    ]
-    # Low rate limit
-    mock_response.headers = {"X-RateLimit-Remaining": "5"}
-    mock_get.return_value = mock_response
+    # Mock API response - return repos on first call, empty on second
+    def mock_get_side_effect(*args, **kwargs):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        if not hasattr(mock_get_side_effect, "call_count"):
+            mock_get_side_effect.call_count = 0
+
+        if mock_get_side_effect.call_count == 0:
+            mock_response.json.return_value = [
+                {
+                    "name": "repo1",
+                    "clone_url": "https://github.com/org/repo1.git",
+                    "private": False,
+                    "archived": False,
+                }
+            ]
+        else:
+            mock_response.json.return_value = []
+
+        # Low rate limit
+        mock_response.headers = {"X-RateLimit-Remaining": "5"}
+        mock_get_side_effect.call_count += 1
+        return mock_response
+
+    mock_get.side_effect = mock_get_side_effect
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()

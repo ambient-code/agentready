@@ -285,7 +285,7 @@ class TestCSVReporter:
         assert "'=" in content or "\"'=" in content
 
     def test_csv_empty_batch(self, tmp_path):
-        """Test CSV generation with no results."""
+        """Test that empty batch raises ValueError."""
         # Create batch with no results (this should not happen in practice)
         summary = BatchSummary(
             total_repositories=0,
@@ -293,20 +293,16 @@ class TestCSVReporter:
             failed_assessments=0,
             average_score=0.0,
         )
-        batch = BatchAssessment(
-            batch_id="empty-batch",
-            timestamp=datetime.now(),
-            results=[],
-            summary=summary,
-            total_duration_seconds=0.0,
-        )
 
-        reporter = CSVReporter()
-        output_path = tmp_path / "empty.csv"
-
-        # Should not raise error, but will only have header
+        # Should raise ValueError when creating empty batch
         with pytest.raises(ValueError, match="Batch must have at least one result"):
-            reporter.generate(batch, output_path)
+            BatchAssessment(
+                batch_id="empty-batch",
+                timestamp=datetime.now(),
+                results=[],
+                summary=summary,
+                total_duration_seconds=0.0,
+            )
 
     def test_csv_creates_parent_directory(self, tmp_path):
         """Test that CSV reporter creates parent directories if needed."""
@@ -333,9 +329,9 @@ class TestCSVReporter:
             timestamp=datetime.now(),
             overall_score=50.0,
             certification_level="Bronze",
-            attributes_assessed=1,
+            attributes_assessed=0,
             attributes_not_assessed=0,
-            attributes_total=1,
+            attributes_total=0,
             findings=[],
             config=None,
             duration_seconds=1.0,
