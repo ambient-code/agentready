@@ -58,7 +58,10 @@ class Config(BaseModel):
         ),
     ]
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow Path objects
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,  # Allow Path objects
+        extra="forbid",  # Reject unknown keys
+    )
 
     @field_validator("weights")
     @classmethod

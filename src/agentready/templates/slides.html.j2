@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+
+  <!-- reveal.js 5.0.4 from CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/theme/night.css">
+
+  <!-- Syntax highlighting (Monokai) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/highlight/monokai.css">
+
+  <style>
+    /* Typography & Base Styles */
+    .reveal {
+      font-size: 38px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .reveal h1 { font-size: 3em; margin-bottom: 0.5em; }
+    .reveal h2 { font-size: 2.2em; margin-bottom: 0.8em; }
+    .reveal h3 { font-size: 1.6em; margin-bottom: 0.6em; }
+
+    /* Title Slide */
+    .title-slide {
+      text-align: center;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .title-slide h1 {
+      color: #42affa;
+      font-size: 3.5em;
+      font-weight: bold;
+      margin-bottom: 0.3em;
+    }
+
+    .title-slide .subtitle {
+      font-size: 1.4em;
+      color: #aaa;
+      margin-bottom: 3em;
+    }
+
+    .title-slide .author {
+      font-size: 1.1em;
+      color: #999;
+      margin-top: 2em;
+    }
+
+    .title-slide .date {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    /* Statement Slides - Big bold claims */
+    .statement-slide {
+      text-align: center;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .statement-slide h2 {
+      color: #42affa;
+      margin-bottom: 1em;
+    }
+
+    .statement-slide p {
+      font-size: 1.8em;
+      line-height: 1.4;
+      font-weight: 300;
+    }
+
+    .statement-slide strong {
+      color: #42affa;
+      font-weight: bold;
+    }
+
+    /* Big Stat Slides */
+    .big-stat-slide {
+      text-align: center;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .big-stat-slide .stat {
+      font-size: 8em;
+      font-weight: bold;
+      color: #42affa;
+      margin: 0.3em 0;
+      line-height: 1;
+    }
+
+    .big-stat-slide .label {
+      font-size: 1.8em;
+      color: #ddd;
+      margin-top: 0.5em;
+    }
+
+    .big-stat-slide .sublabel {
+      font-size: 1.2em;
+      color: #999;
+      margin-top: 0.3em;
+    }
+
+    /* Content Slides */
+    .content-slide h2 {
+      color: #42affa;
+    }
+
+    .content-slide ul {
+      margin-left: 0;
+      list-style: none;
+    }
+
+    .content-slide li {
+      margin-bottom: 0.8em;
+      padding-left: 1.5em;
+      position: relative;
+    }
+
+    .content-slide li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #42affa;
+      font-weight: bold;
+    }
+
+    .content-slide table {
+      font-size: 0.85em;
+      width: 100%;
+      margin: 1em 0;
+    }
+
+    .content-slide th {
+      background: #42affa;
+      color: white;
+      padding: 0.8em;
+    }
+
+    .content-slide td {
+      padding: 0.6em;
+      border-bottom: 1px solid #444;
+    }
+
+    /* Code Slides */
+    .code-slide pre {
+      width: 100%;
+      font-size: 0.7em;
+    }
+
+    .code-slide code {
+      max-height: 600px;
+      padding: 1.5em;
+    }
+
+    /* Diagram Slides */
+    .diagram-slide {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .diagram-slide h2 {
+      margin-bottom: 1em;
+    }
+
+    /* Closing Slide */
+    .closing-slide {
+      text-align: center;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .closing-slide h2 {
+      color: #42affa;
+      font-size: 3em;
+    }
+
+    .closing-slide h3 {
+      color: #ddd;
+      font-weight: 300;
+      margin: 1em 0 2em 0;
+    }
+
+    .closing-slide hr {
+      border: none;
+      border-top: 2px solid #444;
+      margin: 1.5em auto;
+      width: 50%;
+    }
+
+    .closing-slide p {
+      font-size: 1.2em;
+      color: #aaa;
+    }
+
+    /* Fragments */
+    .fragment {
+      color: #42affa;
+      font-weight: bold;
+    }
+
+    /* Emphasis */
+    .reveal strong {
+      color: #42affa;
+    }
+
+    /* Mermaid diagrams */
+    .mermaid {
+      font-size: 0.6em !important;
+    }
+
+    /* General spacing */
+    .reveal pre {
+      margin: 1em 0;
+    }
+
+    /* Progress bar */
+    .reveal .progress {
+      background: rgba(66, 175, 250, 0.2);
+    }
+
+    .reveal .progress span {
+      background: #42affa;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      {% for slide in slides %}
+
+      {% if slide.type == 'title' %}
+      <section class="title-slide">
+        <h1>{{ slide.title }}</h1>
+        <p class="subtitle">{{ slide.subtitle }}</p>
+        <p class="author">{{ slide.author }}</p>
+        <p class="date">{{ slide.date }}</p>
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+
+      {% elif slide.type == 'statement' %}
+      <section class="statement-slide">
+        <h2>{{ slide.title }}</h2>
+        <div>{{ slide.content | safe }}</div>
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+
+      {% elif slide.type == 'big-stat' %}
+      <section class="big-stat-slide">
+        <h2>{{ slide.title }}</h2>
+        <div class="stat">{{ slide.stat }}</div>
+        <div class="label">{{ slide.label }}</div>
+        {% if slide.sublabel %}<div class="sublabel">{{ slide.sublabel }}</div>{% endif %}
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+
+      {% elif slide.type == 'code' %}
+      <section class="code-slide">
+        <h2>{{ slide.title }}</h2>
+        <div>{{ slide.content | safe }}</div>
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+
+      {% elif slide.type == 'diagram' %}
+      <section class="diagram-slide">
+        <h2>{{ slide.title }}</h2>
+        <div class="mermaid">{{ slide.content | safe }}</div>
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+
+      {% elif slide.type == 'closing' %}
+      <section class="closing-slide">
+        <div>{{ slide.content | safe }}</div>
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+
+      {% else %}
+      <section class="content-slide">
+        <h2>{{ slide.title }}</h2>
+        <div>{{ slide.content | safe }}</div>
+        {% if slide.notes %}<aside class="notes">{{ slide.notes }}</aside>{% endif %}
+      </section>
+      {% endif %}
+
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- reveal.js scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/notes/notes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/markdown/markdown.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/highlight/highlight.js"></script>
+
+  <!-- Mermaid for diagrams -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      }
+    });
+  </script>
+
+  <script>
+    // Initialize reveal.js
+    Reveal.initialize({
+      // Display
+      width: 1280,
+      height: 720,
+      margin: 0.04,
+
+      // Controls
+      controls: true,
+      progress: true,
+      center: false,
+      hash: true,
+      slideNumber: 'c/t',
+
+      // Transitions
+      transition: 'slide',
+      transitionSpeed: 'fast',
+
+      // Keyboard
+      keyboard: {
+        37: 'prev',
+        39: 'next',
+        32: 'next',
+        38: 'prev',
+        40: 'next',
+        78: function() { RevealNotes.open(); } // 'n' for notes
+      },
+
+      // Plugins
+      plugins: [
+        RevealMarkdown,
+        RevealHighlight,
+        RevealNotes
+      ],
+
+      // Markdown
+      markdown: {
+        smartypants: true
+      },
+
+      // Syntax highlighting
+      highlight: {
+        highlightOnLoad: true,
+        escapeHTML: false
+      }
+    });
+
+    // Wait for Mermaid to render before showing slides
+    Reveal.on('ready', () => {
+      setTimeout(() => {
+        mermaid.run();
+      }, 100);
+    });
+
+    // Press 's' for speaker view
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 's') {
+        RevealNotes.open();
+      }
+    });
+  </script>
+</body>
+</html>

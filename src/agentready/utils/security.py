@@ -71,7 +71,17 @@ def validate_path(
 
     # Block sensitive system directories (unless explicitly allowed)
     if not allow_system_dirs:
-        sensitive_dirs = ["/etc", "/sys", "/proc", "/var", "/usr", "/bin", "/sbin"]
+        sensitive_dirs = [
+            "/etc",
+            "/sys",
+            "/proc",
+            "/var",
+            "/usr",
+            "/bin",
+            "/sbin",
+            "/private/etc",  # macOS
+            "/private/var",  # macOS
+        ]
         if any(str(resolved_path).startswith(p) for p in sensitive_dirs):
             raise ValueError(
                 f"Cannot be in sensitive system directory: {resolved_path}"
