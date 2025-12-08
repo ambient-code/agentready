@@ -156,8 +156,16 @@ class Config(BaseModel):
             Validated Config instance
 
         Raises:
+            ValueError: If data is not a dictionary
             pydantic.ValidationError: If data doesn't match schema
         """
+        # Validate data is a dictionary
+        if not isinstance(data, dict):
+            raise ValueError(
+                f"Config must be a dict, got {type(data).__name__}. "
+                f"Check your YAML file for proper formatting."
+            )
+
         # Pydantic automatically handles:
         # - Type validation (dict[str, float] for weights, etc.)
         # - Nested structure validation (via field_validators)
