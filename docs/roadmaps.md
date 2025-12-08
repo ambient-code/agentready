@@ -5,7 +5,7 @@ title: Strategic Roadmaps
 
 Three paths to transform AgentReady from quality assessment tool to essential infrastructure for Red Hat's AI-assisted development initiative.
 
-**Current Status**: v1.27.2 with LLM-powered learning, research commands, and batch assessment ([learn more](user-guide.html#bootstrap-your-repository))
+**Current Status**: v1.27.2 with LLM-powered learning, research commands, and batch assessment ([learn more](user-guide#bootstrap-your-repository))
 
 **Target Audience**: Engineering leadership, product managers, and teams evaluating AgentReady adoption
 
@@ -499,7 +499,7 @@ git add . && git commit -m "build: Bootstrap agent-ready infrastructure"
 git push
 ```
 
-**Learn more**: [Bootstrap tutorial →](user-guide.html#bootstrap-your-repository)
+**Learn more**: [Bootstrap tutorial →](user-guide#bootstrap-your-repository)
 
 ### For Team Leads
 
@@ -509,7 +509,7 @@ git push
 4. **Track progress**: Use reports to monitor score improvements
 5. **Share results**: Include assessment scores in team metrics
 
-**Learn more**: [User guide →](user-guide.html)
+**Learn more**: [User guide →](user-guide)
 
 ### For Engineering Leadership
 
@@ -525,14 +525,14 @@ git push
 
 ## Next Steps
 
-- **[User Guide](user-guide.html)** — Install and run your first assessment
-- **[Developer Guide](developer-guide.html)** — Contribute to AgentReady development
-- **[Attributes Reference](attributes.html)** — Understand the 25 agent-ready attributes
-- **[API Reference](api-reference.html)** — Integrate AgentReady into your tools
-- **[Examples](examples.html)** — See real-world assessment reports
+- **[User Guide](user-guide)** — Install and run your first assessment
+- **[Developer Guide](developer-guide)** — Contribute to AgentReady development
+- **[Attributes Reference](attributes)** — Understand the 25 agent-ready attributes
+- **[API Reference](api-reference)** — Integrate AgentReady into your tools
+- **[Examples](examples)** — See real-world assessment reports
 
 ---
 
-**Questions?** Join the discussion on [GitHub](https://github.com/ambient-code/agentready/discussions) or contact the AgentReady team.
+**Questions?** Join the discussion on [GitHub](https://github.com/ambient-code/agentready/issues) or contact the AgentReady team.
 
 **Last Updated**: 2025-11-21

@@ -23,7 +23,7 @@ export GITHUB_TOKEN=ghp_your_token_here
 agentready submit
 ```
 
-[Learn more about submission →](user-guide.html#leaderboard)
+[Learn more about submission →](user-guide#leaderboard)
 
 {% else %}
 
@@ -104,23 +104,23 @@ agentready submit
     <p>Every generated file and assessed attribute is backed by <a href="https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md">50+ citations</a> from Anthropic, Microsoft, Google, and academic research.</p>
   </div>
   <div class="feature">
-    <h3><a href="user-guide.html#bootstrap-your-repository">📈 CI-Friendly</a></h3>
+    <h3><a href="user-guide#bootstrap-your-repository">📈 CI-Friendly</a></h3>
     <p>Generated GitHub Actions run AgentReady on every PR, posting results as comments. Track improvements over time with Markdown reports.</p>
   </div>
   <div class="feature">
-    <h3><a href="user-guide.html#bootstrap-your-repository">⚡ One Command Setup</a></h3>
+    <h3><a href="user-guide#bootstrap-your-repository">⚡ One Command Setup</a></h3>
     <p>From zero to production-ready infrastructure in seconds. Review generated files with --dry-run before committing.</p>
   </div>
   <div class="feature">
-    <h3><a href="user-guide.html#bootstrap-your-repository">🎯 Language-Specific</a></h3>
+    <h3><a href="user-guide#bootstrap-your-repository">🎯 Language-Specific</a></h3>
     <p>Auto-detects your primary language (Python, JavaScript, Go) and generates appropriate workflows, linters, and test configurations.</p>
   </div>
   <div class="feature">
-    <h3><a href="user-guide.html#bootstrap-your-repository">🤖 Automated Infrastructure</a></h3>
+    <h3><a href="user-guide#bootstrap-your-repository">🤖 Automated Infrastructure</a></h3>
     <p>Bootstrap generates complete GitHub setup: Actions workflows, issue/PR templates, pre-commit hooks, Dependabot config, and security scanning—all language-aware.</p>
   </div>
   <div class="feature">
-    <h3><a href="attributes.html">🏆 Readiness Tiers</a></h3>
+    <h3><a href="attributes">🏆 Readiness Tiers</a></h3>
     <p>Platinum, Gold, Silver, Bronze levels validate your codebase quality. Bootstrap helps you achieve Gold (75+) immediately.</p>
   </div>
 </div>
@@ -145,7 +145,7 @@ agentready submit
 - Commit access to repository
 - `GITHUB_TOKEN` environment variable
 
-[Learn more about submission →](user-guide.html#leaderboard)
+[Learn more about submission →](user-guide#leaderboard)
 
 ---
 
@@ -184,4 +184,4 @@ Commands:
   validate-report   Validate assessment report against schema version
 ```
 
-[View detailed command documentation →](user-guide.html#command-reference)
+[View detailed command documentation →](user-guide#command-reference)

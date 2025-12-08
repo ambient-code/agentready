@@ -9,7 +9,7 @@ Complete reference for all 25 agent-ready attributes assessed by AgentReady.
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
   <p><strong>AgentReady Bootstrap automatically implements many of these attributes.</strong> Look for the <strong>✅ Bootstrap Addresses This</strong> marker to see which infrastructure Bootstrap generates for you.</p>
   <p>Instead of manually implementing each attribute, run <code>agentready bootstrap .</code> to generate complete GitHub setup in seconds.</p>
-  <p><a href="user-guide.html#bootstrap-your-repository">Learn about Bootstrap →</a></p>
+  <p><a href="user-guide#bootstrap-your-repository">Learn about Bootstrap →</a></p>
 </div>
 
 ## Table of Contents
@@ -1071,10 +1071,10 @@ See the [GitHub repository](https://github.com/ambient-code/agentready) for curr
 
 ## Next Steps
 
-- **[User Guide](user-guide.html)** — Learn how to run assessments
-- **[Developer Guide](developer-guide.html)** — Implement new assessors
-- **[API Reference](api-reference.html)** — Integrate AgentReady
-- **[Examples](examples.html)** — View real assessment reports
+- **[User Guide](user-guide)** — Learn how to run assessments
+- **[Developer Guide](developer-guide)** — Implement new assessors
+- **[API Reference](api-reference)** — Integrate AgentReady
+- **[Examples](examples)** — View real assessment reports
 
 ---
 
