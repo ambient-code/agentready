@@ -1476,9 +1476,9 @@ AgentReady follows **semantic versioning** (SemVer):
 
 ## Additional Resources
 
-- **[Attributes Reference](attributes.html)** — Detailed attribute definitions
-- **[API Reference](api-reference.html)** — Public API documentation
-- **[Examples](examples.html)** — Real-world assessment reports
+- **[Attributes Reference](attributes)** — Detailed attribute definitions
+- **[API Reference](api-reference)** — Public API documentation
+- **[Examples](examples)** — Real-world assessment reports
 - **CLAUDE.md** — Project context for AI agents
 - **BACKLOG.md** — Planned features and enhancements
 
