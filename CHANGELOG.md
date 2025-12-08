@@ -1,30 +1,26 @@
-# [2.15.0](https://github.com/ambient-code/agentready/compare/v2.14.1...v2.15.0) (2025-12-09)
+# [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-08)
 
 
 ### Bug Fixes
 
-* resolve all test suite failures - achieve zero failures ([#180](https://github.com/ambient-code/agentready/issues/180)) ([990fa2d](https://github.com/ambient-code/agentready/commit/990fa2d4725842df60af151d1ba058cd43a90d3c)), closes [#148](https://github.com/ambient-code/agentready/issues/148) [#147](https://github.com/ambient-code/agentready/issues/147) [#145](https://github.com/ambient-code/agentready/issues/145)
-* resolve YAML syntax error in update-docs workflow and add actionlint ([#173](https://github.com/ambient-code/agentready/issues/173)) ([97b06af](https://github.com/ambient-code/agentready/commit/97b06af1d2adc17ec385d658310f3562f19b1a95))
+* disable attestations for Test PyPI to avoid conflict ([#155](https://github.com/jeremyeder/agentready/issues/155)) ([a33e3cd](https://github.com/jeremyeder/agentready/commit/a33e3cd2d86d4a461701e906070ab3eae8ca8082)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* leaderboard workflow and SSH URL support ([#147](https://github.com/jeremyeder/agentready/issues/147)) ([de28cd0](https://github.com/jeremyeder/agentready/commit/de28cd0a6037a0951ba370aa73832553c088cfb8))
+* resolve 45 test failures across CLI, services, and assessors ([#4](https://github.com/jeremyeder/agentready/issues/4)) ([3405142](https://github.com/jeremyeder/agentready/commit/340514251d40f283afa24d5c3068f294727fd839)), closes [#178](https://github.com/jeremyeder/agentready/issues/178) [#178](https://github.com/jeremyeder/agentready/issues/178)
+* resolve broken links and workflow failures ([#160](https://github.com/jeremyeder/agentready/issues/160)) ([fbf5cf7](https://github.com/jeremyeder/agentready/commit/fbf5cf7a1fdcb65ef4d3943a2d84e46aa831d337))
+* skip PR comments for external forks to prevent permission errors ([#163](https://github.com/jeremyeder/agentready/issues/163)) ([2a29fb8](https://github.com/jeremyeder/agentready/commit/2a29fb84485a1ac6beff1675131bf50c1b702585))
 
 
 ### Features
 
-* replace markdown-link-check with lychee for link validation ([#177](https://github.com/ambient-code/agentready/issues/177)) ([f1a4545](https://github.com/ambient-code/agentready/commit/f1a4545e4718b735df3e1fa7e0b60eba9ed0173b))
-* Terminal-Bench eval harness (MVP Phase 1) ([#178](https://github.com/ambient-code/agentready/issues/178)) ([d06bab4](https://github.com/ambient-code/agentready/commit/d06bab42848847df26d83c7a44e5ee0e84ae0445)), closes [#171](https://github.com/ambient-code/agentready/issues/171)
-
-## [2.14.1](https://github.com/ambient-code/agentready/compare/v2.14.0...v2.14.1) (2025-12-05)
-
-
-### Bug Fixes
-
-* resolve YAML syntax error in continuous-learning workflow ([#172](https://github.com/ambient-code/agentready/issues/172)) ([3d40fcc](https://github.com/ambient-code/agentready/commit/3d40fcccd4e8d722303d322716454869ca7db9d0))
-
-# [2.14.0](https://github.com/ambient-code/agentready/compare/v2.13.0...v2.14.0) (2025-12-05)
+* add ambient-code/agentready to leaderboard ([#148](https://github.com/jeremyeder/agentready/issues/148)) ([621152e](https://github.com/jeremyeder/agentready/commit/621152e46bd8e9505e3bc1775d2cd61a80af5a62))
+* add quay/quay to leaderboard ([#162](https://github.com/jeremyeder/agentready/issues/162)) ([d6e8df0](https://github.com/jeremyeder/agentready/commit/d6e8df0e9d92c4ec82004c5e62c798986feb1000))
+* Add weekly research update skill and automation ([#145](https://github.com/jeremyeder/agentready/issues/145)) ([7ba17a6](https://github.com/jeremyeder/agentready/commit/7ba17a6b045251cbc9f26b5c2f4a0ec31d89dd11))
+* automate PyPI publishing with trusted publishing (OIDC) ([#154](https://github.com/jeremyeder/agentready/issues/154)) ([71f4632](https://github.com/jeremyeder/agentready/commit/71f4632cb188d8c9db377c9f216c047e20727f99)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
 
 
-### Features
+### Performance Improvements
 
-* container support ([#171](https://github.com/ambient-code/agentready/issues/171)) ([c6874ea](https://github.com/ambient-code/agentready/commit/c6874ea035775ac86ef5012bbfdf52e7b96f556f))
+* implement lazy loading for heavy CLI commands ([#151](https://github.com/jeremyeder/agentready/issues/151)) ([6a7cd4e](https://github.com/jeremyeder/agentready/commit/6a7cd4e147ebfdfc95921b86599a5b650db76153))
 
 # [2.13.0](https://github.com/ambient-code/agentready/compare/v2.12.3...v2.13.0) (2025-12-04)
 
