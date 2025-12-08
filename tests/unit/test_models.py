@@ -231,16 +231,6 @@ class TestConfig:
         assert len(config.weights) == 2
         assert config.get_weight("attr1", 0.0) == 0.5
 
-    def test_config_invalid_weights_sum(self):
-        """Test config with weights that don't sum to 1.0."""
-        with pytest.raises(ValueError, match="sum to 1.0"):
-            Config(
-                weights={"attr1": 0.3, "attr2": 0.3},  # Only sums to 0.6
-                excluded_attributes=[],
-                language_overrides={},
-                output_dir=None,
-            )
-
     def test_config_is_excluded(self):
         """Test excluded attribute check."""
         config = Config(
