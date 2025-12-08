@@ -8,6 +8,27 @@
     },
     {
       "pattern": "^http://127.0.0.1"
+    },
+    {
+      "pattern": "^user-guide"
+    },
+    {
+      "pattern": "^developer-guide"
+    },
+    {
+      "pattern": "^attributes"
+    },
+    {
+      "pattern": "^api-reference"
+    },
+    {
+      "pattern": "^examples"
+    },
+    {
+      "pattern": "^roadmaps"
+    },
+    {
+      "pattern": "^index"
     }
   ],
   "timeout": "20s",
