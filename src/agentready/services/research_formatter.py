@@ -276,12 +276,11 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
         lines = [line.rstrip() for line in lines]
         content = "\n".join(lines)
 
-        # Ensure file ends with single newline
-        if not content.endswith("\n"):
-            content += "\n"
-
         # Remove multiple blank lines (max 2 consecutive blank lines)
         content = re.sub(r"\n{4,}", "\n\n\n", content)
+
+        # Ensure file ends with exactly one newline
+        content = content.rstrip("\n") + "\n"
 
         return content
 
@@ -294,7 +293,8 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
         Returns:
             List of attribute IDs (e.g., ["1.1", "1.2", "2.1", ...])
         """
-        pattern = r"^###\s+(\d+\.\d+)\s+"
+        # Extract both valid and potentially malformed IDs for validation
+        pattern = r"^###\s+([\d]+\.[\w]+)\s+"
         matches = re.findall(pattern, content, re.MULTILINE)
         return matches
 

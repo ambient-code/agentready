@@ -104,7 +104,7 @@ class CodeSampler:
         samples = []
 
         for file_item in files[: self.max_files]:
-            if isinstance(file_item, dict):
+            if isinstance(file_item, dict) and "path" in file_item:
                 # Directory tree
                 samples.append(f"## Directory Structure: {file_item['path']}\n")
                 samples.append(self._format_tree(file_item))

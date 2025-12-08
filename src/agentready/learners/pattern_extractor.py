@@ -93,9 +93,8 @@ class PatternExtractor:
         discovered_skills = []
 
         for finding in self.assessment.findings:
-            if (
-                finding.attribute.attribute_id in attribute_ids
-                and self._should_extract_pattern(finding)
+            if finding.attribute.id in attribute_ids and self._should_extract_pattern(
+                finding
             ):
                 skill = self._create_skill_from_finding(finding)
                 if skill:

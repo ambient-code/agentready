@@ -49,7 +49,7 @@ from ..services.learning_service import LearningService
 )
 @click.option(
     "--llm-budget",
-    type=int,
+    type=click.IntRange(min=1),
     default=5,
     help="Maximum number of skills to enrich with LLM (default: 5)",
 )
@@ -153,10 +153,15 @@ def learn(
             enable_llm = False
     click.echo()
 
+    # Resolve output directory relative to repository path if it's a relative path
+    output_dir_path = Path(output_dir)
+    if not output_dir_path.is_absolute():
+        output_dir_path = repo_path / output_dir
+
     # Create learning service
     learning_service = LearningService(
         min_confidence=min_confidence,
-        output_dir=output_dir,
+        output_dir=output_dir_path,
     )
 
     # Run learning workflow

@@ -84,9 +84,9 @@ class TestExtractSkillsCommand:
 
             assert result.exit_code == 0
 
-            # Check for SKILL.md files
+            # Check for SKILL.md files (in subdirectories: skill-id/SKILL.md)
             output_dir = temp_repo / ".skills-proposals"
-            md_files = list(output_dir.glob("*.md"))
+            md_files = list(output_dir.glob("*/SKILL.md"))
             assert len(md_files) > 0
 
     def test_extract_skills_command_github_issues_output(self, runner, temp_repo):
@@ -98,9 +98,9 @@ class TestExtractSkillsCommand:
 
             assert result.exit_code == 0
 
-            # Check for issue files
+            # Check for issue files (named skill-{id}.md)
             output_dir = temp_repo / ".skills-proposals"
-            issue_files = list(output_dir.glob("issue-*.md"))
+            issue_files = list(output_dir.glob("skill-*.md"))
             assert len(issue_files) > 0
 
     def test_extract_skills_command_all_output_formats(self, runner, temp_repo):

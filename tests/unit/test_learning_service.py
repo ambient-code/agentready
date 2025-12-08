@@ -1,6 +1,7 @@
 """Unit tests for learning service."""
 
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -11,11 +12,35 @@ from agentready.models import DiscoveredSkill
 from agentready.services.learning_service import LearningService
 
 
+def create_dummy_finding() -> dict:
+    """Create a dummy finding dict for testing (not_applicable status)."""
+    return {
+        "attribute": {
+            "id": "test_attr",
+            "name": "Test Attribute",
+            "category": "Testing",
+            "tier": 1,
+            "description": "Test attribute",
+            "criteria": "Test criteria",
+            "default_weight": 1.0,
+        },
+        "status": "not_applicable",
+        "score": None,
+        "measured_value": None,
+        "threshold": None,
+        "evidence": [],
+        "error_message": None,
+    }
+
+
 @pytest.fixture
 def temp_dir():
-    """Create a temporary directory."""
+    """Create a temporary directory initialized as a git repository."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
+        tmp_path = Path(tmpdir)
+        # Initialize as git repo to satisfy Repository model validation
+        subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+        yield tmp_path
 
 
 @pytest.fixture
@@ -161,7 +186,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [mock_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [mock_skill]
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(sample_assessment_file)
@@ -187,7 +212,9 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [mock_skill]
+        mock_extractor.return_value.extract_specific_patterns.return_value = [
+            mock_skill
+        ]
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(
@@ -227,7 +254,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [
+        mock_extractor.return_value.extract_all_patterns.return_value = [
             high_confidence,
             low_confidence,
         ]
@@ -241,7 +268,7 @@ class TestLearningService:
         assert len(high_conf_skills) >= 1
 
     @patch("agentready.services.learning_service.PatternExtractor")
-    @patch("agentready.services.learning_service.LLMEnricher")
+    @patch("agentready.learners.llm_enricher.LLMEnricher")
     def test_extract_patterns_with_llm_enrichment(
         self, mock_enricher, mock_extractor, sample_assessment_file, temp_dir
     ):
@@ -259,7 +286,7 @@ class TestLearningService:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [basic_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [basic_skill]
 
         # Mock enriched skill
         enriched_skill = DiscoveredSkill(
@@ -301,11 +328,17 @@ class TestLearningService:
             "certification_level": "Gold",
             "attributes_assessed": 1,
             "attributes_total": 1,
-            "findings": [],
+            "findings": [
+                create_dummy_finding()
+            ],  # Need 1 finding to match attributes_total
             "duration_seconds": 1.0,
         }
 
-        assessment_file = temp_dir / "minimal.json"
+        # Create .agentready directory
+        agentready_dir = temp_dir / ".agentready"
+        agentready_dir.mkdir()
+
+        assessment_file = agentready_dir / "minimal.json"
         with open(assessment_file, "w") as f:
             json.dump(minimal_assessment, f)
 
@@ -313,7 +346,7 @@ class TestLearningService:
 
         # Should handle gracefully (may return empty list)
         with patch("agentready.services.learning_service.PatternExtractor") as mock:
-            mock.return_value.extract_from_findings.return_value = []
+            mock.return_value.extract_all_patterns.return_value = []
             skills = service.extract_patterns_from_file(assessment_file)
             assert isinstance(skills, list)
 
@@ -335,11 +368,17 @@ class TestLearningService:
             "attributes_assessed": 1,
             "attributes_skipped": 0,  # Old key
             "attributes_total": 1,
-            "findings": [],
+            "findings": [
+                create_dummy_finding()
+            ],  # Need 1 finding to match attributes_total
             "duration_seconds": 1.0,
         }
 
-        assessment_file = temp_dir / "old.json"
+        # Create .agentready directory
+        agentready_dir = temp_dir / ".agentready"
+        agentready_dir.mkdir()
+
+        assessment_file = agentready_dir / "old.json"
         with open(assessment_file, "w") as f:
             json.dump(old_schema_assessment, f)
 
@@ -347,7 +386,7 @@ class TestLearningService:
 
         # Should handle gracefully
         with patch("agentready.services.learning_service.PatternExtractor") as mock:
-            mock.return_value.extract_from_findings.return_value = []
+            mock.return_value.extract_all_patterns.return_value = []
             skills = service.extract_patterns_from_file(assessment_file)
             assert isinstance(skills, list)
 
@@ -375,7 +414,7 @@ class TestLearningServiceEdgeCases:
     @patch("agentready.services.learning_service.PatternExtractor")
     def test_extract_patterns_empty_findings(self, mock_extractor, temp_dir):
         """Test extract_patterns with empty findings list."""
-        # Create assessment with no findings
+        # Create assessment with minimal findings (not_applicable)
         assessment_data = {
             "schema_version": "1.0.0",
             "timestamp": "2025-11-22T06:00:00",
@@ -391,15 +430,21 @@ class TestLearningServiceEdgeCases:
             "attributes_assessed": 0,
             "attributes_not_assessed": 1,
             "attributes_total": 1,
-            "findings": [],
+            "findings": [
+                create_dummy_finding()
+            ],  # Need 1 finding to match attributes_total
             "duration_seconds": 1.0,
         }
 
-        assessment_file = temp_dir / "empty.json"
+        # Create .agentready directory
+        agentready_dir = temp_dir / ".agentready"
+        agentready_dir.mkdir()
+
+        assessment_file = agentready_dir / "empty.json"
         with open(assessment_file, "w") as f:
             json.dump(assessment_data, f)
 
-        mock_extractor.return_value.extract_from_findings.return_value = []
+        mock_extractor.return_value.extract_all_patterns.return_value = []
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(assessment_file)
@@ -412,7 +457,7 @@ class TestLearningServiceEdgeCases:
         self, mock_extractor, sample_assessment_file, temp_dir
     ):
         """Test extract_patterns with multiple attribute IDs."""
-        mock_extractor.return_value.extract_from_findings.return_value = []
+        mock_extractor.return_value.extract_specific_patterns.return_value = []
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(
@@ -440,7 +485,7 @@ class TestLearningServiceEdgeCases:
             code_examples=["example"],
             citations=[],
         )
-        mock_extractor.return_value.extract_from_findings.return_value = [mock_skill]
+        mock_extractor.return_value.extract_all_patterns.return_value = [mock_skill]
 
         service = LearningService(output_dir=temp_dir)
         skills = service.extract_patterns_from_file(

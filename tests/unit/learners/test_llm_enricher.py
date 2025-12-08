@@ -292,7 +292,12 @@ def test_enrich_skill_rate_limit_retry(
     client = Mock(spec=Anthropic)
 
     # First call raises rate limit, second succeeds
-    rate_limit_error = RateLimitError("Rate limit")
+    # Mock response and body for RateLimitError
+    mock_response = Mock()
+    mock_response.status_code = 429
+    rate_limit_error = RateLimitError(
+        "Rate limit", response=mock_response, body={"error": "rate_limit"}
+    )
     rate_limit_error.retry_after = 1  # 1 second retry
 
     success_response = Mock()
@@ -322,7 +327,12 @@ def test_enrich_skill_api_error_specific(
     from anthropic import APIError
 
     client = Mock(spec=Anthropic)
-    client.messages.create.side_effect = APIError("API Error")
+    # Mock request for APIError
+    mock_request = Mock()
+    mock_request.method = "POST"
+    client.messages.create.side_effect = APIError(
+        "API Error", request=mock_request, body={"error": "api_error"}
+    )
 
     cache_dir = tmp_path / "cache"
     enricher = LLMEnricher(client, cache_dir=cache_dir)

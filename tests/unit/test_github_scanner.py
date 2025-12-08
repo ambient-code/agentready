@@ -106,10 +106,10 @@ def test_successful_org_scan(mock_get):
     """Test successful organization scan."""
     token = "ghp_" + "a" * 36
 
-    # Mock API response
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
+    # Mock API responses - first page returns repos, second page returns empty (pagination complete)
+    mock_response_page1 = Mock()
+    mock_response_page1.status_code = 200
+    mock_response_page1.json.return_value = [
         {
             "name": "repo1",
             "clone_url": "https://github.com/org/repo1.git",
@@ -123,8 +123,14 @@ def test_successful_org_scan(mock_get):
             "archived": False,
         },
     ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    mock_response_page1.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_response_page2 = Mock()
+    mock_response_page2.status_code = 200
+    mock_response_page2.json.return_value = []  # Empty - end of pagination
+    mock_response_page2.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_get.side_effect = [mock_response_page1, mock_response_page2]
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -140,9 +146,10 @@ def test_filters_private_repos(mock_get):
     """Test that private repos are filtered by default."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
+    # Mock API responses - first page returns repos, second page returns empty
+    mock_response_page1 = Mock()
+    mock_response_page1.status_code = 200
+    mock_response_page1.json.return_value = [
         {
             "name": "public-repo",
             "clone_url": "https://github.com/org/public.git",
@@ -156,8 +163,14 @@ def test_filters_private_repos(mock_get):
             "archived": False,
         },
     ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    mock_response_page1.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_response_page2 = Mock()
+    mock_response_page2.status_code = 200
+    mock_response_page2.json.return_value = []  # Empty - end of pagination
+    mock_response_page2.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_get.side_effect = [mock_response_page1, mock_response_page2]
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -172,9 +185,10 @@ def test_includes_private_repos_when_requested(mock_get):
     """Test that private repos are included when requested."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
+    # Mock API responses - first page returns repos, second page returns empty
+    mock_response_page1 = Mock()
+    mock_response_page1.status_code = 200
+    mock_response_page1.json.return_value = [
         {
             "name": "public-repo",
             "clone_url": "https://github.com/org/public.git",
@@ -188,8 +202,14 @@ def test_includes_private_repos_when_requested(mock_get):
             "archived": False,
         },
     ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    mock_response_page1.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_response_page2 = Mock()
+    mock_response_page2.status_code = 200
+    mock_response_page2.json.return_value = []  # Empty - end of pagination
+    mock_response_page2.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_get.side_effect = [mock_response_page1, mock_response_page2]
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -205,9 +225,10 @@ def test_filters_archived_repos(mock_get):
     """Test that archived repos are always filtered."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
+    # Mock API responses - first page returns repos, second page returns empty
+    mock_response_page1 = Mock()
+    mock_response_page1.status_code = 200
+    mock_response_page1.json.return_value = [
         {
             "name": "active-repo",
             "clone_url": "https://github.com/org/active.git",
@@ -221,8 +242,14 @@ def test_filters_archived_repos(mock_get):
             "archived": True,
         },
     ]
-    mock_response.headers = {"X-RateLimit-Remaining": "5000"}
-    mock_get.return_value = mock_response
+    mock_response_page1.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_response_page2 = Mock()
+    mock_response_page2.status_code = 200
+    mock_response_page2.json.return_value = []  # Empty - end of pagination
+    mock_response_page2.headers = {"X-RateLimit-Remaining": "5000"}
+
+    mock_get.side_effect = [mock_response_page1, mock_response_page2]
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
@@ -431,9 +458,10 @@ def test_rate_limit_warning(mock_get, caplog):
     """Test that low rate limit triggers warning."""
     token = "ghp_" + "a" * 36
 
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [
+    # Mock API responses - first page returns repos with low rate limit, second page returns empty
+    mock_response_page1 = Mock()
+    mock_response_page1.status_code = 200
+    mock_response_page1.json.return_value = [
         {
             "name": "repo1",
             "clone_url": "https://github.com/org/repo1.git",
@@ -442,8 +470,14 @@ def test_rate_limit_warning(mock_get, caplog):
         }
     ]
     # Low rate limit
-    mock_response.headers = {"X-RateLimit-Remaining": "5"}
-    mock_get.return_value = mock_response
+    mock_response_page1.headers = {"X-RateLimit-Remaining": "5"}
+
+    mock_response_page2 = Mock()
+    mock_response_page2.status_code = 200
+    mock_response_page2.json.return_value = []  # Empty - end of pagination
+    mock_response_page2.headers = {"X-RateLimit-Remaining": "5"}
+
+    mock_get.side_effect = [mock_response_page1, mock_response_page2]
 
     with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
         scanner = GitHubOrgScanner()
