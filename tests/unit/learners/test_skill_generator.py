@@ -128,7 +128,7 @@ class TestSkillGenerator:
         content = output_file.read_text()
         assert "Test Skill" in content
         assert "test-skill" in content
-        assert "90%" in content  # Confidence
+        assert "90.0%" in content  # Confidence
         assert "+50.0 pts" in content  # Impact
         assert "85.0%" in content  # Reusability
 

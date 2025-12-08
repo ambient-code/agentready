@@ -49,7 +49,7 @@ from ..services.learning_service import LearningService
 )
 @click.option(
     "--llm-budget",
-    type=int,
+    type=click.IntRange(min=0),
     default=5,
     help="Maximum number of skills to enrich with LLM (default: 5)",
 )
@@ -108,6 +108,12 @@ def learn(
         click.echo(f"Error: Repository not found: {repo_path}", err=True)
         sys.exit(1)
 
+    # Resolve output_dir relative to repository if it's relative
+    output_dir_path = Path(output_dir)
+    if not output_dir_path.is_absolute():
+        output_dir_path = repo_path / output_dir
+    output_dir = str(output_dir_path)
+
     # Find latest assessment file
     agentready_dir = repo_path / ".agentready"
     if not agentready_dir.exists():
@@ -158,6 +164,9 @@ def learn(
         min_confidence=min_confidence,
         output_dir=output_dir,
     )
+
+    # Ensure output directory exists
+    learning_service.output_dir.mkdir(parents=True, exist_ok=True)
 
     # Run learning workflow
     try:
