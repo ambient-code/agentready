@@ -161,7 +161,11 @@ def assess(repository, verbose, output_dir, config, exclude):
 
 def run_assessment(repository_path, verbose, output_dir, config_path, exclude=None):
     """Execute repository assessment."""
-    repo_path = Path(repository_path).resolve()
+    try:
+        repo_path = Path(repository_path).resolve()
+    except (OSError, PermissionError):
+        # If resolve fails (e.g., permission denied), use absolute path
+        repo_path = Path(repository_path).absolute()
 
     # Security: Warn when scanning sensitive directories
     sensitive_dirs = ["/etc", "/sys", "/proc", "/.ssh", "/var"]
