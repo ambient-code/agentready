@@ -225,6 +225,34 @@ agentready/
 - **Black** - Code formatter
 - **isort** - Import sorter
 - **Ruff** - Fast Python linter
+- **Harbor** - Evaluation framework (optional, for benchmarks)
+
+---
+
+## Preflight Checks
+
+AgentReady validates dependencies before running benchmarks:
+
+- **Harbor CLI**: Checked automatically before Terminal-Bench runs
+- **Interactive installation**: Prompts user with `uv tool install harbor` (or `pip install harbor` fallback)
+- **Opt-out**: Use `--skip-preflight` flag to bypass checks for advanced users
+- **Package manager fallback**: Prefers `uv`, falls back to `pip` if `uv` not available
+- **Security**: Uses `safe_subprocess_run()` with 5-minute timeout
+
+**Implementation**:
+- Module: `src/agentready/utils/preflight.py`
+- Tests: `tests/unit/utils/test_preflight.py` (100% coverage)
+- Integration: `src/agentready/cli/benchmark.py`
+
+**Usage Examples**:
+
+```bash
+# Normal usage (preflight check runs automatically)
+agentready benchmark --subset smoketest
+
+# Skip preflight (advanced users)
+agentready benchmark --subset smoketest --skip-preflight
+```
 
 ---
 

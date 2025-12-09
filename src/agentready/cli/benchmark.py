@@ -44,7 +44,14 @@ from ..services.eval_harness.tbench_runner import _real_tbench_result
     default=None,
     help="Output directory for results (default: .agentready/benchmarks/tbench/)",
 )
-def benchmark(repository, harness, subset, model, verbose, timeout, output_dir):
+@click.option(
+    "--skip-preflight",
+    is_flag=True,
+    help="Skip dependency checks (for advanced users)",
+)
+def benchmark(
+    repository, harness, subset, model, verbose, timeout, output_dir, skip_preflight
+):
     """Run agent coding benchmarks.
 
     Evaluates agent performance on standardized coding benchmarks.
@@ -70,13 +77,15 @@ def benchmark(repository, harness, subset, model, verbose, timeout, output_dir):
 
     # Route to appropriate harness
     if harness == "tbench":
-        _run_tbench(repo_path, subset, model, verbose, timeout, output_dir)
+        _run_tbench(
+            repo_path, subset, model, verbose, timeout, output_dir, skip_preflight
+        )
     else:
         click.echo(f"Unknown harness: {harness}", err=True)
         raise click.Abort()
 
 
-def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir):
+def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir, skip_preflight):
     """Run Terminal-Bench evaluation."""
     # Default subset to 'full' if not specified
     if subset is None:
@@ -99,6 +108,29 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir):
         click.echo(f"Subset: {subset} ({'1-2 tasks' if smoketest else '89 tasks'})")
         click.echo(f"Timeout: {timeout}s\n")
 
+    # Preflight: Check Harbor CLI availability and dataset
+    task_path = None
+    if not skip_preflight:
+        try:
+            from ..utils.preflight import (
+                PreflightError,
+                check_harbor_cli,
+                ensure_terminal_bench_dataset,
+            )
+
+            if verbose:
+                click.echo("Checking dependencies...\n")
+
+            check_harbor_cli(interactive=True)
+
+            # For smoketest, ensure dataset is downloaded
+            if smoketest:
+                task_path = ensure_terminal_bench_dataset()
+
+        except PreflightError as e:
+            click.echo(f"\nPreflight check failed:\n{e}\n", err=True)
+            raise click.Abort()
+
     # Validate API key BEFORE creating HarborConfig
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
@@ -118,6 +150,7 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir):
         timeout=timeout,
         n_concurrent=1,
         smoketest=smoketest,
+        task_path=task_path,
     )
 
     try:

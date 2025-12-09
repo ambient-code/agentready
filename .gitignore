@@ -59,6 +59,7 @@ plans/  # Planning documents (was .plans/)
 # Harbor framework temp directories
 **/tbench-results/
 **/.harbor-cache/
+jobs/  # Harbor benchmark output directory
 
 # Repository lists (generated/temporary)
 repos.txt

@@ -6,6 +6,7 @@ This module provides configuration and validation for Harbor framework subproces
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 # Allowed models (excludes opus due to cost)
 ALLOWED_MODELS = {
@@ -32,6 +33,7 @@ class HarborConfig:
         timeout: Subprocess timeout in seconds (default: 3600, must be positive)
         n_concurrent: Harbor's internal concurrency (default: 1, must be >= 1)
         smoketest: Run fast validation with 1-2 tasks (default: False)
+        task_path: Optional path to specific task (for smoketest mode)
     """
 
     model: str
@@ -41,6 +43,7 @@ class HarborConfig:
     timeout: int = 3600
     n_concurrent: int = 1
     smoketest: bool = False
+    task_path: Optional[Path] = None
 
     def __post_init__(self):
         """Validate configuration parameters"""

@@ -75,26 +75,45 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
     """
 
     # 2. Build harbor run command
-    cmd = [
-        "harbor",
-        "run",
-        "--dataset",
-        "terminal-bench@2.0",
-        "--agent",
-        config.agent,
-        "--model",
-        config.model,
-        "--jobs-dir",
-        str(config.jobs_dir),
-        "--n-concurrent",
-        str(config.n_concurrent),
-    ]
-
-    # SMOKETEST MODE: Select only 1-2 fast tasks for quick validation
     if config.smoketest:
-        # Select first task alphabetically (adaptive-rejection-sampler is simple/fast)
-        cmd.extend(["--task-name", "adaptive-rejection-sampler__*"])
-        cmd.extend(["--quiet"])  # Reduce output noise
+        # SMOKETEST MODE: Use --path to point directly to downloaded task
+        # Task path is dynamically discovered by preflight check
+        if not config.task_path:
+            raise RuntimeError(
+                "Smoketest mode requires task_path to be set. "
+                "Ensure preflight checks are enabled."
+            )
+        cmd = [
+            "harbor",
+            "run",
+            "--path",
+            str(config.task_path),
+            "--agent",
+            config.agent,
+            "--model",
+            config.model,
+            "--jobs-dir",
+            str(config.jobs_dir),
+            "--n-concurrent",
+            str(config.n_concurrent),
+            "--quiet",  # Reduce output noise
+        ]
+    else:
+        # Full benchmark: use dataset reference
+        cmd = [
+            "harbor",
+            "run",
+            "--dataset",
+            "terminal-bench@2.0",
+            "--agent",
+            config.agent,
+            "--model",
+            config.model,
+            "--jobs-dir",
+            str(config.jobs_dir),
+            "--n-concurrent",
+            str(config.n_concurrent),
+        ]
 
     # 3. Sanitize environment variables (SECURITY: FR-004)
     clean_env = {
@@ -105,11 +124,22 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
 
     # 4. Execute subprocess with timeout
     try:
-        subprocess.run(cmd, env=clean_env, timeout=config.timeout, check=True)
+        subprocess.run(
+            cmd,
+            env=clean_env,
+            timeout=config.timeout,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
     except subprocess.TimeoutExpired:
         raise RuntimeError(f"Benchmark timed out after {config.timeout}s")
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Harbor command failed: {e}")
+        # Include stderr in error message for debugging
+        error_msg = f"Harbor command failed: {e}"
+        if e.stderr:
+            error_msg += f"\nStderr: {e.stderr}"
+        raise RuntimeError(error_msg)
 
     # 5. Find timestamped results directory created by Harbor
     # Harbor creates: jobs_dir/YYYY-MM-DD__HH-MM-SS/result.json

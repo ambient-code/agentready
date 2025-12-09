@@ -86,6 +86,27 @@ After installing globally:
 agentready assess .
 ```
 
+### Harbor CLI (for Benchmarks)
+
+Harbor is required for running Terminal-Bench evaluations:
+
+```bash
+# AgentReady will prompt to install automatically, or install manually:
+uv tool install harbor
+
+# Alternative: Use pip if uv is not available
+pip install harbor
+
+# Verify installation
+harbor --version
+```
+
+**Skip automatic checks**: If you prefer to skip the automatic Harbor check (for advanced users):
+
+```bash
+agentready benchmark --skip-preflight --subset smoketest
+```
+
 ### Assessment Only
 
 For one-time analysis without infrastructure changes:
