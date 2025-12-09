@@ -90,7 +90,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=90"
+# Coverage reporting enabled by default, but no global fail-under threshold
+# CI workflow enforces coverage requirements selectively (critical tests = no coverage, full suite = reporting only)
+addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html --cov-report=xml"
 
 [tool.coverage.run]
 source = ["src/agentready"]

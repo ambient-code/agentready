@@ -12,6 +12,7 @@ except ImportError:
     # Python 3.7 compatibility
     from importlib_metadata import version as get_version
 
+from pydantic import ValidationError
 
 from ..assessors import create_all_assessors
 from ..models.config import Config
@@ -88,7 +89,6 @@ class LazyGroup(click.Group):
     cls=LazyGroup,
     lazy_subcommands={
         "assess-batch": ("assess_batch", "assess_batch"),
-        "eval-harness": ("eval_harness", "eval_harness"),
         "experiment": ("experiment", "experiment"),
         "extract-skills": ("extract_skills", "extract_skills"),
         "learn": ("learn", "learn"),
@@ -162,15 +162,28 @@ def assess(repository, verbose, output_dir, config, exclude):
 
 def run_assessment(repository_path, verbose, output_dir, config_path, exclude=None):
     """Execute repository assessment."""
-    try:
-        repo_path = Path(repository_path).resolve()
-    except (OSError, PermissionError):
-        # If resolve fails (e.g., permission denied), use absolute path
-        repo_path = Path(repository_path).absolute()
+    repo_path = Path(repository_path).resolve()
 
     # Security: Warn when scanning sensitive directories
-    sensitive_dirs = ["/etc", "/sys", "/proc", "/.ssh", "/var"]
-    if any(str(repo_path).startswith(p) for p in sensitive_dirs):
+    sensitive_dirs = ["/etc", "/sys", "/proc", "/.ssh", "/private/etc"]
+    resolved_str = str(repo_path.resolve())
+
+    # Check if path starts with any sensitive dir
+    # For /var, be more selective - only warn for specific subdirectories, not temp folders
+    is_sensitive = any(resolved_str.startswith(p) for p in sensitive_dirs)
+
+    # Special handling for /var and /private/var (macOS)
+    # Only warn for specific subdirectories, not temp folders
+    if not is_sensitive:
+        var_sensitive_subdirs = [
+            "/var/log",
+            "/var/root",
+            "/private/var/log",
+            "/private/var/root",
+        ]
+        is_sensitive = any(resolved_str.startswith(p) for p in var_sensitive_subdirs)
+
+    if is_sensitive:
         click.confirm(
             f"⚠️  Warning: Scanning sensitive directory {repo_path}. Continue?",
             abort=True,
@@ -200,10 +213,10 @@ def run_assessment(repository_path, verbose, output_dir, config_path, exclude=No
                 abort=True,
             )
     except click.Abort:
-        # Re-raise Abort to properly exit when user declines
+        # User declined to continue - re-raise to abort
         raise
     except Exception:
-        # If we can't count files quickly, just continue
+        # If we can't count files quickly (timeout, permission error, etc.), just continue
         pass
 
     if verbose:
@@ -346,11 +359,72 @@ def load_config(config_path: Path) -> Config:
     """
     import yaml
 
-    with open(config_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
 
-    # Config.from_yaml_dict handles all validation and raises ValueError on errors
-    return Config.from_yaml_dict(data)
+        # Validate that data is a dictionary
+        if not isinstance(data, dict):
+            raise ValueError("Config must be a dict")
+
+        # Pydantic handles all validation automatically
+        return Config.from_yaml_dict(data)
+    except ValidationError as e:
+        # Convert Pydantic validation errors to ValueError with user-friendly messages
+        # This allows callers (including tests) to catch and handle validation errors
+        errors = e.errors()
+
+        # Check for specific error types and provide user-friendly messages
+        if errors:
+            first_error = errors[0]
+            error_type = first_error.get("type", "")
+            field = first_error.get("loc", [])
+            field_name = field[0] if field else "unknown"
+
+            # Map Pydantic error types to user-friendly messages
+            if error_type == "extra_forbidden":
+                unknown_keys = [
+                    err.get("loc", [""])[0]
+                    for err in errors
+                    if err.get("type") == "extra_forbidden"
+                ]
+                raise ValueError(f"Unknown config keys: {', '.join(unknown_keys)}")
+            elif field_name == "weights" and error_type == "dict_type":
+                raise ValueError("'weights' must be a dict")
+            elif field_name == "weights" and (
+                "float_parsing" in error_type or "value_error" in error_type
+            ):
+                raise ValueError("'weights' values must be positive numbers")
+            elif field_name == "excluded_attributes" and error_type == "list_type":
+                raise ValueError("'excluded_attributes' must be a list")
+            elif field_name == "output_dir":
+                # Check if it's a sensitive directory validation error
+                # Pydantic wraps ValueError from validators - extract the message
+                error_msg = first_error.get("msg", "")
+                ctx = first_error.get("ctx", {})
+
+                # Check if error message contains "sensitive"
+                if "sensitive" in str(error_msg).lower():
+                    # Strip "Value error, " prefix that Pydantic adds
+                    msg = str(error_msg).replace("Value error, ", "")
+                    raise ValueError(msg)
+
+                # Check if error is in context
+                if "error" in ctx:
+                    ctx_error = str(ctx.get("error", ""))
+                    if "sensitive" in ctx_error.lower():
+                        raise ValueError(ctx_error)
+
+                # For other output_dir errors, raise generic message
+                raise ValueError(f"Invalid output_dir: {error_msg}")
+            elif field_name == "report_theme":
+                raise ValueError("'report_theme' must be str")
+            else:
+                # Generic error message for other validation failures
+                field_path = " → ".join(str(x) for x in field)
+                raise ValueError(
+                    f"Validation failed for '{field_path}': {first_error.get('msg', 'Invalid value')}"
+                )
 
 
 @cli.command()

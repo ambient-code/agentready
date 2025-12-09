@@ -60,20 +60,16 @@ class Config(BaseModel):
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,  # Allow Path objects
-        extra="forbid",  # Reject unknown keys
+        extra="forbid",  # Reject unknown fields
     )
 
     @field_validator("weights")
     @classmethod
     def validate_weights(cls, v: dict[str, float]) -> dict[str, float]:
-        """Validate weight values are positive."""
-        if not v:
-            return v
-
+        """Validate weight values are positive (no upper limit - allow boosting)."""
         for attr_id, weight in v.items():
             if weight <= 0:
                 raise ValueError(f"Weight must be positive for {attr_id}: {weight}")
-
         return v
 
     @field_validator("language_overrides")
@@ -159,50 +155,11 @@ class Config(BaseModel):
             Validated Config instance
 
         Raises:
-            ValueError: If data is not a dictionary or validation fails
+            pydantic.ValidationError: If data doesn't match schema
         """
-        from pydantic import ValidationError
-
-        # Validate data is a dictionary
-        if not isinstance(data, dict):
-            raise ValueError(
-                f"Config must be a dict, got {type(data).__name__}. "
-                f"Check your YAML file for proper formatting."
-            )
-
         # Pydantic automatically handles:
         # - Type validation (dict[str, float] for weights, etc.)
         # - Nested structure validation (via field_validators)
         # - Required vs optional fields
         # - Default values
-        try:
-            return cls(**data)
-        except ValidationError as e:
-            # Convert Pydantic validation errors to user-friendly ValueError messages
-            for error in e.errors():
-                field_path = error["loc"]
-                field_name = field_path[0] if field_path else "config"
-                error_type = error["type"]
-
-                # Provide specific error messages that match test expectations
-                if error_type == "extra_forbidden":
-                    unknown_keys = [str(loc) for loc in field_path]
-                    raise ValueError(
-                        f"Unknown config keys: {', '.join(unknown_keys)}"
-                    ) from None
-                elif field_name == "weights":
-                    if error_type == "dict_type":
-                        raise ValueError("'weights' must be a dict") from None
-                    elif error_type in ("float_parsing", "float_type"):
-                        raise ValueError("'weights' values must be numbers") from None
-                elif field_name == "excluded_attributes":
-                    if error_type == "list_type":
-                        raise ValueError(
-                            "'excluded_attributes' must be a list"
-                        ) from None
-                elif field_name == "report_theme":
-                    if error_type == "string_type":
-                        raise ValueError("'report_theme' must be str") from None
-
-            # If no specific handler matched, re-raise the ValidationError
-            raise
+        return cls(**data)
