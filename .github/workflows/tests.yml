@@ -11,6 +11,7 @@ jobs:
   critical-tests:
     name: Critical Path Tests (Blocking)
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Job-level timeout to prevent hung jobs
     strategy:
       matrix:
         python-version: ['3.12', '3.13']
@@ -48,6 +49,7 @@ jobs:
   linting:
     name: Code Quality (Blocking)
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Job-level timeout
 
     steps:
       - name: Checkout code
@@ -79,6 +81,7 @@ jobs:
   full-test-suite:
     name: Full Test Suite (Warning)
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Job-level timeout for full suite
     continue-on-error: true  # Don't fail CI on test failures
 
     steps:
@@ -120,6 +123,7 @@ jobs:
   platform-tests:
     name: Platform Tests (macOS)
     runs-on: macos-latest
+    timeout-minutes: 20  # Job-level timeout for platform tests
     continue-on-error: true  # Don't block merge
 
     steps:

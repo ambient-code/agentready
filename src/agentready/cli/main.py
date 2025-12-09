@@ -20,6 +20,11 @@ from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
+from ..utils.security import (
+    SENSITIVE_DIRS,
+    VAR_SENSITIVE_SUBDIRS,
+    _is_path_in_directory,
+)
 from ..utils.subprocess_utils import safe_subprocess_run
 
 # Lightweight commands - imported immediately
@@ -165,23 +170,17 @@ def run_assessment(repository_path, verbose, output_dir, config_path, exclude=No
     repo_path = Path(repository_path).resolve()
 
     # Security: Warn when scanning sensitive directories
-    sensitive_dirs = ["/etc", "/sys", "/proc", "/.ssh", "/private/etc"]
-    resolved_str = str(repo_path.resolve())
+    # Use centralized constants and proper boundary checking
+    is_sensitive = any(
+        _is_path_in_directory(repo_path, Path(p)) for p in SENSITIVE_DIRS
+    )
 
-    # Check if path starts with any sensitive dir
-    # For /var, be more selective - only warn for specific subdirectories, not temp folders
-    is_sensitive = any(resolved_str.startswith(p) for p in sensitive_dirs)
-
-    # Special handling for /var and /private/var (macOS)
+    # Special handling for /var subdirectories (macOS)
     # Only warn for specific subdirectories, not temp folders
     if not is_sensitive:
-        var_sensitive_subdirs = [
-            "/var/log",
-            "/var/root",
-            "/private/var/log",
-            "/private/var/root",
-        ]
-        is_sensitive = any(resolved_str.startswith(p) for p in var_sensitive_subdirs)
+        is_sensitive = any(
+            _is_path_in_directory(repo_path, Path(p)) for p in VAR_SENSITIVE_SUBDIRS
+        )
 
     if is_sensitive:
         click.confirm(
