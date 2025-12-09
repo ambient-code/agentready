@@ -117,8 +117,10 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
 
     # 3. Prepare environment variables
     # Pass through current environment but ensure API key is set
+    # Harbor's claude-code agent expects ANTHROPIC_AUTH_TOKEN (not ANTHROPIC_API_KEY)
     clean_env = os.environ.copy()
     clean_env["ANTHROPIC_API_KEY"] = config.api_key
+    clean_env["ANTHROPIC_AUTH_TOKEN"] = config.api_key  # Harbor uses this
 
     # 4. Execute subprocess with timeout
     try:
