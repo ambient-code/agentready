@@ -99,25 +99,26 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir):
         click.echo(f"Subset: {subset} ({'1-2 tasks' if smoketest else '89 tasks'})")
         click.echo(f"Timeout: {timeout}s\n")
 
-    # Create HarborConfig
-    harbor_config = HarborConfig(
-        model=f"anthropic/{model}",
-        agent="claude-code",
-        jobs_dir=Path(tempfile.mkdtemp()),
-        api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
-        timeout=timeout,
-        n_concurrent=1,
-        smoketest=smoketest,
-    )
-
-    # Validate API key
-    if not harbor_config.api_key:
+    # Validate API key BEFORE creating HarborConfig
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
         click.echo(
             "Error: ANTHROPIC_API_KEY environment variable not set.\n"
             "Set it with: export ANTHROPIC_API_KEY=your-key-here",
             err=True,
         )
         raise click.Abort()
+
+    # Create HarborConfig (will not raise ValueError now)
+    harbor_config = HarborConfig(
+        model=f"anthropic/{model}",
+        agent="claude-code",
+        jobs_dir=Path(tempfile.mkdtemp()),
+        api_key=api_key,
+        timeout=timeout,
+        n_concurrent=1,
+        smoketest=smoketest,
+    )
 
     try:
         # Run benchmark
