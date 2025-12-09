@@ -169,18 +169,8 @@ def run_assessment(repository_path, verbose, output_dir, config_path, exclude=No
         repo_path = Path(repository_path).absolute()
 
     # Security: Warn when scanning sensitive directories
-    sensitive_dirs = [
-        "/etc",
-        "/sys",
-        "/proc",
-        "/.ssh",
-        "/var/log",
-        "/var/root",
-        "/private/etc",  # macOS symlink target
-    ]
-    repo_path_str = str(repo_path)
-    # Check if path is in sensitive directory (but exclude temp dirs)
-    if any(repo_path_str.startswith(p) for p in sensitive_dirs):
+    sensitive_dirs = ["/etc", "/sys", "/proc", "/.ssh", "/var"]
+    if any(str(repo_path).startswith(p) for p in sensitive_dirs):
         click.confirm(
             f"⚠️  Warning: Scanning sensitive directory {repo_path}. Continue?",
             abort=True,
