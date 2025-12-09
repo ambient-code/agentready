@@ -1,0 +1,8 @@
+https://github.com/opendatahub-io/odh-dashboard
+https://github.com/vllm-project/vllm
+https://github.com/github/spec-kit
+https://github.com/ambient-code/agentready
+https://github.com/ambient-code/platform
+https://github.com/pytorch/pytorch
+https://github.com/ai-dynamo/dynamo
+https://github.com/kubernetes/kubernetes

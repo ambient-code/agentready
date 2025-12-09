@@ -8,7 +8,6 @@ via the Harbor framework subprocess interface.
 import json
 import os
 import subprocess
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -59,12 +58,13 @@ class TbenchResult:
             raise ValueError("Trial counts cannot be negative")
 
 
-def _real_tbench_result(repo_path: Path) -> TbenchResult:
+def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
     """
     Execute real Terminal-Bench evaluation via Harbor framework.
 
     Args:
         repo_path: Path to repository being evaluated
+        config: HarborConfig with Harbor subprocess parameters
 
     Returns:
         TbenchResult with real benchmark metrics
@@ -73,15 +73,6 @@ def _real_tbench_result(repo_path: Path) -> TbenchResult:
         RuntimeError: If Harbor subprocess times out or fails
         ValueError: If results path validation fails (path traversal)
     """
-    # 1. Create HarborConfig with validation
-    config = HarborConfig(
-        model=os.environ.get("TBENCH_MODEL", "anthropic/claude-haiku-4-5"),
-        agent="claude-code",
-        jobs_dir=Path(tempfile.mkdtemp()),
-        api_key=os.environ.get("ANTHROPIC_API_KEY"),
-        timeout=DEFAULT_TIMEOUT,
-        n_concurrent=DEFAULT_N_CONCURRENT,
-    )
 
     # 2. Build harbor run command
     cmd = [
@@ -98,6 +89,12 @@ def _real_tbench_result(repo_path: Path) -> TbenchResult:
         "--n-concurrent",
         str(config.n_concurrent),
     ]
+
+    # SMOKETEST MODE: Select only 1-2 fast tasks for quick validation
+    if config.smoketest:
+        # Select first task alphabetically (adaptive-rejection-sampler is simple/fast)
+        cmd.extend(["--task-name", "adaptive-rejection-sampler__*"])
+        cmd.extend(["--quiet"])  # Reduce output noise
 
     # 3. Sanitize environment variables (SECURITY: FR-004)
     clean_env = {

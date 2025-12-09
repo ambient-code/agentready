@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Demo Preview Guide | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Demo Preview Guide | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Demo Preview Guide" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="https://ambient-code.github.io/agentready/PREVIEW.html" />
+<meta property="og:url" content="https://ambient-code.github.io/agentready/PREVIEW.html" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Demo Preview Guide" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Demo Preview Guide","url":"https://ambient-code.github.io/agentready/PREVIEW.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1 id="demo-preview-guide">Demo Preview Guide</h1>
+
+<p>Two ways to preview AgentReady demo sites: Quick (slides only) or Full (Jekyll server with all demos).</p>
+
+<hr />
+
+<h2 id="quick-preview-no-setup">Quick Preview (No Setup)</h2>
+
+<p><strong>Fastest option</strong> - Just open the slides in your browser:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># macOS</span>
+open docs/demos/slides.html
+
+<span class="c"># Linux</span>
+xdg-open docs/demos/slides.html
+
+<span class="c"># Or manually: Double-click docs/demos/slides.html</span>
+</code></pre></div></div>
+
+<p><strong>What you’ll see</strong>:</p>
+<ul>
+  <li>13 reveal.js slides with Night theme</li>
+  <li>Keyboard navigation (← → Space)</li>
+  <li>Syntax-highlighted code</li>
+  <li>No Mermaid diagrams (slides don’t use them)</li>
+</ul>
+
+<hr />
+
+<h2 id="full-preview-complete-experience">Full Preview (Complete Experience)</h2>
+
+<p><strong>Requires</strong>: Ruby, Bundler, Jekyll (see installation below)</p>
+
+<h3 id="start-jekyll-server">Start Jekyll Server</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># From repository root</span>
+make docs-serve
+
+<span class="c"># OR manually:</span>
+<span class="nb">cd </span>docs
+bundle <span class="nb">exec </span>jekyll serve <span class="nt">--livereload</span>
+</code></pre></div></div>
+
+<h3 id="view-demos">View Demos</h3>
+
+<p>Open in browser: http://localhost:4000/agentready/demos/</p>
+
+<p><strong>Available demos</strong>:</p>
+<ul>
+  <li><strong>Hub</strong> (<code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">demos</span><span class="o">/</span></code>) - Landing page with 4 demo cards</li>
+  <li><strong>Walkthrough</strong> (<code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">demos</span><span class="o">/</span><span class="n">walkthrough</span></code>) - Complete guide with Mermaid diagrams</li>
+  <li><strong>Slides</strong> (<code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">demos</span><span class="o">/</span><span class="n">slides</span></code>) - reveal.js presentation</li>
+  <li><strong>Terminal Demo</strong> (<code class="language-python highlighter-rouge"><span class="o">/</span><span class="n">demos</span><span class="o">/</span><span class="n">terminal</span><span class="o">-</span><span class="n">demo</span></code>) - asciinema player (recording needed)</li>
+</ul>
+
+<p><strong>Features</strong>:</p>
+<ul>
+  <li>Live reload (changes auto-refresh)</li>
+  <li>Mermaid diagrams rendered</li>
+  <li>Full navigation menu</li>
+  <li>All Jekyll includes/layouts</li>
+</ul>
+
+<h3 id="stop-server">Stop Server</h3>
+
+<p>Press <code class="language-python highlighter-rouge"><span class="n">Ctrl</span><span class="o">+</span><span class="n">C</span></code> in terminal</p>
+
+<hr />
+
+<h2 id="installation-first-time-only">Installation (First Time Only)</h2>
+
+<h3 id="macos">macOS</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. Install Ruby via Homebrew</span>
+brew <span class="nb">install </span>ruby
+
+<span class="c"># 2. Add to PATH (one-time)</span>
+<span class="nb">echo</span> <span class="s1">'export PATH="/opt/homebrew/opt/ruby/bin:$PATH"'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+<span class="nb">source</span> ~/.zshrc
+
+<span class="c"># 3. Install Bundler</span>
+gem <span class="nb">install </span>bundler
+
+<span class="c"># 4. Install Jekyll dependencies</span>
+<span class="nb">cd </span>docs
+bundle <span class="nb">install</span>
+</code></pre></div></div>
+
+<h3 id="ubuntudebian">Ubuntu/Debian</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. Install Ruby</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>ruby-full build-essential
+
+<span class="c"># 2. Configure gem path (avoid sudo)</span>
+<span class="nb">echo</span> <span class="s1">'export GEM_HOME="$HOME/gems"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+<span class="nb">echo</span> <span class="s1">'export PATH="$HOME/gems/bin:$PATH"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
+
+<span class="c"># 3. Install Bundler</span>
+gem <span class="nb">install </span>bundler
+
+<span class="c"># 4. Install Jekyll dependencies</span>
+<span class="nb">cd </span>docs
+bundle <span class="nb">install</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="port-4000-already-in-use">Port 4000 already in use</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Find process using port 4000</span>
+lsof <span class="nt">-i</span> :4000
+
+<span class="c"># Kill it</span>
+<span class="nb">kill</span> <span class="nt">-9</span> &lt;PID&gt;
+
+<span class="c"># Or use different port</span>
+bundle <span class="nb">exec </span>jekyll serve <span class="nt">--port</span> 4001
+</code></pre></div></div>
+
+<h3 id="mermaid-diagrams-not-rendering">Mermaid diagrams not rendering</h3>
+
+<ul>
+  <li>Wait 2-3 seconds after page load (CDN initialization)</li>
+  <li>Check browser console for errors</li>
+  <li>Try hard refresh: Cmd+Shift+R (macOS) or Ctrl+Shift+R (Linux)</li>
+</ul>
+
+<h3 id="slides-keyboard-navigation-not-working">Slides keyboard navigation not working</h3>
+
+<ul>
+  <li>Click anywhere on the slides first (focus required)</li>
+  <li>Use Space, ← →, or click the controls</li>
+</ul>
+
+<hr />
+
+<h2 id="quick-commands">Quick Commands</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Generate slides (if changed DEMO_SUMMARY.md)</span>
+make demo-slides
+
+<span class="c"># Validate all demo files</span>
+make demo-validate
+
+<span class="c"># Start Jekyll server</span>
+make docs-serve
+
+<span class="c"># Open slides directly</span>
+open docs/demos/slides.html
+</code></pre></div></div>
+
+<hr />
+
+<p><strong>Setup Date</strong>: 2025-12-07
+<strong>Ruby</strong>: 3.4.7 (Homebrew)
+<strong>Jekyll</strong>: 3.9.5
+<strong>Bundler</strong>: 2.5.23</p>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v2.12.3 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Mermaid diagrams support -->
+  <!-- Mermaid.js Integration for Diagram Rendering -->
+<!-- https://mermaidjs.github.io/ -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    securityLevel: 'loose',
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis'
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -2,8 +2,12 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ..utils.privacy import sanitize_path, shorten_commit_hash
+
+if TYPE_CHECKING:
+    from .config import Config
 
 
 @dataclass
@@ -19,6 +23,7 @@ class Repository:
         languages: Detected languages with file counts (e.g., {"Python": 42})
         total_files: Total files in repository (respecting .gitignore)
         total_lines: Total lines of code
+        config: Optional Config instance for eval harness parameters
     """
 
     path: Path
@@ -29,6 +34,7 @@ class Repository:
     languages: dict[str, int]
     total_files: int
     total_lines: int
+    config: "Config | None" = None
 
     def __post_init__(self):
         """Validate repository data after initialization."""

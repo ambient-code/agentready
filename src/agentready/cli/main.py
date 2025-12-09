@@ -29,6 +29,7 @@ from ..utils.subprocess_utils import safe_subprocess_run
 
 # Lightweight commands - imported immediately
 from .align import align
+from .benchmark import benchmark
 from .bootstrap import bootstrap
 from .demo import demo
 from .repomix import repomix_generate
@@ -157,15 +158,33 @@ def cli(ctx, version):
     multiple=True,
     help="Attribute ID(s) to exclude (can be specified multiple times)",
 )
-def assess(repository, verbose, output_dir, config, exclude):
+def assess(
+    repository,
+    verbose,
+    output_dir,
+    config,
+    exclude,
+):
     """Assess a repository against agent-ready criteria.
 
     REPOSITORY: Path to git repository (default: current directory)
     """
-    run_assessment(repository, verbose, output_dir, config, exclude)
+    run_assessment(
+        repository,
+        verbose,
+        output_dir,
+        config,
+        exclude,
+    )
 
 
-def run_assessment(repository_path, verbose, output_dir, config_path, exclude=None):
+def run_assessment(
+    repository_path,
+    verbose,
+    output_dir,
+    config_path,
+    exclude=None,
+):
     """Execute repository assessment."""
     repo_path = Path(repository_path).resolve()
 
@@ -226,6 +245,8 @@ def run_assessment(repository_path, verbose, output_dir, config_path, exclude=No
     config = None
     if config_path:
         config = load_config(Path(config_path))
+    else:
+        config = Config.load_default()
 
     # Set output directory
     if output_dir:
@@ -478,6 +499,7 @@ def generate_config():
 
 # Register lightweight commands (heavy commands loaded lazily via LazyGroup)
 cli.add_command(align)
+cli.add_command(benchmark)
 cli.add_command(bootstrap)
 cli.add_command(demo)
 cli.add_command(migrate_report)

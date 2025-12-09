@@ -206,6 +206,7 @@ class Scanner:
             languages=languages,
             total_files=total_files,
             total_lines=total_lines,
+            config=self.config,
         )
 
     def _execute_assessor(

@@ -106,6 +106,27 @@ def align(repository, dry_run, attributes, interactive):
             f"Failing Attributes: {sum(1 for f in assessment.findings if f.status == 'fail')}\n"
         )
 
+        # Show full results table
+        click.echo("Assessment Results:")
+        click.echo("-" * 80)
+        click.echo(f"{'Attribute ID':<35} {'Status':<10} {'Score':<10}")
+        click.echo("-" * 80)
+        for finding in sorted(assessment.findings, key=lambda f: f.attribute.id):
+            status_emoji = (
+                "✅"
+                if finding.status == "pass"
+                else "❌" if finding.status == "fail" else "⏭️"
+            )
+            status_display = f"{status_emoji} {finding.status.upper()}"
+            score_display = (
+                f"{finding.score:.0f}/100" if finding.score is not None else "N/A"
+            )
+            click.echo(
+                f"{finding.attribute.id:<35} {status_display:<10} {score_display:<10}"
+            )
+        click.echo("-" * 80)
+        click.echo()
+
     except Exception as e:
         click.echo(f"\nError during assessment: {str(e)}", err=True)
         sys.exit(1)
@@ -124,9 +145,6 @@ def align(repository, dry_run, attributes, interactive):
 
     if not fix_plan.fixes:
         click.echo("\n✅ No automatic fixes available.")
-        click.echo(
-            "All fixable attributes are passing, or failing attributes require manual remediation."
-        )
         sys.exit(0)
 
     # Show fix plan

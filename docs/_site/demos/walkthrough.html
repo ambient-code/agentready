@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.">
+
+  <title>Terminal-Bench Eval Harness - Complete Walkthrough | AgentReady</title>
+
+  <!-- SEO Tags -->
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Terminal-Bench Eval Harness - Complete Walkthrough | AgentReady</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Terminal-Bench Eval Harness - Complete Walkthrough" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<meta property="og:description" content="Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance." />
+<link rel="canonical" href="https://ambient-code.github.io/agentready/demos/walkthrough" />
+<meta property="og:url" content="https://ambient-code.github.io/agentready/demos/walkthrough" />
+<meta property="og:site_name" content="AgentReady" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Terminal-Bench Eval Harness - Complete Walkthrough" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Automated infrastructure generation and continuous quality assessment for AI-assisted development. Bootstrap creates GitHub Actions, pre-commit hooks, templates, and Dependabot in one command. Assess repositories against 25 evidence-based attributes with actionable remediation guidance.","headline":"Terminal-Bench Eval Harness - Complete Walkthrough","url":"https://ambient-code.github.io/agentready/demos/walkthrough"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/agentready/assets/css/agentready.css">
+  <link rel="stylesheet" href="/agentready/assets/css/leaderboard.css">
+
+  <!-- Favicon (add your own) -->
+  <link rel="icon" type="image/svg+xml" href="/agentready/assets/favicon.svg">
+</head>
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container">
+    <div class="content">
+      <h1 id="terminal-bench-eval-harness---complete-walkthrough">Terminal-Bench Eval Harness - Complete Walkthrough</h1>
+
+<p><strong>Interactive demonstration of AgentReady’s empirical validation system</strong></p>
+
+<hr />
+
+<h2 id="-what-is-the-eval-harness">🎯 What is the Eval Harness?</h2>
+
+<p>The Terminal-Bench eval harness <strong>empirically measures</strong> the impact of each AgentReady assessor on agentic development performance through systematic A/B testing.</p>
+
+<h3 id="key-features">Key Features</h3>
+
+<ul>
+  <li><strong>Baseline Establishment</strong>: Run Terminal-Bench multiple times on unmodified repo</li>
+  <li><strong>Per-Assessor Testing</strong>: Test each assessor independently to isolate impact</li>
+  <li><strong>Statistical Analysis</strong>: P-values + Cohen’s d for significance testing</li>
+  <li><strong>Interactive Dashboard</strong>: GitHub Pages visualization with Chart.js</li>
+  <li><strong>Comprehensive Reporting</strong>: JSON, Markdown, and HTML outputs</li>
+</ul>
+
+<hr />
+
+<h2 id="️-architecture">🏗️ Architecture</h2>
+
+<pre><code class="language-mermaid">graph TD
+    A[Repository] --&gt; B[Baseline Establishment]
+    B --&gt; C[Per-Assessor Testing]
+    C --&gt; D[Statistical Analysis]
+    D --&gt; E[Dashboard Generation]
+
+    B --&gt;|baseline/summary.json| F[(File Storage)]
+    C --&gt;|assessors/*/impact.json| F
+    D --&gt;|summary.json| F
+    E --&gt;|docs/_data/tbench/*.json| F
+
+    style A fill:#e1f5ff
+    style B fill:#fff3cd
+    style C fill:#d4edda
+    style D fill:#cce5ff
+    style E fill:#d1ecf1
+    style F fill:#f8d7da
+</code></pre>
+
+<h3 id="workflow-sequence">Workflow Sequence</h3>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant CLI
+    participant TbenchRunner
+    participant Assessor
+    participant Dashboard
+
+    User-&gt;&gt;CLI: baseline --iterations 3
+    CLI-&gt;&gt;TbenchRunner: Run 3 iterations
+    TbenchRunner--&gt;&gt;CLI: 58.35 ± 0.00
+    CLI--&gt;&gt;User: Baseline established
+
+    User-&gt;&gt;CLI: test-assessor --assessor-id claude_md_file
+    CLI-&gt;&gt;Assessor: Run assessment
+    Assessor--&gt;&gt;CLI: Finding (pass/fail)
+    CLI-&gt;&gt;TbenchRunner: Run 3 iterations post-fix
+    TbenchRunner--&gt;&gt;CLI: 58.35 ± 0.00
+    CLI--&gt;&gt;User: Delta: +0.00 (no change)
+
+    User-&gt;&gt;CLI: summarize
+    CLI--&gt;&gt;User: 5 assessors ranked
+
+    User-&gt;&gt;CLI: dashboard
+    CLI-&gt;&gt;Dashboard: Generate 5 JSON files
+    Dashboard--&gt;&gt;User: Dashboard data ready
+</code></pre>
+
+<hr />
+
+<h2 id="-live-demo-results">📊 Live Demo Results</h2>
+
+<h3 id="command-1-establish-baseline">Command 1: Establish Baseline</h3>
+
+<details>
+<summary><strong>Command &amp; Output</strong> (click to expand)</summary>
+
+**Command**:
+```bash
+agentready eval-harness baseline . --iterations 3 --verbose
+```
+
+**Output**:
+```
+🔬 AgentReady Eval Harness - Baseline Establishment
+============================================================
+
+Repository: /Users/jeder/repos/agentready
+Iterations: 3
+
+✅ Baseline established successfully!
+
+Results:
+  Mean Score:   58.35
+  Std Dev:      0.00
+  Median:       58.35
+  Min:          58.35
+  Max:          58.35
+  Iterations:   3
+
+📊 Individual Run Scores:
+  Run  1: 58.35 (completion: 54.4%, pytest: 50.4%)
+  Run  2: 58.35 (completion: 54.4%, pytest: 50.4%)
+  Run  3: 58.35 (completion: 54.4%, pytest: 50.4%)
+```
+
+**Files Created**:
+- `.agentready/eval_harness/baseline/summary.json`
+- `.agentready/eval_harness/baseline/run_001.json`
+- `.agentready/eval_harness/baseline/run_002.json`
+- `.agentready/eval_harness/baseline/run_003.json`
+
+</details>
+
+<p><strong>Result</strong>: Baseline score of <strong>58.35 ± 0.00</strong> established from 3 Terminal-Bench runs</p>
+
+<hr />
+
+<h3 id="command-2-test-single-assessor">Command 2: Test Single Assessor</h3>
+
+<details>
+<summary><strong>Command &amp; Output</strong> (click to expand)</summary>
+
+**Command**:
+```bash
+agentready eval-harness test-assessor --assessor-id claude_md_file --iterations 3 --verbose
+```
+
+**Output**:
+```
+🧪 AgentReady Eval Harness - Assessor Testing
+============================================================
+
+Assessor: claude_md_file
+Repository: /Users/jeder/repos/agentready
+Iterations: 3
+
+📊 Baseline loaded: 58.35 ± 0.00
+
+✅ Assessor testing complete!
+
+📊 Results:
+  Assessor:          CLAUDE.md Configuration Files (Tier 1)
+  Baseline Score:    58.35
+  Post-Fix Score:    58.35
+  Delta:             +0.00 points
+  P-value:           nan
+  Effect Size (d):   0.000
+  Significant:       ❌ NO
+  Effect Magnitude:  negligible
+
+🔧 Remediation:
+  Fixes Applied:     0
+  Actions taken:     No fixes available for this assessor
+```
+
+**Why +0.00?** AgentReady already has a CLAUDE.md file, so no remediation was needed!
+
+</details>
+
+<p><strong>Result</strong>: <strong>+0.00</strong> delta (AgentReady already has CLAUDE.md!)</p>
+
+<hr />
+
+<h3 id="command-3-aggregate-results">Command 3: Aggregate Results</h3>
+
+<details>
+<summary><strong>Command &amp; Output</strong> (click to expand)</summary>
+
+**Command**:
+```bash
+agentready eval-harness summarize --verbose
+```
+
+**Output**:
+```
+📊 AgentReady Eval Harness - Summary
+============================================================
+
+✅ Summary generated successfully!
+
+📈 Baseline Performance:
+  Mean Score: 58.35
+  Std Dev: 0.00
+  Iterations: 3
+
+📊 Overall Results:
+  Total Assessors Tested: 5
+  Significant Improvements: 0
+  Significance Rate: 0%
+
+🎯 Impact by Tier (Average Delta):
+  Tier 1 (Essential): +0.00 points
+  Tier 2 (Critical): +0.00 points
+  Tier 3 (Important): +0.00 points
+  Tier 4 (Advanced): +0.00 points
+
+🏆 Assessors Ranked by Impact:
+   1. Type Annotations                         + +0.00 | Sig: ❌ | Fixes: 0
+   2. CLAUDE.md Configuration Files            + +0.00 | Sig: ❌ | Fixes: 0
+   3. Standard Project Layouts                 + +0.00 | Sig: ❌ | Fixes: 0
+   4. Lock Files for Reproducibility           + +0.00 | Sig: ❌ | Fixes: 0
+   5. README Structure                         + +0.00 | Sig: ❌ | Fixes: 0
+```
+
+</details>
+
+<p><strong>Result</strong>: 5 assessors tested, all showing <strong>+0.00</strong> (AgentReady passes all!)</p>
+
+<hr />
+
+<h3 id="command-4-generate-dashboard">Command 4: Generate Dashboard</h3>
+
+<details>
+<summary><strong>Command &amp; Output</strong> (click to expand)</summary>
+
+**Command**:
+```bash
+agentready eval-harness dashboard --verbose
+```
+
+**Output**:
+```
+📊 AgentReady Eval Harness - Dashboard Generator
+============================================================
+
+🔄 Generating dashboard data...
+
+✅ Dashboard data generated successfully!
+
+📁 Generated Files:
+  • summary: docs/_data/tbench/summary.json (5,761 bytes)
+  • ranked_assessors: docs/_data/tbench/ranked_assessors.json (2,168 bytes)
+  • tier_impacts: docs/_data/tbench/tier_impacts.json (282 bytes)
+  • baseline: docs/_data/tbench/baseline.json (131 bytes)
+  • stats: docs/_data/tbench/stats.json (139 bytes)
+```
+
+</details>
+
+<p><strong>Result</strong>: 5 JSON data files generated for GitHub Pages dashboard</p>
+
+<hr />
+
+<h2 id="-file-structure">📁 File Structure</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="n">agentready</span><span class="o">/</span><span class="n">eval_harness</span><span class="o">/</span>          <span class="c1"># Results storage (gitignored)
+</span><span class="err">├──</span> <span class="n">baseline</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">run_001</span><span class="p">.</span><span class="n">json</span>              <span class="c1"># Individual tbench runs
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">run_002</span><span class="p">.</span><span class="n">json</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">run_003</span><span class="p">.</span><span class="n">json</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">summary</span><span class="p">.</span><span class="n">json</span>              <span class="c1"># BaselineMetrics
+</span><span class="err">├──</span> <span class="n">assessors</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">claude_md_file</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">run_001</span><span class="p">.</span><span class="n">json</span>          <span class="c1"># Post-remediation runs
+</span><span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">run_002</span><span class="p">.</span><span class="n">json</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="n">run_003</span><span class="p">.</span><span class="n">json</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">impact</span><span class="p">.</span><span class="n">json</span>           <span class="c1"># AssessorImpact metrics
+</span><span class="err">│</span>   <span class="err">├──</span> <span class="n">type_annotations</span><span class="o">/</span>
+<span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="p">...</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="p">...</span>
+<span class="err">└──</span> <span class="n">summary</span><span class="p">.</span><span class="n">json</span>                   <span class="c1"># EvalSummary (ranked impacts)
+</span>
+<span class="n">docs</span><span class="o">/</span><span class="n">_data</span><span class="o">/</span><span class="n">tbench</span><span class="o">/</span>                 <span class="c1"># Dashboard data (committed)
+</span><span class="err">├──</span> <span class="n">summary</span><span class="p">.</span><span class="n">json</span>                   <span class="c1"># Complete summary
+</span><span class="err">├──</span> <span class="n">ranked_assessors</span><span class="p">.</span><span class="n">json</span>          <span class="c1"># Pre-sorted list
+</span><span class="err">├──</span> <span class="n">tier_impacts</span><span class="p">.</span><span class="n">json</span>              <span class="c1"># For Chart.js
+</span><span class="err">├──</span> <span class="n">baseline</span><span class="p">.</span><span class="n">json</span>                  <span class="c1"># Baseline metrics
+</span><span class="err">└──</span> <span class="n">stats</span><span class="p">.</span><span class="n">json</span>                     <span class="c1"># Overview stats
+</span></code></pre></div></div>
+
+<hr />
+
+<h2 id="-dashboard-features">📈 Dashboard Features</h2>
+
+<h3 id="overview-cards">Overview Cards</h3>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
+  <div style="background: #e1f5ff; padding: 1.5rem; border-radius: 8px; text-align: center;">
+    <div style="font-size: 2rem; font-weight: bold; color: #0056b3;">5</div>
+    <div style="color: #004085; margin-top: 0.5rem;">Total Assessors</div>
+  </div>
+  <div style="background: #fff3cd; padding: 1.5rem; border-radius: 8px; text-align: center;">
+    <div style="font-size: 2rem; font-weight: bold; color: #856404;">0</div>
+    <div style="color: #856404; margin-top: 0.5rem;">Significant Improvements</div>
+  </div>
+  <div style="background: #d4edda; padding: 1.5rem; border-radius: 8px; text-align: center;">
+    <div style="font-size: 2rem; font-weight: bold; color: #155724;">0%</div>
+    <div style="color: #155724; margin-top: 0.5rem;">Significance Rate</div>
+  </div>
+  <div style="background: #d1ecf1; padding: 1.5rem; border-radius: 8px; text-align: center;">
+    <div style="font-size: 2rem; font-weight: bold; color: #0c5460;">58.35</div>
+    <div style="color: #0c5460; margin-top: 0.5rem;">Baseline Score</div>
+  </div>
+</div>
+
+<h3 id="top-performers">Top Performers</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Assessor</th>
+      <th>Tier</th>
+      <th>Delta</th>
+      <th>Effect</th>
+      <th>Significant</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Type Annotations</td>
+      <td>1</td>
+      <td>+0.00</td>
+      <td>negligible</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>CLAUDE.md Configuration Files</td>
+      <td>1</td>
+      <td>+0.00</td>
+      <td>negligible</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Standard Project Layouts</td>
+      <td>1</td>
+      <td>+0.00</td>
+      <td>negligible</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Lock Files for Reproducibility</td>
+      <td>1</td>
+      <td>+0.00</td>
+      <td>negligible</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>README Structure</td>
+      <td>1</td>
+      <td>+0.00</td>
+      <td>negligible</td>
+      <td>❌</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="-statistical-methods">🔬 Statistical Methods</h2>
+
+<h3 id="significance-criteria">Significance Criteria</h3>
+
+<p>An assessor’s impact is considered <strong>statistically significant</strong> if <strong>BOTH</strong>:</p>
+
+<ol>
+  <li><strong>P-value &lt; 0.05</strong> (95% confidence)</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>**</td>
+          <td>Cohen’s d</td>
+          <td>&gt; 0.2** (meaningful effect size)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<pre><code class="language-mermaid">graph LR
+    A[Run Tests] --&gt; B{P-value &lt; 0.05?}
+    B --&gt;|No| C[Not Significant]
+    B --&gt;|Yes| D{|Cohen's d| &gt; 0.2?}
+    D --&gt;|No| C
+    D --&gt;|Yes| E[Statistically Significant!]
+
+    style E fill:#d4edda
+    style C fill:#f8d7da
+</code></pre>
+
+<h3 id="effect-size-interpretation">Effect Size Interpretation</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>**</td>
+          <td>d</td>
+          <td>&lt; 0.2**: Negligible</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>**0.2 ≤</td>
+          <td>d</td>
+          <td>&lt; 0.5**: Small effect</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>**0.5 ≤</td>
+          <td>d</td>
+          <td>&lt; 0.8**: Medium effect</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>**</td>
+          <td>d</td>
+          <td>≥ 0.8**: Large effect</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="-why-all-results-show-000">🎯 Why All Results Show +0.00?</h2>
+
+<p><strong>Because AgentReady already passes these assessments!</strong></p>
+
+<p>Tested assessors on AgentReady repository:</p>
+<ul>
+  <li>✅ <strong>Type Annotations</strong> - Already has type hints</li>
+  <li>✅ <strong>CLAUDE.md File</strong> - Already has CLAUDE.md</li>
+  <li>✅ <strong>Standard Layout</strong> - Already uses standard Python layout</li>
+  <li>✅ <strong>Lock Files</strong> - Intentionally excluded (library project)</li>
+  <li>✅ <strong>README Structure</strong> - Already has comprehensive README</li>
+</ul>
+
+<p><strong>To see meaningful deltas</strong>, test on a repository that <strong>lacks</strong> these attributes!</p>
+
+<p>Expected results on a typical repository:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">🏆</span> <span class="n">Assessors</span> <span class="n">Ranked</span> <span class="n">by</span> <span class="n">Impact</span><span class="p">:</span>
+   <span class="mf">1.</span> <span class="n">CLAUDE</span><span class="p">.</span><span class="n">md</span> <span class="n">Configuration</span> <span class="n">Files</span>      <span class="o">+</span><span class="mf">8.7</span> <span class="o">|</span> <span class="n">Sig</span><span class="p">:</span> <span class="err">✅</span> <span class="o">|</span> <span class="n">Fixes</span><span class="p">:</span> <span class="mi">1</span>
+   <span class="mf">2.</span> <span class="n">README</span> <span class="n">Structure</span>                   <span class="o">+</span><span class="mf">5.2</span> <span class="o">|</span> <span class="n">Sig</span><span class="p">:</span> <span class="err">✅</span> <span class="o">|</span> <span class="n">Fixes</span><span class="p">:</span> <span class="mi">3</span>
+   <span class="mf">3.</span> <span class="n">Standard</span> <span class="n">Project</span> <span class="n">Layouts</span>           <span class="o">+</span><span class="mf">3.4</span> <span class="o">|</span> <span class="n">Sig</span><span class="p">:</span> <span class="err">✅</span> <span class="o">|</span> <span class="n">Fixes</span><span class="p">:</span> <span class="mi">2</span>
+   <span class="mf">4.</span> <span class="n">Type</span> <span class="n">Annotations</span>                   <span class="o">+</span><span class="mf">2.1</span> <span class="o">|</span> <span class="n">Sig</span><span class="p">:</span> <span class="err">❌</span> <span class="o">|</span> <span class="n">Fixes</span><span class="p">:</span> <span class="mi">0</span>
+   <span class="mf">5.</span> <span class="n">Lock</span> <span class="n">Files</span>                         <span class="o">+</span><span class="mf">1.8</span> <span class="o">|</span> <span class="n">Sig</span><span class="p">:</span> <span class="err">❌</span> <span class="o">|</span> <span class="n">Fixes</span><span class="p">:</span> <span class="mi">1</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-testing-status">🧪 Testing Status</h2>
+
+<h3 id="-5656-tests-passing">✅ 56/56 Tests Passing</h3>
+
+<p><strong>CLI Tests (6)</strong>:</p>
+<ul>
+  <li>eval-harness help</li>
+  <li>baseline help</li>
+  <li>test-assessor help</li>
+  <li>run-tier help</li>
+  <li>summarize help</li>
+  <li>dashboard help</li>
+</ul>
+
+<p><strong>Model Tests (13)</strong>:</p>
+<ul>
+  <li>TbenchResult: creation, serialization</li>
+  <li>BaselineMetrics: statistics, validation</li>
+  <li>AssessorImpact: significance, effect sizes</li>
+  <li>EvalSummary: ranking, tier impacts</li>
+</ul>
+
+<p><strong>Service Tests (32)</strong>:</p>
+<ul>
+  <li>TbenchRunner: mocking, determinism</li>
+  <li>BaselineEstablisher: file creation, validation</li>
+  <li>AssessorTester: remediation, statistics</li>
+  <li>ResultsAggregator: ranking, tier grouping</li>
+  <li>DashboardGenerator: file generation</li>
+</ul>
+
+<p><strong>Integration Tests (5)</strong>:</p>
+<ul>
+  <li>End-to-end baseline workflow</li>
+  <li>File structure validation</li>
+  <li>Deterministic result generation</li>
+</ul>
+
+<hr />
+
+<h2 id="-current-status">🚀 Current Status</h2>
+
+<h3 id="phase-1a-1f-complete-">Phase 1A-1F: Complete ✅</h3>
+
+<p>All MVP features implemented and tested:</p>
+<ul>
+  <li>Data models ✅</li>
+  <li>Mocked Terminal-Bench integration ✅</li>
+  <li>CLI commands (5 subcommands) ✅</li>
+  <li>Statistical analysis (p-values, Cohen’s d) ✅</li>
+  <li>Dashboard with Chart.js ✅</li>
+  <li>Comprehensive tests (56/56 passing) ✅</li>
+  <li>Documentation (methodology, CLAUDE.md) ✅</li>
+</ul>
+
+<h3 id="phase-2-planned-next">Phase 2: Planned (Next)</h3>
+
+<p>Real Terminal-Bench integration:</p>
+<ul>
+  <li>Research Harbor framework API</li>
+  <li>Implement HarborClient service</li>
+  <li>Replace mocked scores with real benchmark runs</li>
+  <li>Submit to Terminal-Bench leaderboard</li>
+</ul>
+
+<h3 id="backlog-phase-3-5">Backlog (Phase 3-5)</h3>
+
+<ul>
+  <li>GitHub Actions automation (weekly runs)</li>
+  <li>Scale to all 25 assessors</li>
+  <li>Advanced analytics (synergy detection, trends)</li>
+</ul>
+
+<hr />
+
+<h2 id="-quick-start">🎬 Quick Start</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. Activate virtual environment</span>
+<span class="nb">source</span> .venv/bin/activate
+
+<span class="c"># 2. Establish baseline</span>
+agentready eval-harness baseline <span class="nb">.</span> <span class="nt">--iterations</span> 3 <span class="nt">--verbose</span>
+
+<span class="c"># 3. Test a single assessor</span>
+agentready eval-harness test-assessor <span class="se">\</span>
+  <span class="nt">--assessor-id</span> claude_md_file <span class="se">\</span>
+  <span class="nt">--iterations</span> 3 <span class="se">\</span>
+  <span class="nt">--verbose</span>
+
+<span class="c"># 4. Aggregate results</span>
+agentready eval-harness summarize <span class="nt">--verbose</span>
+
+<span class="c"># 5. Generate dashboard</span>
+agentready eval-harness dashboard <span class="nt">--verbose</span>
+
+<span class="c"># 6. View results</span>
+<span class="nb">cat </span>docs/_data/tbench/summary.json | python3 <span class="nt">-m</span> json.tool
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-learn-more">📚 Learn More</h2>
+
+<ul>
+  <li><strong><a href="/demos/quickref">Quick Reference</a></strong> - One-page command reference</li>
+  <li><strong><a href="/demos/terminal-demo">Terminal Demo</a></strong> - Interactive CLI demo</li>
+  <li><strong><a href="/demos/slides">Slide Presentation</a></strong> - Conference-ready slides</li>
+  <li><strong><a href="/tbench/methodology">Methodology</a></strong> - Statistical methods explained</li>
+  <li><strong><a href="/tbench">Dashboard</a></strong> - Interactive results visualization</li>
+</ul>
+
+<hr />
+
+<p><strong>Demo Date</strong>: 2025-12-07
+<strong>AgentReady Version</strong>: 2.14.1
+<strong>Eval Harness Phase</strong>: 1F (Complete MVP)
+<strong>Branch</strong>: feature/eval-harness-mvp
+<strong>Tests</strong>: 56/56 passing ✅</p>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--color-gray-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+    <div class="container">
+      <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+        <strong>AgentReady</strong> v2.12.3 — Open source under MIT License
+      </p>
+      <p style="color: var(--color-gray-500); font-size: var(--text-sm);">
+        Built with ❤️ for AI-assisted development
+      </p>
+      <p style="margin-top: var(--space-4);">
+        <a href="https://github.com/ambient-code/agentready" target="_blank" rel="noopener">GitHub</a> •
+        <a href="https://github.com/ambient-code/agentready/issues" target="_blank" rel="noopener">Issues</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Mermaid diagrams support -->
+  <!-- Mermaid.js Integration for Diagram Rendering -->
+<!-- https://mermaidjs.github.io/ -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    securityLevel: 'loose',
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis'
+    }
+  });
+</script>
+
+</body>
+</html>

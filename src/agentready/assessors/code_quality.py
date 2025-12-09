@@ -347,6 +347,9 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     self.attribute, reason="No Python code to analyze"
                 )
 
+        except FileNotFoundError:
+            # radon command not found
+            raise MissingToolError("radon", install_command="pip install radon")
         except MissingToolError:
             raise  # Re-raise to be caught by Scanner
         except Exception as e:
@@ -374,6 +377,9 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 self.attribute, reason="Lizard analysis not fully implemented"
             )
 
+        except FileNotFoundError:
+            # lizard command not found
+            raise MissingToolError("lizard", install_command="pip install lizard")
         except MissingToolError:
             raise
         except Exception as e:

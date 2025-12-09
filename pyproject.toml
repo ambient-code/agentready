@@ -30,10 +30,12 @@ dependencies = [
     "plotly>=5.0.0",
     "scipy>=1.10.0",
     "PyGithub>=2.1.1",
-    "harbor>=2.0.0",
 ]
 
 [project.optional-dependencies]
+benchmark = [
+    "harbor>=2.0.0",
+]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",

@@ -31,6 +31,7 @@ class HarborConfig:
         api_key: Anthropic API key (must not be empty)
         timeout: Subprocess timeout in seconds (default: 3600, must be positive)
         n_concurrent: Harbor's internal concurrency (default: 1, must be >= 1)
+        smoketest: Run fast validation with 1-2 tasks (default: False)
     """
 
     model: str
@@ -39,6 +40,7 @@ class HarborConfig:
     api_key: str
     timeout: int = 3600
     n_concurrent: int = 1
+    smoketest: bool = False
 
     def __post_init__(self):
         """Validate configuration parameters"""
