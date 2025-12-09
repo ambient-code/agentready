@@ -115,12 +115,10 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
             str(config.n_concurrent),
         ]
 
-    # 3. Sanitize environment variables (SECURITY: FR-004)
-    clean_env = {
-        "ANTHROPIC_API_KEY": config.api_key,
-        "PATH": os.environ.get("PATH", "/usr/bin"),
-        "HOME": os.environ.get("HOME", "/tmp"),
-    }
+    # 3. Prepare environment variables
+    # Pass through current environment but ensure API key is set
+    clean_env = os.environ.copy()
+    clean_env["ANTHROPIC_API_KEY"] = config.api_key
 
     # 4. Execute subprocess with timeout
     try:
