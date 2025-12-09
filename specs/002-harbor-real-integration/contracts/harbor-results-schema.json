@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agentready.dev/schemas/harbor-results.json",
+  "title": "Harbor Framework Terminal-Bench Results Schema",
+  "description": "Expected output schema from Harbor framework 'harbor run' command for Terminal-Bench benchmarks",
+  "type": "object",
+  "required": ["summary", "tasks"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "description": "Aggregate metrics for the benchmark run",
+      "required": ["resolved_trials", "unresolved_trials", "accuracy", "pass@1", "pass@3"],
+      "properties": {
+        "resolved_trials": {
+          "type": "integer",
+          "description": "Number of successfully completed tasks",
+          "minimum": 0
+        },
+        "unresolved_trials": {
+          "type": "integer",
+          "description": "Number of failed tasks",
+          "minimum": 0
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Overall success rate (0.0 to 1.0)",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "pass@1": {
+          "type": "number",
+          "description": "Single-attempt success rate",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "pass@3": {
+          "type": "number",
+          "description": "Success rate within 3 attempts",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "description": "Individual task results",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "status", "score", "attempts"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Unique task identifier"
+          },
+          "status": {
+            "type": "string",
+            "description": "Task completion status",
+            "enum": ["resolved", "unresolved"]
+          },
+          "score": {
+            "type": "number",
+            "description": "Task success score (0.0 to 1.0)",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "attempts": {
+            "type": "integer",
+            "description": "Number of attempts made",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

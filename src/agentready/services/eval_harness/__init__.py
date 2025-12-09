@@ -1,15 +1,1 @@
-"""Eval harness services for Terminal-Bench integration."""
-
-from .aggregator import ResultsAggregator
-from .assessor_tester import AssessorTester
-from .baseline import BaselineEstablisher
-from .dashboard_generator import DashboardGenerator
-from .tbench_runner import TbenchRunner
-
-__all__ = [
-    "TbenchRunner",
-    "BaselineEstablisher",
-    "AssessorTester",
-    "ResultsAggregator",
-    "DashboardGenerator",
-]
+"""Terminal-Bench evaluation harness for assessor effectiveness testing."""

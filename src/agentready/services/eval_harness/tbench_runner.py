@@ -1,194 +1,151 @@
-"""Terminal-Bench integration for eval harness.
+"""
+Terminal-Bench runner with Harbor framework integration.
 
-This module provides both mocked (for testing workflow) and real
-(future Harbor framework) Terminal-Bench integration.
+This module provides functionality to execute real Terminal-Bench evaluations
+via the Harbor framework subprocess interface.
 """
 
-import hashlib
-import random
-from datetime import datetime
+import json
+import os
+import subprocess
+import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
-import git
+from agentready.services.eval_harness.harbor_config import HarborConfig
 
-from ...models.eval_harness import TbenchResult
+# Constants for Harbor subprocess configuration
+DEFAULT_TIMEOUT = 3600  # 1 hour timeout per benchmark
+DEFAULT_N_CONCURRENT = 1  # Sequential execution (parallelism managed externally)
 
 
-class TbenchRunner:
-    """Interface to Terminal-Bench benchmark.
+@dataclass
+class TbenchResult:
+    """
+    Result from a Terminal-Bench evaluation.
 
-    Supports both mocked results (for workflow validation) and real
-    Terminal-Bench integration via Harbor framework (future).
+    Attributes:
+        score: Benchmark accuracy score (0.0 to 1.0)
+        task_solved: Whether any tasks were successfully resolved
+        is_mocked: True for mocked results, False for real Harbor runs
+        resolved_trials: Number of successfully completed tasks
+        unresolved_trials: Number of failed tasks
+        pass_at_1: Single-attempt success rate
+        pass_at_3: Success rate within 3 attempts
     """
 
-    def __init__(self, mock: bool = True):
-        """Initialize runner.
+    score: float
+    task_solved: bool
+    is_mocked: bool
+    resolved_trials: int = 0
+    unresolved_trials: int = 0
+    pass_at_1: float = 0.0
+    pass_at_3: float = 0.0
 
-        Args:
-            mock: If True, generate fake but realistic scores.
-                  If False, use real Terminal-Bench via Harbor (future).
-        """
-        self.mock = mock
+    def __post_init__(self):
+        """Validate score ranges and trial counts"""
+        # Validate score range [0.0, 1.0]
+        if not (0.0 <= self.score <= 1.0):
+            raise ValueError(f"Score must be 0.0-1.0, got {self.score}")
 
-    def run_benchmark(self, repo_path: Path) -> TbenchResult:
-        """Run Terminal-Bench on repository.
+        # Validate pass rates [0.0, 1.0]
+        if not (0.0 <= self.pass_at_1 <= 1.0):
+            raise ValueError(f"pass_at_1 must be 0.0-1.0, got {self.pass_at_1}")
+        if not (0.0 <= self.pass_at_3 <= 1.0):
+            raise ValueError(f"pass_at_3 must be 0.0-1.0, got {self.pass_at_3}")
 
-        Args:
-            repo_path: Path to git repository to evaluate
+        # Validate non-negative trial counts
+        if self.resolved_trials < 0 or self.unresolved_trials < 0:
+            raise ValueError("Trial counts cannot be negative")
 
-        Returns:
-            TbenchResult with scores and metrics
 
-        Raises:
-            ValueError: If repo_path is not a git repository
-            NotImplementedError: If mock=False (real tbench not yet implemented)
-        """
-        # Validate repository
-        if not (repo_path / ".git").exists():
-            raise ValueError(f"Not a git repository: {repo_path}")
+def _real_tbench_result(repo_path: Path) -> TbenchResult:
+    """
+    Execute real Terminal-Bench evaluation via Harbor framework.
 
-        if self.mock:
-            return self._mock_tbench_result(repo_path)
-        else:
-            # Future: Real Harbor framework integration
-            raise NotImplementedError(
-                "Real Terminal-Bench integration not yet implemented. "
-                "Use mock=True for workflow validation."
-            )
+    Args:
+        repo_path: Path to repository being evaluated
 
-    def _mock_tbench_result(self, repo_path: Path) -> TbenchResult:
-        """Generate realistic fake Terminal-Bench scores.
+    Returns:
+        TbenchResult with real benchmark metrics
 
-        Uses deterministic randomness seeded from repository commit hash
-        for reproducible results. Incorporates repository characteristics
-        (lines of code, languages) to make scores meaningful.
+    Raises:
+        RuntimeError: If Harbor subprocess times out or fails
+        ValueError: If results path validation fails (path traversal)
+    """
+    # 1. Create HarborConfig with validation
+    config = HarborConfig(
+        model=os.environ.get("TBENCH_MODEL", "anthropic/claude-haiku-4-5"),
+        agent="claude-code",
+        jobs_dir=Path(tempfile.mkdtemp()),
+        api_key=os.environ.get("ANTHROPIC_API_KEY"),
+        timeout=DEFAULT_TIMEOUT,
+        n_concurrent=DEFAULT_N_CONCURRENT,
+    )
 
-        Args:
-            repo_path: Repository to generate score for
+    # 2. Build harbor run command
+    cmd = [
+        "harbor",
+        "run",
+        "--dataset",
+        "terminal-bench@2.0",
+        "--agent",
+        config.agent,
+        "--model",
+        config.model,
+        "--jobs-dir",
+        str(config.jobs_dir),
+        "--n-concurrent",
+        str(config.n_concurrent),
+    ]
 
-        Returns:
-            Mocked TbenchResult with realistic scores
-        """
-        # Get repository metadata
-        repo = git.Repo(repo_path)
-        commit_hash = repo.head.commit.hexsha
+    # 3. Sanitize environment variables (SECURITY: FR-004)
+    clean_env = {
+        "ANTHROPIC_API_KEY": config.api_key,
+        "PATH": os.environ.get("PATH", "/usr/bin"),
+        "HOME": os.environ.get("HOME", "/tmp"),
+    }
 
-        # Seed random generator from commit hash for determinism
-        seed = int(hashlib.sha256(commit_hash.encode()).hexdigest(), 16) % (2**32)
-        rng = random.Random(seed)
+    # 4. Execute subprocess with timeout
+    try:
+        subprocess.run(cmd, env=clean_env, timeout=config.timeout, check=True)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"Benchmark timed out after {config.timeout}s")
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Harbor command failed: {e}")
 
-        # Get repository characteristics
-        total_lines = self._count_lines(repo_path)
-        languages = self._detect_languages_simple(repo_path)
+    # 5. Parse results.json with path validation (SECURITY: FR-005)
+    results_path = config.jobs_dir / "results.json"
+    if not results_path.is_relative_to(config.jobs_dir):
+        raise ValueError(f"Invalid results path: {results_path}")
 
-        # Base score depends on repository size and structure
-        # Larger, more organized repos tend to score higher
-        base_score = 50.0
+    return parse_harbor_results(results_path)
 
-        # Adjust for repository size (more lines = slightly better)
-        if total_lines > 10000:
-            base_score += 10.0
-        elif total_lines > 5000:
-            base_score += 5.0
-        elif total_lines > 1000:
-            base_score += 2.0
 
-        # Adjust for language diversity (more languages = slightly better agent performance)
-        base_score += min(len(languages) * 2.0, 10.0)
+def parse_harbor_results(results_path: Path) -> TbenchResult:
+    """
+    Parse Harbor framework JSON output.
 
-        # Add random variance (±10 points)
-        variance = rng.uniform(-10.0, 10.0)
-        score = max(0.0, min(100.0, base_score + variance))
+    Args:
+        results_path: Path to Harbor results.json file
 
-        # Generate correlated metrics
-        completion_rate = score + rng.uniform(-5.0, 5.0)
-        completion_rate = max(0.0, min(100.0, completion_rate))
+    Returns:
+        TbenchResult with metrics from Harbor output
 
-        pytest_pass_rate = score + rng.uniform(-10.0, 10.0)
-        pytest_pass_rate = max(0.0, min(100.0, pytest_pass_rate))
+    Raises:
+        json.JSONDecodeError: If results.json is invalid JSON
+        KeyError: If required fields missing from results
+    """
+    with open(results_path) as f:
+        data = json.load(f)
 
-        # Latency inversely correlated with score (better repos = faster)
-        base_latency = 5000.0  # 5 seconds
-        latency_ms = base_latency * (1.0 - score / 200.0) + rng.uniform(-500.0, 500.0)
-        latency_ms = max(1000.0, latency_ms)  # At least 1 second
-
-        return TbenchResult(
-            score=round(score, 2),
-            completion_rate=round(completion_rate, 2),
-            pytest_pass_rate=round(pytest_pass_rate, 2),
-            latency_ms=round(latency_ms, 2),
-            timestamp=datetime.now(),
-            is_mocked=True,
-        )
-
-    def _count_lines(self, repo_path: Path) -> int:
-        """Count total lines of code in repository.
-
-        Args:
-            repo_path: Repository path
-
-        Returns:
-            Total lines (approximate, using git ls-files)
-        """
-        try:
-            repo = git.Repo(repo_path)
-            files = repo.git.ls_files().splitlines()
-
-            total_lines = 0
-            for file_path in files[:100]:  # Sample first 100 files for speed
-                full_path = repo_path / file_path
-                if full_path.is_file():
-                    try:
-                        with open(full_path, "r", encoding="utf-8") as f:
-                            total_lines += sum(1 for _ in f)
-                    except (UnicodeDecodeError, PermissionError):
-                        # Skip binary files or permission errors
-                        continue
-
-            # Extrapolate if we sampled
-            if len(files) > 100:
-                total_lines = int(total_lines * (len(files) / 100))
-
-            return total_lines
-
-        except Exception:
-            # Fallback if git operations fail
-            return 1000
-
-    def _detect_languages_simple(self, repo_path: Path) -> list[str]:
-        """Detect languages in repository (simplified version).
-
-        Args:
-            repo_path: Repository path
-
-        Returns:
-            List of detected languages (e.g., ["Python", "JavaScript"])
-        """
-        extensions = {
-            ".py": "Python",
-            ".js": "JavaScript",
-            ".ts": "TypeScript",
-            ".java": "Java",
-            ".go": "Go",
-            ".rs": "Rust",
-            ".rb": "Ruby",
-            ".php": "PHP",
-            ".c": "C",
-            ".cpp": "C++",
-            ".cs": "C#",
-        }
-
-        try:
-            repo = git.Repo(repo_path)
-            files = repo.git.ls_files().splitlines()
-
-            detected = set()
-            for file_path in files:
-                suffix = Path(file_path).suffix
-                if suffix in extensions:
-                    detected.add(extensions[suffix])
-
-            return list(detected)
-
-        except Exception:
-            return ["Unknown"]
+    summary = data["summary"]
+    return TbenchResult(
+        score=summary["accuracy"],
+        task_solved=summary["resolved_trials"] > 0,
+        is_mocked=False,
+        resolved_trials=summary["resolved_trials"],
+        unresolved_trials=summary["unresolved_trials"],
+        pass_at_1=summary["pass@1"],
+        pass_at_3=summary["pass@3"],
+    )

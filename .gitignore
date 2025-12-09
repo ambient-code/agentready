@@ -56,6 +56,10 @@ coverage.xml
 plans/  # Planning documents (was .plans/)
 .cache/
 
+# Harbor framework temp directories
+**/tbench-results/
+**/.harbor-cache/
+
 # Repository lists (generated/temporary)
 repos.txt
 *-repos.txt

@@ -30,6 +30,7 @@ dependencies = [
     "plotly>=5.0.0",
     "scipy>=1.10.0",
     "PyGithub>=2.1.1",
+    "harbor>=2.0.0",
 ]
 
 [project.optional-dependencies]

@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agentready.dev/schemas/aggregation-output.json",
+  "title": "AgentReady Assessor Effectiveness Aggregation Schema",
+  "description": "Output schema for multi-repository assessor effectiveness aggregation",
+  "type": "object",
+  "required": ["aggregation_date", "total_repositories", "assessors"],
+  "properties": {
+    "aggregation_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when aggregation was performed"
+    },
+    "total_repositories": {
+      "type": "integer",
+      "description": "Total number of repositories analyzed",
+      "minimum": 1
+    },
+    "assessors": {
+      "type": "array",
+      "description": "Assessor effectiveness statistics",
+      "items": {
+        "type": "object",
+        "required": ["assessor_id", "mean_delta", "median_delta", "std_delta", "sample_size", "significant"],
+        "properties": {
+          "assessor_id": {
+            "type": "string",
+            "description": "Unique assessor identifier"
+          },
+          "mean_delta": {
+            "type": "number",
+            "description": "Average score improvement (can be negative)",
+            "minimum": -1.0,
+            "maximum": 1.0
+          },
+          "median_delta": {
+            "type": "number",
+            "description": "Median score improvement (can be negative)",
+            "minimum": -1.0,
+            "maximum": 1.0
+          },
+          "std_delta": {
+            "type": "number",
+            "description": "Standard deviation of delta scores",
+            "minimum": 0.0
+          },
+          "sample_size": {
+            "type": "integer",
+            "description": "Number of repositories tested with this assessor",
+            "minimum": 1
+          },
+          "significant": {
+            "type": "boolean",
+            "description": "Statistical significance indicator (p < 0.05)"
+          }
+        }
+      }
+    }
+  }
+}

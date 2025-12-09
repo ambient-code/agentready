@@ -393,3 +393,11 @@ Use the @agent-github-pages-docs to [action] based on:
 **Last Updated**: 2025-12-08 by Jeremy Eder
 **AgentReady Version**: 2.10.0
 **Self-Assessment**: 80.0/100 (Gold) ✨
+
+## Active Technologies
+- Python 3.11+ (AgentReady standard, aligns with "N and N-1" policy) (002-harbor-real-integration)
+- File-based (Harbor outputs to `--jobs-dir`, JSON results parsed from filesystem) (002-harbor-real-integration)
+
+## Recent Changes
+- 002-harbor-real-integration: Added Python 3.11+ (AgentReady standard, aligns with "N and N-1" policy)
+- Build a generic interfaces first, then build consumers of that interface. This approach forces our interfaces to be more generic, pluggable and simple to extend.

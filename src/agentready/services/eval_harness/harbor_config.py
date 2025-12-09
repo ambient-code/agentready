@@ -1,0 +1,68 @@
+"""
+Harbor framework configuration for Terminal-Bench integration.
+
+This module provides configuration and validation for Harbor framework subprocess execution.
+"""
+
+from dataclasses import dataclass
+from pathlib import Path
+
+# Allowed models (excludes opus due to cost)
+ALLOWED_MODELS = {
+    "anthropic/claude-haiku-4-5",
+    "anthropic/claude-sonnet-4-5",
+}
+
+# Allowed agents (excludes oracle as it's not relevant for real-world assessment)
+ALLOWED_AGENTS = {
+    "claude-code",
+}
+
+
+@dataclass
+class HarborConfig:
+    """
+    Configuration for Harbor framework subprocess execution.
+
+    Attributes:
+        model: LLM model identifier (must be in ALLOWED_MODELS)
+        agent: Agent identifier (must be in ALLOWED_AGENTS)
+        jobs_dir: Output directory for results (resolved to absolute path)
+        api_key: Anthropic API key (must not be empty)
+        timeout: Subprocess timeout in seconds (default: 3600, must be positive)
+        n_concurrent: Harbor's internal concurrency (default: 1, must be >= 1)
+    """
+
+    model: str
+    agent: str
+    jobs_dir: Path
+    api_key: str
+    timeout: int = 3600
+    n_concurrent: int = 1
+
+    def __post_init__(self):
+        """Validate configuration parameters"""
+        # Validate model allowlist
+        if self.model not in ALLOWED_MODELS:
+            raise ValueError(
+                f"Invalid model: {self.model}. "
+                f"Allowed models: {sorted(ALLOWED_MODELS)}"
+            )
+
+        # Validate agent allowlist
+        if self.agent not in ALLOWED_AGENTS:
+            raise ValueError(
+                f"Invalid agent: {self.agent}. "
+                f"Allowed agents: {sorted(ALLOWED_AGENTS)}"
+            )
+
+        # Validate API key is not empty
+        if not self.api_key:
+            raise ValueError("API key cannot be empty")
+
+        # Validate timeout is positive
+        if self.timeout <= 0:
+            raise ValueError(f"Timeout must be positive, got {self.timeout}")
+
+        # Resolve jobs_dir to absolute path
+        self.jobs_dir = Path(self.jobs_dir).resolve()
