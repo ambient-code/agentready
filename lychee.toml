@@ -35,8 +35,10 @@ exclude = [
     # Relative URLs for Jekyll site (will be checked once deployed)
     ".*/agentready/demos/.*",
     ".*/agentready/tbench.*",
+    ".*/agentready/implementation-status.*",
     ".*/demos/.*",
     ".*/tbench.*",
+    ".*/implementation-status.*",
 
     # Jinja2/Liquid template variables
     "\\{\\{.*\\}\\}",

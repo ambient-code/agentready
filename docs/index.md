@@ -102,8 +102,8 @@ agentready submit
   <!-- Feature 1: Research-Backed -->
   <div class="feature-item">
     <div class="feature-tile">
-      <h3><a href="/agentready/implementation-status.html#complete-attribute-table">🔬 Research-Backed</a></h3>
-      <p>Every generated file and assessed attribute is backed by <a href="/agentready/implementation-status.html#complete-attribute-table">50+ citations</a> from Anthropic, Microsoft, Google, and academic research.</p>
+      <h3><a href="implementation-status.html#complete-attribute-table">🔬 Research-Backed</a></h3>
+      <p>Every generated file and assessed attribute is backed by <a href="implementation-status.html#complete-attribute-table">50+ citations</a> from Anthropic, Microsoft, Google, and academic research.</p>
     </div>
     <div class="feature-example">
       <table style="width: 100%; font-size: var(--text-xs); border-collapse: collapse;">
@@ -127,7 +127,7 @@ agentready submit
           </tr>
           <tr>
             <td colspan="3" style="padding: var(--space-2); text-align: center; font-style: italic;">
-              <a href="/agentready/implementation-status.html#complete-attribute-table">View all 25 attributes →</a>
+              <a href="implementation-status.html#complete-attribute-table">View all 25 attributes →</a>
             </td>
           </tr>
         </tbody>
