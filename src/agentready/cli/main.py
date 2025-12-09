@@ -346,11 +346,54 @@ def run_assessment(
     click.echo(
         f"  Score: {assessment.overall_score:.1f}/100 ({assessment.certification_level})"
     )
-    click.echo(
-        f"  Assessed: {assessment.attributes_assessed}/{assessment.attributes_total}"
-    )
+    click.echo(f"  Assessed: {assessment.attributes_assessed}")
     click.echo(f"  Skipped: {assessment.attributes_not_assessed}")
+    click.echo(f"  Total: {assessment.attributes_total}")
     click.echo(f"  Duration: {assessment.duration_seconds:.1f}s")
+
+    # Add assessment results table
+    click.echo("\nAssessment Results:")
+    click.echo("-" * 100)
+    click.echo(f"{'Test Name':<35} {'Test Result':<14} {'Notes':<30}")
+    click.echo("-" * 100)
+
+    for finding in sorted(assessment.findings, key=lambda f: f.attribute.id):
+        # Status emoji
+        status_emoji = (
+            "✅"
+            if finding.status == "pass"
+            else "❌" if finding.status == "fail" else "⏭️"
+        )
+
+        # Test Result column: emoji + status
+        test_result = f"{status_emoji} {finding.status.upper()}"
+
+        # Notes column: score for PASS, reason for FAIL/SKIP
+        if finding.status == "pass":
+            notes = f"{finding.score:.0f}/100"
+        elif finding.status == "fail":
+            # Show measured value vs threshold, or first evidence
+            if finding.measured_value and finding.threshold:
+                notes = f"{finding.measured_value} (need: {finding.threshold})"
+            elif finding.evidence:
+                notes = finding.evidence[0]
+            else:
+                notes = f"{finding.score:.0f}/100"
+        elif finding.status in ("not_applicable", "skipped"):
+            # Show reason for skip
+            notes = finding.evidence[0] if finding.evidence else "Not applicable"
+        else:
+            # Error or unknown status
+            notes = finding.error_message or "Error"
+
+        # Truncate long notes to fit in column
+        if len(notes) > 50:
+            notes = notes[:47] + "..."
+
+        click.echo(f"{finding.attribute.id:<35} {test_result:<14} {notes:<30}")
+
+    click.echo("-" * 100)
+
     click.echo("\nReports generated:")
     click.echo(f"  JSON: {json_file}")
     click.echo(f"  HTML: {html_file}")
