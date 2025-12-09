@@ -409,7 +409,11 @@ class StubAssessor(BaseAssessor):
 
 # Factory function to create all stub assessors
 def create_stub_assessors():
-    """Create stub assessors for remaining attributes."""
+    """Create stub assessors for remaining attributes.
+
+    NOTE: Do not include assessors that have real implementations in
+    __init__.py - this would create duplicates!
+    """
     return [
         # Tier 2 Critical
         StubAssessor(
@@ -427,13 +431,7 @@ def create_stub_assessors():
             0.03,
         ),
         # Tier 3 Important
-        StubAssessor(
-            "architecture_decisions",
-            "Architecture Decision Records",
-            "Documentation Standards",
-            3,
-            0.03,
-        ),
+        # REMOVED: architecture_decisions (real implementation exists)
         # Tier 4 Advanced
         StubAssessor(
             "security_scanning", "Security Scanning Automation", "Security", 4, 0.01
@@ -441,13 +439,7 @@ def create_stub_assessors():
         StubAssessor(
             "performance_benchmarks", "Performance Benchmarks", "Performance", 4, 0.01
         ),
-        StubAssessor(
-            "issue_pr_templates",
-            "Issue & Pull Request Templates",
-            "Git & Version Control",
-            4,
-            0.01,
-        ),
+        # REMOVED: issue_pr_templates (real implementation exists)
         StubAssessor(
             "container_setup",
             "Container/Virtualization Setup",
