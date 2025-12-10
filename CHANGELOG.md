@@ -1,3 +1,11 @@
+## [2.19.1](https://github.com/ambient-code/agentready/compare/v2.19.0...v2.19.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* add bounded retry logic for LLM rate limit handling ([#205](https://github.com/ambient-code/agentready/issues/205)) ([6ecb786](https://github.com/ambient-code/agentready/commit/6ecb78696c09880911ade14d0be1dd824be998dd)), closes [#104](https://github.com/ambient-code/agentready/issues/104)
+* make E2E test timeouts configurable and add sensitive directory test ([#206](https://github.com/ambient-code/agentready/issues/206)) ([27e87e5](https://github.com/ambient-code/agentready/commit/27e87e52fa6cccc3bccf671d6fd4964b29817b04)), closes [#104](https://github.com/ambient-code/agentready/issues/104) [#192](https://github.com/ambient-code/agentready/issues/192)
+
 # [2.19.0](https://github.com/ambient-code/agentready/compare/v2.18.0...v2.19.0) (2025-12-10)
 
 
