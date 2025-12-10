@@ -800,12 +800,11 @@ logger.info(f"User {user_id} logged in from {ip}")
 
 
 class CodeSmellsAssessor(BaseAssessor):
-    """Assesses code smells: long methods, large classes, duplicate code.
+    """Assesses code smell detection through linter configuration.
 
-    Tier 4 Advanced (0.5% weight) - Requires advanced static analysis tools
-    like SonarQube, PMD, or sophisticated AST parsing for accurate detection.
-    This is a stub implementation that will return not_applicable until full
-    code smell detection is implemented.
+    Tier 4 Advanced (1% weight) - Checks for language-specific linters that detect
+    code smells, anti-patterns, and style violations. Enhanced to support multi-language
+    linters: pylint, ruff, ESLint, RuboCop, golangci-lint, actionlint, markdownlint.
     """
 
     @property
@@ -823,18 +822,259 @@ class CodeSmellsAssessor(BaseAssessor):
             name="Code Smell Elimination",
             category="Code Quality",
             tier=self.tier,
-            description="Removing indicators of deeper problems: long methods, large classes, duplicate code",
-            criteria="<5 major code smells per 1000 lines, zero critical smells",
-            default_weight=0.005,
+            description="Linter configuration for detecting code smells and anti-patterns",
+            criteria="Language-specific linters configured (pylint, ESLint, RuboCop, etc.)",
+            default_weight=0.01,
+        )
+
+    def _has_pylint(self, repository: Repository) -> bool:
+        """Check for pylint configuration."""
+        return (
+            (repository.path / ".pylintrc").exists()
+            or (repository.path / "pylintrc").exists()
+            or (
+                repository.path / "pyproject.toml"
+            ).exists()  # Can contain [tool.pylint]
+        )
+
+    def _has_ruff(self, repository: Repository) -> bool:
+        """Check for ruff configuration."""
+        return (
+            (repository.path / "ruff.toml").exists()
+            or (repository.path / ".ruff.toml").exists()
+            or (repository.path / "pyproject.toml").exists()  # Can contain [tool.ruff]
+        )
+
+    def _has_eslint(self, repository: Repository) -> bool:
+        """Check for ESLint configuration."""
+        return (
+            (repository.path / ".eslintrc.js").exists()
+            or (repository.path / ".eslintrc.json").exists()
+            or (repository.path / ".eslintrc.yml").exists()
+            or (repository.path / ".eslintrc.yaml").exists()
+            or (repository.path / "eslint.config.js").exists()
+            or (repository.path / "eslint.config.mjs").exists()
+        )
+
+    def _has_rubocop(self, repository: Repository) -> bool:
+        """Check for RuboCop configuration."""
+        return (repository.path / ".rubocop.yml").exists() or (
+            repository.path / ".rubocop.yaml"
+        ).exists()
+
+    def _has_golangci_lint(self, repository: Repository) -> bool:
+        """Check for golangci-lint configuration."""
+        return (repository.path / ".golangci.yml").exists() or (
+            repository.path / ".golangci.yaml"
+        ).exists()
+
+    def _has_actionlint(self, repository: Repository) -> bool:
+        """Check for actionlint in pre-commit or GitHub Actions."""
+        precommit_config = repository.path / ".pre-commit-config.yaml"
+        if precommit_config.exists():
+            try:
+                content = precommit_config.read_text()
+                if "actionlint" in content:
+                    return True
+            except Exception:
+                pass
+
+        # Check if actionlint is in GitHub Actions workflows
+        workflows_dir = repository.path / ".github" / "workflows"
+        if workflows_dir.exists():
+            try:
+                for workflow_file in workflows_dir.glob("*.yml") + workflows_dir.glob(
+                    "*.yaml"
+                ):
+                    content = workflow_file.read_text()
+                    if "actionlint" in content:
+                        return True
+            except Exception:
+                pass
+
+        return False
+
+    def _has_markdownlint(self, repository: Repository) -> bool:
+        """Check for markdownlint configuration."""
+        return (
+            (repository.path / ".markdownlint.json").exists()
+            or (repository.path / ".markdownlintrc").exists()
+            or (repository.path / ".markdownlint.yaml").exists()
+            or (repository.path / ".markdownlint.yml").exists()
         )
 
     def assess(self, repository: Repository) -> Finding:
-        """Stub implementation - requires advanced static analysis."""
-        return Finding.not_applicable(
-            self.attribute,
-            reason="Requires advanced static analysis tools for comprehensive code smell detection. "
-            "Future implementation will analyze: long methods (>50 lines), "
-            "large classes (>500 lines), long parameter lists (>5 params), "
-            "duplicate code blocks, magic numbers, and divergent change patterns. "
-            "Consider using SonarQube, PMD, pylint, or similar tools.",
+        """Check for linter configurations across multiple languages."""
+        linters_found = []
+        score = 0
+        max_possible_score = 0
+
+        # Python linters (20 points each if Python detected)
+        if "Python" in repository.languages:
+            max_possible_score += 40
+
+            if self._has_pylint(repository):
+                score += 20
+                linters_found.append("pylint")
+
+            if self._has_ruff(repository):
+                score += 20
+                linters_found.append("ruff")
+
+        # JavaScript/TypeScript linters (20 points if JS/TS detected)
+        if "JavaScript" in repository.languages or "TypeScript" in repository.languages:
+            max_possible_score += 20
+
+            if self._has_eslint(repository):
+                score += 20
+                linters_found.append("ESLint")
+
+        # Go linters (20 points if Go detected)
+        if "Go" in repository.languages:
+            max_possible_score += 20
+
+            if self._has_golangci_lint(repository):
+                score += 20
+                linters_found.append("golangci-lint")
+
+        # Ruby linters (20 points if Ruby detected)
+        if "Ruby" in repository.languages:
+            max_possible_score += 20
+
+            if self._has_rubocop(repository):
+                score += 20
+                linters_found.append("RuboCop")
+
+        # GitHub Actions linter (10 points if .github/workflows exists)
+        if (repository.path / ".github" / "workflows").exists():
+            max_possible_score += 10
+
+            if self._has_actionlint(repository):
+                score += 10
+                linters_found.append("actionlint")
+
+        # Markdown linter (10 points - always applicable for repos with docs)
+        max_possible_score += 10
+
+        if self._has_markdownlint(repository):
+            score += 10
+            linters_found.append("markdownlint")
+
+        # Normalize score to 0-100 based on applicable linters
+        if max_possible_score == 0:
+            return Finding.not_applicable(
+                self.attribute,
+                reason="No applicable languages detected for linter configuration",
+            )
+
+        normalized_score = (score / max_possible_score) * 100
+
+        # Determine status (≥60% coverage to pass)
+        if normalized_score >= 60:
+            status = "pass"
+            remediation = None
+        else:
+            status = "fail"
+
+            # Build remediation based on missing linters
+            missing_linters = []
+            steps = []
+            tools = []
+            commands = []
+
+            if "Python" in repository.languages and not self._has_pylint(repository):
+                missing_linters.append("pylint (Python)")
+                steps.append("Configure pylint for Python code smell detection")
+                tools.append("pylint")
+                commands.append(
+                    "pip install pylint && pylint --generate-rcfile > .pylintrc"
+                )
+
+            if "Python" in repository.languages and not self._has_ruff(repository):
+                missing_linters.append("ruff (Python)")
+                steps.append("Configure ruff for fast Python linting")
+                tools.append("ruff")
+                commands.append("pip install ruff && ruff init")
+
+            if (
+                "JavaScript" in repository.languages
+                or "TypeScript" in repository.languages
+            ) and not self._has_eslint(repository):
+                missing_linters.append("ESLint (JavaScript/TypeScript)")
+                steps.append("Configure ESLint for JavaScript/TypeScript")
+                tools.append("ESLint")
+                commands.append("npm install --save-dev eslint && npx eslint --init")
+
+            if "Go" in repository.languages and not self._has_golangci_lint(repository):
+                missing_linters.append("golangci-lint (Go)")
+                steps.append("Configure golangci-lint for Go")
+                tools.append("golangci-lint")
+                commands.append(
+                    "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
+                )
+
+            if "Ruby" in repository.languages and not self._has_rubocop(repository):
+                missing_linters.append("RuboCop (Ruby)")
+                steps.append("Configure RuboCop for Ruby")
+                tools.append("RuboCop")
+                commands.append("gem install rubocop && rubocop --auto-gen-config")
+
+            if (
+                repository.path / ".github" / "workflows"
+            ).exists() and not self._has_actionlint(repository):
+                missing_linters.append("actionlint (GitHub Actions)")
+                steps.append("Add actionlint for GitHub Actions workflow validation")
+                tools.append("actionlint")
+
+            if not self._has_markdownlint(repository):
+                missing_linters.append("markdownlint (Markdown)")
+                steps.append("Configure markdownlint for documentation quality")
+                tools.append("markdownlint")
+                commands.append(
+                    "npm install --save-dev markdownlint-cli && touch .markdownlint.json"
+                )
+
+            remediation = Remediation(
+                summary=f"Configure {len(missing_linters)} missing linter(s)",
+                steps=steps,
+                tools=tools,
+                commands=commands,
+                examples=[
+                    "# .pylintrc example\n[MASTER]\nmax-line-length=100\n\n[MESSAGES CONTROL]\ndisable=C0111",
+                    '# .eslintrc.json example\n{\n  "extends": "eslint:recommended",\n  "rules": {\n    "no-console": "warn"\n  }\n}',
+                ],
+                citations=[
+                    Citation(
+                        source="Pylint",
+                        title="Pylint Documentation",
+                        url="https://pylint.readthedocs.io/",
+                        relevance="Official documentation for Pylint code analysis tool",
+                    ),
+                    Citation(
+                        source="ESLint",
+                        title="ESLint Documentation",
+                        url="https://eslint.org/docs/latest/",
+                        relevance="Official documentation for ESLint JavaScript/TypeScript linter",
+                    ),
+                ],
+            )
+
+        # Build evidence
+        if linters_found:
+            evidence = [
+                f"Linters configured: {', '.join(linters_found)}",
+                f"Coverage: {score}/{max_possible_score} points ({normalized_score:.0f}%)",
+            ]
+        else:
+            evidence = ["No linters configured"]
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=normalized_score,
+            measured_value=(", ".join(linters_found) if linters_found else "none"),
+            threshold="≥60% of applicable linters configured",
+            evidence=evidence,
+            remediation=remediation,
+            error_message=None,
         )

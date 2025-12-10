@@ -12,6 +12,7 @@ from .code_quality import (
     StructuredLoggingAssessor,
     TypeAnnotationsAssessor,
 )
+from .containers import ContainerSetupAssessor
 from .documentation import (
     ArchitectureDecisionsAssessor,
     CLAUDEmdAssessor,
@@ -20,17 +21,19 @@ from .documentation import (
     OpenAPISpecsAssessor,
     READMEAssessor,
 )
+from .security import DependencySecurityAssessor
 from .structure import (
     IssuePRTemplatesAssessor,
     OneCommandSetupAssessor,
     SeparationOfConcernsAssessor,
     StandardLayoutAssessor,
 )
+from .stub_assessors import LockFilesAssessor  # Backwards compatibility alias
 from .stub_assessors import (
     ConventionalCommitsAssessor,
+    DependencyPinningAssessor,
     FileSizeLimitsAssessor,
     GitignoreAssessor,
-    LockFilesAssessor,
     create_stub_assessors,
 )
 from .testing import (
@@ -40,7 +43,7 @@ from .testing import (
     TestCoverageAssessor,
 )
 
-__all__ = ["create_all_assessors", "BaseAssessor"]
+__all__ = ["create_all_assessors", "BaseAssessor", "LockFilesAssessor"]
 
 
 def create_all_assessors() -> list[BaseAssessor]:
@@ -53,12 +56,13 @@ def create_all_assessors() -> list[BaseAssessor]:
         List of all assessor instances
     """
     assessors = [
-        # Tier 1 Essential (5 assessors)
+        # Tier 1 Essential (6 assessors - up from 5)
         CLAUDEmdAssessor(),
         READMEAssessor(),
         TypeAnnotationsAssessor(),
         StandardLayoutAssessor(),
-        LockFilesAssessor(),
+        DependencyPinningAssessor(),  # Renamed from LockFilesAssessor
+        DependencySecurityAssessor(),  # NEW: Merged dependency_freshness + security_scanning
         # Tier 2 Critical (10 assessors - 7 implemented, 3 stubs)
         TestCoverageAssessor(),
         PreCommitHooksAssessor(),
@@ -77,12 +81,13 @@ def create_all_assessors() -> list[BaseAssessor]:
         SemanticNamingAssessor(),
         StructuredLoggingAssessor(),
         OpenAPISpecsAssessor(),
-        # Tier 4 Advanced (2 stubs)
+        # Tier 4 Advanced (3 assessors)
         BranchProtectionAssessor(),
         CodeSmellsAssessor(),
+        ContainerSetupAssessor(),  # NEW: Conditional (only if Dockerfile/Containerfile exists)
     ]
 
-    # Add remaining stub assessors
+    # Add remaining stub assessors (currently none - all implemented or removed)
     assessors.extend(create_stub_assessors())
 
     return assessors

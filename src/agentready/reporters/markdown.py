@@ -39,14 +39,11 @@ class MarkdownReporter(BaseReporter):
         # Summary
         sections.append(self._generate_summary(assessment))
 
-        # Certification Ladder
-        sections.append(self._generate_certification_ladder(assessment))
-
-        # Findings by Category
-        sections.append(self._generate_findings(assessment))
-
-        # Next Steps
+        # Next Steps (moved up for visibility)
         sections.append(self._generate_next_steps(assessment))
+
+        # Findings (flat badge list)
+        sections.append(self._generate_findings(assessment))
 
         # Footer
         sections.append(self._generate_footer(assessment))
@@ -87,12 +84,21 @@ class MarkdownReporter(BaseReporter):
 
     def _generate_summary(self, assessment: Assessment) -> str:
         """Generate summary section with key metrics."""
+        # Certification emoji map
+        cert_emoji_map = {
+            "Platinum": "💎",
+            "Gold": "🥇",
+            "Silver": "🥈",
+            "Bronze": "🥉",
+            "Needs Improvement": "⚠️",
+        }
+        cert_emoji = cert_emoji_map.get(assessment.certification_level, "")
+
         return f"""## 📊 Summary
 
 | Metric | Value |
 |--------|-------|
-| **Overall Score** | **{assessment.overall_score:.1f}/100** |
-| **Certification Level** | **{assessment.certification_level}** |
+| **Overall Score** | **{assessment.overall_score:.1f}/100** {cert_emoji} **{assessment.certification_level}** ([Tier Definitions](https://agentready.dev/attributes.html#tier-system)) |
 | **Attributes Assessed** | {assessment.attributes_assessed}/{assessment.attributes_total} |
 | **Attributes Not Assessed** | {assessment.attributes_not_assessed} |
 | **Assessment Duration** | {assessment.duration_seconds:.1f}s |
@@ -116,66 +122,86 @@ class MarkdownReporter(BaseReporter):
             lines.append(f"- **{lang}**: {count} files")
         return "\n".join(lines)
 
-    def _generate_certification_ladder(self, assessment: Assessment) -> str:
-        """Generate certification ladder visualization."""
-        levels = [
-            ("Platinum", "💎", "90-100", assessment.certification_level == "Platinum"),
-            ("Gold", "🥇", "75-89", assessment.certification_level == "Gold"),
-            ("Silver", "🥈", "60-74", assessment.certification_level == "Silver"),
-            ("Bronze", "🥉", "40-59", assessment.certification_level == "Bronze"),
-            (
-                "Needs Improvement",
-                "⚠️",
-                "0-39",
-                assessment.certification_level == "Needs Improvement",
-            ),
-        ]
+    def _status_priority(self, status: str) -> int:
+        """Get sort priority for status (lower = more important)."""
+        priority_map = {
+            "fail": 0,
+            "error": 1,
+            "pass": 2,
+            "skipped": 3,
+            "not_applicable": 4,
+        }
+        return priority_map.get(status, 99)
 
-        lines = ["## 🎖️ Certification Ladder", ""]
-        for name, emoji, range_str, is_active in levels:
-            marker = "**→ YOUR LEVEL ←**" if is_active else ""
-            lines.append(f"- {emoji} **{name}** ({range_str}) {marker}")
+    def _generate_badge_line(self, finding) -> str:
+        """Generate single-line badge-style finding."""
+        from urllib.parse import quote
 
-        return "\n".join(lines)
+        # Badge components
+        tier_label = f"T{finding.attribute.tier}"
+
+        # URL-safe attribute name
+        attr_name_safe = finding.attribute.name.replace(" ", "_")
+        attr_name_safe = quote(attr_name_safe, safe="_")
+
+        # Score for badge
+        if finding.score is not None:
+            score_text = f"{finding.score:.0f}--100"  # shields.io uses -- for /
+        else:
+            score_text = "N--A"
+
+        # Color based on status
+        color_map = {
+            "pass": "green",
+            "fail": "red",
+            "skipped": "lightgray",
+            "not_applicable": "lightgray",
+            "error": "yellow",
+        }
+        color = color_map.get(finding.status, "gray")
+
+        # Build badge URL
+        badge_message = f"{attr_name_safe}_{score_text}"
+        badge_url = f"https://img.shields.io/badge/{tier_label}-{badge_message}-{color}"
+
+        # Status emoji
+        status_emoji = self._get_status_emoji(finding.status)
+
+        # Readable score display
+        score_display = f"{finding.score:.0f}/100" if finding.score is not None else ""
+
+        return f"![{tier_label}]({badge_url}) **{finding.attribute.name}** {status_emoji} {score_display}"
 
     def _generate_findings(self, assessment: Assessment) -> str:
-        """Generate detailed findings by category."""
-        sections = ["## 📋 Detailed Findings"]
+        """Generate flat priority-sorted badge-style findings."""
+        lines = [
+            "## 📋 Detailed Findings",
+            "",
+            "Findings sorted by priority (Tier 1 failures first, then Tier 2, etc.)",
+            "",
+        ]
 
-        # Group findings by category
-        by_category = {}
-        for finding in assessment.findings:
-            category = finding.attribute.category
-            if category not in by_category:
-                by_category[category] = []
-            by_category[category].append(finding)
+        # Sort findings by priority
+        sorted_findings = sorted(
+            assessment.findings,
+            key=lambda f: (
+                f.attribute.tier,  # Tier 1 before Tier 2
+                self._status_priority(f.status),  # Failures before passes
+                f.score if f.score is not None else 100,  # Lower scores first
+            ),
+        )
 
-        # Generate section for each category
-        for category in sorted(by_category.keys()):
-            findings = by_category[category]
-            sections.append(f"\n### {category}")
+        # Generate badge line for each finding
+        for finding in sorted_findings:
+            lines.append(self._generate_badge_line(finding))
 
-            # Summary table for this category
-            sections.append("\n| Attribute | Tier | Status | Score |")
-            sections.append("|-----------|------|--------|-------|")
+            # Add remediation details for failures/errors only
+            if finding.status in ("fail", "error"):
+                lines.append(self._generate_finding_detail(finding))
 
-            for finding in findings:
-                status_emoji = self._get_status_emoji(finding.status)
-                score_display = (
-                    f"{finding.score:.0f}" if finding.score is not None else "—"
-                )
-                tier_badge = f"T{finding.attribute.tier}"
+            lines.append("")  # Single blank line between findings
 
-                sections.append(
-                    f"| {finding.attribute.name} | {tier_badge} | {status_emoji} {finding.status} | {score_display} |"
-                )
-
-            # Detailed findings (only for fail/error)
-            for finding in findings:
-                if finding.status in ("fail", "error"):
-                    sections.append(self._generate_finding_detail(finding))
-
-        return "\n".join(sections)
+        return "\n".join(lines)
 
     def _get_status_emoji(self, status: str) -> str:
         """Get emoji for finding status."""
@@ -189,53 +215,54 @@ class MarkdownReporter(BaseReporter):
         return emoji_map.get(status, "❓")
 
     def _generate_finding_detail(self, finding) -> str:
-        """Generate detailed finding section."""
-        lines = [
-            f"\n#### {self._get_status_emoji(finding.status)} {finding.attribute.name}"
-        ]
+        """Generate collapsible remediation section."""
+        lines = ["<details>", "<summary>📝 Remediation Steps</summary>", ""]
 
-        # Basic info
+        # Measured/threshold (moved inside details for compactness)
         if finding.measured_value:
             lines.append(
-                f"\n**Measured**: {finding.measured_value} (Threshold: {finding.threshold})"
+                f"**Measured**: {finding.measured_value} (Threshold: {finding.threshold})"
             )
+            lines.append("")
 
         # Evidence
         if finding.evidence:
-            lines.append("\n**Evidence**:")
+            lines.append("**Evidence**:")
             for item in finding.evidence:
                 lines.append(f"- {item}")
+            lines.append("")
 
         # Remediation
         if finding.remediation:
-            lines.append(
-                "\n<details><summary><strong>📝 Remediation Steps</strong></summary>\n"
-            )
-            lines.append(f"\n{finding.remediation.summary}\n")
+            lines.append(finding.remediation.summary)
+            lines.append("")
 
             if finding.remediation.steps:
                 for i, step in enumerate(finding.remediation.steps, 1):
                     lines.append(f"{i}. {step}")
+                lines.append("")
 
             if finding.remediation.commands:
-                lines.append("\n**Commands**:\n")
+                lines.append("**Commands**:")
                 lines.append("```bash")
-                lines.append("\n".join(finding.remediation.commands))
+                lines.extend(finding.remediation.commands)
                 lines.append("```")
+                lines.append("")
 
             if finding.remediation.examples:
-                lines.append("\n**Examples**:\n")
+                lines.append("**Examples**:")
                 for example in finding.remediation.examples:
                     lines.append("```")
                     lines.append(example)
                     lines.append("```")
-
-            lines.append("\n</details>")
+                lines.append("")
 
         # Error message
         if finding.error_message:
-            lines.append(f"\n**Error**: {finding.error_message}")
+            lines.append(f"**Error**: {finding.error_message}")
+            lines.append("")
 
+        lines.append("</details>")
         return "\n".join(lines)
 
     def _generate_next_steps(self, assessment: Assessment) -> str:
@@ -246,7 +273,7 @@ class MarkdownReporter(BaseReporter):
         ]
 
         if not failures:
-            return """## ✨ Next Steps
+            return """## ✨ Priority Improvements
 
 **Congratulations!** All assessed attributes are passing. Consider:
 - Implementing currently skipped attributes
@@ -256,9 +283,9 @@ class MarkdownReporter(BaseReporter):
         failures.sort(key=lambda f: (f.attribute.tier, f.score or 0))
 
         lines = [
-            "## 🎯 Next Steps",
+            "## 🎯 Priority Improvements",
             "",
-            "**Priority Improvements** (highest impact first):",
+            "Focus on these high-impact fixes first:",
             "",
         ]
 
