@@ -58,6 +58,12 @@ from ..services.learning_service import LearningService
     is_flag=True,
     help="Bypass LLM response cache (always call API)",
 )
+@click.option(
+    "--llm-max-retries",
+    type=click.IntRange(min=0, max=10),
+    default=3,
+    help="Maximum retry attempts for LLM rate limits (default: 3)",
+)
 def learn(
     repository,
     output_format,
@@ -68,6 +74,7 @@ def learn(
     enable_llm,
     llm_budget,
     llm_no_cache,
+    llm_max_retries,
 ):
     """Extract reusable patterns and generate Claude Code skills.
 
@@ -172,6 +179,7 @@ def learn(
             attribute_ids=list(attribute) if attribute else None,
             enable_llm=enable_llm,
             llm_budget=llm_budget,
+            llm_max_retries=llm_max_retries,
         )
     except Exception as e:
         click.echo(f"\nError during learning: {str(e)}", err=True)
