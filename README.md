@@ -22,6 +22,9 @@ AgentReady evaluates your repository across multiple dimensions of code quality,
 ### Container (Recommended)
 
 ```bash
+# Login to GitHub Container Registry (required for private image)
+podman login ghcr.io
+
 # Pull container
 podman pull ghcr.io/ambient-code/agentready:latest
 
@@ -37,6 +40,7 @@ podman run --rm \
   assess /repo --output-dir /reports
 
 # Assess your repository
+# For large repos, add -i flag to confirm the size warning
 podman run --rm \
   -v /path/to/your/repo:/repo:ro \
   -v ~/agentready-reports:/reports \

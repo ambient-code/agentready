@@ -1,6 +1,10 @@
 # Lychee link checker configuration
 # https://lychee.cli.rs/
 
+# Base URL for resolving root-relative links in local files
+# This allows lychee to check links like /agentready/demos/ when checking local files
+base_url = "https://ambient-code.github.io"
+
 # Maximum number of concurrent network requests
 max_concurrency = 10
 
@@ -28,8 +32,13 @@ exclude = [
     # GitHub issue creation pages (always fail)
     "^https://github\\.com/.*/issues/new",
 
-    # Relative URLs for Jekyll site
-    "^/agentready/",
+    # Relative URLs for Jekyll site (will be checked once deployed)
+    ".*/agentready/demos/.*",
+    ".*/agentready/tbench.*",
+    ".*/agentready/implementation-status.*",
+    ".*/demos/.*",
+    ".*/tbench.*",
+    ".*/implementation-status.*",
 
     # Jinja2/Liquid template variables
     "\\{\\{.*\\}\\}",

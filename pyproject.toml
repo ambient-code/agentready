@@ -1,6 +1,6 @@
 [project]
 name = "agentready"
-version = "2.15.0"
+version = "2.16.0"
 description = "Assess and bootstrap git repositories for AI-assisted development with automated remediation and continuous learning"
 authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
 readme = "README.md"
@@ -33,9 +33,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-benchmark = [
-    "harbor>=2.0.0",
-]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
@@ -92,9 +89,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-# Coverage reporting enabled by default, but no global fail-under threshold
-# CI workflow enforces coverage requirements selectively (critical tests = no coverage, full suite = reporting only)
-addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html --cov-report=xml"
+addopts = "-v --cov=agentready --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=70"
+markers = [
+    "integration: marks tests as integration tests (select with '-m integration')",
+]
 
 [tool.coverage.run]
 source = ["src/agentready"]

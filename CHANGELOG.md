@@ -1,4 +1,11 @@
-# [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-08)
+# [2.16.0](https://github.com/ambient-code/agentready/compare/v2.15.0...v2.16.0) (2025-12-10)
+
+
+### Features
+
+* Redesign homepage features with two-column layout and research links ([#189](https://github.com/ambient-code/agentready/issues/189)) ([570087d](https://github.com/ambient-code/agentready/commit/570087df99eb612d4fe07128666cdd41461845f1)), closes [#187](https://github.com/ambient-code/agentready/issues/187)
+
+# [2.15.0](https://github.com/ambient-code/agentready/compare/v2.14.1...v2.15.0) (2025-12-09)
 
 
 ### Bug Fixes

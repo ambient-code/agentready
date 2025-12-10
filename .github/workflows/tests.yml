@@ -7,58 +7,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1: Critical path tests (BLOCKS merge if fails)
-  critical-tests:
-    name: Critical Path Tests (Blocking)
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Job-level timeout to prevent hung jobs
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12']
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Run critical E2E tests
-        run: |
-          pytest tests/e2e/test_critical_paths.py -v --no-cov --tb=short
-        timeout-minutes: 5
-
-      - name: Run critical CLI tests
-        run: |
-          pytest tests/unit/cli/test_main.py -v --no-cov --tb=short
-        timeout-minutes: 5
-
-      - name: Run critical model tests
-        run: |
-          pytest tests/unit/test_models.py -v --no-cov --tb=short
-        timeout-minutes: 2
-
-  # Job 2: Code quality checks (BLOCKS merge if fails)
-  linting:
-    name: Code Quality (Blocking)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10  # Job-level timeout
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
 
       - name: Install dependencies
         run: |
@@ -77,77 +39,13 @@ jobs:
         run: |
           ruff check .
 
-  # Job 3: Full test suite (WARNING only, doesn't block merge)
-  full-test-suite:
-    name: Full Test Suite (Warning)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30  # Job-level timeout for full suite
-    continue-on-error: true  # Don't fail CI on test failures
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install dependencies
+      - name: Run pytest
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Run all tests with coverage
-        run: |
-          pytest tests/unit/ --cov=src --cov-report=xml --cov-report=html --cov-report=term
-        continue-on-error: true
-        timeout-minutes: 20
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: htmlcov/
-          retention-days: 30
+          pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=90
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
+        uses: codecov/codecov-action@v5
+        if: matrix.python-version == '3.12'
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
-
-  # Job 4: Platform-specific tests (macOS - informational)
-  platform-tests:
-    name: Platform Tests (macOS)
-    runs-on: macos-latest
-    timeout-minutes: 20  # Job-level timeout for platform tests
-    continue-on-error: true  # Don't block merge
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Run CLI tests on macOS
-        run: |
-          pytest tests/unit/cli/test_main.py -v --no-cov --tb=short
-        continue-on-error: true
-        timeout-minutes: 5
-
-      - name: Run E2E tests on macOS
-        run: |
-          pytest tests/e2e/test_critical_paths.py -v --no-cov --tb=short
-        continue-on-error: true
-        timeout-minutes: 10
