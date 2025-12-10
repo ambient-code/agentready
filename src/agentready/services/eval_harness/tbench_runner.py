@@ -31,6 +31,7 @@ class TbenchResult:
         unresolved_trials: Number of failed tasks
         pass_at_1: Single-attempt success rate
         pass_at_3: Success rate within 3 attempts
+        trajectory_path: Path to agent trajectory.json file (if available)
     """
 
     score: float
@@ -40,6 +41,7 @@ class TbenchResult:
     unresolved_trials: int = 0
     pass_at_1: float = 0.0
     pass_at_3: float = 0.0
+    trajectory_path: Path | None = None
 
     def __post_init__(self):
         """Validate score ranges and trial counts"""
@@ -157,15 +159,28 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
     if not results_path.exists():
         raise FileNotFoundError(f"Harbor results file not found: {results_path}")
 
-    return parse_harbor_results(results_path)
+    # Find trajectory file: jobs_dir/timestamp/task_name__hash/agent/trajectory.json
+    trajectory_path = None
+    task_dirs = list(latest_dir.glob("*"))
+    for task_dir in task_dirs:
+        if task_dir.is_dir() and task_dir.name != "verifier":
+            candidate = task_dir / "agent" / "trajectory.json"
+            if candidate.exists():
+                trajectory_path = candidate
+                break
+
+    return parse_harbor_results(results_path, trajectory_path)
 
 
-def parse_harbor_results(results_path: Path) -> TbenchResult:
+def parse_harbor_results(
+    results_path: Path, trajectory_path: Path | None = None
+) -> TbenchResult:
     """
     Parse Harbor framework JSON output.
 
     Args:
         results_path: Path to Harbor result.json file
+        trajectory_path: Optional path to agent trajectory.json file
 
     Returns:
         TbenchResult with metrics from Harbor output
@@ -204,4 +219,5 @@ def parse_harbor_results(results_path: Path) -> TbenchResult:
         unresolved_trials=n_total_trials - n_solved,
         pass_at_1=mean_score,  # Mean score is pass rate
         pass_at_3=0.0,  # Terminal-Bench doesn't provide pass@3
+        trajectory_path=trajectory_path,
     )

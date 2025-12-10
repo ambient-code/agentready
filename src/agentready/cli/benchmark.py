@@ -170,6 +170,10 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir, skip_pre
         click.echo(f"Unresolved Trials: {result.unresolved_trials}")
         click.echo(f"Pass@1: {result.pass_at_1:.2f}")
 
+        # Display trajectory file path if available
+        if result.trajectory_path:
+            click.echo(f"\nTrajectory: {result.trajectory_path}")
+
         # Save results if output dir specified
         if output_dir:
             output_path = Path(output_dir)
