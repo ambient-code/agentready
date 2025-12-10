@@ -2,7 +2,7 @@
 
 **Purpose**: Assess repositories against agent-ready best practices and generate actionable reports.
 
-**Last Updated**: 2025-12-08
+**Last Updated**: 2025-12-10
 
 ---
 
@@ -390,6 +390,6 @@ Use the @agent-github-pages-docs to [action] based on:
 
 ---
 
-**Last Updated**: 2025-12-08 by Jeremy Eder
+**Last Updated**: 2025-12-10 by Jeremy Eder
 **AgentReady Version**: 2.10.0
 **Self-Assessment**: 80.0/100 (Gold) ✨

@@ -1,3 +1,28 @@
+# [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-10)
+
+
+### Bug Fixes
+
+* disable attestations for Test PyPI to avoid conflict ([#155](https://github.com/jeremyeder/agentready/issues/155)) ([a33e3cd](https://github.com/jeremyeder/agentready/commit/a33e3cd2d86d4a461701e906070ab3eae8ca8082)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* leaderboard workflow and SSH URL support ([#147](https://github.com/jeremyeder/agentready/issues/147)) ([de28cd0](https://github.com/jeremyeder/agentready/commit/de28cd0a6037a0951ba370aa73832553c088cfb8))
+* resolve 45 test failures across CLI, services, and assessors ([#4](https://github.com/jeremyeder/agentready/issues/4)) ([3405142](https://github.com/jeremyeder/agentready/commit/340514251d40f283afa24d5c3068f294727fd839)), closes [#178](https://github.com/jeremyeder/agentready/issues/178) [#178](https://github.com/jeremyeder/agentready/issues/178)
+* resolve broken links and workflow failures ([#160](https://github.com/jeremyeder/agentready/issues/160)) ([fbf5cf7](https://github.com/jeremyeder/agentready/commit/fbf5cf7a1fdcb65ef4d3943a2d84e46aa831d337))
+* skip PR comments for external forks to prevent permission errors ([#163](https://github.com/jeremyeder/agentready/issues/163)) ([2a29fb8](https://github.com/jeremyeder/agentready/commit/2a29fb84485a1ac6beff1675131bf50c1b702585))
+
+
+### Features
+
+* add ambient-code/agentready to leaderboard ([#148](https://github.com/jeremyeder/agentready/issues/148)) ([621152e](https://github.com/jeremyeder/agentready/commit/621152e46bd8e9505e3bc1775d2cd61a80af5a62))
+* add quay/quay to leaderboard ([#162](https://github.com/jeremyeder/agentready/issues/162)) ([d6e8df0](https://github.com/jeremyeder/agentready/commit/d6e8df0e9d92c4ec82004c5e62c798986feb1000))
+* Add weekly research update skill and automation ([#145](https://github.com/jeremyeder/agentready/issues/145)) ([7ba17a6](https://github.com/jeremyeder/agentready/commit/7ba17a6b045251cbc9f26b5c2f4a0ec31d89dd11))
+* automate PyPI publishing with trusted publishing (OIDC) ([#154](https://github.com/jeremyeder/agentready/issues/154)) ([71f4632](https://github.com/jeremyeder/agentready/commit/71f4632cb188d8c9db377c9f216c047e20727f99)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* convert AgentReady assessment to comment-triggered workflow ([#8](https://github.com/jeremyeder/agentready/issues/8)) ([350f21b](https://github.com/jeremyeder/agentready/commit/350f21bee07140dcef8fb310c922abbf2112ac79)), closes [#191](https://github.com/jeremyeder/agentready/issues/191)
+
+
+### Performance Improvements
+
+* implement lazy loading for heavy CLI commands ([#151](https://github.com/jeremyeder/agentready/issues/151)) ([6a7cd4e](https://github.com/jeremyeder/agentready/commit/6a7cd4e147ebfdfc95921b86599a5b650db76153))
+
 # [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-08)
 
 
