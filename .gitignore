@@ -51,6 +51,7 @@ coverage.xml
 # AgentReady runtime artifacts
 .agentready/
 .agentready/cache/  # Explicitly exclude cached repositories (510MB+)
+.agentready/harbor_comparisons/  # Harbor benchmark comparison results
 *.log
 *.tmp
 plans/  # Planning documents (was .plans/)

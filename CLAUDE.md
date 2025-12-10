@@ -215,6 +215,106 @@ agentready/
 
 ---
 
+## Harbor Benchmark Comparison
+
+**Purpose**: Empirically measure Claude Code performance impact of `.claude/agents/doubleagent.md` using Harbor's Terminal-Bench.
+
+### Overview
+
+The Harbor comparison feature automates A/B testing of agent file effectiveness by:
+1. Running Terminal-Bench tasks WITHOUT doubleagent.md (disabled)
+2. Running Terminal-Bench tasks WITH doubleagent.md (enabled)
+3. Calculating deltas and statistical significance
+4. Generating comprehensive reports (JSON, Markdown, HTML)
+
+### Quick Start
+
+```bash
+# Install Harbor
+uv tool install harbor
+
+# Run comparison (3 tasks, ~30-60 min)
+agentready harbor compare \
+  -t adaptive-rejection-sampler \
+  -t async-http-client \
+  -t terminal-file-browser \
+  --verbose \
+  --open-dashboard
+```
+
+### Key Metrics
+
+- **Success Rate**: Percentage of tasks completed successfully
+- **Duration**: Average time to complete tasks
+- **Statistical Significance**: T-tests (p<0.05) and Cohen's d effect sizes
+- **Per-Task Impact**: Individual task improvements/regressions
+
+### Output Files
+
+Results stored in `.agentready/harbor_comparisons/` (gitignored):
+
+- **JSON**: Machine-readable comparison data
+- **Markdown**: GitHub-friendly report (commit this for PRs)
+- **HTML**: Interactive dashboard with Chart.js visualizations
+
+### CLI Commands
+
+**Compare**:
+```bash
+agentready harbor compare -t task1 -t task2 [--verbose] [--open-dashboard]
+```
+
+**List comparisons**:
+```bash
+agentready harbor list
+```
+
+**View comparison**:
+```bash
+agentready harbor view .agentready/harbor_comparisons/comparison_latest.json
+```
+
+### Architecture
+
+**Data Models** (`src/agentready/models/harbor.py`):
+- `HarborTaskResult` - Single task result from result.json
+- `HarborRunMetrics` - Aggregated metrics per run
+- `HarborComparison` - Complete comparison with deltas
+
+**Services** (`src/agentready/services/harbor/`):
+- `HarborRunner` - Execute Harbor CLI via subprocess
+- `AgentFileToggler` - Safely enable/disable agent files
+- `ResultParser` - Parse Harbor result.json files
+- `HarborComparer` - Calculate deltas and statistical significance
+- `DashboardGenerator` - Generate HTML reports
+
+**Reporters** (`src/agentready/reporters/`):
+- `HarborMarkdownReporter` - GitHub-Flavored Markdown
+- `DashboardGenerator` - Interactive HTML with Chart.js
+
+### Statistical Methods
+
+**Significance Criteria** (both required):
+- **P-value < 0.05**: 95% confidence (two-sample t-test)
+- **Cohen's d effect size**:
+  - Small: 0.2 ≤ |d| < 0.5
+  - Medium: 0.5 ≤ |d| < 0.8
+  - Large: |d| ≥ 0.8
+
+### Sample Sizes
+
+- **Minimum**: 3 tasks (for statistical tests)
+- **Recommended**: 5-10 tasks (reliable results)
+- **Comprehensive**: 20+ tasks (production validation)
+
+### Documentation
+
+- **User Guide**: `docs/harbor-comparison-guide.md`
+- **Implementation Plan**: `.claude/plans/vivid-knitting-codd.md`
+- **Harbor Docs**: https://harborframework.com/docs
+
+---
+
 ## Technologies
 
 - **Python 3.12+** (only N and N-1 versions supported)
