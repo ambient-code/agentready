@@ -5,17 +5,21 @@ enhanced later with more sophisticated detection and scoring logic.
 """
 
 from ..models.attribute import Attribute
-from ..models.finding import Finding, Remediation
+from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from .base import BaseAssessor
 
 
-class LockFilesAssessor(BaseAssessor):
-    """Tier 1 Essential - Lock files for reproducible dependencies."""
+class DependencyPinningAssessor(BaseAssessor):
+    """Tier 1 Essential - Dependency version pinning for reproducible builds.
+
+    Renamed from LockFilesAssessor. Checks not just file existence, but actual
+    version pinning quality and freshness.
+    """
 
     @property
     def attribute_id(self) -> str:
-        return "lock_files"
+        return "lock_files"  # Keep same ID for backwards compatibility
 
     @property
     def tier(self) -> int:
@@ -25,61 +29,181 @@ class LockFilesAssessor(BaseAssessor):
     def attribute(self) -> Attribute:
         return Attribute(
             id=self.attribute_id,
-            name="Lock Files for Reproducibility",
+            name="Dependency Pinning for Reproducibility",
             category="Dependency Management",
             tier=self.tier,
-            description="Lock files present for dependency pinning",
-            criteria="package-lock.json, yarn.lock, poetry.lock, or requirements.txt with versions",
+            description="Dependencies pinned to exact versions in lock files",
+            criteria="Lock file with pinned versions, updated within 6 months",
             default_weight=0.10,
         )
 
     def assess(self, repository: Repository) -> Finding:
-        lock_files = [
-            "package-lock.json",
-            "yarn.lock",
-            "pnpm-lock.yaml",
-            "poetry.lock",
-            "Pipfile.lock",
-            "uv.lock",
-            "requirements.txt",
-            "Cargo.lock",
-            "Gemfile.lock",
-            "go.sum",
+        """Check for dependency lock files and validate version pinning quality."""
+        # Language-specific lock files (auto-managed, always have exact versions)
+        strict_lock_files = [
+            "package-lock.json",  # npm
+            "yarn.lock",  # Yarn
+            "pnpm-lock.yaml",  # pnpm
+            "poetry.lock",  # Poetry
+            "Pipfile.lock",  # Pipenv
+            "uv.lock",  # uv
+            "Cargo.lock",  # Rust
+            "Gemfile.lock",  # Ruby
+            "go.sum",  # Go
         ]
 
-        found = [f for f in lock_files if (repository.path / f).exists()]
+        # Manual lock files (need validation)
+        manual_lock_files = ["requirements.txt"]  # Python pip
 
-        if found:
-            return Finding(
-                attribute=self.attribute,
-                status="pass",
-                score=100.0,
-                measured_value=", ".join(found),
-                threshold="at least one lock file",
-                evidence=[f"Found: {', '.join(found)}"],
-                remediation=None,
-                error_message=None,
-            )
-        else:
+        found_strict = [f for f in strict_lock_files if (repository.path / f).exists()]
+        found_manual = [f for f in manual_lock_files if (repository.path / f).exists()]
+
+        if not found_strict and not found_manual:
             return Finding(
                 attribute=self.attribute,
                 status="fail",
                 score=0.0,
                 measured_value="none",
-                threshold="at least one lock file",
-                evidence=["No lock files found"],
+                threshold="lock file with pinned versions",
+                evidence=["No dependency lock files found"],
                 remediation=Remediation(
                     summary="Add lock file for dependency reproducibility",
                     steps=[
-                        "Use npm install, poetry lock, or equivalent to generate lock file"
+                        "For npm: run 'npm install' (generates package-lock.json)",
+                        "For Python: use 'pip freeze > requirements.txt' or poetry",
+                        "For Ruby: run 'bundle install' (generates Gemfile.lock)",
                     ],
-                    tools=[],
-                    commands=["npm install  # generates package-lock.json"],
+                    tools=["npm", "pip", "poetry", "bundler"],
+                    commands=[
+                        "npm install  # npm",
+                        "pip freeze > requirements.txt  # Python",
+                        "poetry lock  # Python with Poetry",
+                    ],
                     examples=[],
                     citations=[],
                 ),
                 error_message=None,
             )
+
+        score = 100.0
+        evidence = []
+        warnings = []
+
+        # Check strict lock files (always 100 points)
+        if found_strict:
+            evidence.append(f"Found lock file(s): {', '.join(found_strict)}")
+
+            # Check freshness (< 6 months old)
+            import time
+
+            for lock_file in found_strict:
+                lock_path = repository.path / lock_file
+                try:
+                    age_days = (time.time() - lock_path.stat().st_mtime) / 86400
+                    age_months = age_days / 30
+
+                    if age_months > 6:
+                        score -= 15
+                        warnings.append(
+                            f"⚠️ {lock_file} is {int(age_months)} months old (consider updating dependencies)"
+                        )
+                except OSError:
+                    pass
+
+        # Check manual lock files (requirements.txt) for version pinning
+        if found_manual and not found_strict:
+            for lock_file in found_manual:
+                lock_path = repository.path / lock_file
+                try:
+                    content = lock_path.read_text()
+                    lines = [
+                        line.strip()
+                        for line in content.split("\n")
+                        if line.strip() and not line.startswith("#")
+                    ]
+
+                    if not lines:
+                        score = 0
+                        evidence.append(f"❌ {lock_file} is empty")
+                        continue
+
+                    pinned_count = 0
+                    unpinned_count = 0
+
+                    for line in lines:
+                        # Check for exact version pinning (==)
+                        if "==" in line:
+                            pinned_count += 1
+                        # Check for range/minimum versions (>=, ~=, >, <, etc.)
+                        elif any(
+                            op in line for op in [">=", "<=", "~=", ">", "<", "^"]
+                        ):
+                            unpinned_count += 1
+                        # No version specifier at all
+                        elif "==" not in line and not any(
+                            c in line for c in [">", "<", "~", "^"]
+                        ):
+                            unpinned_count += 1
+
+                    if unpinned_count > 0:
+                        # Deduct points for unpinned dependencies
+                        pin_ratio = pinned_count / (pinned_count + unpinned_count)
+                        score = pin_ratio * 100
+
+                        evidence.append(
+                            f"Found {lock_file}: {pinned_count} pinned, {unpinned_count} unpinned"
+                        )
+                        warnings.append(
+                            f"⚠️ {unpinned_count} dependencies not pinned (use '==' not '>=')"
+                        )
+                    else:
+                        evidence.append(
+                            f"Found {lock_file}: All {pinned_count} dependencies pinned"
+                        )
+
+                except OSError as e:
+                    return Finding.error(
+                        self.attribute, reason=f"Could not read {lock_file}: {e}"
+                    )
+
+        # Combine evidence and warnings
+        all_evidence = evidence + warnings
+
+        if score >= 75:
+            status = "pass"
+            remediation = None
+        else:
+            status = "fail"
+            remediation = Remediation(
+                summary="Improve dependency version pinning",
+                steps=[
+                    "Use exact version pinning (== not >=) in requirements.txt",
+                    "Or switch to poetry.lock or Pipfile.lock for automatic pinning",
+                    "Update dependencies regularly (at least every 6 months)",
+                ],
+                tools=["pip", "poetry", "pipenv"],
+                commands=[
+                    "pip freeze > requirements.txt  # Exact versions",
+                    "poetry lock  # Auto-managed lock file",
+                ],
+                examples=[],
+                citations=[],
+            )
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=", ".join(found_strict + found_manual),
+            threshold="lock file with pinned versions, < 6 months old",
+            evidence=all_evidence,
+            remediation=remediation,
+            error_message=None,
+        )
+
+
+# Backwards compatibility alias
+LockFilesAssessor = DependencyPinningAssessor
 
 
 # Tier 2 Critical Assessors (3% each)
@@ -147,7 +271,11 @@ class ConventionalCommitsAssessor(BaseAssessor):
 
 
 class GitignoreAssessor(BaseAssessor):
-    """Tier 2 - Gitignore completeness."""
+    """Tier 2 - Gitignore completeness with language-specific pattern checking.
+
+    Enhanced to check against GitHub's gitignore templates for language-specific patterns.
+    References: https://github.com/github/gitignore
+    """
 
     @property
     def attribute_id(self) -> str:
@@ -164,10 +292,82 @@ class GitignoreAssessor(BaseAssessor):
             name=".gitignore Completeness",
             category="Git & Version Control",
             tier=self.tier,
-            description="Comprehensive .gitignore file",
-            criteria=".gitignore exists and covers common patterns",
+            description="Comprehensive .gitignore file with language-specific patterns",
+            criteria=".gitignore exists and includes language-specific patterns from GitHub templates",
             default_weight=0.03,
         )
+
+    def _get_expected_patterns(self, languages: set[str]) -> list[str]:
+        """Get expected .gitignore patterns for detected languages.
+
+        Based on GitHub's gitignore templates: https://github.com/github/gitignore
+        """
+        patterns = {
+            "Python": [
+                "__pycache__/",
+                "*.py[cod]",
+                "*.egg-info/",
+                ".pytest_cache/",
+                "venv/",
+                ".venv/",
+                ".env",
+            ],
+            "JavaScript": [
+                "node_modules/",
+                "dist/",
+                "build/",
+                ".npm/",
+                "*.log",
+            ],
+            "TypeScript": [
+                "node_modules/",
+                "dist/",
+                "*.tsbuildinfo",
+                ".npm/",
+            ],
+            "Java": [
+                "target/",
+                "*.class",
+                ".gradle/",
+                "build/",
+                "*.jar",
+            ],
+            "Go": [
+                "*.exe",
+                "*.test",
+                "vendor/",
+                "*.out",
+            ],
+            "Ruby": [
+                "*.gem",
+                ".bundle/",
+                "vendor/bundle/",
+                ".ruby-version",
+            ],
+            "Rust": [
+                "target/",
+                "Cargo.lock",
+                "**/*.rs.bk",
+            ],
+            # General patterns (always check)
+            "General": [
+                ".DS_Store",
+                ".vscode/",
+                ".idea/",
+                "*.swp",
+                "*.swo",
+            ],
+        }
+
+        expected = []
+        for lang in languages:
+            if lang in patterns:
+                expected.extend(patterns[lang])
+
+        # Always include general patterns
+        expected.extend(patterns["General"])
+
+        return list(set(expected))  # Remove duplicates
 
     def assess(self, repository: Repository) -> Finding:
         gitignore = repository.path / ".gitignore"
@@ -178,48 +378,135 @@ class GitignoreAssessor(BaseAssessor):
                 status="fail",
                 score=0.0,
                 measured_value="missing",
-                threshold="present",
+                threshold="present with language patterns",
                 evidence=[".gitignore not found"],
                 remediation=Remediation(
-                    summary="Create .gitignore file",
-                    steps=["Add .gitignore with common patterns for your language"],
+                    summary="Create .gitignore file with language-specific patterns",
+                    steps=[
+                        "Create .gitignore file",
+                        "Add language-specific patterns from GitHub templates",
+                        "Include editor/IDE ignore patterns",
+                    ],
                     tools=[],
                     commands=["touch .gitignore"],
-                    examples=[],
-                    citations=[],
+                    examples=[
+                        "# Python .gitignore example\n__pycache__/\n*.py[cod]\n.venv/\n.env\n.pytest_cache/",
+                        "# JavaScript .gitignore example\nnode_modules/\ndist/\nbuild/\n*.log\n.npm/",
+                    ],
+                    citations=[
+                        Citation(
+                            source="GitHub",
+                            title="gitignore Templates",
+                            url="https://github.com/github/gitignore",
+                            relevance="Community-maintained collection of .gitignore templates for various languages and frameworks",
+                        ),
+                    ],
                 ),
                 error_message=None,
             )
 
-        # Check if it has content
+        # Read gitignore content
         try:
-            size = gitignore.stat().st_size
-            score = 100.0 if size > 50 else 50.0
-            status = "pass" if size > 50 else "fail"
+            content = gitignore.read_text()
+        except OSError as e:
+            return Finding.error(
+                self.attribute, reason=f"Could not read .gitignore: {e}"
+            )
 
+        if not content.strip():
             return Finding(
                 attribute=self.attribute,
-                status=status,
-                score=score,
-                measured_value=f"{size} bytes",
-                threshold=">50 bytes",
-                evidence=[f".gitignore found ({size} bytes)"],
-                remediation=(
-                    None
-                    if status == "pass"
-                    else Remediation(
-                        summary="Expand .gitignore coverage",
-                        steps=["Add common ignore patterns"],
-                        tools=[],
-                        commands=[],
-                        examples=[],
-                        citations=[],
-                    )
+                status="fail",
+                score=0.0,
+                measured_value="empty",
+                threshold="language-specific patterns",
+                evidence=[".gitignore is empty"],
+                remediation=Remediation(
+                    summary="Add language-specific ignore patterns",
+                    steps=["Add patterns for your language from GitHub templates"],
+                    tools=[],
+                    commands=[],
+                    examples=[],
+                    citations=[
+                        Citation(
+                            source="GitHub",
+                            title="gitignore Templates",
+                            url="https://github.com/github/gitignore",
+                            relevance="Community-maintained collection of .gitignore templates for various languages and frameworks",
+                        ),
+                    ],
                 ),
                 error_message=None,
             )
-        except OSError:
-            return Finding.error(self.attribute, reason="Could not read .gitignore")
+
+        # Get expected patterns for detected languages
+        expected_patterns = self._get_expected_patterns(repository.languages)
+
+        # Count how many expected patterns are present
+        found_patterns = []
+        missing_patterns = []
+
+        for pattern in expected_patterns:
+            # Check if pattern (or close variant) exists in .gitignore
+            # Handle both with and without trailing slashes
+            pattern_base = pattern.rstrip("/")
+            if pattern in content or pattern_base in content:
+                found_patterns.append(pattern)
+            else:
+                missing_patterns.append(pattern)
+
+        # Calculate score based on pattern coverage
+        if expected_patterns:
+            coverage = (len(found_patterns) / len(expected_patterns)) * 100
+            score = coverage
+        else:
+            # No languages detected, just check if file exists and has content
+            score = 100.0 if len(content) > 50 else 50.0
+
+        # Determine status
+        if score >= 70:
+            status = "pass"
+            remediation = None
+        else:
+            status = "fail"
+            remediation = Remediation(
+                summary="Add missing language-specific ignore patterns",
+                steps=[
+                    "Review GitHub's gitignore templates for your language",
+                    f"Add the {len(missing_patterns)} missing patterns",
+                    "Ensure editor/IDE patterns are included",
+                ],
+                tools=[],
+                commands=[],
+                examples=["# Missing patterns:\n" + "\n".join(missing_patterns[:5])],
+                citations=[
+                    Citation(
+                        source="GitHub",
+                        title="gitignore Templates Collection",
+                        url="https://github.com/github/gitignore",
+                        relevance="Comprehensive collection of language-specific gitignore patterns",
+                    ),
+                ],
+            )
+
+        evidence = [
+            f".gitignore found ({len(content)} bytes)",
+            f"Pattern coverage: {len(found_patterns)}/{len(expected_patterns)} ({score:.0f}%)",
+        ]
+
+        if missing_patterns:
+            evidence.append(f"Missing {len(missing_patterns)} recommended patterns")
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{len(found_patterns)}/{len(expected_patterns)} patterns",
+            threshold="≥70% of language-specific patterns",
+            evidence=evidence,
+            remediation=remediation,
+            error_message=None,
+        )
 
 
 class FileSizeLimitsAssessor(BaseAssessor):
@@ -411,40 +698,13 @@ class StubAssessor(BaseAssessor):
 def create_stub_assessors():
     """Create stub assessors for remaining attributes.
 
-    NOTE: Do not include assessors that have real implementations in
-    __init__.py - this would create duplicates!
+    Note: Removed stubs that are now implemented:
+    - dependency_freshness → Merged into DependencySecurityAssessor
+    - security_scanning → Merged into DependencySecurityAssessor
+    - performance_benchmarks → Removed (low ROI)
+    - separation_concerns → Implemented as SeparationOfConcernsAssessor
+    - architecture_decisions → Implemented as ArchitectureDecisionsAssessor
+    - issue_pr_templates → Implemented as IssuePRTemplatesAssessor
+    - container_setup → Will be implemented separately with conditional applicability
     """
-    return [
-        # Tier 2 Critical
-        StubAssessor(
-            "dependency_freshness",
-            "Dependency Freshness & Security",
-            "Dependency Management",
-            2,
-            0.03,
-        ),
-        StubAssessor(
-            "separation_concerns",
-            "Separation of Concerns",
-            "Repository Structure",
-            2,
-            0.03,
-        ),
-        # Tier 3 Important
-        # REMOVED: architecture_decisions (real implementation exists)
-        # Tier 4 Advanced
-        StubAssessor(
-            "security_scanning", "Security Scanning Automation", "Security", 4, 0.01
-        ),
-        StubAssessor(
-            "performance_benchmarks", "Performance Benchmarks", "Performance", 4, 0.01
-        ),
-        # REMOVED: issue_pr_templates (real implementation exists)
-        StubAssessor(
-            "container_setup",
-            "Container/Virtualization Setup",
-            "Build & Development",
-            4,
-            0.01,
-        ),
-    ]
+    return []  # All stubs have been implemented or removed

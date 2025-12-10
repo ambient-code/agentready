@@ -1,23 +1,30 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 25 attributes.
+# This file defines the default weights for all 23 attributes (updated from 25).
 # Weights are based on tier priority from research report:
 #
-# Tier 1 (Essential):  50% total (10% each, 5 attributes)
-# Tier 2 (Critical):   30% total (3% each, 10 attributes)
+# Tier 1 (Essential):  54% total (5×10% + 1×4%, 6 attributes)
+# Tier 2 (Critical):   27% total (3% each, 9 attributes)
 # Tier 3 (Important):  15% total (3% each, 5 attributes)
-# Tier 4 (Advanced):    5% total (1% each, 5 attributes)
+# Tier 4 (Advanced):    3% total (1% each, 3 attributes)
 #
 # Missing essentials (especially CLAUDE.md at 10%) has 10x impact vs advanced features (1%)
+#
+# Changes in v2.10.0:
+# - Added dependency_security (Tier 1, 4%) - merged dependency_freshness + security_scanning
+# - Removed dependency_freshness (merged into dependency_security)
+# - Removed security_scanning (merged into dependency_security)
+# - Removed performance_benchmarks (low ROI)
 
-# Tier 1 (Essential) - 50% total weight
+# Tier 1 (Essential) - 54% total weight
 claude_md_file: 0.10              # 1.1 - CLAUDE.md Configuration Files ⚠️ CRITICAL
 readme_structure: 0.10            # 2.1 - README Structure
 type_annotations: 0.10            # 3.3 - Type Annotations
 standard_layout: 0.10             # 4.1 - Standard Project Layouts
-lock_files: 0.10                  # 6.1 - Lock Files for Reproducibility
+lock_files: 0.10                  # 6.1 - Dependency Pinning for Reproducibility
+dependency_security: 0.04         # 6.2 - Dependency Security & Vulnerability Scanning (NEW)
 
-# Tier 2 (Critical) - 30% total weight
+# Tier 2 (Critical) - 27% total weight
 test_coverage: 0.03               # 5.1 - Test Coverage Requirements
 precommit_hooks: 0.03             # 5.3 - Pre-commit Hooks & CI/CD Linting
 conventional_commits: 0.03        # 7.1 - Conventional Commit Messages
@@ -26,7 +33,6 @@ one_command_setup: 0.03           # 8.1 - One-Command Build/Setup
 concise_documentation: 0.03       # 1.2 - Concise Structured Documentation
 inline_documentation: 0.03        # 2.2 - Inline Documentation
 file_size_limits: 0.03            # 1.3 - File Size Limits
-dependency_freshness: 0.03        # 6.2 - Dependency Freshness & Security
 separation_concerns: 0.03         # 4.2 - Separation of Concerns
 
 # Tier 3 (Important) - 15% total weight
@@ -36,9 +42,7 @@ openapi_specs: 0.03               # 10.1 - OpenAPI/Swagger Specifications
 architecture_decisions: 0.03      # 2.3 - Architecture Decision Records
 semantic_naming: 0.03             # 11.3 - Semantic File & Directory Naming
 
-# Tier 4 (Advanced) - 5% total weight
-security_scanning: 0.01           # 13.1 - Security Scanning Automation
-performance_benchmarks: 0.01      # 15.1 - Performance Benchmarks
-code_smells: 0.01                 # 3.4 - Code Smell Elimination
+# Tier 4 (Advanced) - 3% total weight
+code_smells: 0.01                 # 3.4 - Code Smell Elimination (Enhanced: multi-language linters)
 issue_pr_templates: 0.01          # 7.3 - Issue & Pull Request Templates
-container_setup: 0.01             # 8.3 - Container/Virtualization Setup
+container_setup: 0.01             # 8.3 - Container/Virtualization Setup (conditional applicability)
