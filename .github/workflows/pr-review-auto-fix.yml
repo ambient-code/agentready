@@ -20,7 +20,7 @@ jobs:
       review_id: ${{ steps.review.outputs.review_id }}
     steps:
       - name: Minimize old Claude review comments
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const comments = await github.rest.issues.listComments({
@@ -135,7 +135,7 @@ jobs:
             - Push the changes to the PR branch
 
       - name: Update PR with fix summary
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');

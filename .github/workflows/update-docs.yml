@@ -25,7 +25,7 @@ jobs:
 
       - name: Create documentation update issue
         id: create-issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           REVISION_REASON: ${{ github.event.inputs.revision_reason }}
           ACTOR: ${{ github.actor }}
@@ -112,7 +112,7 @@ jobs:
 
       - name: Comment with recent changes
         if: steps.check_changes.outputs.has_changes == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
