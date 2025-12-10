@@ -88,6 +88,7 @@ class LazyGroup(click.Group):
     cls=LazyGroup,
     lazy_subcommands={
         "assess-batch": ("assess_batch", "assess_batch"),
+        "eval-harness": ("eval_harness", "eval_harness"),
         "experiment": ("experiment", "experiment"),
         "extract-skills": ("extract_skills", "extract_skills"),
         "learn": ("learn", "learn"),
@@ -198,6 +199,9 @@ def run_assessment(repository_path, verbose, output_dir, config_path, exclude=No
                 "Assessment may take several minutes. Continue?",
                 abort=True,
             )
+    except click.Abort:
+        # Re-raise Abort to properly exit when user declines
+        raise
     except Exception:
         # If we can't count files quickly, just continue
         pass

@@ -69,3 +69,4 @@ opendatahub-repos.txt
 # Configuration (exclude example)
 .agentready-config.yaml
 !.agentready-config.example.yaml
+docs/_site/

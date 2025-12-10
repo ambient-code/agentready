@@ -74,7 +74,7 @@ jobs:
             - review_id: unique identifier for this review (timestamp)
 
       - name: Upload review results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: review-results
           path: .review-results.json

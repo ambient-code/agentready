@@ -1,3 +1,17 @@
+# [2.15.0](https://github.com/ambient-code/agentready/compare/v2.14.1...v2.15.0) (2025-12-09)
+
+
+### Bug Fixes
+
+* resolve all test suite failures - achieve zero failures ([#180](https://github.com/ambient-code/agentready/issues/180)) ([990fa2d](https://github.com/ambient-code/agentready/commit/990fa2d4725842df60af151d1ba058cd43a90d3c)), closes [#148](https://github.com/ambient-code/agentready/issues/148) [#147](https://github.com/ambient-code/agentready/issues/147) [#145](https://github.com/ambient-code/agentready/issues/145)
+* resolve YAML syntax error in update-docs workflow and add actionlint ([#173](https://github.com/ambient-code/agentready/issues/173)) ([97b06af](https://github.com/ambient-code/agentready/commit/97b06af1d2adc17ec385d658310f3562f19b1a95))
+
+
+### Features
+
+* replace markdown-link-check with lychee for link validation ([#177](https://github.com/ambient-code/agentready/issues/177)) ([f1a4545](https://github.com/ambient-code/agentready/commit/f1a4545e4718b735df3e1fa7e0b60eba9ed0173b))
+* Terminal-Bench eval harness (MVP Phase 1) ([#178](https://github.com/ambient-code/agentready/issues/178)) ([d06bab4](https://github.com/ambient-code/agentready/commit/d06bab42848847df26d83c7a44e5ee0e84ae0445)), closes [#171](https://github.com/ambient-code/agentready/issues/171)
+
 ## [2.14.1](https://github.com/ambient-code/agentready/compare/v2.14.0...v2.14.1) (2025-12-05)
 
 

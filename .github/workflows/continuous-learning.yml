@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -122,7 +122,7 @@ jobs:
 
       - name: Upload skill proposals as artifacts
         if: steps.learn.outputs.skill_count > 0
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: skill-proposals-${{ github.run_number }}
           path: .skills-proposals/

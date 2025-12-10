@@ -96,21 +96,21 @@ class TestAlignCommand:
     """Test align CLI command."""
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
-    def test_align_basic_execution(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
-    ):
+    def test_align_basic_execution(self, mock_fixer, mock_scanner, runner, temp_repo):
         """Test basic align command execution."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 75.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 75.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(align, [str(temp_repo)])
 
@@ -119,21 +119,21 @@ class TestAlignCommand:
         assert "AgentReady Align" in result.output
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
-    def test_align_dry_run(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
-    ):
+    def test_align_dry_run(self, mock_fixer, mock_scanner, runner, temp_repo):
         """Test align command in dry-run mode."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 75.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 75.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(align, [str(temp_repo), "--dry-run"])
 
@@ -142,21 +142,23 @@ class TestAlignCommand:
         assert "DRY RUN" in result.output
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
     def test_align_with_specific_attributes(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
+        self, mock_fixer, mock_scanner, runner, temp_repo
     ):
         """Test align command with specific attributes."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 75.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 75.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(
             align, [str(temp_repo), "--attributes", "claude_md_file,gitignore_file"]
@@ -166,21 +168,21 @@ class TestAlignCommand:
         assert result.exit_code == 0
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
-    def test_align_interactive_mode(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
-    ):
+    def test_align_interactive_mode(self, mock_fixer, mock_scanner, runner, temp_repo):
         """Test align command in interactive mode."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 75.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 75.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(align, [str(temp_repo), "--interactive"])
 
@@ -208,14 +210,12 @@ class TestAlignCommand:
         assert result.exit_code != 0
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
     def test_align_with_fixes_available(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
+        self, mock_fixer, mock_scanner, runner, temp_repo
     ):
         """Test align command when fixes are available."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 65.0
@@ -227,53 +227,72 @@ class TestAlignCommand:
         mock_fix.attribute_id = "test_attribute"
         mock_fix.description = "Test fix"
         mock_fix.files_modified = ["test.py"]
-        mock_fixer.return_value.generate_fixes.return_value = [mock_fix]
+        mock_fix.preview.return_value = "Preview of fix"
+        mock_fix.points_gained = 5.0
 
-        result = runner.invoke(align, [str(temp_repo)])
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = [mock_fix]
+        mock_fix_plan.projected_score = 70.0
+        mock_fix_plan.points_gained = 5.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        # Mock apply_fixes to return success
+        mock_fixer.return_value.apply_fixes.return_value = {
+            "succeeded": 1,
+            "failed": 0,
+            "failures": [],
+        }
+
+        # Provide "y" input to confirm applying fixes
+        result = runner.invoke(align, [str(temp_repo)], input="y\n")
 
         # Should succeed and show fixes
         assert result.exit_code == 0
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
     def test_align_shows_score_improvement(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
+        self, mock_fixer, mock_scanner, runner, temp_repo
     ):
         """Test align command shows score improvement."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         # First assessment (lower score)
         mock_assessment1 = MagicMock()
         mock_assessment1.overall_score = 65.0
         mock_assessment1.findings = [MagicMock()]
+        mock_scanner.return_value.scan.return_value = mock_assessment1
 
-        # Second assessment (higher score after fixes)
-        mock_assessment2 = MagicMock()
-        mock_assessment2.overall_score = 85.0
-        mock_assessment2.findings = []
-
-        mock_scanner.return_value.scan.side_effect = [
-            mock_assessment1,
-            mock_assessment2,
-        ]
-
+        # Mock fix plan with fixes available
         mock_fix = MagicMock()
-        mock_fixer.return_value.generate_fixes.return_value = [mock_fix]
-        mock_fixer.return_value.apply_fix.return_value = True
+        mock_fix.attribute_id = "test_attribute"
+        mock_fix.description = "Test fix"
+        mock_fix.preview.return_value = "Preview of fix"
+        mock_fix.points_gained = 20.0
 
-        result = runner.invoke(align, [str(temp_repo)])
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = [mock_fix]
+        mock_fix_plan.projected_score = 85.0
+        mock_fix_plan.points_gained = 20.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        # Mock apply_fixes to return success
+        mock_fixer.return_value.apply_fixes.return_value = {
+            "succeeded": 1,
+            "failed": 0,
+            "failures": [],
+        }
+
+        # Provide "y" input to confirm applying fixes
+        result = runner.invoke(align, [str(temp_repo)], input="y\n")
 
         # Should succeed
         assert result.exit_code == 0
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
-    def test_align_scanner_error(self, mock_detector, mock_scanner, runner, temp_repo):
+    def test_align_scanner_error(self, mock_scanner, runner, temp_repo):
         """Test align command when scanner raises error."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
         mock_scanner.return_value.scan.side_effect = Exception("Scanner error")
 
         result = runner.invoke(align, [str(temp_repo)])
@@ -289,20 +308,19 @@ class TestAlignCommand:
 
             with (
                 patch("agentready.cli.align.Scanner") as mock_scanner,
-                patch("agentready.cli.align.LanguageDetector") as mock_detector,
                 patch("agentready.cli.align.FixerService") as mock_fixer,
             ):
-
-                mock_detector.return_value.detect_languages.return_value = {
-                    "Python": 100
-                }
 
                 mock_assessment = MagicMock()
                 mock_assessment.overall_score = 75.0
                 mock_assessment.findings = []
                 mock_scanner.return_value.scan.return_value = mock_assessment
 
-                mock_fixer.return_value.generate_fixes.return_value = []
+                mock_fix_plan = MagicMock()
+                mock_fix_plan.fixes = []
+                mock_fix_plan.projected_score = 75.0
+                mock_fix_plan.points_gained = 0.0
+                mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
                 result = runner.invoke(align, [])
 
@@ -317,21 +335,21 @@ class TestAlignCommandEdgeCases:
     """Test edge cases in align command."""
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
-    def test_align_perfect_score(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
-    ):
+    def test_align_perfect_score(self, mock_fixer, mock_scanner, runner, temp_repo):
         """Test align command when repository already has perfect score."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 100.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 100.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(align, [str(temp_repo)])
 
@@ -340,21 +358,21 @@ class TestAlignCommandEdgeCases:
         assert "Platinum" in result.output
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
-    def test_align_zero_score(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
-    ):
+    def test_align_zero_score(self, mock_fixer, mock_scanner, runner, temp_repo):
         """Test align command when repository has zero score."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 0.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 0.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(align, [str(temp_repo)])
 
@@ -363,21 +381,23 @@ class TestAlignCommandEdgeCases:
         assert "Needs Improvement" in result.output
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
     def test_align_no_languages_detected(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
+        self, mock_fixer, mock_scanner, runner, temp_repo
     ):
         """Test align command when no languages are detected."""
-        # Setup mocks - empty languages dict
-        mock_detector.return_value.detect_languages.return_value = {}
+        # Setup mocks
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 50.0
         mock_assessment.findings = []
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        mock_fixer.return_value.generate_fixes.return_value = []
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 50.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(align, [str(temp_repo)])
 
@@ -385,14 +405,12 @@ class TestAlignCommandEdgeCases:
         assert result.exit_code == 0
 
     @patch("agentready.cli.align.Scanner")
-    @patch("agentready.cli.align.LanguageDetector")
     @patch("agentready.cli.align.FixerService")
     def test_align_fixer_service_error(
-        self, mock_fixer, mock_detector, mock_scanner, runner, temp_repo
+        self, mock_fixer, mock_scanner, runner, temp_repo
     ):
         """Test align command when fixer service raises error."""
         # Setup mocks
-        mock_detector.return_value.detect_languages.return_value = {"Python": 100}
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 65.0

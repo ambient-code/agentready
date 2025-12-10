@@ -2,7 +2,7 @@
 
 **Purpose**: Assess repositories against agent-ready best practices and generate actionable reports.
 
-**Last Updated**: 2025-12-05
+**Last Updated**: 2025-12-09
 
 ---
 
@@ -10,7 +10,7 @@
 
 AgentReady is a Python CLI tool that evaluates repositories against a comprehensive set of carefully researched attributes that make codebases more effective for AI-assisted development. It generates interactive HTML reports, version-control friendly Markdown reports, and machine-readable JSON output.
 
-**Current Status**: v2.14.1 - Core assessment engine complete, most essential assessors implemented, LLM-powered learning, research report management
+**Current Status**: v2.15.0 - Core assessment engine complete, most essential assessors implemented, LLM-powered learning, research report management
 
 **Self-Assessment Score**: 80.0/100 (Gold) - See `examples/self-assessment/`
 
@@ -189,6 +189,133 @@ class MyAssessor(BaseAssessor):
 - Simple: `CLAUDEmdAssessor` (file existence check)
 - Complex: `TypeAnnotationsAssessor` (proportional scoring)
 - Language-aware: `TestCoverageAssessor` (conditional logic)
+
+---
+
+## Terminal-Bench Eval Harness
+
+**Purpose**: Empirically measure the impact of AgentReady assessors on Terminal-Bench performance through systematic A/B testing.
+
+### Overview
+
+The eval harness tests each assessor independently to measure its specific impact on agentic development benchmarks. This provides evidence-based validation of AgentReady's recommendations.
+
+**Architecture**:
+1. **Baseline**: Run Terminal-Bench on unmodified repository (5 iterations)
+2. **Per-Assessor Test**: Apply single assessor remediation → measure delta
+3. **Aggregate**: Rank assessors by impact, calculate tier statistics
+4. **Dashboard**: Generate interactive visualization for GitHub Pages
+
+**Components**:
+- `src/agentready/services/eval_harness/` - Core services (TbenchRunner, BaselineEstablisher, AssessorTester, ResultsAggregator, DashboardGenerator)
+- `src/agentready/models/eval_harness.py` - Data models (TbenchResult, BaselineMetrics, AssessorImpact, EvalSummary)
+- `src/agentready/cli/eval_harness.py` - CLI commands (baseline, test-assessor, run-tier, summarize, dashboard)
+- `docs/tbench.md` - Interactive dashboard with Chart.js
+- `docs/tbench/methodology.md` - Detailed statistical methodology
+
+### Running Evaluations
+
+```bash
+# 1. Establish baseline (run Terminal-Bench 5 times on unmodified repo)
+agentready eval-harness baseline --repo . --iterations 5
+
+# 2. Test single assessor
+agentready eval-harness test-assessor \
+  --assessor-id claude_md_file \
+  --iterations 5
+
+# 3. Test all Tier 1 assessors
+agentready eval-harness run-tier --tier 1 --iterations 5
+
+# 4. Aggregate results (rank by impact, calculate statistics)
+agentready eval-harness summarize --verbose
+
+# 5. Generate dashboard data files for GitHub Pages
+agentready eval-harness dashboard --verbose
+```
+
+### File Structure
+
+```
+.agentready/eval_harness/          # Results storage (gitignored)
+├── baseline/
+│   ├── run_001.json              # Individual tbench runs
+│   ├── run_002.json
+│   ├── ...
+│   └── summary.json              # BaselineMetrics
+├── assessors/
+│   ├── claude_md_file/
+│   │   ├── finding.json          # Assessment result
+│   │   ├── fixes_applied.log     # Remediation log
+│   │   ├── run_001.json          # Post-remediation runs
+│   │   ├── ...
+│   │   └── impact.json           # AssessorImpact metrics
+│   └── ...
+└── summary.json                   # EvalSummary (ranked impacts)
+
+docs/_data/tbench/                 # Dashboard data (committed)
+├── summary.json
+├── ranked_assessors.json
+├── tier_impacts.json
+├── baseline.json
+└── stats.json
+```
+
+### Statistical Methods
+
+**Significance Criteria** (both required):
+- **P-value < 0.05**: 95% confidence (two-sample t-test)
+- **|Cohen's d| > 0.2**: Meaningful effect size
+
+**Effect Size Interpretation**:
+- **0.2 ≤ |d| < 0.5**: Small effect
+- **0.5 ≤ |d| < 0.8**: Medium effect
+- **|d| ≥ 0.8**: Large effect
+
+### Current Status
+
+**Phase 1 (MVP)**: Mocked Terminal-Bench integration ✅
+- All core services implemented and tested
+- CLI commands functional
+- Dashboard with Chart.js visualizations
+- 6 CLI unit tests + 5 integration tests passing
+
+**Phase 2 (Planned)**: Real Terminal-Bench integration
+- Harbor framework client
+- Actual benchmark submissions
+- Leaderboard integration
+
+### Testing
+
+```bash
+# Run eval harness tests
+pytest tests/unit/test_eval_harness*.py -v
+pytest tests/integration/test_eval_harness_e2e.py -v
+```
+
+**Test Coverage**:
+- Models: 90-95%
+- Services: 85-90%
+- CLI: 100% (help commands validated)
+- Integration: End-to-end workflow tested
+
+### Troubleshooting
+
+**Issue**: `FileNotFoundError: Baseline directory not found`
+**Solution**: Run `agentready eval-harness baseline` first
+
+**Issue**: `No assessor results found`
+**Solution**: Run `agentready eval-harness test-assessor` or `run-tier` first
+
+**Issue**: Mocked scores seem unrealistic
+**Solution**: This is expected in Phase 1 (mocked mode) - real integration coming in Phase 2
+
+### Documentation
+
+- **User Guide**: `docs/eval-harness-guide.md` - Step-by-step tutorials
+- **Methodology**: `docs/tbench/methodology.md` - Statistical methods explained
+- **Dashboard**: `docs/tbench.md` - Interactive results visualization
+- **Plan**: `.claude/plans/quirky-squishing-plum.md` - Implementation roadmap
 
 ---
 
@@ -390,6 +517,6 @@ Use the @agent-github-pages-docs to [action] based on:
 
 ---
 
-**Last Updated**: 2025-12-05 by Jeremy Eder
-**AgentReady Version**: 2.14.1
+**Last Updated**: 2025-12-09 by Jeremy Eder
+**AgentReady Version**: 2.15.0
 **Self-Assessment**: 80.0/100 (Gold) ✨

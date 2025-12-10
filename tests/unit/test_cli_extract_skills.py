@@ -25,13 +25,36 @@ def temp_repo():
         agentready_dir = repo_path / ".agentready"
         agentready_dir.mkdir()
 
-        # Create sample assessment using shared fixture
+        # Create sample assessment with known skill IDs that PatternExtractor recognizes
+        from tests.fixtures.assessment_fixtures import create_test_finding_json
+
+        findings = [
+            create_test_finding_json(
+                attribute_id="claude_md_file",
+                attribute_name="CLAUDE.md File",
+                status="pass",
+                score=95.0,
+                category="Documentation",
+                tier=1,
+            ),
+            create_test_finding_json(
+                attribute_id="type_annotations",
+                attribute_name="Type Annotations",
+                status="pass",
+                score=90.0,
+                category="Code Quality",
+                tier=2,
+            ),
+        ]
+
         assessment_data = create_test_assessment_json(
             overall_score=85.0,
             num_findings=2,
             repo_path=str(repo_path),
             repo_name="test-repo",
         )
+        # Replace generic findings with skill-specific ones
+        assessment_data["findings"] = findings
 
         assessment_file = agentready_dir / "assessment-latest.json"
         with open(assessment_file, "w") as f:
