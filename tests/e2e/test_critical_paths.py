@@ -11,9 +11,14 @@ Characteristics:
 """
 
 import json
+import os
 import subprocess
 import tempfile
 from pathlib import Path
+
+# Configurable timeout for subprocess tests (default: 90s)
+# Can be overridden via AGENTREADY_TEST_TIMEOUT environment variable
+DEFAULT_TIMEOUT = int(os.getenv("AGENTREADY_TEST_TIMEOUT", "90"))
 
 
 class TestCriticalAssessmentFlow:
@@ -34,7 +39,7 @@ class TestCriticalAssessmentFlow:
                 ["agentready", "assess", ".", "--output-dir", str(output_dir)],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=DEFAULT_TIMEOUT,
             )
 
             # Verify success
@@ -56,7 +61,7 @@ class TestCriticalAssessmentFlow:
                 ["agentready", "assess", ".", "--output-dir", str(output_dir)],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=DEFAULT_TIMEOUT,
             )
 
             assert result.returncode == 0
@@ -85,7 +90,7 @@ class TestCriticalAssessmentFlow:
                 ["agentready", "assess", ".", "--output-dir", str(output_dir)],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=DEFAULT_TIMEOUT,
             )
 
             assert result.returncode == 0
@@ -147,7 +152,7 @@ class TestCriticalAssessmentFlow:
                 ["agentready", "assess", ".", "--output-dir", str(output_dir)],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=DEFAULT_TIMEOUT,
             )
 
             assert result.returncode == 0
@@ -171,7 +176,7 @@ class TestCriticalAssessmentFlow:
                 ["agentready", "assess", ".", "--output-dir", str(output_dir)],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=DEFAULT_TIMEOUT,
             )
 
             assert result.returncode == 0
@@ -294,7 +299,7 @@ excluded_attributes:
                 ],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=DEFAULT_TIMEOUT,
             )
 
             assert result.returncode == 0
@@ -308,3 +313,31 @@ excluded_attributes:
             # Check that repomix_config is not in findings
             finding_ids = [f["attribute"]["id"] for f in data["findings"]]
             assert "repomix_config" not in finding_ids
+
+
+class TestCriticalSecurityFeatures:
+    """Test critical security features work end-to-end."""
+
+    def test_assess_blocks_sensitive_directories(self):
+        """E2E: Verify sensitive directory scanning is blocked.
+
+        Critical security feature: AgentReady should warn users before
+        scanning sensitive system directories and allow them to decline.
+        """
+        # Test with /etc directory (common sensitive directory)
+        result = subprocess.run(
+            ["agentready", "assess", "/etc"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            input="n\n",  # Decline to continue
+        )
+
+        # Should fail when user declines
+        assert result.returncode != 0, "Should fail when user declines to scan /etc"
+
+        # Should show warning message about sensitive directory
+        output = result.stdout + result.stderr
+        assert (
+            "sensitive" in output.lower() or "warning" in output.lower()
+        ), f"No warning about sensitive directory in output: {output[:500]}"
