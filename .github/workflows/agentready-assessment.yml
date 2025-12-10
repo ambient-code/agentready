@@ -1,22 +1,146 @@
-name: AgentReady Assessment
+name: AgentReady Assessment (On-Demand)
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main, master]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
   workflow_dispatch:
 
 jobs:
+  unauthorized:
+    # Respond to unauthorized users with helpful message
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login != 'jeremyeder') ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login != 'jeremyeder')
+
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Post unauthorized message
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const user = context.payload.comment.user.login;
+            const body = `👋 Hi @${user}! Thanks for your interest in AgentReady.\n\n` +
+                         `The \`/agentready assess\` command is currently restricted to repository maintainers.\n\n` +
+                         `**To assess your own repository:**\n` +
+                         `\`\`\`bash\n` +
+                         `pip install agentready\n` +
+                         `agentready assess .\n` +
+                         `\`\`\`\n\n` +
+                         `See [AgentReady documentation](https://github.com/ambient-code/agentready) for more information.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
   assess:
+    # Only run on /agentready assess command (from @jeremyeder only) or manual trigger
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login == 'jeremyeder') ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login == 'jeremyeder') ||
+      github.event_name == 'workflow_dispatch'
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+      issues: write
 
     steps:
-      - name: Checkout code
+      - name: Parse command and extract repository URL
+        id: parse
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body || '' }}
+        run: |
+          # SAFE: Using environment variable to avoid command injection
+          # Extract repository URL (case-insensitive)
+          REPO_URL=$(echo "$COMMENT_BODY" | grep -ioP '/agentready\s+assess\s+\Khttps://github\.com/[^\s]+' || echo "")
+
+          # Default to current repo if no URL
+          if [ -z "$REPO_URL" ]; then
+            REPO_URL="https://github.com/${{ github.repository }}"
+            ASSESS_CURRENT_REPO="true"
+            echo "::notice::No repository URL provided, assessing current repository"
+          else
+            ASSESS_CURRENT_REPO="false"
+            echo "::notice::Assessing external repository: $REPO_URL"
+          fi
+
+          # Clean URL and extract org/repo
+          REPO_URL=$(echo "$REPO_URL" | sed 's|\.git$||')
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||')
+
+          echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
+          echo "org_repo=$ORG_REPO" >> $GITHUB_OUTPUT
+          echo "assess_current=$ASSESS_CURRENT_REPO" >> $GITHUB_OUTPUT
+
+      - name: Validate repository URL and access
+        id: validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_URL: ${{ steps.parse.outputs.repo_url }}
+          ORG_REPO: ${{ steps.parse.outputs.org_repo }}
+          ASSESS_CURRENT: ${{ steps.parse.outputs.assess_current }}
+        run: |
+          # Skip validation for current repo
+          if [ "$ASSESS_CURRENT" == "true" ]; then
+            echo "✅ Assessing current repository (validation skipped)"
+            echo "is_valid=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Validate URL format
+          if ! echo "$REPO_URL" | grep -qE '^https://github\.com/[a-zA-Z0-9_-]+/[a-zA-Z0-9._-]+$'; then
+            echo "::error::Invalid repository URL format: $REPO_URL"
+            echo "is_valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Verify repository is public
+          if ! gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate' > /tmp/is_private.txt 2>&1; then
+            echo "::error::Repository not found: $ORG_REPO"
+            echo "is_valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          IS_PRIVATE=$(cat /tmp/is_private.txt)
+          if [ "$IS_PRIVATE" == "true" ]; then
+            echo "::error::Repository $ORG_REPO is private. Only public repos allowed."
+            echo "is_valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "✅ Repository $ORG_REPO is public and accessible"
+          echo "is_valid=true" >> $GITHUB_OUTPUT
+
+      - name: Checkout current repository
+        if: steps.parse.outputs.assess_current == 'true'
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - name: Clone external repository
+        if: steps.parse.outputs.assess_current == 'false' && steps.validate.outputs.is_valid == 'true'
+        env:
+          REPO_URL: ${{ steps.parse.outputs.repo_url }}
+        run: |
+          echo "Cloning $REPO_URL..."
+          git clone "$REPO_URL" /tmp/repo-to-assess
+
+          if [ ! -d "/tmp/repo-to-assess/.git" ]; then
+            echo "::error::Failed to clone repository"
+            exit 1
+          fi
+
+          echo "✅ Repository cloned successfully"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,40 +148,153 @@ jobs:
           python-version: '3.12'
 
       - name: Install AgentReady
-        run: |
-          pip install -e .
+        run: pip install -e .
 
       - name: Run AgentReady Assessment
+        id: assessment
+        env:
+          ASSESS_CURRENT: ${{ steps.parse.outputs.assess_current }}
         run: |
-          agentready assess . --verbose
+          # Set paths based on mode
+          if [ "$ASSESS_CURRENT" == "true" ]; then
+            REPO_PATH="."
+            OUTPUT_DIR=".agentready"
+          else
+            REPO_PATH="/tmp/repo-to-assess"
+            OUTPUT_DIR="/tmp/assessment-output"
+            mkdir -p "$OUTPUT_DIR"
+          fi
+
+          echo "Assessing: $REPO_PATH"
+          agentready assess "$REPO_PATH" --verbose --output-dir "$OUTPUT_DIR"
+
+          # Verify report generated
+          if [ ! -f "$OUTPUT_DIR/report-latest.md" ]; then
+            echo "::error::Assessment failed - no report"
+            exit 1
+          fi
+
+          echo "output_dir=$OUTPUT_DIR" >> $GITHUB_OUTPUT
+
+      - name: Extract assessment summary
+        if: steps.assessment.outcome == 'success'
+        id: summary
+        env:
+          OUTPUT_DIR: ${{ steps.assessment.outputs.output_dir }}
+        run: |
+          # Extract key metrics from JSON
+          SCORE=$(jq -r '.overall_score' "$OUTPUT_DIR/assessment-latest.json")
+          CERT_LEVEL=$(jq -r '.certification_level' "$OUTPUT_DIR/assessment-latest.json")
+
+          # Extract top 5 failing attributes sorted by tier (tier 1 = highest impact)
+          # Format: tier,name for sorting, then extract just names
+          FAILING=$(jq -r '.findings[] | select(.status == "fail") | "\(.attribute.tier),\(.attribute.name)"' "$OUTPUT_DIR/assessment-latest.json" | \
+                    sort -n | \
+                    cut -d',' -f2 | \
+                    head -5 | \
+                    paste -sd "," -)
+
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "cert_level=$CERT_LEVEL" >> $GITHUB_OUTPUT
+          echo "failing=$FAILING" >> $GITHUB_OUTPUT
 
       - name: Upload Assessment Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: agentready-reports
-          path: .agentready/
+          name: agentready-reports-${{ github.run_id }}
+          path: ${{ steps.assessment.outputs.output_dir }}
           retention-days: 30
 
-      - name: Comment on PR
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      - name: Post assessment results
+        if: always()
         uses: actions/github-script@v7
+        env:
+          OUTPUT_DIR: ${{ steps.assessment.outputs.output_dir }}
+          REPO_URL: ${{ steps.parse.outputs.repo_url }}
+          ORG_REPO: ${{ steps.parse.outputs.org_repo }}
+          ASSESS_CURRENT: ${{ steps.parse.outputs.assess_current }}
+          VALIDATION_FAILED: ${{ steps.validate.outputs.is_valid == 'false' }}
+          ASSESSMENT_FAILED: ${{ steps.assessment.outcome == 'failure' }}
+          SCORE: ${{ steps.summary.outputs.score }}
+          CERT_LEVEL: ${{ steps.summary.outputs.cert_level }}
+          FAILING: ${{ steps.summary.outputs.failing }}
         with:
           script: |
             const fs = require('fs');
-            const reportPath = '.agentready/report-latest.md';
+            let body;
 
-            if (!fs.existsSync(reportPath)) {
-              console.log('No report found');
-              return;
+            const validationFailed = process.env.VALIDATION_FAILED === 'true';
+            const assessmentFailed = process.env.ASSESSMENT_FAILED === 'true';
+            const orgRepo = process.env.ORG_REPO;
+            const outputDir = process.env.OUTPUT_DIR;
+            const assessCurrent = process.env.ASSESS_CURRENT === 'true';
+            const repoUrl = process.env.REPO_URL;
+            const score = process.env.SCORE;
+            const certLevel = process.env.CERT_LEVEL;
+            const failing = process.env.FAILING;
+
+            // Validation failure
+            if (validationFailed) {
+              body = `## ❌ AgentReady Assessment Failed\n\n` +
+                     `Could not assess **${orgRepo}**\n\n` +
+                     `**Possible reasons:**\n` +
+                     `- Repository does not exist\n` +
+                     `- Repository is private (only public repos)\n` +
+                     `- Invalid URL format\n\n` +
+                     `**Expected:** \`/agentready assess https://github.com/owner/repo\``;
+            }
+            // Assessment failure
+            else if (assessmentFailed) {
+              body = `## ❌ AgentReady Assessment Failed\n\n` +
+                     `Assessment of **${orgRepo}** failed.\n\n` +
+                     `[View logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            }
+            // Success - Structured format with summary and collapsed details
+            else {
+              const reportPath = `${outputDir}/report-latest.md`;
+              const report = fs.readFileSync(reportPath, 'utf8');
+              const repoContext = assessCurrent ? '(Current Repository)' : `([${orgRepo}](${repoUrl}))`;
+
+              // Certificate emoji
+              const certEmoji = {
+                'Platinum': '🏆',
+                'Gold': '🥇',
+                'Silver': '🥈',
+                'Bronze': '🥉',
+                'Needs Improvement': '📋'
+              }[certLevel] || '📊';
+
+              // Build summary section
+              let summary = `## ${certEmoji} AgentReady Assessment ${repoContext}\n\n`;
+              summary += `**Score:** ${score}/100 | **Level:** ${certLevel}\n\n`;
+
+              // Next steps - top 5 by impact
+              summary += `### 🎯 Next Steps (by impact)\n\n`;
+              if (failing && failing.length > 0) {
+                const failingList = failing.split(',').map((f, i) => `${i + 1}. Fix: ${f}`).join('\n');
+                summary += `${failingList}\n\n`;
+              } else {
+                summary += `✅ All critical attributes passing! Consider improving optional attributes.\n\n`;
+              }
+
+              // Links section
+              const artifactUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              summary += `📦 [Download Full Reports](${artifactUrl}) • `;
+              summary += `🔗 [View Workflow](${artifactUrl})\n\n`;
+
+              // Collapsed verbose output
+              summary += `<details>\n<summary>📄 Full Assessment Report (click to expand)</summary>\n\n`;
+              summary += `${report}\n\n`;
+              summary += `</details>`;
+
+              body = summary;
             }
 
-            const report = fs.readFileSync(reportPath, 'utf8');
-
-            // Post comment with assessment results
+            // Post comment
             await github.rest.issues.createComment({
-              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: report
+              issue_number: context.issue.number,
+              body: body
             });
