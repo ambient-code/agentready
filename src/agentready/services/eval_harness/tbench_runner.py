@@ -119,10 +119,14 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
 
     # 3. Prepare environment variables
     # Pass through current environment but ensure API key is set
-    # Harbor's claude-code agent expects ANTHROPIC_AUTH_TOKEN (not ANTHROPIC_API_KEY)
+    # Harbor's claude-code agent has MiniMax API hardcoded - override it
     clean_env = os.environ.copy()
     clean_env["ANTHROPIC_API_KEY"] = config.api_key
     clean_env["ANTHROPIC_AUTH_TOKEN"] = config.api_key  # Harbor uses this
+    clean_env["ANTHROPIC_BASE_URL"] = "https://api.anthropic.com"  # Override MiniMax
+    clean_env["ANTHROPIC_API_BASE"] = "https://api.anthropic.com"  # Alternative var
+    # Clear MiniMax settings if present
+    clean_env.pop("MINIMAX_API_KEY", None)
 
     # 4. Execute subprocess with timeout
     try:
