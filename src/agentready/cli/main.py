@@ -31,7 +31,7 @@ from .research import research
 from .schema import migrate_report, validate_report
 
 # Heavy commands - lazy loaded via LazyGroup
-# (assess_batch, experiment, extract_skills, learn, submit)
+# (assess_batch, experiment, extract_skills, harbor, learn, submit)
 
 
 def get_agentready_version() -> str:
@@ -91,6 +91,7 @@ class LazyGroup(click.Group):
         "assess-batch": ("assess_batch", "assess_batch"),
         "experiment": ("experiment", "experiment"),
         "extract-skills": ("extract_skills", "extract_skills"),
+        "harbor": ("harbor", "harbor_cli"),
         "learn": ("learn", "learn"),
         "submit": ("submit", "submit"),
     },
