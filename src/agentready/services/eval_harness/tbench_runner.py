@@ -6,12 +6,16 @@ via the Harbor framework subprocess interface.
 """
 
 import json
+import logging
 import os
+import shlex
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 from agentready.services.eval_harness.harbor_config import HarborConfig
+
+logger = logging.getLogger(__name__)
 
 # Constants for Harbor subprocess configuration
 DEFAULT_TIMEOUT = 3600  # 1 hour timeout per benchmark
@@ -127,6 +131,43 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
     clean_env["ANTHROPIC_API_BASE"] = "https://api.anthropic.com"  # Alternative var
     # Clear MiniMax settings if present
     clean_env.pop("MINIMAX_API_KEY", None)
+
+    # Print Harbor command for debugging and manual execution
+    shell_cmd = " ".join(shlex.quote(arg) for arg in cmd)
+
+    # Prepare environment variable strings (truncate API key for security in display)
+    env_vars_display = [
+        f"ANTHROPIC_API_KEY={config.api_key[:20]}...",  # Truncated for display
+        f"ANTHROPIC_AUTH_TOKEN={config.api_key[:20]}...",
+        f"ANTHROPIC_BASE_URL={clean_env['ANTHROPIC_BASE_URL']}",
+        f"ANTHROPIC_API_BASE={clean_env['ANTHROPIC_API_BASE']}",
+    ]
+
+    # Full command for copy/paste (use $ANTHROPIC_API_KEY to avoid exposing key)
+    env_vars_copyable = [
+        "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY",
+        "ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_API_KEY",
+        f"ANTHROPIC_BASE_URL={clean_env['ANTHROPIC_BASE_URL']}",
+        f"ANTHROPIC_API_BASE={clean_env['ANTHROPIC_API_BASE']}",
+    ]
+    full_cmd_copyable = " ".join(env_vars_copyable) + " " + shell_cmd
+
+    print(f"\n{'=' * 70}")
+    print("Harbor Command (Copy/Paste Ready)")
+    print(f"{'=' * 70}")
+    print(f"\n{full_cmd_copyable}\n")
+    print(f"{'=' * 70}")
+    print("Command Breakdown:")
+    print(f"{'=' * 70}")
+    print(f"\nCommand: {shell_cmd}\n")
+    print("Environment Variables:")
+    for var in env_vars_display:
+        print(f"  {var}")
+    print(f"\n{'=' * 70}\n")
+
+    # Log full details
+    logger.info(f"Executing Harbor command: {shell_cmd}")
+    logger.info(f"Environment: {' '.join(env_vars_display)}")
 
     # 4. Execute subprocess with timeout
     try:
