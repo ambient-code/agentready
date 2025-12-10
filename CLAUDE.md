@@ -116,48 +116,19 @@ pytest tests/unit/test_models.py -v
 ### Code Quality
 
 ```bash
-# Format code
-black src/ tests/
-
-# Sort imports
-isort src/ tests/
-
-# Lint code
-ruff check src/ tests/
-
-# Run all linters (pre-push)
+# Pre-push linting workflow
 black src/ tests/ && isort src/ tests/ && ruff check src/ tests/
 ```
 
 ### Cold-Start Prompts Pattern
 
-**Purpose**: Enable context-free agent handoff for feature implementation.
+Enable context-free agent handoff by creating self-contained prompts in `plans/` (gitignored).
 
-**Structure**:
-- **Directory**: `plans/` (gitignored, never committed)
-- **Content**: Self-contained implementation prompts with complete context
-- **Usage**: Create GitHub issues or hand off work to future agents
+**Include**: Requirements, implementation approach, code patterns, test guidance, dependencies
 
-**What to Include**:
-- Requirements and acceptance criteria
-- Implementation approach and architectural decisions
-- Code patterns to follow (with file paths)
-- Test guidance and edge cases
-- Related files and dependencies
+**Workflow**: Planning → `plans/feature-name.md` → GitHub issue (copy prompt) → Future agent implements
 
-**Example Workflow**:
-1. During planning → Generate cold-start prompt in `plans/feature-name.md`
-2. Create GitHub issue → Copy prompt content as issue body
-3. Future agent → Reads issue, implements feature without conversation history
-4. Local reference → Prompt stays in `plans/` for quick lookup
-
-**Benefits**:
-- Enables asynchronous development across multiple sessions
-- Provides complete context without requiring chat history
-- Standardizes knowledge transfer between agents
-- Supports incremental feature development
-
-**Note**: Also see `coldstart-prompts/` directory for legacy prompts (being migrated to `plans/`).
+**Benefits**: Asynchronous development, complete context without chat history, standardized knowledge transfer
 
 ### Adding New Assessors
 
@@ -171,6 +142,7 @@ black src/ tests/ && isort src/ tests/ && ruff check src/ tests/
 5. **Register** in scanner's assessor list
 
 **Example**:
+
 ```python
 class MyAssessor(BaseAssessor):
     @property
@@ -186,6 +158,7 @@ class MyAssessor(BaseAssessor):
 ```
 
 **Reference Implementations**:
+
 - Simple: `CLAUDEmdAssessor` (file existence check)
 - Complex: `TypeAnnotationsAssessor` (proportional scoring)
 - Language-aware: `TestCoverageAssessor` (conditional logic)
@@ -217,15 +190,9 @@ agentready/
 
 ## Harbor Benchmark Comparison
 
-**Purpose**: Empirically measure Claude Code performance impact of `.claude/agents/doubleagent.md` using Harbor's Terminal-Bench.
+Empirically measure Claude Code performance impact of `.claude/agents/doubleagent.md` using Harbor's Terminal-Bench.
 
-### Overview
-
-The Harbor comparison feature automates A/B testing of agent file effectiveness by:
-1. Running Terminal-Bench tasks WITHOUT doubleagent.md (disabled)
-2. Running Terminal-Bench tasks WITH doubleagent.md (enabled)
-3. Calculating deltas and statistical significance
-4. Generating comprehensive reports (JSON, Markdown, HTML)
+The Harbor comparison feature automates A/B testing by running Terminal-Bench tasks with/without agent files, calculating deltas and statistical significance, and generating comprehensive reports (JSON, Markdown, HTML).
 
 ### Quick Start
 
@@ -260,64 +227,47 @@ Results stored in `.agentready/harbor_comparisons/` (gitignored):
 ### CLI Commands
 
 **Compare**:
+
 ```bash
 agentready harbor compare -t task1 -t task2 [--verbose] [--open-dashboard]
 ```
 
 **List comparisons**:
+
 ```bash
 agentready harbor list
 ```
 
 **View comparison**:
+
 ```bash
 agentready harbor view .agentready/harbor_comparisons/comparison_latest.json
 ```
 
 ### Architecture
 
-**Data Models** (`src/agentready/models/harbor.py`):
-- `HarborTaskResult` - Single task result from result.json
-- `HarborRunMetrics` - Aggregated metrics per run
-- `HarborComparison` - Complete comparison with deltas
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **Data Models** | `models/harbor.py` | HarborTaskResult, HarborRunMetrics, HarborComparison |
+| **Services** | `services/harbor/` | HarborRunner, AgentFileToggler, ResultParser, HarborComparer |
+| **Reporters** | `reporters/` | HarborMarkdownReporter, DashboardGenerator |
 
-**Services** (`src/agentready/services/harbor/`):
-- `HarborRunner` - Execute Harbor CLI via subprocess
-- `AgentFileToggler` - Safely enable/disable agent files
-- `ResultParser` - Parse Harbor result.json files
-- `HarborComparer` - Calculate deltas and statistical significance
-- `DashboardGenerator` - Generate HTML reports
+### Statistical Analysis
 
-**Reporters** (`src/agentready/reporters/`):
-- `HarborMarkdownReporter` - GitHub-Flavored Markdown
-- `DashboardGenerator` - Interactive HTML with Chart.js
-
-### Statistical Methods
-
-**Significance Criteria** (both required):
-- **P-value < 0.05**: 95% confidence (two-sample t-test)
-- **Cohen's d effect size**:
-  - Small: 0.2 ≤ |d| < 0.5
-  - Medium: 0.5 ≤ |d| < 0.8
-  - Large: |d| ≥ 0.8
-
-### Sample Sizes
-
-- **Minimum**: 3 tasks (for statistical tests)
-- **Recommended**: 5-10 tasks (reliable results)
-- **Comprehensive**: 20+ tasks (production validation)
+- **Significance**: P-value < 0.05 (t-test) AND Cohen's d effect size (Small: 0.2-0.5, Medium: 0.5-0.8, Large: ≥0.8)
+- **Sample Sizes**: Minimum 3 tasks, Recommended 5-10, Comprehensive 20+
 
 ### Documentation
 
 - **User Guide**: `docs/harbor-comparison-guide.md`
 - **Implementation Plan**: `.claude/plans/vivid-knitting-codd.md`
-- **Harbor Docs**: https://harborframework.com/docs
+- **Harbor Docs**: <https://harborframework.com/docs>
 
 ---
 
 ## Technologies
 
-- **Python 3.12+** (only N and N-1 versions supported)
+- **Python 3.11+** (only N and N-1 versions supported)
 - **Click** - CLI framework
 - **Jinja2** - HTML template engine
 - **Anthropic** - Claude API client (for LLM enrichment)
@@ -340,6 +290,7 @@ AgentReady validates dependencies before running benchmarks:
 - **Security**: Uses `safe_subprocess_run()` with 5-minute timeout
 
 **Implementation**:
+
 - Module: `src/agentready/utils/preflight.py`
 - Tests: `tests/unit/utils/test_preflight.py` (100% coverage)
 - Integration: `src/agentready/cli/benchmark.py`
@@ -390,6 +341,7 @@ chore: Update dependencies
 ## CI/CD
 
 **GitHub Actions**:
+
 - Run tests on PR
 - Run linters (black, isort, ruff)
 - Generate coverage report
@@ -411,12 +363,14 @@ chore: Update dependencies
 ## Roadmap
 
 ### v2.x - Current Development (In Progress)
+
 - **In Progress**: Expand remaining stub assessors
 - **In Progress**: Improve test coverage to >80%
 - **Planned**: Bootstrap command (automated remediation)
 - **Planned**: Align command (automated alignment)
 
 ### v3.0 - Enterprise Features (Future)
+
 - Customizable HTML themes with dark/light toggle
 - Organization-wide dashboards
 - Historical trend analysis
@@ -440,12 +394,14 @@ See `BACKLOG.md` for complete feature list.
 8. **Rich remediation**: Provide actionable steps, tools, commands, examples, citations
 
 **Key Principles**:
+
 - Library-first architecture (no global state)
 - Strategy pattern for assessors (each is independent)
 - Fail gracefully (missing tools → skip, don't crash)
 - User-focused (actionable remediation over theoretical guidance)
 
 **Command Reference**:
+
 - User tutorials → See `README.md`
 - CLI help → Run `agentready --help`
 - SWE-bench experiments → See `experiments/README.md`
@@ -455,54 +411,24 @@ See `BACKLOG.md` for complete feature list.
 
 **CRITICAL: Proactive Documentation Agent Usage**
 
-When working with documentation in this repository, **ALWAYS** use the `github-pages-docs` agent for any documentation updates, revisions, or additions. This ensures consistency, quality, and adherence to the established documentation structure.
+Use the `github-pages-docs` agent for documentation updates after:
 
-**Trigger the github-pages-docs agent when**:
+| Trigger | Action |
+|---------|--------|
+| New features implemented | Update user guide, developer guide, API reference, examples |
+| Source-of-truth files modified | Cascade updates: CLAUDE.md → developer-guide.md, attributes.md → attributes.md |
+| Bugs fixed or issues addressed | Update troubleshooting, known issues, migration guides |
+| Project status changes | Update certification levels, versions, roadmap, milestones |
 
-1. **After implementing new features** (e.g., Bootstrap, new assessors, new commands)
-   - Update user guide with new feature documentation
-   - Update developer guide with architecture changes
-   - Update API reference with new classes/methods
-   - Update examples with new use cases
+**Documentation Sources of Truth** (priority order):
 
-2. **After modifying source-of-truth files**:
-   - `CLAUDE.md` changes → Update developer-guide.md and user-guide.md
-   - `agent-ready-codebase-attributes.md` changes → Update attributes.md
-   - `README.md` changes → Sync with docs/index.md
-   - Bootstrap implementation changes → Update bootstrap documentation sections
+1. CLAUDE.md - Project guide
+2. agent-ready-codebase-attributes.md - Research report
+3. contracts/ - Schemas and validation
+4. specs/ - Feature specifications
+5. Source code - Actual implementation
 
-3. **When fixing bugs or addressing issues**:
-   - Update troubleshooting sections
-   - Update known issues documentation
-   - Update migration guides if breaking changes
-
-4. **When updating project status**:
-   - Certification level changes (e.g., Silver → Gold)
-   - Version bumps (v1.0 → v1.1)
-   - Roadmap updates
-   - New milestone achievements
-
-**Agent Invocation Pattern**:
-```
-Use the @agent-github-pages-docs to [action] based on:
-- [Source of truth file] updates
-- [Feature/bug/change] implementation
-- [Specific sections] that need updating
-```
-
-**Documentation Sources of Truth** (in priority order):
-1. `CLAUDE.md` - Complete project guide (architecture, development, workflows)
-2. `agent-ready-codebase-attributes.md` - Research report (25 attributes, tier system)
-3. `contracts/` - Schemas and contracts (data models, validation rules)
-4. `specs/` - Feature specifications (design documents, plans)
-5. `README.md` - User-facing overview
-6. Source code - Actual implementation (CLI, services, assessors)
-
-**Documentation Automation**:
-- Manual trigger: `.github/workflows/update-docs.yml` (workflow_dispatch)
-- Future: Automatic cascade updates on source file changes (see BACKLOG.md - P2 item)
-- Always review agent-generated docs before committing
-- Ensure Bootstrap documentation is kept prominent and up-to-date
+**Automation**: Manual trigger via `.github/workflows/update-docs.yml` (workflow_dispatch)
 
 ---
 
@@ -521,11 +447,3 @@ Use the @agent-github-pages-docs to [action] based on:
 **Last Updated**: 2025-12-10 by Jeremy Eder
 **AgentReady Version**: 2.19.0
 **Self-Assessment**: 80.0/100 (Gold) ✨
-
-## Active Technologies
-- Python 3.11+ (AgentReady standard, aligns with "N and N-1" policy) (002-harbor-real-integration)
-- File-based (Harbor outputs to `--jobs-dir`, JSON results parsed from filesystem) (002-harbor-real-integration)
-
-## Recent Changes
-- 002-harbor-real-integration: Added Python 3.11+ (AgentReady standard, aligns with "N and N-1" policy)
-- Build a generic interfaces first, then build consumers of that interface. This approach forces our interfaces to be more generic, pluggable and simple to extend.
