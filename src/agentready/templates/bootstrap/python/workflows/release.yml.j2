@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+{%- if enable_publishing %}
+  id-token: write  # Required for trusted publishing to PyPI
+{%- endif %}
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Install semantic-release
+        run: |
+          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/exec
+
+      - name: Get version before release
+        id: version_before
+        run: echo "version=$(grep '^version = ' pyproject.toml | cut -d'\"' -f2)" >> {% raw %}$GITHUB_OUTPUT{% endraw %}
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+        run: npx semantic-release
+
+      - name: Get version after release
+        id: version_after
+        run: echo "version=$(grep '^version = ' pyproject.toml | cut -d'\"' -f2)" >> {% raw %}$GITHUB_OUTPUT{% endraw %}
+
+      - name: Check if new release
+        id: check_release
+        run: |
+          if [ "{% raw %}${{ steps.version_before.outputs.version }}{% endraw %}" != "{% raw %}${{ steps.version_after.outputs.version }}{% endraw %}" ]; then
+            echo "new_release=true" >> {% raw %}$GITHUB_OUTPUT{% endraw %}
+            echo "version={% raw %}${{ steps.version_after.outputs.version }}{% endraw %}" >> {% raw %}$GITHUB_OUTPUT{% endraw %}
+          else
+            echo "new_release=false" >> {% raw %}$GITHUB_OUTPUT{% endraw %}
+          fi
+{%- if enable_publishing %}
+
+      - name: Set up Python
+        if: steps.check_release.outputs.new_release == 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        if: steps.check_release.outputs.new_release == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build package
+        if: steps.check_release.outputs.new_release == 'true'
+        run: |
+          python -m build
+          echo "📦 Built distribution files:"
+          ls -lh dist/
+
+      - name: Publish to Test PyPI
+        if: steps.check_release.outputs.new_release == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          attestations: false  # Disable to avoid conflict with production PyPI
+
+      - name: Publish to PyPI
+        if: steps.check_release.outputs.new_release == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true  # Enable attestations for production
+{%- endif %}
+
+    outputs:
+      new_release: {% raw %}${{ steps.check_release.outputs.new_release }}{% endraw %}
+      version: {% raw %}${{ steps.check_release.outputs.version }}{% endraw %}

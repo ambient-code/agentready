@@ -11,15 +11,25 @@ from .language_detector import LanguageDetector
 class BootstrapGenerator:
     """Generates GitHub infrastructure files for repository."""
 
-    def __init__(self, repo_path: Path, language: str = "auto"):
+    def __init__(
+        self,
+        repo_path: Path,
+        language: str = "auto",
+        enable_release: bool = False,
+        enable_publishing: bool = False,
+    ):
         """Initialize bootstrap generator.
 
         Args:
             repo_path: Path to repository
             language: Primary language or "auto" to detect
+            enable_release: Enable release automation workflow
+            enable_publishing: Enable package publishing (PyPI/npm)
         """
         self.repo_path = repo_path
         self.language = self._detect_language(language)
+        self.enable_release = enable_release
+        self.enable_publishing = enable_publishing
         self.env = Environment(
             loader=PackageLoader("agentready", "templates/bootstrap"),
             autoescape=select_autoescape(["html", "xml", "j2", "yaml", "yml"]),
@@ -43,7 +53,7 @@ class BootstrapGenerator:
         return max(languages, key=languages.get).lower()
 
     def generate_all(self, dry_run: bool = False) -> List[Path]:
-        """Generate all bootstrap files.
+        """Generate all bootstrap files including optional advanced features.
 
         Args:
             dry_run: If True, don't create files, just return paths
@@ -53,20 +63,18 @@ class BootstrapGenerator:
         """
         created_files = []
 
-        # GitHub Actions workflows
+        # Base infrastructure (always generated)
         created_files.extend(self._generate_workflows(dry_run))
-
-        # GitHub templates
         created_files.extend(self._generate_github_templates(dry_run))
-
-        # Pre-commit hooks
         created_files.extend(self._generate_precommit_config(dry_run))
-
-        # Dependabot
         created_files.extend(self._generate_dependabot(dry_run))
-
-        # Contributing guidelines
         created_files.extend(self._generate_docs(dry_run))
+
+        # Advanced features (opt-in)
+        if self.enable_release:
+            created_files.extend(self._generate_release_workflow(dry_run))
+            created_files.extend(self._generate_release_config(dry_run))
+            created_files.extend(self._generate_version_sync_scripts(dry_run))
 
         return created_files
 
@@ -176,6 +184,75 @@ class BootstrapGenerator:
             created.append(self._write_file(code_of_conduct, content, dry_run))
 
         return created
+
+    def _generate_release_workflow(self, dry_run: bool) -> List[Path]:
+        """Generate release automation workflow."""
+        workflows_dir = self.repo_path / ".github" / "workflows"
+        release_workflow = workflows_dir / "release.yml"
+
+        # Only Python templates implemented in MVP
+        if self.language != "python":
+            return []
+
+        template = self.env.get_template(f"{self.language}/workflows/release.yml.j2")
+        context = {
+            "enable_publishing": self.enable_publishing,
+            "project_name": self._detect_project_name(),
+        }
+        content = template.render(**context)
+
+        return [self._write_file(release_workflow, content, dry_run)]
+
+    def _generate_release_config(self, dry_run: bool) -> List[Path]:
+        """Generate .releaserc.json semantic-release configuration."""
+        release_config_file = self.repo_path / ".releaserc.json"
+
+        # Only Python templates implemented in MVP
+        if self.language != "python":
+            return []
+
+        template = self.env.get_template(f"{self.language}/releaserc.json.j2")
+        context = {
+            "enable_publishing": self.enable_publishing,
+            "has_claude_md": (self.repo_path / "CLAUDE.md").exists(),
+        }
+        content = template.render(**context)
+
+        return [self._write_file(release_config_file, content, dry_run)]
+
+    def _generate_version_sync_scripts(self, dry_run: bool) -> List[Path]:
+        """Generate version synchronization scripts."""
+        scripts_dir = self.repo_path / "scripts"
+
+        # Only Python templates implemented in MVP
+        if self.language != "python":
+            return []
+
+        sync_script = scripts_dir / "sync-version.sh"
+        template = self.env.get_template(f"{self.language}/sync-version.sh.j2")
+        context = {
+            "project_name": self._detect_project_name(),
+            "has_claude_md": (self.repo_path / "CLAUDE.md").exists(),
+        }
+        content = template.render(**context)
+
+        return [self._write_file(sync_script, content, dry_run)]
+
+    def _detect_project_name(self) -> str:
+        """Detect project name from repository structure."""
+        if self.language == "python":
+            # Try pyproject.toml
+            pyproject = self.repo_path / "pyproject.toml"
+            if pyproject.exists():
+                import re
+
+                content = pyproject.read_text()
+                match = re.search(r'name = "([^"]+)"', content)
+                if match:
+                    return match.group(1)
+
+        # Fallback to directory name
+        return self.repo_path.name
 
     def _write_file(self, path: Path, content: str, dry_run: bool) -> Path:
         """Write file to disk or simulate for dry run."""

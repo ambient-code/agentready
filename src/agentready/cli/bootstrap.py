@@ -21,7 +21,24 @@ from ..services.bootstrap import BootstrapGenerator
     default="auto",
     help="Primary language (default: auto-detect)",
 )
-def bootstrap(repository, dry_run, language):
+@click.option(
+    "--enable-release",
+    is_flag=True,
+    help="Enable automated release workflow with semantic versioning",
+)
+@click.option(
+    "--enable-publishing",
+    is_flag=True,
+    help="Enable package publishing (PyPI/npm/GitHub Releases)",
+)
+@click.option(
+    "--enable-all",
+    is_flag=True,
+    help="Enable all advanced features (release + publishing)",
+)
+def bootstrap(
+    repository, dry_run, language, enable_release, enable_publishing, enable_all
+):
     """Bootstrap repository with GitHub infrastructure and best practices.
 
     Creates:
@@ -31,7 +48,26 @@ def bootstrap(repository, dry_run, language):
     - Dependabot configuration
     - Contributing guidelines
 
+    Advanced features (opt-in):
+    - Release automation with semantic versioning (--enable-release)
+    - Package publishing to PyPI/npm (--enable-publishing)
+    - All advanced features (--enable-all)
+
     REPOSITORY: Path to git repository (default: current directory)
+
+    Examples:
+
+        \b
+        # Basic bootstrap
+        agentready bootstrap .
+
+        \b
+        # With release automation
+        agentready bootstrap . --enable-release
+
+        \b
+        # Full automation
+        agentready bootstrap . --enable-all
     """
     repo_path = Path(repository).resolve()
 
@@ -40,14 +76,29 @@ def bootstrap(repository, dry_run, language):
         click.echo("Error: Not a git repository", err=True)
         sys.exit(1)
 
+    # Handle --enable-all flag
+    if enable_all:
+        enable_release = True
+        enable_publishing = True
+
     click.echo("🤖 AgentReady Bootstrap")
     click.echo("=" * 50)
     click.echo(f"\nRepository: {repo_path}")
     click.echo(f"Language: {language}")
-    click.echo(f"Dry run: {dry_run}\n")
+    click.echo(f"Dry run: {dry_run}")
+    if enable_release:
+        click.echo("Release automation: ENABLED")
+    if enable_publishing:
+        click.echo("Package publishing: ENABLED")
+    click.echo()
 
     # Create generator
-    generator = BootstrapGenerator(repo_path, language)
+    generator = BootstrapGenerator(
+        repo_path,
+        language,
+        enable_release=enable_release,
+        enable_publishing=enable_publishing,
+    )
 
     # Generate all files
     try:

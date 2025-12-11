@@ -32,6 +32,7 @@ from .align import align
 from .benchmark import benchmark
 from .bootstrap import bootstrap
 from .demo import demo
+from .drift_check import drift_check
 from .repomix import repomix_generate
 from .research import research
 from .schema import migrate_report, validate_report
@@ -546,6 +547,7 @@ cli.add_command(align)
 cli.add_command(benchmark)
 cli.add_command(bootstrap)
 cli.add_command(demo)
+cli.add_command(drift_check)
 cli.add_command(migrate_report)
 cli.add_command(repomix_generate)
 cli.add_command(research)
