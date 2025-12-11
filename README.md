@@ -5,7 +5,26 @@
 
 Assess git repositories against evidence-based attributes for AI-assisted development readiness.
 
-> **📚 Research-Based Assessment**: AgentReady's attributes are derived from [comprehensive research](agent-ready-codebase-attributes.md) analyzing 50+ authoritative sources including **Anthropic**, **Microsoft**, **Google**, **ArXiv**, and **IEEE/ACM**. Each attribute is backed by peer-reviewed research and industry best practices. [View full research report →](agent-ready-codebase-attributes.md)
+> **📚 Research-Driven**: All attributes backed by [50+ peer-reviewed sources](#research-foundation) from Anthropic, Microsoft, Google, ArXiv, and IEEE/ACM.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+  - [Using uv (Recommended)](#using-uv-recommended)
+  - [Container](#container)
+  - [Python Package](#python-package)
+  - [Harbor CLI (for Benchmarks)](#harbor-cli-for-benchmarks)
+- [Example Output](#example-output)
+- [Research Foundation](#research-foundation)
+- [Tier-Based Scoring](#tier-based-scoring)
+- [Customization](#customization)
+- [CLI Reference](#cli-reference)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+- [GitHub Actions Workflows](#github-actions-workflows)
 
 ## Overview
 
@@ -19,28 +38,31 @@ AgentReady evaluates your repository across multiple dimensions of code quality,
 
 ## Quick Start
 
-### Container (Recommended)
+### Using uv (Recommended)
+
+Run AgentReady directly without installation:
 
 ```bash
-# Login to GitHub Container Registry (required for private image)
-podman login ghcr.io
+# Run once without installing
+uvx --from git+https://github.com/ambient-code/agentready agentready -- assess .
 
+# Install as reusable global tool
+uv tool install --from git+https://github.com/ambient-code/agentready agentready
+
+# Use after global install
+agentready assess .
+```
+
+### Container
+
+```bash
 # Pull container
 podman pull ghcr.io/ambient-code/agentready:latest
 
 # Create output directory
 mkdir -p ~/agentready-reports
 
-# Assess AgentReady itself
-git clone https://github.com/ambient-code/agentready /tmp/agentready
-podman run --rm \
-  -v /tmp/agentready:/repo:ro \
-  -v ~/agentready-reports:/reports \
-  ghcr.io/ambient-code/agentready:latest \
-  assess /repo --output-dir /reports
-
-# Assess your repository
-# For large repos, add -i flag to confirm the size warning
+# Assess a repository
 podman run --rm \
   -v /path/to/your/repo:/repo:ro \
   -v ~/agentready-reports:/reports \
@@ -56,38 +78,15 @@ open ~/agentready-reports/report-latest.html
 ### Python Package
 
 ```bash
-# Install
-pip install agentready
-
-# Assess AgentReady itself
-git clone https://github.com/ambient-code/agentready /tmp/agentready
-agentready assess /tmp/agentready
-
 # Create virtual environment
 python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
 # Install dependencies
-pip install -e ".[dev]"
-```
-### Run Directly via uv (Optional, No Install Required)
+uv pip install -e ".[dev]"
 
-If you use **uv**, you can run AgentReady directly from GitHub without cloning or installing:
-
-```bash
-uvx --from git+https://github.com/ambient-code/agentready agentready -- assess .
-```
-
-To install it as a reusable global tool:
-
-```bash
-uv tool install --from git+https://github.com/ambient-code/agentready agentready
-```
-
-After installing globally:
-
-```bash
-agentready assess .
+# Assess a repository
+agentready assess /path/to/repo
 ```
 
 ### Harbor CLI (for Benchmarks)
@@ -98,38 +97,16 @@ Harbor is required for running Terminal-Bench evaluations:
 # AgentReady will prompt to install automatically, or install manually:
 uv tool install harbor
 
-# Alternative: Use pip if uv is not available
-pip install harbor
-
 # Verify installation
 harbor --version
-```
 
-**Skip automatic checks**: If you prefer to skip the automatic Harbor check (for advanced users):
-
-```bash
+# Skip automatic checks (advanced users)
 agentready benchmark --skip-preflight --subset smoketest
 ```
 
-### Assessment Only
+## Example Output
 
-For one-time analysis without infrastructure changes:
-
-```bash
-# Assess current repository
-agentready assess .
-
-# Assess another repository
-agentready assess /path/to/your/repo
-
-# Specify custom configuration
-agentready assess /path/to/repo --config my-config.yaml
-
-# Custom output directory
-agentready assess /path/to/repo --output-dir ./reports
-```
-
-### Example Output
+**CLI Output:**
 
 ```
 Assessing repository: myproject
@@ -148,50 +125,50 @@ Reports generated:
   Markdown: .agentready/report-latest.md
 ```
 
-## Features
+**Interactive HTML Report:**
 
-### Evidence-Based Attributes
+See [examples/self-assessment/report-latest.html](examples/self-assessment/report-latest.html) for AgentReady's own assessment (80.0/100 Gold).
 
-Evaluated across 13 categories:
+## Research Foundation
 
-1. **Context Window Optimization**: CLAUDE.md files, concise docs, file size limits
-2. **Documentation Standards**: README structure, inline docs, ADRs
-3. **Code Quality**: Cyclomatic complexity, file length, type annotations, code smells
-4. **Repository Structure**: Standard layouts, separation of concerns
-5. **Testing & CI/CD**: Coverage, test naming, pre-commit hooks
-6. **Dependency Management**: Lock files, freshness, security
-7. **Git & Version Control**: Conventional commits, gitignore, templates
-8. **Build & Development**: One-command setup, dev docs, containers
-9. **Error Handling**: Clear messages, structured logging
-10. **API Documentation**: OpenAPI/Swagger specs
-11. **Modularity**: DRY principle, naming conventions
-12. **CI/CD Integration**: Pipeline visibility, branch protection
-13. **Security**: Scanning automation, secrets management
+All attributes are derived from comprehensive evidence-based research analyzing 50+ authoritative sources:
 
-### Tier-Based Scoring
+### Primary Sources
+
+- **Anthropic**
+  - [Claude Code Documentation](https://docs.anthropic.com/claude/docs)
+  - [Anthropic Engineering Blog](https://www.anthropic.com/research)
+
+- **Microsoft**
+  - [Code Metrics and Maintainability](https://learn.microsoft.com/en-us/visualstudio/code-quality/code-metrics-values)
+  - [Azure DevOps Best Practices](https://learn.microsoft.com/en-us/azure/devops/repos/git/git-branching-guidance)
+
+- **Google**
+  - [SRE Handbook](https://sre.google/sre-book/table-of-contents/)
+  - [Google Engineering Practices](https://google.github.io/eng-practices/)
+  - [Google Style Guides](https://google.github.io/styleguide/)
+
+- **Academic Research**
+  - [ArXiv Software Engineering Papers](https://arxiv.org/list/cs.SE/recent)
+  - [IEEE Transactions on Software Engineering](https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=32)
+  - [ACM Digital Library](https://dl.acm.org/)
+
+**Complete Research Report**: [agent-ready-codebase-attributes.md](agent-ready-codebase-attributes.md)
+
+## Tier-Based Scoring
 
 Attributes are weighted by importance:
 
-- **Tier 1 (Essential)**: 50% of total score - CLAUDE.md, README, types, layouts, lock files
-- **Tier 2 (Critical)**: 30% of total score - Tests, commits, build setup
-- **Tier 3 (Important)**: 15% of total score - Complexity, logging, API docs
+- **Tier 1 (Essential)**: 50% of total score - CLAUDE.md, README, type annotations, standard layouts, lock files
+- **Tier 2 (Critical)**: 30% of total score - Test coverage, conventional commits, build setup
+- **Tier 3 (Important)**: 15% of total score - Cyclomatic complexity, structured logging, API documentation
 - **Tier 4 (Advanced)**: 5% of total score - Security scanning, performance benchmarks
 
 Missing essential attributes (especially CLAUDE.md at 10% weight) has 10x the impact of missing advanced features.
 
-### Interactive HTML Reports
+## Customization
 
-- Filter by status (Pass/Fail/Skipped)
-- Sort by score, tier, or category
-- Search attributes by name
-- Collapsible sections with detailed evidence
-- Color-coded score indicators
-- Certification ladder visualization
-- Works offline (no CDN dependencies)
-
-### Customization
-
-Create `.agentready-config.yaml` to customize weights:
+Create `.agentready-config.yaml` to customize weights and exclusions:
 
 ```yaml
 weights:
@@ -208,26 +185,54 @@ output_dir: ./custom-reports
 
 ## CLI Reference
 
+### Core Commands
+
 ```bash
-# Assessment commands
+# Assess a repository
 agentready assess PATH                   # Assess repository at PATH
 agentready assess PATH --verbose         # Show detailed progress
 agentready assess PATH --config FILE     # Use custom configuration
 agentready assess PATH --output-dir DIR  # Custom report location
 
-# Configuration commands
+# Bootstrap repository with agent-ready improvements
+agentready bootstrap PATH                # Add CLAUDE.md, .gitignore, etc.
+agentready bootstrap PATH --dry-run      # Preview changes without applying
+
+# Align repository to best practices
+agentready align PATH                    # Auto-fix common issues
+agentready align PATH --attribute ID     # Fix specific attribute
+
+# Run benchmarks
+agentready benchmark --subset smoketest  # Quick validation (3 tasks)
+agentready benchmark --subset full       # Comprehensive evaluation (20+ tasks)
+agentready benchmark --skip-preflight    # Skip dependency checks
+
+# Continuous learning
+agentready learn PATH                    # Extract patterns and skills from repo
+agentready learn PATH --llm-enrich       # Use Claude API for enrichment
+```
+
+### Configuration Commands
+
+```bash
 agentready --validate-config FILE        # Validate configuration
 agentready --generate-config             # Create example config
+```
 
-# Research report management
+### Research Report Management
+
+```bash
 agentready research-version              # Show bundled research version
 agentready research validate FILE        # Validate research report
 agentready research init                 # Generate new research report
 agentready research add-attribute FILE   # Add attribute to report
 agentready research bump-version FILE    # Update version
 agentready research format FILE          # Format research report
+```
 
-# Utility commands
+### Utility Commands
+
+```bash
 agentready --version                     # Show tool version
 agentready --help                        # Show help message
 ```
@@ -241,39 +246,6 @@ AgentReady follows a library-first design:
 - **Services**: Scanner (orchestration), Scorer (calculation), LanguageDetector
 - **Reporters**: HTML and Markdown report generators
 - **CLI**: Thin wrapper orchestrating assessment workflow
-
-## Development
-
-### Run Tests
-
-```bash
-# Run all tests with coverage
-pytest
-
-# Run specific test suite
-pytest tests/unit/
-pytest tests/integration/
-pytest tests/contract/
-
-# Run with verbose output
-pytest -v -s
-```
-
-### Code Quality
-
-```bash
-# Format code
-black src/ tests/
-
-# Sort imports
-isort src/ tests/
-
-# Lint code
-flake8 src/ tests/ --ignore=E501
-
-# Run all checks
-black . && isort . && flake8 .
-```
 
 ### Project Structure
 
@@ -294,37 +266,60 @@ tests/
 └── fixtures/         # Test repositories
 ```
 
-## Research Foundation
+## Development
 
-All attributes are derived from evidence-based research with 50+ citations from:
+### Run Tests
 
-- Anthropic (Claude Code documentation, engineering blog)
-- Microsoft (Code metrics, Azure DevOps best practices)
-- Google (SRE handbook, style guides)
-- ArXiv (Software engineering research papers)
-- IEEE/ACM (Academic publications on code quality)
+```bash
+# Run all tests with coverage
+pytest
 
-See `src/agentready/data/agent-ready-codebase-attributes.md` for complete research report.
+# Run specific test suite
+pytest tests/unit/
+pytest tests/integration/
+pytest tests/contract/
 
-## License
-
-MIT License - see LICENSE file for details.
+# Run with verbose output
+pytest -v -s
+```
 
 ## Contributing
 
-Contributions welcome! Please ensure:
+Contributions welcome! Before submitting a PR:
 
-- All tests pass (`pytest`)
-- Code is formatted (`black`, `isort`)
-- Linting passes (`flake8`)
-- Test coverage >80%
+- [Run tests](https://docs.pytest.org/) with `pytest` (all must pass)
+- [Format code](https://black.readthedocs.io/) with `black src/ tests/`
+- [Sort imports](https://pycqa.github.io/isort/) with `isort src/ tests/`
+- [Lint code](https://flake8.pycqa.org/) with `flake8 src/ tests/ --ignore=E501`
+- Maintain test coverage >80%
 
-## Support
+**Support**:
+- Documentation: See [`/docs`](docs/) directory
+- Issues: [Report at GitHub Issues](https://github.com/ambient-code/agentready/issues)
+- Questions: [Open a discussion](https://github.com/ambient-code/agentready/discussions)
 
-- Documentation: See `/docs` directory
-- Issues: Report at GitHub Issues
-- Questions: Open a discussion on GitHub
+## License
 
----
+MIT License - see [LICENSE](LICENSE) file for details.
 
-**Quick Start**: `pip install -e ".[dev]" && agentready assess .` - Ready in <5 minutes!
+## GitHub Actions Workflows
+
+AgentReady uses 13 automated workflows organized by purpose:
+
+| Name | Description | Schedule/Triggers | Purpose |
+|------|-------------|-------------------|---------|
+| **ci.yml** | Tests + coverage + linting + platform checks | PR, push to main | Testing & Quality |
+| **security.yml** | CodeQL + Safety dependency scanning | Weekly, PR | Testing & Quality |
+| **docs.yml** | Link checking (markdown lint, spell-check) | PR (docs/**), weekly (Sundays 2am UTC) | Documentation |
+| **update-docs.yml** | Automated documentation updates via @agentready-dev | Manual trigger | Documentation |
+| **release.yml** | Semantic-release + PyPI + container publishing | Push to main | Release & Publishing |
+| **agentready-dev.yml** | Codebase agent automation via @mentions | @agentready-dev mentions | Agent Automation |
+| **pr-review-auto-fix.yml** | Automated PR code reviews | PR (code changes) | Agent Automation |
+| **agentready-assessment.yml** | On-demand repository assessment | `/agentready assess` command | AgentReady Features |
+| **leaderboard.yml** | Validate + update leaderboard submissions | PR (submissions/), push to main | AgentReady Features |
+| **continuous-learning.yml** | Weekly skill extraction with LLM | Weekly, release | AgentReady Features |
+| **research-update.yml** | Weekly research report updates | Weekly (Mondays 9am UTC) | AgentReady Features |
+| **stale-issues.yml** | Auto-close stale issues/PRs | Daily | Maintenance |
+| **dependabot-auto-merge.yml** | Auto-merge dependency updates (patch/minor) | Dependabot PRs | Maintenance |
+
+All workflows pass `actionlint` validation with zero errors.

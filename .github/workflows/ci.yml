@@ -1,0 +1,206 @@
+name: CI (Tests & Quality)
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  # Combined blocking tests and linting in one job to reduce CI runtime
+  blocking-checks:
+    name: Blocking Tests & Quality Checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      # Run code quality checks (only on one Python version to save time)
+      - name: Code Quality Checks
+        if: matrix.python-version == '3.13'
+        run: |
+          black --check .
+          isort --check .
+          ruff check .
+
+      # Run critical tests
+      - name: Run Critical Tests
+        run: |
+          pytest tests/e2e/test_critical_paths.py tests/unit/cli/test_main.py tests/unit/test_models.py \
+            -v --no-cov --tb=short
+        timeout-minutes: 5
+
+  # Non-blocking comprehensive tests
+  comprehensive-tests:
+    name: Full Test Suite (Non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail CI
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run all tests with coverage
+        run: |
+          pytest tests/unit/ --cov=src --cov-report=xml --cov-report=html --cov-report=term
+        continue-on-error: true
+        timeout-minutes: 20
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-report
+          path: htmlcov/
+          retention-days: 30
+
+  # Platform testing (simplified to single job)
+  platform-test:
+    name: macOS Compatibility
+    runs-on: macos-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install and test
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pytest tests/e2e/test_critical_paths.py tests/unit/cli/test_main.py \
+            -v --no-cov --tb=short || echo "Tests failed but continuing"
+        timeout-minutes: 10
+
+  # Coverage reporting (PR only)
+  coverage-report:
+    name: Coverage Report
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/unit/ --cov=src/agentready --cov-report=xml --cov-report=term
+        continue-on-error: true
+
+      - name: Get coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(root.attrib['line-rate'])")
+          COVERAGE_PCT=$(python -c "print(f'{float(\"$COVERAGE\") * 100:.1f}')")
+          echo "coverage_pct=$COVERAGE_PCT" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout main branch for comparison
+        run: |
+          git fetch origin main
+          git checkout origin/main
+
+      - name: Run tests on main branch
+        run: |
+          pytest tests/unit/ --cov=src/agentready --cov-report=xml --cov-report=term
+        continue-on-error: true
+
+      - name: Get main branch coverage
+        id: main_coverage
+        run: |
+          MAIN_COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(root.attrib['line-rate'])")
+          MAIN_COVERAGE_PCT=$(python -c "print(f'{float(\"$MAIN_COVERAGE\") * 100:.1f}')")
+          echo "main_coverage_pct=$MAIN_COVERAGE_PCT" >> "$GITHUB_OUTPUT"
+
+      - name: Calculate diff
+        id: diff
+        env:
+          PR_COVERAGE: ${{ steps.coverage.outputs.coverage_pct }}
+          MAIN_COVERAGE: ${{ steps.main_coverage.outputs.main_coverage_pct }}
+        run: |
+          DIFF=$(python -c "print(f'{float(\"$PR_COVERAGE\") - float(\"$MAIN_COVERAGE\"):.1f}')")
+          echo "diff=$DIFF" >> "$GITHUB_OUTPUT"
+
+      - name: Post coverage comment
+        uses: actions/github-script@v8
+        env:
+          PR_COVERAGE: ${{ steps.coverage.outputs.coverage_pct }}
+          MAIN_COVERAGE: ${{ steps.main_coverage.outputs.main_coverage_pct }}
+          DIFF: ${{ steps.diff.outputs.diff }}
+        with:
+          script: |
+            const prCoverage = process.env.PR_COVERAGE;
+            const mainCoverage = process.env.MAIN_COVERAGE;
+            const diff = parseFloat(process.env.DIFF);
+
+            const emoji = diff >= 0 ? '📈' : '📉';
+            const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
+            const status = diff >= 0 ? '✅' : '⚠️';
+
+            const body = `## ${emoji} Test Coverage Report\n\n` +
+                         `| Branch | Coverage |\n` +
+                         `|--------|----------|\n` +
+                         `| **This PR** | ${prCoverage}% |\n` +
+                         `| Main | ${mainCoverage}% |\n` +
+                         `| **Diff** | ${status} ${diffText} |\n\n` +
+                         `---\n\n` +
+                         `*Coverage calculated from unit tests only*`;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.data.find(comment =>
+              comment.user.login === 'github-actions[bot]' &&
+              comment.body.includes('Test Coverage Report')
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

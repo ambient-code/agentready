@@ -1,0 +1,199 @@
+name: Leaderboard Management
+
+on:
+  # Validate on PR
+  pull_request:
+    paths:
+      - 'submissions/**/*-assessment.json'
+
+  # Update after merge to main
+  push:
+    branches: [main]
+    paths:
+      - 'submissions/**/*-assessment.json'
+
+  # Manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Validate leaderboard submissions (PR only)
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv venv
+          source .venv/bin/activate
+          uv pip install -e .
+
+      - name: Extract submission details
+        id: extract
+        run: |
+          # Find changed JSON file
+          CHANGED_FILE=$(git diff --name-only origin/main...HEAD | grep 'submissions/.*-assessment.json' | head -1)
+
+          if [ -z "$CHANGED_FILE" ]; then
+            echo "No assessment file found in diff"
+            exit 1
+          fi
+
+          echo "file=$CHANGED_FILE" >> "$GITHUB_OUTPUT"
+
+          # Parse JSON - all values stored in outputs, not executed
+          REPO_URL=$(jq -r '.repository.url' "$CHANGED_FILE")
+          CLAIMED_SCORE=$(jq -r '.overall_score' "$CHANGED_FILE")
+          REPO_NAME=$(jq -r '.repository.name' "$CHANGED_FILE")
+          RESEARCH_VERSION=$(jq -r '.metadata.research_version // "unknown"' "$CHANGED_FILE")
+
+          {
+            echo "repo_url=$REPO_URL"
+            echo "claimed_score=$CLAIMED_SCORE"
+            echo "repo_name=$REPO_NAME"
+            echo "research_version=$RESEARCH_VERSION"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Validate JSON schema
+        env:
+          ASSESSMENT_FILE: ${{ steps.extract.outputs.file }}
+        run: |
+          source .venv/bin/activate
+          agentready validate-report "$ASSESSMENT_FILE"
+
+      - name: Verify repository exists and is public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          # SAFE: REPO_URL comes from workflow output, not direct user input
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+
+          IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
+
+          if [ "$IS_PRIVATE" == "true" ]; then
+            echo "::error::Repository $ORG_REPO is private."
+            exit 1
+          fi
+
+          echo "✅ Repository $ORG_REPO is public"
+
+      - name: Verify submitter has access
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+          SUBMITTER: ${{ github.event.pull_request.user.login }}
+        run: |
+          # SAFE: All values in environment variables
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+
+          if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
+            echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
+          elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
+            echo "✅ $SUBMITTER is the owner of $ORG_REPO"
+          else
+            echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
+            exit 1
+          fi
+
+      - name: Re-run assessment
+        env:
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          source .venv/bin/activate
+
+          # SAFE: REPO_URL in environment variable
+          echo "Cloning $REPO_URL..."
+          git clone "$REPO_URL" /tmp/repo-to-assess
+
+          echo "Running assessment..."
+          agentready assess /tmp/repo-to-assess --output-dir /tmp/validation
+
+          ACTUAL_SCORE=$(jq -r '.overall_score' /tmp/validation/assessment-latest.json)
+          ACTUAL_RESEARCH_VERSION=$(jq -r '.metadata.research_version // "unknown"' /tmp/validation/assessment-latest.json)
+
+          echo "ACTUAL_SCORE=$ACTUAL_SCORE" >> "$GITHUB_ENV"
+          echo "ACTUAL_RESEARCH_VERSION=$ACTUAL_RESEARCH_VERSION" >> "$GITHUB_ENV"
+
+      - name: Compare scores
+        env:
+          CLAIMED_SCORE: ${{ steps.extract.outputs.claimed_score }}
+          CLAIMED_RESEARCH_VERSION: ${{ steps.extract.outputs.research_version }}
+        run: |
+          # SAFE: All arithmetic using env vars
+          DIFF=$(echo "scale=2; if ($ACTUAL_SCORE - $CLAIMED_SCORE < 0) $CLAIMED_SCORE - $ACTUAL_SCORE else $ACTUAL_SCORE - $CLAIMED_SCORE" | bc)
+
+          echo "Claimed: $CLAIMED_SCORE (ruleset: $CLAIMED_RESEARCH_VERSION)"
+          echo "Actual: $ACTUAL_SCORE (ruleset: $ACTUAL_RESEARCH_VERSION)"
+
+          if (( $(echo "$DIFF > 2" | bc -l) )); then
+            echo "::error::Score mismatch: claimed $CLAIMED_SCORE, actual $ACTUAL_SCORE"
+            exit 1
+          fi
+
+      - name: Post validation results
+        if: always()
+        uses: actions/github-script@v8
+        env:
+          CLAIMED_SCORE: ${{ steps.extract.outputs.claimed_score }}
+          ACTUAL_SCORE: ${{ env.ACTUAL_SCORE }}
+          REPO_NAME: ${{ steps.extract.outputs.repo_name }}
+          CLAIMED_RESEARCH_VERSION: ${{ steps.extract.outputs.research_version }}
+          ACTUAL_RESEARCH_VERSION: ${{ env.ACTUAL_RESEARCH_VERSION }}
+        with:
+          script: |
+            // SAFE: All values from environment variables
+            const claimed = process.env.CLAIMED_SCORE || 'N/A';
+            const actual = process.env.ACTUAL_SCORE || 'N/A';
+            const diff = actual !== 'N/A' ? Math.abs(parseFloat(actual) - parseFloat(claimed)).toFixed(1) : 'N/A';
+
+            const status = parseFloat(diff) <= 2.0 ? '✅ **PASSED**' : '❌ **FAILED**';
+            const body = `## Leaderboard Validation\n\n${status}\n\n` +
+                         `**Claimed**: ${claimed}/100\n` +
+                         `**Verified**: ${actual}/100\n` +
+                         `**Diff**: ${diff} points (±2 tolerance)`;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+  # Job 2: Update leaderboard data (after merge to main)
+  update:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Generate leaderboard data
+        run: |
+          python3 scripts/generate-leaderboard-data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain docs/_data/leaderboard.json)" ]; then
+            git add docs/_data/leaderboard.json
+            git commit -m "chore: update leaderboard data [skip ci]"
+            git push
+          fi

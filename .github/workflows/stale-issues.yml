@@ -1,0 +1,68 @@
+name: Stale Issue Management
+
+on:
+  schedule:
+    # Run daily at 1 AM UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          # Days before marking as stale
+          days-before-stale: 21  # 7 days before 28-day close
+          # Days before closing after marked stale
+          days-before-close: 7
+          # Total: 21 + 7 = 28 days until close
+
+          # Issue labels
+          stale-issue-label: 'stale'
+          exempt-issue-labels: 'pinned,security,critical,in-progress'
+
+          # PR labels
+          stale-pr-label: 'stale'
+          exempt-pr-labels: 'pinned,security,work-in-progress'
+
+          # Messages
+          stale-issue-message: |
+            👋 This issue has been inactive for 21 days and will be closed in 7 days if there is no further activity.
+
+            If this issue is still relevant, please:
+            - Add a comment with updates
+            - Remove the `stale` label
+            - Add the `pinned` label to prevent future stale marking
+
+            Thank you for your contributions to AgentReady!
+
+          close-issue-message: |
+            🔒 This issue has been automatically closed due to 28 days of inactivity.
+
+            If you believe this issue should remain open, please reopen it and provide an update.
+
+          stale-pr-message: |
+            👋 This pull request has been inactive for 21 days and will be closed in 7 days if there is no further activity.
+
+            If you plan to continue work on this PR, please:
+            - Push new commits or add a comment
+            - Remove the `stale` label
+            - Add the `work-in-progress` label to prevent future stale marking
+
+            Thank you for your contributions to AgentReady!
+
+          close-pr-message: |
+            🔒 This pull request has been automatically closed due to 28 days of inactivity.
+
+            If you'd like to continue this work, please reopen the PR or create a new one.
+
+          # Operations
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          ascending: true

@@ -447,3 +447,9 @@ Use the `github-pages-docs` agent for documentation updates after:
 **Last Updated**: 2025-12-11 by Jeremy Eder
 **AgentReady Version**: 2.20.0
 **Self-Assessment**: 80.0/100 (Gold) ✨
+
+### GitHub Actions Guidelines
+
+- **ALWAYS run actionlint and fix any issues before pushing changes to GitHub Actions workflows**
+- All workflows must pass actionlint validation with zero errors/warnings
+- Use proper shell quoting and combined redirects for efficiency

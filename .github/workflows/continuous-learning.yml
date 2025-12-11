@@ -55,7 +55,7 @@ jobs:
         id: learn
         run: |
           uv run agentready learn . --output-format json > .skills-proposals/discovered-skills.json
-          echo "skill_count=$(jq '.skill_count' .skills-proposals/discovered-skills.json)" >> $GITHUB_OUTPUT
+          echo "skill_count=$(jq '.skill_count' .skills-proposals/discovered-skills.json)" >> "$GITHUB_OUTPUT"
 
       - name: Generate skill proposals
         if: steps.learn.outputs.skill_count > 0

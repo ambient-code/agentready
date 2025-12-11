@@ -1,3 +1,9 @@
+---
+name: AgentReady Development
+description: Specialized agent with deep knowledge of the AgentReady codebase for development, testing, and maintenance
+tools: [Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, TodoWrite]
+---
+
 # AgentReady Development Agent
 
 **Purpose**: Specialized Claude Code agent with deep knowledge of the AgentReady codebase to assist with development, testing, and maintenance tasks.

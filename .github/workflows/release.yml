@@ -34,7 +34,7 @@ jobs:
 
       - name: Get version before release
         id: version_before
-        run: echo "version=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)" >> $GITHUB_OUTPUT
+        run: echo "version=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
 
       - name: Run semantic-release
         env:
@@ -43,16 +43,16 @@ jobs:
 
       - name: Get version after release
         id: version_after
-        run: echo "version=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)" >> $GITHUB_OUTPUT
+        run: echo "version=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
 
       - name: Check if new release
         id: check_release
         run: |
           if [ "${{ steps.version_before.outputs.version }}" != "${{ steps.version_after.outputs.version }}" ]; then
-            echo "new_release=true" >> $GITHUB_OUTPUT
-            echo "version=${{ steps.version_after.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=${{ steps.version_after.outputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "new_release=false" >> $GITHUB_OUTPUT
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up Python
@@ -117,7 +117,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/ambient-code/agentready
           tags: |
@@ -127,7 +127,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Containerfile.scratch

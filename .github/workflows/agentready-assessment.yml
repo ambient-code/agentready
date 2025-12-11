@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Post unauthorized message
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const user = context.payload.comment.user.login;
@@ -126,7 +126,7 @@ jobs:
 
       - name: Checkout current repository
         if: steps.parse.outputs.assess_current == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
 
@@ -146,7 +146,7 @@ jobs:
           echo "✅ Repository cloned successfully"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -205,7 +205,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload Assessment Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: agentready-reports-${{ github.run_id }}
@@ -214,7 +214,7 @@ jobs:
 
       - name: Post assessment results
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           OUTPUT_DIR: ${{ steps.assessment.outputs.output_dir }}
           REPO_URL: ${{ steps.parse.outputs.repo_url }}
