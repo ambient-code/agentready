@@ -1,3 +1,40 @@
+# [2.10.0](https://github.com/jeremyeder/agentready/compare/v2.9.0...v2.10.0) (2025-12-11)
+
+
+### Bug Fixes
+
+* add bounded retry logic for LLM rate limit handling ([#205](https://github.com/jeremyeder/agentready/issues/205)) ([6ecb786](https://github.com/jeremyeder/agentready/commit/6ecb78696c09880911ade14d0be1dd824be998dd)), closes [#104](https://github.com/jeremyeder/agentready/issues/104)
+* disable attestations for Test PyPI to avoid conflict ([#155](https://github.com/jeremyeder/agentready/issues/155)) ([a33e3cd](https://github.com/jeremyeder/agentready/commit/a33e3cd2d86d4a461701e906070ab3eae8ca8082)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* leaderboard workflow and SSH URL support ([#147](https://github.com/jeremyeder/agentready/issues/147)) ([de28cd0](https://github.com/jeremyeder/agentready/commit/de28cd0a6037a0951ba370aa73832553c088cfb8))
+* make E2E test timeouts configurable and add sensitive directory test ([#206](https://github.com/jeremyeder/agentready/issues/206)) ([27e87e5](https://github.com/jeremyeder/agentready/commit/27e87e52fa6cccc3bccf671d6fd4964b29817b04)), closes [#104](https://github.com/jeremyeder/agentready/issues/104) [#192](https://github.com/jeremyeder/agentready/issues/192)
+* resolve all test suite failures - achieve zero failures ([#180](https://github.com/jeremyeder/agentready/issues/180)) ([990fa2d](https://github.com/jeremyeder/agentready/commit/990fa2d4725842df60af151d1ba058cd43a90d3c)), closes [#148](https://github.com/jeremyeder/agentready/issues/148) [#147](https://github.com/jeremyeder/agentready/issues/147) [#145](https://github.com/jeremyeder/agentready/issues/145)
+* resolve broken links and workflow failures ([#160](https://github.com/jeremyeder/agentready/issues/160)) ([fbf5cf7](https://github.com/jeremyeder/agentready/commit/fbf5cf7a1fdcb65ef4d3943a2d84e46aa831d337))
+* resolve YAML syntax error in continuous-learning workflow ([#172](https://github.com/jeremyeder/agentready/issues/172)) ([3d40fcc](https://github.com/jeremyeder/agentready/commit/3d40fcccd4e8d722303d322716454869ca7db9d0))
+* resolve YAML syntax error in update-docs workflow and add actionlint ([#173](https://github.com/jeremyeder/agentready/issues/173)) ([97b06af](https://github.com/jeremyeder/agentready/commit/97b06af1d2adc17ec385d658310f3562f19b1a95))
+* skip PR comments for external forks to prevent permission errors ([#163](https://github.com/jeremyeder/agentready/issues/163)) ([2a29fb8](https://github.com/jeremyeder/agentready/commit/2a29fb84485a1ac6beff1675131bf50c1b702585))
+
+
+### Features
+
+* add ambient-code/agentready to leaderboard ([#148](https://github.com/jeremyeder/agentready/issues/148)) ([621152e](https://github.com/jeremyeder/agentready/commit/621152e46bd8e9505e3bc1775d2cd61a80af5a62))
+* add Harbor Terminal-Bench comparison for agent effectiveness ([#199](https://github.com/jeremyeder/agentready/issues/199)) ([a56e318](https://github.com/jeremyeder/agentready/commit/a56e31854c37838d1ed4724ff79d8506c9077d60))
+* add Memory MCP server allow list to repository settings ([#203](https://github.com/jeremyeder/agentready/issues/203)) ([41d87bb](https://github.com/jeremyeder/agentready/commit/41d87bb546fa2a30e9126bc7cf93a6fb6b6f5ae0))
+* add quay/quay to leaderboard ([#162](https://github.com/jeremyeder/agentready/issues/162)) ([d6e8df0](https://github.com/jeremyeder/agentready/commit/d6e8df0e9d92c4ec82004c5e62c798986feb1000))
+* Add weekly research update skill and automation ([#145](https://github.com/jeremyeder/agentready/issues/145)) ([7ba17a6](https://github.com/jeremyeder/agentready/commit/7ba17a6b045251cbc9f26b5c2f4a0ec31d89dd11))
+* automate PyPI publishing with trusted publishing (OIDC) ([#154](https://github.com/jeremyeder/agentready/issues/154)) ([71f4632](https://github.com/jeremyeder/agentready/commit/71f4632cb188d8c9db377c9f216c047e20727f99)), closes [pypa/#action-pypi-publish](https://github.com/jeremyeder/agentready/issues/action-pypi-publish)
+* container support ([#171](https://github.com/jeremyeder/agentready/issues/171)) ([c6874ea](https://github.com/jeremyeder/agentready/commit/c6874ea035775ac86ef5012bbfdf52e7b96f556f))
+* convert AgentReady assessment to on-demand workflow ([#213](https://github.com/jeremyeder/agentready/issues/213)) ([b5a1ce0](https://github.com/jeremyeder/agentready/commit/b5a1ce03f5364351833733f034fcc2f7bf1bd49f)), closes [#191](https://github.com/jeremyeder/agentready/issues/191)
+* enhance assessors with multi-language support and security ([#200](https://github.com/jeremyeder/agentready/issues/200)) ([85712f2](https://github.com/jeremyeder/agentready/commit/85712f242b10bfb6c195cddaca9ca7e57d453df8)), closes [#10](https://github.com/jeremyeder/agentready/issues/10)
+* Harbor framework integration for Terminal-Bench evaluations ([#202](https://github.com/jeremyeder/agentready/issues/202)) ([d73a8c8](https://github.com/jeremyeder/agentready/commit/d73a8c851a72ae9185dd2c5d50c682c1f5e1ac06)), closes [#4](https://github.com/jeremyeder/agentready/issues/4) [#178](https://github.com/jeremyeder/agentready/issues/178) [#178](https://github.com/jeremyeder/agentready/issues/178)
+* Redesign homepage features with two-column layout and research links ([#189](https://github.com/jeremyeder/agentready/issues/189)) ([570087d](https://github.com/jeremyeder/agentready/commit/570087df99eb612d4fe07128666cdd41461845f1)), closes [#187](https://github.com/jeremyeder/agentready/issues/187)
+* replace markdown-link-check with lychee for link validation ([#177](https://github.com/jeremyeder/agentready/issues/177)) ([f1a4545](https://github.com/jeremyeder/agentready/commit/f1a4545e4718b735df3e1fa7e0b60eba9ed0173b))
+* Terminal-Bench eval harness (MVP Phase 1) ([#178](https://github.com/jeremyeder/agentready/issues/178)) ([d06bab4](https://github.com/jeremyeder/agentready/commit/d06bab42848847df26d83c7a44e5ee0e84ae0445)), closes [#171](https://github.com/jeremyeder/agentready/issues/171)
+
+
+### Performance Improvements
+
+* implement lazy loading for heavy CLI commands ([#151](https://github.com/jeremyeder/agentready/issues/151)) ([6a7cd4e](https://github.com/jeremyeder/agentready/commit/6a7cd4e147ebfdfc95921b86599a5b650db76153))
+
 # [2.20.0](https://github.com/ambient-code/agentready/compare/v2.19.1...v2.20.0) (2025-12-11)
 
 
