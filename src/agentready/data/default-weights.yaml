@@ -3,26 +3,28 @@
 # This file defines the default weights for all 23 attributes (updated from 25).
 # Weights are based on tier priority from research report:
 #
-# Tier 1 (Essential):  54% total (5×10% + 1×4%, 6 attributes)
+# Tier 1 (Essential):  55% total (5×10% + 1×5%, 6 attributes)
 # Tier 2 (Critical):   27% total (3% each, 9 attributes)
 # Tier 3 (Important):  15% total (3% each, 5 attributes)
 # Tier 4 (Advanced):    3% total (1% each, 3 attributes)
+# TOTAL:              100% (sum to 1.0)
 #
 # Missing essentials (especially CLAUDE.md at 10%) has 10x impact vs advanced features (1%)
 #
 # Changes in v2.10.0:
-# - Added dependency_security (Tier 1, 4%) - merged dependency_freshness + security_scanning
+# - Added dependency_security (Tier 1, 5%) - merged dependency_freshness + security_scanning
 # - Removed dependency_freshness (merged into dependency_security)
 # - Removed security_scanning (merged into dependency_security)
 # - Removed performance_benchmarks (low ROI)
+# - Fixed weight sum to 1.0 (was 0.99)
 
-# Tier 1 (Essential) - 54% total weight
+# Tier 1 (Essential) - 55% total weight
 claude_md_file: 0.10              # 1.1 - CLAUDE.md Configuration Files ⚠️ CRITICAL
 readme_structure: 0.10            # 2.1 - README Structure
 type_annotations: 0.10            # 3.3 - Type Annotations
 standard_layout: 0.10             # 4.1 - Standard Project Layouts
 lock_files: 0.10                  # 6.1 - Dependency Pinning for Reproducibility
-dependency_security: 0.04         # 6.2 - Dependency Security & Vulnerability Scanning (NEW)
+dependency_security: 0.05         # 6.2 - Dependency Security & Vulnerability Scanning (NEW)
 
 # Tier 2 (Critical) - 27% total weight
 test_coverage: 0.03               # 5.1 - Test Coverage Requirements
