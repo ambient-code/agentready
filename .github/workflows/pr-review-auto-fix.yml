@@ -1,8 +1,6 @@
 name: PR Review + Auto-Fix Criticals
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   pull_request_target:
     types: [opened, synchronize, reopened]
 
@@ -15,9 +13,6 @@ jobs:
   review:
     name: Code Review
     runs-on: ubuntu-latest
-    outputs:
-      has_criticals: ${{ steps.review.outputs.has_criticals }}
-      review_id: ${{ steps.review.outputs.review_id }}
     steps:
       - name: Minimize old Claude review comments
         uses: actions/github-script@v8
@@ -42,7 +37,6 @@ jobs:
             }
 
       - name: Run AgentReady Code Review
-        id: review
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -51,112 +45,10 @@ jobs:
           prompt: |
             Run the /review-agentready command on this pull request.
 
-            After the review completes, create a JSON output file at `.review-results.json` with this structure:
-            ```json
-            {
-              "has_criticals": true/false,
-              "critical_count": N,
-              "findings": [
-                {
-                  "description": "...",
-                  "confidence": 90-100,
-                  "file_path": "...",
-                  "line_start": N,
-                  "line_end": M,
-                  "remediation_command": "..."
-                }
-              ]
-            }
-            ```
+            Provide a comprehensive code review focusing on:
+            - AgentReady attribute compliance
+            - Security issues
+            - Code quality
+            - Best practices
 
-            Then set outputs:
-            - has_criticals: "true" if any findings have confidence ≥90
-            - review_id: unique identifier for this review (timestamp)
-
-      - name: Upload review results
-        uses: actions/upload-artifact@v5
-        with:
-          name: review-results
-          path: .review-results.json
-          retention-days: 1
-
-  auto-fix-criticals:
-    name: Auto-Fix Critical Issues
-    runs-on: ubuntu-latest
-    needs: review
-    if: needs.review.outputs.has_criticals == 'true'
-    steps:
-      - name: Download review results
-        uses: actions/download-artifact@v6
-        with:
-          name: review-results
-
-      - name: Auto-fix critical issues
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: |
-            Read the review results from `.review-results.json`.
-
-            For each finding with confidence ≥90 (critical/blocker):
-
-            1. **Analyze the issue** - Read the file and understand the problem
-            2. **Apply the fix** - Make the minimal change to resolve the issue
-            3. **Run tests** - Verify the fix doesn't break anything
-            4. **Commit** - Use conventional commits format:
-               ```
-               fix(assessors): resolve TOCTOU in file scanner
-
-               - Added proper file locking before read operations
-               - Prevents race condition in concurrent assessments
-
-               Resolves critical issue #1 from code review
-
-               🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-               Co-Authored-By: Claude <noreply@anthropic.com>
-               ```
-
-            5. **Update review comment** - Add "✅ Fixed in [commit sha]" to the original review
-
-            IMPORTANT:
-            - Fix issues one at a time, commit after each
-            - Run linters after each fix: black, isort, ruff
-            - Run tests after each fix: pytest
-            - If a fix causes test failures, revert and skip to next issue
-            - Push all commits to the PR branch when done
-            - Do NOT push to main branch directly
-
-            After all fixes:
-            - Update the original review comment with fix status
-            - Add a summary comment listing all fixes applied
-            - Push the changes to the PR branch
-
-      - name: Update PR with fix summary
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync('.review-results.json', 'utf8'));
-
-            const fixedCount = results.findings.filter(f => f.confidence >= 90).length;
-
-            const body = `### ✅ Auto-Fix Complete
-
-            Applied fixes for ${fixedCount} critical issues.
-
-            **Next Steps**:
-            1. Review the automated fixes in the commit history
-            2. Run \`agentready assess .\` locally to verify score improvement
-            3. Continue your work on a clean PR
-
-            🤖 Automated by Claude Code`;
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: body
-            });
+            Post the review as a comment on this PR.
