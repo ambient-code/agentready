@@ -126,7 +126,7 @@ jobs:
 
       - name: Checkout current repository
         if: steps.parse.outputs.assess_current == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
 
