@@ -15,10 +15,10 @@ accept = [200, 206, 301, 302, 308, 429]
 timeout = 20
 
 # Number of retries for failed requests
-max_retries = 3
+max_retries = 5
 
 # Retry wait time (in seconds)
-retry_wait_time = 30
+retry_wait_time = 2
 
 # Exclude patterns (regex)
 exclude = [
@@ -35,10 +35,8 @@ exclude = [
     # Relative URLs for Jekyll site (will be checked once deployed)
     ".*/agentready/demos/.*",
     ".*/agentready/tbench.*",
-    ".*/agentready/implementation-status.*",
     ".*/demos/.*",
     ".*/tbench.*",
-    ".*/implementation-status.*",
 
     # Jinja2/Liquid template variables
     "\\{\\{.*\\}\\}",
