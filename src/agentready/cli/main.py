@@ -561,8 +561,15 @@ cli.add_command(validate_report)
 def show_version():
     """Show version information."""
     version = get_agentready_version()
-    click.echo(f"AgentReady Repository Scorer v{version}")
-    click.echo("Research Report: bundled")
+    click.echo(f"AgentReady v{version}")
+
+    # Load research report date
+    try:
+        loader = ResearchLoader()
+        _, metadata, _, _, _ = loader.load_and_validate()
+        click.echo(f"Research Report: {metadata.date}")
+    except Exception:
+        click.echo("Research Report: unknown")
 
 
 if __name__ == "__main__":
