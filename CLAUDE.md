@@ -423,7 +423,7 @@ Use the `github-pages-docs` agent for documentation updates after:
 **Documentation Sources of Truth** (priority order):
 
 1. CLAUDE.md - Project guide
-2. agent-ready-codebase-attributes.md - Research report
+2. RESEARCH_REPORT.md - Research report
 3. contracts/ - Schemas and validation
 4. specs/ - Feature specifications
 5. Source code - Actual implementation

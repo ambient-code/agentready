@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Automated research update script for agent-ready-codebase-attributes.md
+Automated research update script for RESEARCH_REPORT.md
 
 Searches for recent research, analyzes relevance using Claude API,
 and proposes updates with citations.
@@ -32,7 +32,7 @@ class ResearchUpdater:
             raise ValueError("ANTHROPIC_API_KEY environment variable is required")
         self.client = anthropic.Anthropic(api_key=api_key)
 
-        self.report_path = Path("agent-ready-codebase-attributes.md")
+        self.report_path = Path("RESEARCH_REPORT.md")
         if not self.report_path.exists():
             raise FileNotFoundError(f"Report file not found: {self.report_path}")
         self.changes_made = []

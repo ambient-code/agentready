@@ -19,7 +19,7 @@ class RepomixService:
         "$schema": "https://repomix.com/schemas/latest/schema.json",
         "input": {"maxFileSize": 52428800},
         "output": {
-            "filePath": "repomix-output.md",
+            "filePath": "repomix/repomix-output.md",
             "style": "markdown",
             "parsableStyle": False,
             "fileSummary": True,
@@ -102,8 +102,8 @@ class RepomixService:
         ".cache/",
         "",
         "# Large generated documentation",
-        "repomix-output.md",
-        "repomix-output.xml",
+        "repomix/repomix-output.md",
+        "repomix/repomix-output.xml",
     ]
 
     def __init__(self, repo_path: Path):
@@ -208,9 +208,7 @@ class RepomixService:
             )
 
         # Determine output file based on format
-        output_file = (
-            f"repomix-output.{output_format if output_format != 'plain' else 'txt'}"
-        )
+        output_file = f"repomix/repomix-output.{output_format if output_format != 'plain' else 'txt'}"
 
         cmd = ["repomix", "--style", output_format, "--output", output_file]
 
@@ -247,7 +245,7 @@ class RepomixService:
         Returns:
             List of paths to Repomix output files
         """
-        patterns = ["repomix-output.*"]
+        patterns = ["repomix/repomix-output.*"]
         output_files = []
 
         for pattern in patterns:

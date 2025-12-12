@@ -3,11 +3,6 @@ name: PR Review + Auto-Fix Criticals
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'requirements*.txt'
 
 permissions:
   contents: write
@@ -18,8 +13,6 @@ jobs:
   review:
     name: Code Review
     runs-on: ubuntu-latest
-    # Skip Dependabot PRs (they have their own auto-merge workflow)
-    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Minimize old Claude review comments
         uses: actions/github-script@v8
@@ -50,7 +43,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            @agentready-dev please review this pull request.
+            Run the /review-agentready command on this pull request.
 
             Provide a comprehensive code review focusing on:
             - AgentReady attribute compliance

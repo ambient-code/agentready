@@ -13,7 +13,7 @@ from ..services.research_loader import ResearchLoader
 def research():
     """Manage and validate research reports.
 
-    Commands for maintaining agent-ready-codebase-attributes.md
+    Commands for maintaining RESEARCH_REPORT.md
     following the validation schema.
     """
     pass
@@ -23,13 +23,13 @@ def research():
 @click.argument(
     "report_path",
     type=click.Path(exists=True),
-    default="agent-ready-codebase-attributes.md",
+    default="RESEARCH_REPORT.md",
 )
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed validation output")
 def validate(report_path, verbose):
     """Validate research report against schema.
 
-    REPORT_PATH: Path to research report (default: agent-ready-codebase-attributes.md)
+    REPORT_PATH: Path to research report (default: RESEARCH_REPORT.md)
 
     Checks for:
     - Valid metadata header (version, date)
@@ -104,7 +104,7 @@ def validate(report_path, verbose):
     "--output",
     "-o",
     type=click.Path(),
-    default="agent-ready-codebase-attributes.md",
+    default="RESEARCH_REPORT.md",
     help="Output file path",
 )
 @click.option(

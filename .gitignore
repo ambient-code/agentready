@@ -68,6 +68,9 @@ repos.txt
 test-repos.txt
 opendatahub-repos.txt
 
+# Repomix output (generated)
+repomix/repomix-output.*
+
 # Build artifacts
 *.whl
 *.tar.gz
