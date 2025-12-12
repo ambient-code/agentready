@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Post unauthorized message
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const user = context.payload.comment.user.login;
@@ -214,7 +214,7 @@ jobs:
 
       - name: Post assessment results
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           OUTPUT_DIR: ${{ steps.assessment.outputs.output_dir }}
           REPO_URL: ${{ steps.parse.outputs.repo_url }}
