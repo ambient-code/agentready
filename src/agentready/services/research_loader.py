@@ -36,7 +36,7 @@ class ResearchLoader:
         else:
             self.data_dir = data_dir
 
-        self.research_file = self.data_dir / "agent-ready-codebase-attributes.md"
+        self.research_file = self.data_dir / "RESEARCH_REPORT.md"
 
     def load_research_report(self) -> str:
         """Load research report content.
@@ -143,8 +143,7 @@ class ResearchLoader:
 
         if criteria_count < 25:
             errors.append(
-                f"Missing 'Measurable Criteria' sections "
-                f"(found {criteria_count}/25)"
+                f"Missing 'Measurable Criteria' sections (found {criteria_count}/25)"
             )
 
         # Check for "Impact on Agent Behavior" sections (warning only)

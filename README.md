@@ -5,7 +5,7 @@
 
 Assess git repositories against evidence-based attributes for AI-assisted development readiness.
 
-> **📚 Research-Based Assessment**: AgentReady's attributes are derived from [comprehensive research](agent-ready-codebase-attributes.md) analyzing 50+ authoritative sources including **Anthropic**, **Microsoft**, **Google**, **ArXiv**, and **IEEE/ACM**. Each attribute is backed by peer-reviewed research and industry best practices. [View full research report →](agent-ready-codebase-attributes.md)
+> **📚 Research-Based Assessment**: AgentReady's attributes are derived from [comprehensive research](RESEARCH_REPORT.md) analyzing 50+ authoritative sources including **Anthropic**, **Microsoft**, **Google**, **ArXiv**, and **IEEE/ACM**. Each attribute is backed by peer-reviewed research and industry best practices. [View full research report →](RESEARCH_REPORT.md)
 
 ## Overview
 
@@ -304,7 +304,7 @@ All attributes are derived from evidence-based research with 50+ citations from:
 - ArXiv (Software engineering research papers)
 - IEEE/ACM (Academic publications on code quality)
 
-See `src/agentready/data/agent-ready-codebase-attributes.md` for complete research report.
+See `src/agentready/data/RESEARCH_REPORT.md` for complete research report.
 
 ## License
 

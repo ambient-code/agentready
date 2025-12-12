@@ -73,7 +73,7 @@ jobs:
               '- `docs/` - GitHub Pages documentation',
               '- `CLAUDE.md` - Project guide (source of truth)',
               '- `README.md` - User-facing documentation',
-              '- `agent-ready-codebase-attributes.md` - Research report (source of truth)',
+              '- `RESEARCH_REPORT.md` - Research report (source of truth)',
               '',
               '**Labels**: documentation, automation-needed, agent-task'
             ];
@@ -97,7 +97,7 @@ jobs:
           CHANGES=$(git log --oneline --since="7 days ago" -- \
             CLAUDE.md \
             README.md \
-            agent-ready-codebase-attributes.md \
+            RESEARCH_REPORT.md \
             src/agentready/cli/bootstrap.py \
             src/agentready/services/bootstrap.py \
             || true)
