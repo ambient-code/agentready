@@ -199,6 +199,7 @@ def compare_assessor_impact(
     runs_per_task: int = 3,
     output_dir: Path = None,
     model: str = "anthropic/claude-sonnet-4-5",
+    n_concurrent: int = 1,
     verbose: bool = True,
 ) -> HarborComparison:
     """A/B test assessor impact: baseline (assessor fails) vs treatment (assessor passes).
@@ -217,6 +218,7 @@ def compare_assessor_impact(
         runs_per_task: Number of runs per task (default: 3, recommended: 5+)
         output_dir: Directory to store results (default: .agentready/validations/{assessor_id}/)
         model: Claude model to use (default: sonnet-4-5)
+        n_concurrent: Number of concurrent tasks to run in parallel (default: 1)
         verbose: Print progress messages (default: True)
 
     Returns:
@@ -274,7 +276,7 @@ def compare_assessor_impact(
             task_names=task_names,
             output_dir=baseline_output,
             model=model,
-            n_concurrent=1,
+            n_concurrent=n_concurrent,
             verbose=verbose,
         )
 
@@ -306,7 +308,7 @@ def compare_assessor_impact(
         task_names=task_names,
         output_dir=treatment_output,
         model=model,
-        n_concurrent=1,
+        n_concurrent=n_concurrent,
         verbose=verbose,
     )
 

@@ -1,6 +1,5 @@
 """Service for executing Harbor benchmarks via CLI."""
 
-import json
 import subprocess
 from pathlib import Path
 from typing import List
@@ -27,7 +26,7 @@ class HarborRunner:
         """
         try:
             subprocess.run(
-                ["harbor", "--version"],
+                ["harbor", "--help"],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -89,25 +88,11 @@ class HarborRunner:
             str(n_concurrent),
         ]
 
-        # Add task selection if specified
-        if task_names:
-            # Harbor uses config JSON for task selection
-            config_file = output_dir / "config.json"
-            config = {
-                "datasets": [
-                    {
-                        "name": dataset,
-                        "version": dataset_version,
-                        "task_names": task_names,
-                    }
-                ],
-                "agents": [{"name": agent, "model_name": model}],
-            }
-            with open(config_file, "w") as f:
-                json.dump(config, f, indent=2)
-
-            # Use config file instead of CLI args
-            cmd = ["harbor", "run", "-c", str(config_file)]
+        # Add task name filters
+        # NOTE: Requires Harbor >= 0.1.24 (or install from main)
+        # Task filtering was fixed in commit f9e6d2e (Dec 12, 2025)
+        for task_name in task_names:
+            cmd.extend(["-t", task_name])
 
         # Execute Harbor benchmark
         if verbose:

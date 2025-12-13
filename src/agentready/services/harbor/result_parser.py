@@ -23,8 +23,17 @@ def parse_harbor_results(results_dir: Path) -> List[HarborTaskResult]:
     if not results_dir.exists():
         raise FileNotFoundError(f"Results directory not found: {results_dir}")
 
-    # Find all result.json files in subdirectories
-    result_files = list(results_dir.glob("*/result.json"))
+    # Find all result.json files in subdirectories (task directories only, not job-level result.json)
+    # Task directories are named like "task-name__hash/" while the job result.json is at the root
+    all_result_files = list(results_dir.glob("*/result.json"))
+
+    # Filter to only task result files (exclude job-level result.json)
+    # Task directories contain "__" in their name (e.g., "build-pmars__abc123")
+    result_files = [
+        f
+        for f in all_result_files
+        if "__" in f.parent.name  # Task directories have "__" separator
+    ]
 
     if not result_files:
         raise ValueError(f"No result.json files found in {results_dir}")

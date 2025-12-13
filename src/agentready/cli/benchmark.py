@@ -245,8 +245,28 @@ DEFAULT_PHASE1_TASKS = [
     is_flag=True,
     help="List supported assessors and exit",
 )
+@click.option(
+    "--concurrent",
+    "-c",
+    type=int,
+    default=1,
+    help="Number of concurrent tasks to run in parallel (default: 1, recommended: 3-5)",
+)
+@click.option(
+    "--smoketest",
+    is_flag=True,
+    help="Run smoketest with single task for quick validation (~2 minutes)",
+)
 def validate_assessor(
-    assessor, tasks, runs, model, output_dir, verbose, list_assessors
+    assessor,
+    tasks,
+    runs,
+    model,
+    output_dir,
+    verbose,
+    list_assessors,
+    concurrent,
+    smoketest,
 ):
     """Validate single assessor impact using Terminal-Bench A/B testing.
 
@@ -259,6 +279,10 @@ def validate_assessor(
     3. Compare success rates with statistical significance testing
 
     Examples:
+
+        \b
+        # Quick smoketest with 1 task (~2 minutes)
+        agentready validate-assessor --assessor claude_md_file --smoketest
 
         \b
         # Validate CLAUDE.md impact (8 tasks, 3 runs each = 48 trials)
@@ -311,9 +335,15 @@ def validate_assessor(
 
     # Use default Phase 1 tasks if not specified
     if not tasks:
-        tasks = DEFAULT_PHASE1_TASKS
-        if verbose:
-            click.echo(f"Using default Phase 1 task subset ({len(tasks)} tasks)\n")
+        if smoketest:
+            # Smoketest: just 1 simple task for quick validation
+            tasks = ["adaptive-rejection-sampler"]
+            if verbose:
+                click.echo("Using smoketest mode (1 task, ~2 minutes total)\n")
+        else:
+            tasks = DEFAULT_PHASE1_TASKS
+            if verbose:
+                click.echo(f"Using default Phase 1 task subset ({len(tasks)} tasks)\n")
 
     # Convert model name to full identifier
     model_id = f"anthropic/{model}"
@@ -333,6 +363,7 @@ def validate_assessor(
             runs_per_task=runs,
             output_dir=output_path,
             model=model_id,
+            n_concurrent=concurrent,
             verbose=verbose,
         )
 
