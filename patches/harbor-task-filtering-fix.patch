@@ -1,0 +1,75 @@
+From f9e6d2e10c72d33373012294c36fd4938c45c26c Mon Sep 17 00:00:00 2001
+From: Alex Shaw <alexgshaw64@gmail.com>
+Date: Fri Dec 12 21:21:27 2025 -0800
+Subject: [PATCH] Fix task filtering to use polymorphic get_name() method
+
+Fix for Harbor task filtering bug where -t/--task-name flags were ignored.
+
+This patch is already merged in Harbor main (commit f9e6d2e) but not yet
+released to PyPI. Latest version 0.1.23 (Dec 11, 2025) still has the bug.
+
+Apply this patch to your local Harbor installation if you can't install
+from main branch.
+
+See: https://github.com/laude-institute/harbor/commit/f9e6d2e
+
+---
+ src/harbor/models/job/config.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/harbor/models/job/config.py b/src/harbor/models/job/config.py
+index 4a35f1f..f7a0ec9 100644
+--- a/src/harbor/models/job/config.py
++++ b/src/harbor/models/job/config.py
+@@ -39,7 +39,7 @@ class BaseDatasetConfig(BaseModel, ABC):
+                 task_id
+                 for task_id in filtered_ids
+                 if any(
+-                    fnmatch(task_id.path.name, pattern_id)
++                    fnmatch(task_id.get_name(), pattern_id)
+                     for pattern_id in self.task_names
+                 )
+             ]
+@@ -49,7 +49,7 @@ class BaseDatasetConfig(BaseModel, ABC):
+                 task_id
+                 for task_id in filtered_ids
+                 if not any(
+-                    fnmatch(task_id.path.name, pattern_id)
++                    fnmatch(task_id.get_name(), pattern_id)
+                     for pattern_id in self.exclude_task_names
+                 )
+             ]
+@@ -73,7 +73,7 @@ class LocalDatasetConfig(BaseDatasetConfig):
+         ]
+         filtered_task_ids = self._filter_task_ids(task_ids)
+         return [
+-            TaskConfig(path=task_id.path, source=self.path.name)
++            TaskConfig(path=task_id.path, source=self.path.expanduser().resolve().name)
+             for task_id in filtered_task_ids
+         ]
+
+--
+2.47.1
+
+USAGE:
+------
+
+Option 1: Install Harbor from main (recommended)
+  pip uninstall harbor
+  pip install git+https://github.com/laude-institute/harbor.git
+
+Option 2: Apply this patch to your local Harbor installation
+  # Find your Harbor installation
+  python -c "import harbor; print(harbor.__file__)"
+  # Output example: /path/to/site-packages/harbor/__init__.py
+
+  # Navigate to Harbor package directory
+  cd /path/to/site-packages/harbor
+
+  # Apply patch
+  git apply /path/to/agentready/patches/harbor-task-filtering-fix.patch
+
+  # Or manually edit src/harbor/models/job/config.py:
+  # Line 42: task_id.path.name -> task_id.get_name()
+  # Line 52: task_id.path.name -> task_id.get_name()
+  # Line 76: self.path.name -> self.path.expanduser().resolve().name
