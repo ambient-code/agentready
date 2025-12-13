@@ -1,8 +1,12 @@
 """Service for comparing Harbor benchmark runs and calculating statistical significance."""
 
+from pathlib import Path
 from typing import List, Optional
 
 from agentready.models.harbor import HarborComparison, HarborRunMetrics
+from agentready.services.harbor.agent_toggler import AssessorStateToggler
+from agentready.services.harbor.result_parser import parse_harbor_results
+from agentready.services.harbor.runner import HarborRunner
 
 
 def compare_runs(
@@ -186,3 +190,158 @@ def interpret_effect_size(cohens_d: float) -> str:
         return "medium"
     else:
         return "large"
+
+
+def compare_assessor_impact(
+    assessor_id: str,
+    task_names: List[str],
+    repo_root: Path,
+    runs_per_task: int = 3,
+    output_dir: Path = None,
+    model: str = "anthropic/claude-sonnet-4-5",
+    verbose: bool = True,
+) -> HarborComparison:
+    """A/B test assessor impact: baseline (assessor fails) vs treatment (assessor passes).
+
+    This function orchestrates the complete A/B testing workflow:
+    1. Force assessor to fail (manipulate repository state)
+    2. Run Harbor benchmark (baseline)
+    3. Restore repository to normal state (assessor passes)
+    4. Run Harbor benchmark again (treatment)
+    5. Compare results with statistical significance
+
+    Args:
+        assessor_id: Assessor identifier (e.g., "claude_md_file")
+        task_names: List of Terminal-Bench task names to test
+        repo_root: Root of the repository to test
+        runs_per_task: Number of runs per task (default: 3, recommended: 5+)
+        output_dir: Directory to store results (default: .agentready/validations/{assessor_id}/)
+        model: Claude model to use (default: sonnet-4-5)
+        verbose: Print progress messages (default: True)
+
+    Returns:
+        HarborComparison with baseline vs treatment metrics, deltas, and significance
+
+    Raises:
+        ValueError: If assessor_id is not supported
+        HarborNotInstalledError: If Harbor CLI is not available
+        subprocess.CalledProcessError: If Harbor benchmark fails
+
+    Example:
+        comparison = compare_assessor_impact(
+            assessor_id="claude_md_file",
+            task_names=["adaptive-rejection-sampler", "async-http-client"],
+            repo_root=Path("."),
+            runs_per_task=3,
+            verbose=True
+        )
+
+        print(f"Success rate delta: {comparison.deltas['success_rate_delta']:.1f}%")
+        print(f"Significant: {comparison.statistical_significance['success_rate_significant']}")
+    """
+    # Default output directory
+    if output_dir is None:
+        output_dir = Path(".agentready") / "validations" / assessor_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Initialize components
+    toggler = AssessorStateToggler(repo_root=repo_root)
+    runner = HarborRunner()
+
+    if verbose:
+        print(f"\nAssessor Impact Validation: {assessor_id}")
+        print(f"{'=' * 60}")
+        print(f"Tasks: {', '.join(task_names)}")
+        print(f"Runs per task: {runs_per_task}")
+        print(
+            f"Total trials: {len(task_names) * runs_per_task * 2} (baseline + treatment)"
+        )
+        print(f"Output: {output_dir}\n")
+
+    # Baseline: Assessor fails (remove CLAUDE.md, README, etc.)
+    if verbose:
+        print("[1/2] Running baseline (assessor FAILS)...")
+        print(f"      Manipulating repository state to force {assessor_id} to fail")
+
+    baseline_output = output_dir / "baseline"
+    with toggler.temporarily_failed(assessor_id):
+        if verbose:
+            print(
+                f"      Running {len(task_names)} tasks × {runs_per_task} runs = {len(task_names) * runs_per_task} trials"
+            )
+
+        baseline_results_dir = runner.run_benchmark(
+            task_names=task_names,
+            output_dir=baseline_output,
+            model=model,
+            n_concurrent=1,
+            verbose=verbose,
+        )
+
+        # Parse results
+        baseline_task_results = parse_harbor_results(baseline_results_dir)
+        baseline_metrics = HarborRunMetrics.from_task_results(
+            run_id=f"{assessor_id}_baseline",
+            agent_file_enabled=False,  # Assessor fails
+            task_results=baseline_task_results,
+        )
+
+    if verbose:
+        print(
+            f"      Baseline complete: {baseline_metrics.success_rate:.1f}% success rate\n"
+        )
+
+    # Treatment: Assessor passes (normal repository state)
+    if verbose:
+        print("[2/2] Running treatment (assessor PASSES)...")
+        print("      Repository restored to normal state")
+
+    treatment_output = output_dir / "treatment"
+    if verbose:
+        print(
+            f"      Running {len(task_names)} tasks × {runs_per_task} runs = {len(task_names) * runs_per_task} trials"
+        )
+
+    treatment_results_dir = runner.run_benchmark(
+        task_names=task_names,
+        output_dir=treatment_output,
+        model=model,
+        n_concurrent=1,
+        verbose=verbose,
+    )
+
+    # Parse results
+    treatment_task_results = parse_harbor_results(treatment_results_dir)
+    treatment_metrics = HarborRunMetrics.from_task_results(
+        run_id=f"{assessor_id}_treatment",
+        agent_file_enabled=True,  # Assessor passes
+        task_results=treatment_task_results,
+    )
+
+    if verbose:
+        print(
+            f"      Treatment complete: {treatment_metrics.success_rate:.1f}% success rate\n"
+        )
+
+    # Compare results
+    comparison = compare_runs(
+        without_agent=baseline_metrics, with_agent=treatment_metrics
+    )
+
+    if verbose:
+        print(f"{'=' * 60}")
+        print("Results Summary")
+        print(f"{'=' * 60}")
+        delta = comparison.deltas["success_rate_delta"]
+        sign = "+" if delta >= 0 else ""
+        print(f"Success Rate Delta: {sign}{delta:.1f} percentage points")
+        print(
+            f"Statistical Significance: {'YES' if comparison.statistical_significance.get('success_rate_significant', False) else 'NO'}"
+        )
+        if comparison.statistical_significance.get("success_rate_p_value"):
+            print(
+                f"P-value: {comparison.statistical_significance['success_rate_p_value']:.4f}"
+            )
+        print(f"\nResults saved to: {output_dir}\n")
+
+    return comparison

@@ -1,5 +1,6 @@
 """Benchmark command for running agent coding evaluations."""
 
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -8,6 +9,8 @@ import click
 
 from ..services.eval_harness.harbor_config import HarborConfig
 from ..services.eval_harness.tbench_runner import _real_tbench_result
+from ..services.harbor.agent_toggler import AssessorStateToggler
+from ..services.harbor.comparer import compare_assessor_impact
 
 
 @click.command()
@@ -182,6 +185,227 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir, skip_pre
 
     except Exception as e:
         click.echo(f"\nBenchmark failed: {e}", err=True)
+        if verbose:
+            import traceback
+
+            traceback.print_exc()
+        raise click.Abort()
+
+
+# Default Phase 1 task subset (8 diverse tasks, ~2-3 hours per assessor)
+DEFAULT_PHASE1_TASKS = [
+    "adaptive-rejection-sampler",  # Math/algorithms
+    "async-http-client",  # Networking
+    "terminal-file-browser",  # File I/O
+    "markdown-parser",  # Text processing
+    "json-validator",  # Data structures
+    "cli-calculator",  # User interaction
+    "log-analyzer",  # String manipulation
+    "sudoku-solver",  # Logic
+]
+
+
+@click.command()
+@click.option(
+    "--assessor",
+    "-a",
+    required=False,
+    help="Assessor ID to validate (e.g., claude_md_file, readme_structure, test_coverage)",
+)
+@click.option(
+    "--tasks",
+    "-t",
+    multiple=True,
+    help="Terminal-Bench task names (default: Phase 1 subset of 8 tasks)",
+)
+@click.option(
+    "--runs",
+    "-r",
+    type=int,
+    default=3,
+    help="Number of runs per task (default: 3, recommended: 5+)",
+)
+@click.option(
+    "--model",
+    "-m",
+    type=click.Choice(["claude-haiku-4-5", "claude-sonnet-4-5"]),
+    default="claude-haiku-4-5",
+    help="Claude model to use (default: haiku-4-5 for speed)",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(),
+    default=None,
+    help="Output directory (default: .agentready/validations/{assessor_id}/)",
+)
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+@click.option(
+    "--list-assessors",
+    is_flag=True,
+    help="List supported assessors and exit",
+)
+def validate_assessor(
+    assessor, tasks, runs, model, output_dir, verbose, list_assessors
+):
+    """Validate single assessor impact using Terminal-Bench A/B testing.
+
+    This command empirically measures the impact of a specific AgentReady assessor
+    on Claude Code's Terminal-Bench performance by running an A/B test:
+
+    \b
+    1. Baseline: Force assessor to FAIL (manipulate repo state)
+    2. Treatment: Restore repo to normal state (assessor PASSES)
+    3. Compare success rates with statistical significance testing
+
+    Examples:
+
+        \b
+        # Validate CLAUDE.md impact (8 tasks, 3 runs each = 48 trials)
+        agentready validate-assessor --assessor claude_md_file
+
+        \b
+        # Test README with custom tasks and 5 runs for higher statistical power
+        agentready validate-assessor --assessor readme_structure \\
+            --tasks adaptive-rejection-sampler \\
+            --tasks async-http-client \\
+            --runs 5
+
+        \b
+        # List all supported assessors
+        agentready validate-assessor --list-assessors
+    """
+    repo_root = Path.cwd()
+
+    # Handle --list-assessors
+    if list_assessors:
+        toggler = AssessorStateToggler(repo_root=repo_root)
+        supported = toggler.list_supported_assessors()
+
+        click.echo("Supported Assessors for Validation:")
+        click.echo(f"{'=' * 60}")
+        for assessor_id in supported:
+            click.echo(f"  - {assessor_id}")
+        click.echo(f"\nTotal: {len(supported)} assessors")
+        click.echo("\nUsage: agentready validate-assessor --assessor {assessor_id}")
+        return
+
+    # Validate that --assessor is provided if not listing
+    if not assessor:
+        click.echo(
+            "Error: Missing required option '--assessor' / '-a'.\n"
+            "Use --list-assessors to see available assessors.",
+            err=True,
+        )
+        raise click.Abort()
+
+    # Validate ANTHROPIC_API_KEY
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        click.echo(
+            "Error: ANTHROPIC_API_KEY environment variable not set.\n"
+            "Set it with: export ANTHROPIC_API_KEY=your-key-here",
+            err=True,
+        )
+        raise click.Abort()
+
+    # Use default Phase 1 tasks if not specified
+    if not tasks:
+        tasks = DEFAULT_PHASE1_TASKS
+        if verbose:
+            click.echo(f"Using default Phase 1 task subset ({len(tasks)} tasks)\n")
+
+    # Convert model name to full identifier
+    model_id = f"anthropic/{model}"
+
+    # Set output directory
+    if output_dir:
+        output_path = Path(output_dir)
+    else:
+        output_path = Path(".agentready") / "validations" / assessor
+
+    try:
+        # Run A/B comparison
+        comparison = compare_assessor_impact(
+            assessor_id=assessor,
+            task_names=list(tasks),
+            repo_root=repo_root,
+            runs_per_task=runs,
+            output_dir=output_path,
+            model=model_id,
+            verbose=verbose,
+        )
+
+        # Save JSON results
+        json_file = output_path / f"{assessor}.json"
+        with open(json_file, "w") as f:
+            json.dump(
+                {
+                    "assessor_id": assessor,
+                    "tasks": list(tasks),
+                    "runs_per_task": runs,
+                    "baseline": comparison.without_agent.to_dict(),
+                    "treatment": comparison.with_agent.to_dict(),
+                    "deltas": comparison.deltas,
+                    "statistical_significance": comparison.statistical_significance,
+                },
+                f,
+                indent=2,
+            )
+
+        # Generate Markdown report
+        md_file = output_path / f"{assessor}.md"
+        with open(md_file, "w") as f:
+            f.write(f"# Assessor Impact Validation: {assessor}\n\n")
+            f.write(f"**Date**: {comparison.created_at}\n")
+            f.write(f"**Tasks**: {len(tasks)}\n")
+            f.write(f"**Runs per Task**: {runs}\n\n")
+
+            f.write("## Results Summary\n\n")
+            f.write(
+                "| Metric | Baseline (Assessor Fails) | Treatment (Assessor Passes) | Delta |\n"
+            )
+            f.write(
+                "|--------|---------------------------|----------------------------|-------|\n"
+            )
+
+            delta = comparison.deltas["success_rate_delta"]
+            sign = "+" if delta >= 0 else ""
+            f.write(
+                f"| Success Rate | {comparison.without_agent.success_rate:.1f}% | "
+                f"{comparison.with_agent.success_rate:.1f}% | **{sign}{delta:.1f} pp** |\n"
+            )
+
+            duration_delta = comparison.deltas.get("avg_duration_delta_sec", 0)
+            sign = "+" if duration_delta >= 0 else ""
+            f.write(
+                f"| Avg Duration | {comparison.without_agent.avg_duration_sec:.1f}s | "
+                f"{comparison.with_agent.avg_duration_sec:.1f}s | {sign}{duration_delta:.1f}s |\n"
+            )
+
+            f.write("\n## Statistical Significance\n\n")
+            is_sig = comparison.statistical_significance.get(
+                "success_rate_significant", False
+            )
+            p_val = comparison.statistical_significance.get("success_rate_p_value")
+            f.write(f"- **Significant**: {'YES ✓' if is_sig else 'NO'}\n")
+            if p_val is not None:
+                f.write(f"- **P-value**: {p_val:.4f}\n")
+
+            f.write("\n## Files\n\n")
+            f.write(f"- JSON: `{json_file}`\n")
+            f.write(f"- Markdown: `{md_file}`\n")
+
+        click.echo("\nResults saved:")
+        click.echo(f"  - JSON: {json_file}")
+        click.echo(f"  - Markdown: {md_file}\n")
+
+    except ValueError as e:
+        click.echo(f"\nError: {e}\n", err=True)
+        click.echo("Use --list-assessors to see supported assessors.", err=True)
+        raise click.Abort()
+    except Exception as e:
+        click.echo(f"\nValidation failed: {e}\n", err=True)
         if verbose:
             import traceback
 
