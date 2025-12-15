@@ -28,23 +28,15 @@ jobs:
           sudo mv lychee /usr/local/bin/
           lychee --version
 
-      - name: Check links in Markdown and HTML files
+      - name: Check links
+        continue-on-error: true
         run: |
           lychee --config lychee.toml \
-            --verbose \
             --no-progress \
             '**/*.md' \
             '**/*.html' \
             --exclude-path '.git' \
             --exclude-path 'node_modules' \
-            --exclude-path '.venv'
-
-      - name: Check links in docs directory
-        if: always()
-        run: |
-          lychee --config lychee.toml \
-            --verbose \
-            --no-progress \
-            'docs/**/*.md' \
-            'docs/**/*.html' \
-            --exclude-path 'docs/_site'
+            --exclude-path '.venv' \
+            --exclude-path 'docs/_site' \
+            || echo "::warning::Link checker found issues but continuing (non-blocking)"

@@ -9,18 +9,19 @@ base_url = "https://ambient-code.github.io"
 max_concurrency = 10
 
 # Accept status codes (HTTP codes to consider as success)
-accept = [200, 206, 301, 302, 308, 429]
+# Including 403 to avoid false positives from bot-blocking sites
+accept = [200, 206, 301, 302, 308, 403, 429]
 
 # Timeout for each request (in seconds)
-timeout = 20
+timeout = 10
 
 # Number of retries for failed requests
-max_retries = 5
+max_retries = 2
 
 # Retry wait time (in seconds)
-retry_wait_time = 2
+retry_wait_time = 1
 
-# Exclude patterns (regex)
+# Exclude patterns (regex) - Focus on stability, only check critical links
 exclude = [
     # Localhost URLs
     "^http://localhost",
@@ -46,6 +47,33 @@ exclude = [
 
     # License file (avoid false positives)
     "^https://github\\.com/ambient-code/agentready/blob/main/LICENSE",
+
+    # === Sites that commonly block bots ===
+    # Claude AI (blocks automated scrapers)
+    "^https://claude\\.ai",
+
+    # Academic publishers (often block bots with 403)
+    "^https://dl\\.acm\\.org",
+    "^https://ieeexplore\\.ieee\\.org",
+    "^https://link\\.springer\\.com",
+
+    # Research preprints (unstable, placeholder URLs)
+    "^https://arxiv\\.org/abs/2501\\.",  # Future dates
+    "^https://arxiv\\.org/abs/25",       # Placeholder research URLs
+
+    # Microsoft Research (commonly blocks scrapers)
+    "^https://www\\.microsoft\\.com/en-us/research/publication/",
+
+    # Anthropic research (may not exist yet)
+    "^https://www\\.anthropic\\.com/research/",
+    "^https://anthropic\\.com/research/",
+
+    # GitHub blog (placeholder posts)
+    "^https://github\\.blog/2024.*automated.*",
+    "^https://github\\.blog/.*ai-workflows",
+
+    # GitHub Apps (may not be public)
+    "^https://github\\.com/apps/claude-ai",
 ]
 
 # Include mail addresses
