@@ -123,8 +123,8 @@ class TestCliGroup:
         result = runner.invoke(cli, ["--version"])
 
         assert result.exit_code == 0
-        assert "AgentReady Repository Scorer" in result.output
-        assert "v" in result.output or "unknown" in result.output
+        assert "AgentReady v" in result.output
+        assert "Research Report:" in result.output
 
     def test_cli_help_flag(self, runner):
         """Test CLI --help flag."""
