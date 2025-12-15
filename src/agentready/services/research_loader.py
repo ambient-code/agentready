@@ -65,7 +65,7 @@ class ResearchLoader:
         Raises:
             ValueError: If metadata cannot be extracted
         """
-        # Extract version and date from YAML frontmatter
+        # Try to extract version and date from YAML frontmatter first
         frontmatter_match = re.search(
             r"^---\s*\nversion:\s*([^\n]+)\s*\ndate:\s*([^\n]+)\s*\n---",
             content,
@@ -76,9 +76,12 @@ class ResearchLoader:
             version = frontmatter_match.group(1).strip()
             date = frontmatter_match.group(2).strip()
         else:
-            # Default version if not found
-            version = "1.0.0"
-            date = "unknown"
+            # Fallback: Try Markdown bold format (**Version:** 1.0.1)
+            version_match = re.search(r"\*\*Version:\*\*\s+([^\n]+)", content)
+            date_match = re.search(r"\*\*Date:\*\*\s+([^\n]+)", content)
+
+            version = version_match.group(1).strip() if version_match else "1.0.0"
+            date = date_match.group(1).strip() if date_match else "unknown"
 
         # Count attributes (look for ### headings with numbering like "1.1", "2.3", etc.)
         attribute_pattern = r"^###\s+\d+\.\d+\s+"

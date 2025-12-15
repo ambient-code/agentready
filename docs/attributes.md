@@ -1035,7 +1035,7 @@ cr src/**/*.js
 **19. OpenAPI/Swagger Specs** (`api_documentation`) — Machine-readable API docs
 **20. DRY Principle** (`dry_principle`) — <5% duplicate code
 
-*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md).*
+*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
 
@@ -1051,7 +1051,7 @@ cr src/**/*.js
 **24. Secrets Management** (`secrets_management`) — No hardcoded secrets, use env vars
 **25. Performance Benchmarks** (`performance_benchmarks`) — Automated perf tests in CI
 
-*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md).*
+*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
 
@@ -1078,4 +1078,4 @@ See the [GitHub repository](https://github.com/ambient-code/agentready) for curr
 
 ---
 
-**Complete attribute research**: See [agent-ready-codebase-attributes.md](https://github.com/ambient-code/agentready/blob/main/agent-ready-codebase-attributes.md) for full citations, examples, and detailed criteria.
+**Complete attribute research**: See [RESEARCH_REPORT.md](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md) for full citations, examples, and detailed criteria.
