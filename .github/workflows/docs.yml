@@ -29,7 +29,6 @@ jobs:
           lychee --version
 
       - name: Check links
-        continue-on-error: true
         run: |
           lychee --config lychee.toml \
             --no-progress \
@@ -38,5 +37,4 @@ jobs:
             --exclude-path '.git' \
             --exclude-path 'node_modules' \
             --exclude-path '.venv' \
-            --exclude-path 'docs/_site' \
-            || echo "::warning::Link checker found issues but continuing (non-blocking)"
+            --exclude-path 'docs/_site'
