@@ -163,10 +163,17 @@ jobs:
             - If it makes sense to create a draft PR: Write "create_pr" (without quotes) to .github/agentready-dev-logs/analysis-decision.txt
             - If it doesn't make sense: Write "provide_feedback" (without quotes) to .github/agentready-dev-logs/analysis-decision.txt
             
-            IMPORTANT: Write ONLY the value (create_pr or provide_feedback), NOT "OUTPUT=value"
+            IMPORTANT: 
+            - Write ONLY the value (create_pr or provide_feedback), NOT "OUTPUT=value"
+            - You MUST create these files using bash commands. Example:
+              echo "create_pr" > .github/agentready-dev-logs/analysis-decision.txt
+              echo "Your reasoning here" > .github/agentready-dev-logs/analysis-reasoning.txt
+              echo "branch-name" > .github/agentready-dev-logs/analysis-branch.txt
             
             Write your reasoning (2-3 lines max) to .github/agentready-dev-logs/analysis-reasoning.txt
             Write a short branch name suggestion (e.g., "add-feature-x" or "fix-bug-y") to .github/agentready-dev-logs/analysis-branch.txt
+            
+            CRITICAL: You must create all three files (.github/agentready-dev-logs/analysis-decision.txt, analysis-reasoning.txt, and analysis-branch.txt) using bash echo commands.
             
             Do NOT post any comment yet - you will self-review your analysis first.
 
