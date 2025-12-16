@@ -210,7 +210,7 @@ jobs:
           echo "GitHub context issue (alt): ${{ github.event.issue.number || 'not set' }}"
 
       - name: Post @agentready-dev response
-        if: always() && steps.event-context.outputs.issue_number != ''
+        if: always()
         uses: actions/github-script@v8
         env:
           ISSUE_NUMBER: ${{ steps.event-context.outputs.issue_number }}
