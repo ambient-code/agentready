@@ -160,8 +160,10 @@ jobs:
             4. What would be the implementation approach?
 
             Based on your analysis, decide:
-            - If it makes sense to create a draft PR: Write OUTPUT=create_pr to .github/agentready-dev-logs/analysis-decision.txt
-            - If it doesn't make sense: Write OUTPUT=provide_feedback to .github/agentready-dev-logs/analysis-decision.txt
+            - If it makes sense to create a draft PR: Write "create_pr" (without quotes) to .github/agentready-dev-logs/analysis-decision.txt
+            - If it doesn't make sense: Write "provide_feedback" (without quotes) to .github/agentready-dev-logs/analysis-decision.txt
+            
+            IMPORTANT: Write ONLY the value (create_pr or provide_feedback), NOT "OUTPUT=value"
             
             Write your reasoning (2-3 lines max) to .github/agentready-dev-logs/analysis-reasoning.txt
             Write a short branch name suggestion (e.g., "add-feature-x" or "fix-bug-y") to .github/agentready-dev-logs/analysis-branch.txt
@@ -174,6 +176,13 @@ jobs:
         run: |
           if [ -f .github/agentready-dev-logs/analysis-decision.txt ]; then
             DECISION=$(cat .github/agentready-dev-logs/analysis-decision.txt | tr -d '\n' | head -c 50)
+            # Remove "OUTPUT=" prefix if present
+            DECISION=$(echo "$DECISION" | sed 's/^OUTPUT=//' | sed 's/^output=//')
+            # Extract just the value (create_pr or provide_feedback)
+            DECISION=$(echo "$DECISION" | grep -oE "(create_pr|provide_feedback)" | head -1)
+            if [ -z "$DECISION" ]; then
+              DECISION="provide_feedback"
+            fi
             echo "decision=$DECISION" >> $GITHUB_OUTPUT
           else
             echo "decision=provide_feedback" >> $GITHUB_OUTPUT
@@ -237,6 +246,13 @@ jobs:
           # Re-read decision in case it was updated during review
           if [ -f .github/agentready-dev-logs/analysis-decision.txt ]; then
             DECISION=$(cat .github/agentready-dev-logs/analysis-decision.txt | tr -d '\n' | head -c 50)
+            # Remove "OUTPUT=" prefix if present
+            DECISION=$(echo "$DECISION" | sed 's/^OUTPUT=//' | sed 's/^output=//')
+            # Extract just the value (create_pr or provide_feedback)
+            DECISION=$(echo "$DECISION" | grep -oE "(create_pr|provide_feedback)" | head -1)
+            if [ -z "$DECISION" ]; then
+              DECISION="${{ steps.extract-decision.outputs.decision }}"
+            fi
             echo "final_decision=$DECISION" >> $GITHUB_OUTPUT
           else
             echo "final_decision=${{ steps.extract-decision.outputs.decision }}" >> $GITHUB_OUTPUT
