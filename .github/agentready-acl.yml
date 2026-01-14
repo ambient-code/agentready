@@ -1,0 +1,5 @@
+# Authorized users for /agentready assess command
+# Add users via pull request to maintain audit trail
+authorized_users:
+  - jeremyeder
+  # Add more users here via PR

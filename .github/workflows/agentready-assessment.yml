@@ -8,11 +8,72 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-agentready-acl:
+    # Check if user is authorized to run /agentready assess command
+    # Always runs to provide output for dependent jobs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    outputs:
+      is_authorized: ${{ steps.check-agentready-acl.outputs.is_authorized }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      
+      - name: Check AgentReady ACL
+        id: check-agentready-acl
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          COMMENT_USER: ${{ github.event.comment.user.login || '' }}
+          COMMENT_BODY: ${{ github.event.comment.body || '' }}
+        run: |
+          # workflow_dispatch (manual trigger) is always authorized
+          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
+            echo "Manual workflow dispatch is always authorized"
+            echo "is_authorized=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          # For comment events, check if command is present
+          if [ "$EVENT_NAME" != "issue_comment" ] && [ "$EVENT_NAME" != "pull_request_review_comment" ]; then
+            echo "is_authorized=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          # Check if comment contains the command
+          if ! echo "$COMMENT_BODY" | grep -qi "/agentready assess"; then
+            echo "is_authorized=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          # Read ACL file and check if user is authorized
+          if [ ! -f ".github/agentready-acl.yml" ]; then
+            echo "::error::ACL file not found: .github/agentready-acl.yml"
+            echo "is_authorized=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Extract authorized users from YAML (simple grep approach for authorized_users list)
+          # This handles the YAML list format: - username
+          AUTHORIZED_USERS=$(grep -E "^\s*-\s+" .github/agentready-acl.yml | sed 's/^\s*-\s*//' | tr '\n' ' ')
+          
+          # Check if COMMENT_USER is in the authorized list
+          if echo "$AUTHORIZED_USERS" | grep -qw "$COMMENT_USER"; then
+            echo "User $COMMENT_USER is authorized"
+            echo "is_authorized=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "User $COMMENT_USER is not authorized"
+            echo "is_authorized=false" >> "$GITHUB_OUTPUT"
+          fi
+
   unauthorized:
     # Respond to unauthorized users with helpful message
+    needs: check-agentready-acl
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login != 'jeremyeder') ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login != 'jeremyeder')
+      needs.check-agentready-acl.outputs.is_authorized == 'false' &&
+      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment')
 
     runs-on: ubuntu-latest
     permissions:
@@ -25,7 +86,7 @@ jobs:
         with:
           script: |
             const user = context.payload.comment.user.login;
-            const body = `👋 Hi @${user}! Thanks for your interest in AgentReady.\n\n` +
+            const body = `Hi @${user}! Thanks for your interest in AgentReady.\n\n` +
                          `The \`/agentready assess\` command is currently restricted to repository maintainers.\n\n` +
                          `**To assess your own repository:**\n` +
                          `\`\`\`bash\n` +
@@ -42,11 +103,9 @@ jobs:
             });
 
   assess:
-    # Only run on /agentready assess command (from @jeremyeder only) or manual trigger
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login == 'jeremyeder') ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/agentready assess') && github.event.comment.user.login == 'jeremyeder') ||
-      github.event_name == 'workflow_dispatch'
+    # Only run on /agentready assess command (from authorized users) or manual trigger
+    needs: check-agentready-acl
+    if: needs.check-agentready-acl.outputs.is_authorized == 'true'
 
     runs-on: ubuntu-latest
     permissions:
