@@ -42,6 +42,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_non_write_users: '*'  # Enable reviews on fork PRs
           prompt: |
             Run the /review-agentready command on this pull request.
 

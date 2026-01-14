@@ -92,14 +92,13 @@ jobs:
             -v --no-cov --tb=short || echo "Tests failed but continuing"
         timeout-minutes: 10
 
-  # Coverage reporting (PR only)
+  # Coverage data collection (PR only) - saves artifact for coverage-comment workflow
   coverage-report:
     name: Coverage Report
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout PR branch
@@ -153,54 +152,26 @@ jobs:
           DIFF=$(python -c "print(f'{float(\"$PR_COVERAGE\") - float(\"$MAIN_COVERAGE\"):.1f}')")
           echo "diff=$DIFF" >> "$GITHUB_OUTPUT"
 
-      - name: Post coverage comment
-        uses: actions/github-script@v8
+      - name: Save coverage data for comment workflow
         env:
           PR_COVERAGE: ${{ steps.coverage.outputs.coverage_pct }}
           MAIN_COVERAGE: ${{ steps.main_coverage.outputs.main_coverage_pct }}
           DIFF: ${{ steps.diff.outputs.diff }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          mkdir -p coverage-data
+          cat > coverage-data/coverage.json << EOF
+          {
+            "pr_coverage": "$PR_COVERAGE",
+            "main_coverage": "$MAIN_COVERAGE",
+            "diff": "$DIFF",
+            "pr_number": "$PR_NUMBER"
+          }
+          EOF
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          script: |
-            const prCoverage = process.env.PR_COVERAGE;
-            const mainCoverage = process.env.MAIN_COVERAGE;
-            const diff = parseFloat(process.env.DIFF);
-
-            const emoji = diff >= 0 ? '📈' : '📉';
-            const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
-            const status = diff >= 0 ? '✅' : '⚠️';
-
-            const body = `## ${emoji} Test Coverage Report\n\n` +
-                         `| Branch | Coverage |\n` +
-                         `|--------|----------|\n` +
-                         `| **This PR** | ${prCoverage}% |\n` +
-                         `| Main | ${mainCoverage}% |\n` +
-                         `| **Diff** | ${status} ${diffText} |\n\n` +
-                         `---\n\n` +
-                         `*Coverage calculated from unit tests only*`;
-
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-
-            const existingComment = comments.data.find(comment =>
-              comment.user.login === 'github-actions[bot]' &&
-              comment.body.includes('Test Coverage Report')
-            );
-
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body
-              });
-            }
+          name: coverage-data
+          path: coverage-data/
+          retention-days: 1
