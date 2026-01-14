@@ -4,6 +4,7 @@ import subprocess
 
 from agentready.assessors.stub_assessors import (
     DependencyPinningAssessor,
+    FileSizeLimitsAssessor,
     GitignoreAssessor,
 )
 from agentready.models.repository import Repository
@@ -513,3 +514,178 @@ venv
 
         # Should still give points if file exists with content
         assert finding.score > 0
+
+
+class TestFileSizeLimitsAssessor:
+    """Tests for FileSizeLimitsAssessor - Issue #245 fix."""
+
+    def test_respects_gitignore_venv(self, tmp_path):
+        """Verify .venv files are NOT counted (fixes issue #245)."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .gitignore with .venv/
+        gitignore = tmp_path / ".gitignore"
+        gitignore.write_text(".venv/\n")
+
+        # Create .venv directory with large file (should be IGNORED)
+        venv_dir = tmp_path / ".venv"
+        venv_dir.mkdir()
+        large_venv_file = venv_dir / "large_module.py"
+        large_venv_file.write_text("x = 1\n" * 2000)  # 2000 lines - huge
+
+        # Create src directory with small file (should be counted)
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        small_file = src_dir / "main.py"
+        small_file.write_text("print('hello')\n" * 50)  # 50 lines
+
+        # Add only the tracked file to git
+        subprocess.run(["git", "add", "src/main.py"], cwd=tmp_path, capture_output=True)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 1},
+            total_files=1,
+            total_lines=50,
+        )
+
+        assessor = FileSizeLimitsAssessor()
+        finding = assessor.assess(repo)
+
+        # Should pass because .venv file is ignored
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        # Evidence should NOT mention the 2000-line file
+        assert "2000" not in str(finding.evidence)
+
+    def test_no_source_files_returns_not_applicable(self, tmp_path):
+        """Test not_applicable when no source files exist."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create only non-source files
+        readme = tmp_path / "README.md"
+        readme.write_text("# Test\n")
+        subprocess.run(["git", "add", "README.md"], cwd=tmp_path, capture_output=True)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Markdown": 1},
+            total_files=1,
+            total_lines=1,
+        )
+
+        assessor = FileSizeLimitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "not_applicable"
+
+    def test_huge_files_detected(self, tmp_path):
+        """Test that files >1000 lines are flagged."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create a huge file
+        huge_file = tmp_path / "huge_module.py"
+        huge_file.write_text("x = 1\n" * 1500)  # 1500 lines
+        subprocess.run(
+            ["git", "add", "huge_module.py"], cwd=tmp_path, capture_output=True
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 1},
+            total_files=1,
+            total_lines=1500,
+        )
+
+        assessor = FileSizeLimitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score < 70
+        assert "1500" in str(finding.evidence) or ">1000" in str(finding.evidence)
+
+    def test_small_files_pass(self, tmp_path):
+        """Test that all files <500 lines gives perfect score."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create small files
+        for i in range(5):
+            small_file = tmp_path / f"module_{i}.py"
+            small_file.write_text("x = 1\n" * 100)  # 100 lines each
+            subprocess.run(
+                ["git", "add", f"module_{i}.py"], cwd=tmp_path, capture_output=True
+            )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 5},
+            total_files=5,
+            total_lines=500,
+        )
+
+        assessor = FileSizeLimitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "All 5 source files are <500 lines" in str(finding.evidence)
+
+    def test_respects_gitignore_node_modules(self, tmp_path):
+        """Verify node_modules files are NOT counted."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .gitignore with node_modules/
+        gitignore = tmp_path / ".gitignore"
+        gitignore.write_text("node_modules/\n")
+
+        # Create node_modules directory with large JS file (should be IGNORED)
+        nm_dir = tmp_path / "node_modules"
+        nm_dir.mkdir()
+        large_js = nm_dir / "large_lib.js"
+        large_js.write_text("var x = 1;\n" * 3000)  # 3000 lines
+
+        # Create src directory with small JS file (should be counted)
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        small_js = src_dir / "app.js"
+        small_js.write_text("console.log('hi');\n" * 30)  # 30 lines
+
+        subprocess.run(["git", "add", "src/app.js"], cwd=tmp_path, capture_output=True)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 1},
+            total_files=1,
+            total_lines=30,
+        )
+
+        assessor = FileSizeLimitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert "3000" not in str(finding.evidence)
