@@ -4,9 +4,12 @@ These are simplified implementations to get the MVP working. Each can be
 enhanced later with more sophisticated detection and scoring logic.
 """
 
+from pathlib import Path
+
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
+from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
 
 
@@ -539,51 +542,67 @@ class FileSizeLimitsAssessor(BaseAssessor):
         - 100: All files <500 lines
         - 75-99: Some files 500-1000 lines
         - 0-74: Files >1000 lines exist
+
+        Note: Uses git ls-files to respect .gitignore (fixes issue #245).
         """
         # Count files by size
-        large_files = []  # 500-1000 lines
-        huge_files = []  # >1000 lines
+        large_files: list[tuple[Path, int]] = []  # 500-1000 lines
+        huge_files: list[tuple[Path, int]] = []  # >1000 lines
         total_files = 0
 
         # Check common source file extensions
-        extensions = {
-            ".py",
-            ".js",
-            ".ts",
-            ".jsx",
-            ".tsx",
-            ".go",
-            ".java",
-            ".rb",
-            ".rs",
-            ".cpp",
-            ".c",
-            ".h",
-        }
+        extensions = [
+            "py",
+            "js",
+            "ts",
+            "jsx",
+            "tsx",
+            "go",
+            "java",
+            "rb",
+            "rs",
+            "cpp",
+            "c",
+            "h",
+        ]
 
-        for ext in extensions:
-            pattern = f"**/*{ext}"
+        # Get git-tracked files (respects .gitignore)
+        # This fixes issue #245 where .venv files were incorrectly scanned
+        try:
+            patterns = [f"*.{ext}" for ext in extensions]
+            result = safe_subprocess_run(
+                ["git", "ls-files"] + patterns,
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
+            tracked_files = [f for f in result.stdout.strip().split("\n") if f]
+        except Exception:
+            # Fallback for non-git repos: use glob (less accurate)
+            tracked_files = []
+            for ext in extensions:
+                tracked_files.extend(
+                    str(f.relative_to(repository.path))
+                    for f in repository.path.rglob(f"*.{ext}")
+                    if f.is_file()
+                )
+
+        # Count lines in tracked files
+        for rel_path in tracked_files:
+            file_path = repository.path / rel_path
             try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lines = len(f.readlines())
+                    total_files += 1
 
-                for file_path in repository.path.glob(pattern):
-                    if file_path.is_file():
-                        try:
-                            with open(file_path, "r", encoding="utf-8") as f:
-                                lines = len(f.readlines())
-                                total_files += 1
-
-                                if lines > 1000:
-                                    huge_files.append(
-                                        (file_path.relative_to(repository.path), lines)
-                                    )
-                                elif lines > 500:
-                                    large_files.append(
-                                        (file_path.relative_to(repository.path), lines)
-                                    )
-                        except (OSError, UnicodeDecodeError):
-                            # Skip files we can't read
-                            pass
-            except Exception:
+                    if lines > 1000:
+                        huge_files.append((Path(rel_path), lines))
+                    elif lines > 500:
+                        large_files.append((Path(rel_path), lines))
+            except (OSError, UnicodeDecodeError):
+                # Skip files we can't read
                 pass
 
         if total_files == 0:
