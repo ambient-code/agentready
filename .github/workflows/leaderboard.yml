@@ -42,6 +42,9 @@ jobs:
       - name: Extract submission details
         id: extract
         run: |
+          # Fetch main branch from upstream for comparison
+          git fetch origin main:refs/remotes/origin/main || true
+
           # Find changed JSON file
           CHANGED_FILE=$(git diff --name-only origin/main...HEAD | grep 'submissions/.*-assessment.json' | head -1)
 
