@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-01-15T05:47:41.867340Z",
-  "total_repositories": 3,
+  "generated_at": "2026-01-15T05:50:04.427868Z",
+  "total_repositories": 4,
   "overall": [
     {
       "repo": "ambient-code/agentready",
@@ -28,6 +28,31 @@
       }
     },
     {
+      "repo": "ambient-code/reference",
+      "org": "ambient-code",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/ambient-code/reference",
+      "agentready_version": "2.22.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 2,
+      "lang_rank": {
+        "Unknown": 2
+      }
+    },
+    {
       "repo": "jeremyeder/reference",
       "org": "jeremyeder",
       "name": "reference",
@@ -47,9 +72,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 2,
+      "rank": 3,
       "lang_rank": {
-        "Unknown": 2
+        "Unknown": 3
       }
     },
     {
@@ -72,9 +97,9 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 3,
+      "rank": 4,
       "lang_rank": {
-        "Unknown": 3
+        "Unknown": 4
       }
     }
   ],
@@ -106,6 +131,31 @@
         }
       },
       {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
+      },
+      {
         "repo": "jeremyeder/reference",
         "org": "jeremyeder",
         "name": "reference",
@@ -125,9 +175,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 2,
+        "rank": 3,
         "lang_rank": {
-          "Unknown": 2
+          "Unknown": 3
         }
       },
       {
@@ -150,9 +200,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 3,
+        "rank": 4,
         "lang_rank": {
-          "Unknown": 3
+          "Unknown": 4
         }
       }
     ]
@@ -185,6 +235,31 @@
         }
       },
       {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
+      },
+      {
         "repo": "jeremyeder/reference",
         "org": "jeremyeder",
         "name": "reference",
@@ -204,9 +279,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 2,
+        "rank": 3,
         "lang_rank": {
-          "Unknown": 2
+          "Unknown": 3
         }
       },
       {
@@ -229,9 +304,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 3,
+        "rank": 4,
         "lang_rank": {
-          "Unknown": 3
+          "Unknown": 4
         }
       }
     ]
