@@ -17,6 +17,7 @@ jobs:
     
     outputs:
       is_authorized: ${{ steps.check-agentready-acl.outputs.is_authorized }}
+      command_invoked: ${{ steps.check-agentready-acl.outputs.command_invoked }}
     
     steps:
       - name: Checkout repository
@@ -44,9 +45,12 @@ jobs:
           
           # Check if comment contains the command
           if ! echo "$COMMENT_BODY" | grep -qi "/agentready assess"; then
+            echo "command_invoked=false" >> "$GITHUB_OUTPUT"
             echo "is_authorized=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          
+          echo "command_invoked=true" >> "$GITHUB_OUTPUT"
           
           # Read ACL file and check if user is authorized
           if [ ! -f ".github/agentready-acl.yml" ]; then
@@ -72,6 +76,7 @@ jobs:
     # Respond to unauthorized users with helpful message
     needs: check-agentready-acl
     if: |
+      needs.check-agentready-acl.outputs.command_invoked == 'true' &&
       needs.check-agentready-acl.outputs.is_authorized == 'false' &&
       (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment')
 
