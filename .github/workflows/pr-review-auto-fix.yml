@@ -49,6 +49,17 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           allowed_non_write_users: '*'  # Enable reviews on fork PRs
+          settings: |
+            {
+              "permissions": {
+                "allow": [
+                  "Bash(gh pr:*)",
+                  "Bash(gh issue:*)",
+                  "Bash(gh search:*)",
+                  "Bash(git:*)"
+                ]
+              }
+            }
           prompt: |
             Run the /review-agentready command on this pull request.
 
