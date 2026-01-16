@@ -162,8 +162,8 @@ class TestBenchmarkCommand:
 
         assert result.exit_code == 0
         # Verbose flag passed to _run_tbench
-        args, kwargs = mock_run.call_args
-        assert args[3] is True  # verbose parameter
+        _, _, _, verbose, _, _, _ = mock_run.call_args[0]
+        assert verbose is True
 
     @patch("agentready.cli.benchmark._run_tbench")
     def test_benchmark_with_custom_timeout(self, mock_run, runner, temp_repo):
@@ -174,8 +174,8 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        args, kwargs = mock_run.call_args
-        assert args[4] == 7200  # timeout parameter
+        _, _, _, _, timeout, _, _ = mock_run.call_args[0]
+        assert timeout == 7200
 
     @patch("agentready.cli.benchmark._run_tbench")
     def test_benchmark_with_output_dir(self, mock_run, runner, temp_repo):
@@ -192,8 +192,8 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        args, kwargs = mock_run.call_args
-        assert args[5] == "/custom/output"
+        _, _, _, _, _, output_dir, _ = mock_run.call_args[0]
+        assert output_dir == "/custom/output"
 
     @patch("agentready.cli.benchmark._run_tbench")
     def test_benchmark_skip_preflight(self, mock_run, runner, temp_repo):
@@ -204,8 +204,8 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        args, kwargs = mock_run.call_args
-        assert args[6] is True  # skip_preflight parameter
+        _, _, _, _, _, _, skip_preflight = mock_run.call_args[0]
+        assert skip_preflight is True
 
     def test_benchmark_unknown_harness(self, runner, temp_repo):
         """Test benchmark with unknown harness."""
@@ -232,8 +232,8 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        args, kwargs = mock_run.call_args
-        assert args[2] == "claude-sonnet-4-5"
+        _, _, model, _, _, _, _ = mock_run.call_args[0]
+        assert model == "claude-sonnet-4-5"
 
 
 class TestRunTbench:
@@ -302,6 +302,7 @@ class TestRunTbench:
                 skip_preflight=True,
             )
 
+    @patch.dict("os.environ", {}, clear=True)
     @patch("agentready.cli.benchmark.click.echo")
     @patch("agentready.cli.benchmark.click.Abort")
     def test_run_tbench_missing_api_key(self, mock_abort, mock_echo, tmp_path):
@@ -309,28 +310,16 @@ class TestRunTbench:
         repo_path = tmp_path / "repo"
         repo_path.mkdir()
 
-        # Clear API key from environment
-        import os
-
-        old_key = os.environ.get("ANTHROPIC_API_KEY")
-        if old_key:
-            del os.environ["ANTHROPIC_API_KEY"]
-
-        try:
-            with pytest.raises(Exception):
-                _run_tbench(
-                    repo_path=repo_path,
-                    subset="smoketest",
-                    model="claude-haiku-4-5",
-                    verbose=False,
-                    timeout=3600,
-                    output_dir=None,
-                    skip_preflight=True,
-                )
-        finally:
-            # Restore API key
-            if old_key:
-                os.environ["ANTHROPIC_API_KEY"] = old_key
+        with pytest.raises(Exception):
+            _run_tbench(
+                repo_path=repo_path,
+                subset="smoketest",
+                model="claude-haiku-4-5",
+                verbose=False,
+                timeout=3600,
+                output_dir=None,
+                skip_preflight=True,
+            )
 
     @patch("agentready.cli.benchmark._real_tbench_result")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
@@ -535,28 +524,17 @@ class TestValidateAssessorCommand:
             _, kwargs = mock_compare.call_args
             assert kwargs["task_names"] == ["adaptive-rejection-sampler"]
 
+    @patch.dict("os.environ", {}, clear=True)
     def test_validate_assessor_missing_api_key(self, runner):
         """Test validation fails without API key."""
-        # Clear API key from environment
-        import os
+        result = runner.invoke(
+            validate_assessor,
+            ["--assessor", "claude_md_file"],
+        )
 
-        old_key = os.environ.get("ANTHROPIC_API_KEY")
-        if old_key:
-            del os.environ["ANTHROPIC_API_KEY"]
-
-        try:
-            result = runner.invoke(
-                validate_assessor,
-                ["--assessor", "claude_md_file"],
-            )
-
-            # Should fail
-            assert result.exit_code != 0
-            assert "ANTHROPIC_API_KEY" in result.output
-        finally:
-            # Restore API key
-            if old_key:
-                os.environ["ANTHROPIC_API_KEY"] = old_key
+        # Should fail
+        assert result.exit_code != 0
+        assert "ANTHROPIC_API_KEY" in result.output
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
