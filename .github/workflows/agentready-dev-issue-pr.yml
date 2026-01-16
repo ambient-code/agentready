@@ -108,6 +108,33 @@ jobs:
               commentBody,
             };
 
+      - name: Read ACL configuration
+        id: read-acl
+        uses: actions/github-script@v8
+        with:
+          script: |
+            // Read the ACL file from the repository
+            // This provides a list of users allowed to trigger the agent
+            // Users with write permissions are still allowed even if not in this list
+            try {
+              const { data } = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: '.github/agentready-acl.yml',
+                ref: context.payload.repository?.default_branch || 'main'
+              });
+              const content = Buffer.from(data.content, 'base64').toString();
+              // Extract usernames from YAML (handles "  - username" format)
+              const users = content.match(/^\s*-\s*([\w-]+)/gm)?.map(u => u.replace(/^\s*-\s*/, '').trim()) || [];
+              core.setOutput('allowed_users', users.join(','));
+              console.log(`Loaded ${users.length} users from ACL: ${users.join(', ')}`);
+            } catch (error) {
+              // If ACL file doesn't exist or is unreadable, fall back to empty list
+              // Users with write permissions will still be allowed by Claude Code Action
+              console.log('ACL file not found or unreadable, using empty list (write permission users still allowed)');
+              core.setOutput('allowed_users', '');
+            }
+
       - name: Checkout repository
         if: steps.issue-context.outputs.skip_pr_creation != 'true' || steps.issue-context.outputs.is_comment_trigger == 'true'
         uses: actions/checkout@v6
@@ -149,6 +176,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_users: ${{ steps.read-acl.outputs.allowed_users }}
           prompt: |
             You are the @agentready-dev agent. Analyze this issue to determine if it makes sense to create a draft PR.
 
@@ -234,6 +262,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_users: ${{ steps.read-acl.outputs.allowed_users }}
           prompt: |
             Self-review the issue analysis using the /review-agentready command.
             
@@ -471,6 +500,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_users: ${{ steps.read-acl.outputs.allowed_users }}
           prompt: |
             Run the /review-agentready command on pull request #${{ steps.create-pr.outputs.pr_number }}.
             
@@ -495,6 +525,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_users: ${{ steps.read-acl.outputs.allowed_users }}
           prompt: |
             Self-review the actual CODE in pull request #${{ steps.create-pr.outputs.pr_number }} using the /review-agentready command.
             
@@ -607,6 +638,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_users: ${{ steps.read-acl.outputs.allowed_users }}
           prompt: |
             You are the @agentready-dev agent. Someone requested analysis with: "${{ steps.issue-context.outputs.comment_body }}"
             
@@ -630,6 +662,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_users: ${{ steps.read-acl.outputs.allowed_users }}
           prompt: |
             Self-review the actual CODE or issue using the /review-agentready command.
             
