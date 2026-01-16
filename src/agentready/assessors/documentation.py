@@ -3,6 +3,7 @@
 import ast
 import json
 import re
+from pathlib import Path
 
 import yaml
 
@@ -43,49 +44,149 @@ class CLAUDEmdAssessor(BaseAssessor):
     def assess(self, repository: Repository) -> Finding:
         """Check for CLAUDE.md file in repository root.
 
-        Pass criteria: CLAUDE.md exists
-        Scoring: Binary (100 if exists, 0 if not)
+        Pass criteria:
+        - CLAUDE.md exists with >50 bytes, OR
+        - CLAUDE.md is a symlink to a file with >50 bytes, OR
+        - CLAUDE.md contains @ reference to a file with >50 bytes, OR
+        - AGENTS.md exists with >50 bytes (alternative)
+
+        Security:
+        - @ references are restricted to relative paths within repository
+        - Path traversal attempts (../) and absolute paths are rejected
+
+        Scoring:
+        - 100 if CLAUDE.md passes (direct, symlink, or @ reference)
+        - 90 if AGENTS.md exists without CLAUDE.md
+        - 25 if CLAUDE.md exists but is minimal without valid references
+        - 0 if neither file exists
         """
         claude_md_path = repository.path / "CLAUDE.md"
+        agents_md_path = repository.path / "AGENTS.md"
 
-        # Fix TOCTOU: Use try-except around file read instead of existence check
+        # Check for CLAUDE.md first
         try:
-            with open(claude_md_path, "r", encoding="utf-8") as f:
+            # Resolve symlinks if CLAUDE.md is a symlink
+            resolved_path = claude_md_path.resolve(strict=True)
+            is_symlink = claude_md_path.is_symlink()
+
+            with open(resolved_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             size = len(content)
-            if size < 50:
-                # File exists but is too small
+
+            # Check if file has sufficient content
+            if size >= 50:
+                evidence = [f"CLAUDE.md found at {claude_md_path}"]
+                if is_symlink:
+                    target = (
+                        resolved_path.relative_to(repository.path)
+                        if resolved_path.is_relative_to(repository.path)
+                        else resolved_path
+                    )
+                    evidence.append(f"Symlink to {target} ({size} bytes)")
+
+                # Bonus: Check if AGENTS.md also exists
+                if self._check_agents_md_exists(agents_md_path):
+                    evidence.append("AGENTS.md also present (cross-tool compatibility)")
+
                 return Finding(
                     attribute=self.attribute,
-                    status="fail",
-                    score=25.0,
-                    measured_value=f"{size} bytes",
-                    threshold=">50 bytes",
-                    evidence=[f"CLAUDE.md exists but is minimal ({size} bytes)"],
-                    remediation=self._create_remediation(),
+                    status="pass",
+                    score=100.0,
+                    measured_value="present",
+                    threshold="present",
+                    evidence=evidence,
+                    remediation=None,
                     error_message=None,
                 )
 
+            # File is small - check for @ references
+            referenced_file = self._extract_at_reference(content)
+            if referenced_file:
+                ref_path = repository.path / referenced_file
+                ref_content, ref_size = self._read_referenced_file(ref_path)
+
+                if ref_content and ref_size >= 50:
+                    evidence = [
+                        f"CLAUDE.md found with @ reference to {referenced_file}",
+                        f"Referenced file contains {ref_size} bytes",
+                    ]
+
+                    # Bonus: Check if AGENTS.md also exists
+                    if self._check_agents_md_exists(agents_md_path):
+                        evidence.append(
+                            "AGENTS.md also present (cross-tool compatibility)"
+                        )
+
+                    return Finding(
+                        attribute=self.attribute,
+                        status="pass",
+                        score=100.0,
+                        measured_value=f"@ reference to {referenced_file}",
+                        threshold="present",
+                        evidence=evidence,
+                        remediation=None,
+                        error_message=None,
+                    )
+                else:
+                    # Referenced file doesn't exist or is too small
+                    return Finding(
+                        attribute=self.attribute,
+                        status="fail",
+                        score=25.0,
+                        measured_value=f"{size} bytes, invalid @ reference",
+                        threshold=">50 bytes or valid @ reference",
+                        evidence=[
+                            f"CLAUDE.md exists but is minimal ({size} bytes)",
+                            f"@ reference to {referenced_file} but file is missing or too small",
+                        ],
+                        remediation=self._create_remediation(),
+                        error_message=None,
+                    )
+
+            # File is small and no valid @ reference
             return Finding(
                 attribute=self.attribute,
-                status="pass",
-                score=100.0,
-                measured_value="present",
-                threshold="present",
-                evidence=[f"CLAUDE.md found at {claude_md_path}"],
-                remediation=None,
+                status="fail",
+                score=25.0,
+                measured_value=f"{size} bytes",
+                threshold=">50 bytes",
+                evidence=[f"CLAUDE.md exists but is minimal ({size} bytes)"],
+                remediation=self._create_remediation(),
                 error_message=None,
             )
 
         except FileNotFoundError:
+            # CLAUDE.md not found - check for AGENTS.md as alternative
+            agents_content, agents_size = self._read_referenced_file(agents_md_path)
+
+            if agents_content and agents_size >= 50:
+                return Finding(
+                    attribute=self.attribute,
+                    status="pass",
+                    score=90.0,  # Slightly lower score for missing CLAUDE.md
+                    measured_value="AGENTS.md present",
+                    threshold="CLAUDE.md or AGENTS.md",
+                    evidence=[
+                        "CLAUDE.md not found",
+                        f"AGENTS.md found with {agents_size} bytes (alternative)",
+                        "Consider adding CLAUDE.md as symlink or @ reference for broader tool support",
+                    ],
+                    remediation=None,
+                    error_message=None,
+                )
+
+            # Neither file exists
             return Finding(
                 attribute=self.attribute,
                 status="fail",
                 score=0.0,
                 measured_value="missing",
                 threshold="present",
-                evidence=["CLAUDE.md not found in repository root"],
+                evidence=[
+                    "CLAUDE.md not found in repository root",
+                    "AGENTS.md not found (alternative)",
+                ],
                 remediation=self._create_remediation(),
                 error_message=None,
             )
@@ -94,12 +195,57 @@ class CLAUDEmdAssessor(BaseAssessor):
                 self.attribute, reason=f"Could not read CLAUDE.md file: {e}"
             )
 
+    def _extract_at_reference(self, content: str) -> str | None:
+        """Extract @ reference from CLAUDE.md content.
+
+        Looks for patterns like:
+        - @AGENTS.md
+        - @.claude/agents.md
+        - @ AGENTS.md (with space)
+
+        Security: Rejects path traversal attempts (../) and absolute paths.
+
+        Returns the referenced filename or None if no reference found.
+        """
+        # Match @filename.md or @ filename.md (with optional space)
+        # Support paths like @.claude/agents.md
+        pattern = r"@\s*([A-Za-z0-9_\-./]+\.md)"
+        match = re.search(pattern, content, re.IGNORECASE)
+
+        if match:
+            ref = match.group(1)
+            # Prevent path traversal - reject if contains .. or starts with /
+            if ".." in ref or ref.startswith("/"):
+                return None
+            return ref
+        return None
+
+    def _read_referenced_file(self, file_path: Path) -> tuple[str | None, int]:
+        """Read a referenced file and return its content and size.
+
+        Returns (content, size) tuple, or (None, 0) if file doesn't exist or can't be read.
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return content, len(content)
+        except (FileNotFoundError, OSError, UnicodeDecodeError):
+            return None, 0
+
+    def _check_agents_md_exists(self, agents_md_path: Path) -> bool:
+        """Check if AGENTS.md exists and has sufficient content."""
+        content, size = self._read_referenced_file(agents_md_path)
+        return content is not None and size >= 50
+
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for missing/inadequate CLAUDE.md."""
         return Remediation(
-            summary="Create CLAUDE.md file with project-specific configuration for Claude Code",
+            summary="Create CLAUDE.md or AGENTS.md with project-specific configuration for AI coding assistants",
             steps=[
-                "Create CLAUDE.md file in repository root",
+                "Choose one of three approaches:",
+                "  Option 1: Create standalone CLAUDE.md (>50 bytes) with project context",
+                "  Option 2: Create AGENTS.md and symlink CLAUDE.md to it (cross-tool compatibility)",
+                "  Option 3: Create AGENTS.md and reference it with @AGENTS.md in minimal CLAUDE.md",
                 "Add project overview and purpose",
                 "Document key architectural patterns",
                 "Specify coding standards and conventions",
@@ -108,11 +254,22 @@ class CLAUDEmdAssessor(BaseAssessor):
             ],
             tools=[],
             commands=[
+                "# Option 1: Standalone CLAUDE.md",
                 "touch CLAUDE.md",
                 "# Add content describing your project",
+                "",
+                "# Option 2: Symlink CLAUDE.md to AGENTS.md",
+                "touch AGENTS.md",
+                "# Add content to AGENTS.md",
+                "ln -s AGENTS.md CLAUDE.md",
+                "",
+                "# Option 3: @ reference in CLAUDE.md",
+                "echo '@AGENTS.md' > CLAUDE.md",
+                "touch AGENTS.md",
+                "# Add content to AGENTS.md",
             ],
             examples=[
-                """# My Project
+                """# Standalone CLAUDE.md (Option 1)
 
 ## Overview
 Brief description of what this project does.
@@ -136,7 +293,40 @@ npm run build
 - Use TypeScript strict mode
 - Follow ESLint configuration
 - Write tests for new features
-"""
+""",
+                """# CLAUDE.md with @ reference (Option 3)
+@AGENTS.md
+""",
+                """# AGENTS.md (shared by multiple tools)
+
+## Project Overview
+This project implements a REST API for user management.
+
+## Architecture
+- Layered architecture: controllers, services, repositories
+- PostgreSQL database with SQLAlchemy ORM
+- FastAPI web framework
+
+## Development Workflow
+```bash
+# Setup
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+
+# Run tests
+pytest
+
+# Start server
+uvicorn app.main:app --reload
+```
+
+## Code Conventions
+- Use type hints for all functions
+- Follow PEP 8 style guide
+- Write docstrings for public APIs
+- Maintain >80% test coverage
+""",
             ],
             citations=[
                 Citation(
@@ -144,7 +334,13 @@ npm run build
                     title="Claude Code Documentation",
                     url="https://docs.anthropic.com/claude-code",
                     relevance="Official guidance on CLAUDE.md configuration",
-                )
+                ),
+                Citation(
+                    source="agents.md",
+                    title="AGENTS.md Specification",
+                    url="https://agents.md/",
+                    relevance="Emerging standard for cross-tool AI assistant configuration",
+                ),
             ],
         )
 
