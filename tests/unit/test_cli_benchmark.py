@@ -334,7 +334,9 @@ class TestRunTbench:
 
     @patch("agentready.cli.benchmark._real_tbench_result")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
-    def test_run_tbench_defaults_to_full(self, mock_result, tmp_path, mock_tbench_result):
+    def test_run_tbench_defaults_to_full(
+        self, mock_result, tmp_path, mock_tbench_result
+    ):
         """Test tbench defaults to full subset when None specified."""
         mock_result.return_value = mock_tbench_result
 
@@ -416,7 +418,9 @@ class TestValidateAssessorCommand:
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/claude_md_file").mkdir(parents=True, exist_ok=True)
+            Path(".agentready/validations/claude_md_file").mkdir(
+                parents=True, exist_ok=True
+            )
 
             result = runner.invoke(
                 validate_assessor,
@@ -430,13 +434,17 @@ class TestValidateAssessorCommand:
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
-    def test_validate_assessor_with_custom_tasks(self, mock_compare, runner, mock_comparison):
+    def test_validate_assessor_with_custom_tasks(
+        self, mock_compare, runner, mock_comparison
+    ):
         """Test validation with custom tasks."""
         mock_compare.return_value = mock_comparison
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/readme_structure").mkdir(parents=True, exist_ok=True)
+            Path(".agentready/validations/readme_structure").mkdir(
+                parents=True, exist_ok=True
+            )
 
             result = runner.invoke(
                 validate_assessor,
@@ -453,7 +461,10 @@ class TestValidateAssessorCommand:
             assert result.exit_code == 0
             # Check that custom tasks were passed
             _, kwargs = mock_compare.call_args
-            assert kwargs["task_names"] == ["adaptive-rejection-sampler", "async-http-client"]
+            assert kwargs["task_names"] == [
+                "adaptive-rejection-sampler",
+                "async-http-client",
+            ]
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
@@ -463,7 +474,9 @@ class TestValidateAssessorCommand:
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/test_coverage").mkdir(parents=True, exist_ok=True)
+            Path(".agentready/validations/test_coverage").mkdir(
+                parents=True, exist_ok=True
+            )
 
             result = runner.invoke(
                 validate_assessor,
@@ -476,13 +489,17 @@ class TestValidateAssessorCommand:
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
-    def test_validate_assessor_default_tasks(self, mock_compare, runner, mock_comparison):
+    def test_validate_assessor_default_tasks(
+        self, mock_compare, runner, mock_comparison
+    ):
         """Test validation uses default Phase 1 tasks."""
         mock_compare.return_value = mock_comparison
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/claude_md_file").mkdir(parents=True, exist_ok=True)
+            Path(".agentready/validations/claude_md_file").mkdir(
+                parents=True, exist_ok=True
+            )
 
             result = runner.invoke(
                 validate_assessor,
@@ -496,13 +513,17 @@ class TestValidateAssessorCommand:
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
-    def test_validate_assessor_smoketest_mode(self, mock_compare, runner, mock_comparison):
+    def test_validate_assessor_smoketest_mode(
+        self, mock_compare, runner, mock_comparison
+    ):
         """Test smoketest mode uses single task."""
         mock_compare.return_value = mock_comparison
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/claude_md_file").mkdir(parents=True, exist_ok=True)
+            Path(".agentready/validations/claude_md_file").mkdir(
+                parents=True, exist_ok=True
+            )
 
             result = runner.invoke(
                 validate_assessor,
@@ -554,7 +575,9 @@ class TestValidateAssessorCommand:
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
-    def test_validate_assessor_creates_output_files(self, mock_compare, runner, mock_comparison):
+    def test_validate_assessor_creates_output_files(
+        self, mock_compare, runner, mock_comparison
+    ):
         """Test validation creates JSON and Markdown files."""
         mock_compare.return_value = mock_comparison
 
@@ -581,13 +604,17 @@ class TestValidateAssessorCommand:
 
     @patch("agentready.cli.benchmark.compare_assessor_impact")
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
-    def test_validate_assessor_concurrent_flag(self, mock_compare, runner, mock_comparison):
+    def test_validate_assessor_concurrent_flag(
+        self, mock_compare, runner, mock_comparison
+    ):
         """Test validation with concurrent tasks."""
         mock_compare.return_value = mock_comparison
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/claude_md_file").mkdir(parents=True, exist_ok=True)
+            Path(".agentready/validations/claude_md_file").mkdir(
+                parents=True, exist_ok=True
+            )
 
             result = runner.invoke(
                 validate_assessor,

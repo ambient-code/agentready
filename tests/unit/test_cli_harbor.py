@@ -37,7 +37,11 @@ from agentready.cli.harbor import (
     list_comparisons,
     view_comparison,
 )
-from agentready.models.harbor import HarborComparison, HarborRunMetrics, HarborTaskResult
+from agentready.models.harbor import (
+    HarborComparison,
+    HarborRunMetrics,
+    HarborTaskResult,
+)
 
 
 @pytest.fixture
@@ -242,7 +246,13 @@ class TestGenerateReports:
     @patch("agentready.cli.harbor._create_latest_symlinks")
     @patch("agentready.cli.harbor.click.echo")
     def test_generates_all_formats(
-        self, mock_echo, mock_symlinks, mock_markdown, mock_dashboard, tmp_path, mock_comparison
+        self,
+        mock_echo,
+        mock_symlinks,
+        mock_markdown,
+        mock_dashboard,
+        tmp_path,
+        mock_comparison,
     ):
         """Test report generation creates JSON, Markdown, and HTML."""
         run_dir = tmp_path / "run_123"
@@ -273,7 +283,15 @@ class TestGenerateReports:
     @patch("agentready.cli.harbor.generate_markdown_report")
     @patch("agentready.cli.harbor._create_latest_symlinks")
     @patch("agentready.cli.harbor.click.echo")
-    def test_json_content_valid(self, mock_echo, mock_symlinks, mock_markdown, mock_dashboard, tmp_path, mock_comparison):
+    def test_json_content_valid(
+        self,
+        mock_echo,
+        mock_symlinks,
+        mock_markdown,
+        mock_dashboard,
+        tmp_path,
+        mock_comparison,
+    ):
         """Test JSON report contains valid comparison data."""
         run_dir = tmp_path / "run_123"
         run_dir.mkdir()
@@ -404,10 +422,14 @@ class TestCompareCommand:
         result = runner.invoke(
             compare,
             [
-                "--task", "test-task-1",
-                "--task", "test-task-2",
-                "--agent-file", str(temp_repo / ".claude/agents/doubleagent.md"),
-                "--output-dir", str(temp_repo / "output"),
+                "--task",
+                "test-task-1",
+                "--task",
+                "test-task-2",
+                "--agent-file",
+                str(temp_repo / ".claude/agents/doubleagent.md"),
+                "--output-dir",
+                str(temp_repo / "output"),
             ],
         )
 
@@ -424,8 +446,10 @@ class TestCompareCommand:
         result = runner.invoke(
             compare,
             [
-                "--task", "test-task",
-                "--agent-file", str(temp_repo / "nonexistent.md"),
+                "--task",
+                "test-task",
+                "--agent-file",
+                str(temp_repo / "nonexistent.md"),
             ],
         )
 
@@ -438,7 +462,8 @@ class TestCompareCommand:
         result = runner.invoke(
             compare,
             [
-                "--agent-file", str(temp_repo / ".claude/agents/doubleagent.md"),
+                "--agent-file",
+                str(temp_repo / ".claude/agents/doubleagent.md"),
             ],
         )
 
@@ -456,8 +481,10 @@ class TestCompareCommand:
         result = runner.invoke(
             compare,
             [
-                "--task", "test-task",
-                "--agent-file", str(temp_repo / ".claude/agents/doubleagent.md"),
+                "--task",
+                "test-task",
+                "--agent-file",
+                str(temp_repo / ".claude/agents/doubleagent.md"),
             ],
         )
 
@@ -504,8 +531,10 @@ class TestCompareCommand:
         result = runner.invoke(
             compare,
             [
-                "--task", "test-task",
-                "--agent-file", str(temp_repo / ".claude/agents/doubleagent.md"),
+                "--task",
+                "test-task",
+                "--agent-file",
+                str(temp_repo / ".claude/agents/doubleagent.md"),
                 "--open-dashboard",
             ],
         )
@@ -538,8 +567,10 @@ class TestCompareCommand:
         result = runner.invoke(
             compare,
             [
-                "--task", "test-task",
-                "--agent-file", str(temp_repo / ".claude/agents/doubleagent.md"),
+                "--task",
+                "test-task",
+                "--agent-file",
+                str(temp_repo / ".claude/agents/doubleagent.md"),
             ],
         )
 
@@ -608,13 +639,17 @@ class TestViewComparisonCommand:
     """Test harbor view CLI command."""
 
     @patch("agentready.cli.harbor.DashboardGenerator")
-    def test_view_summary_format(self, mock_dashboard_gen, runner, tmp_path, mock_comparison):
+    def test_view_summary_format(
+        self, mock_dashboard_gen, runner, tmp_path, mock_comparison
+    ):
         """Test view command with summary format."""
         # Create comparison file
         comp_file = tmp_path / "comparison.json"
         comp_file.write_text(json.dumps(mock_comparison.to_dict()))
 
-        mock_dashboard_gen.return_value.generate_summary_text.return_value = "Test Summary"
+        mock_dashboard_gen.return_value.generate_summary_text.return_value = (
+            "Test Summary"
+        )
 
         result = runner.invoke(
             view_comparison,
