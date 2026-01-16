@@ -38,6 +38,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.coveragerc
+coverage.json
 
 # IDEs
 .vscode/
@@ -79,3 +80,6 @@ repomix/repomix-output.*
 .agentready-config.yaml
 !.agentready-config.example.yaml
 docs/_site/
+
+# Claude
+.claude/settings.local.json
