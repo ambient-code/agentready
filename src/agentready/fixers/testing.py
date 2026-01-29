@@ -46,10 +46,13 @@ class PrecommitHooksFixer(BaseFixer):
         # Try to load language-specific template, fallback to python
         try:
             template = self.env_bootstrap.get_template(
-                f"precommit-{primary_lang}.yaml.j2"
+                f"{primary_lang}/precommit.yaml.j2"
             )
         except Exception:
-            template = self.env_bootstrap.get_template("precommit-python.yaml.j2")
+            # Template doesn't exist, fallback to python
+            template = self.env_bootstrap.get_template(
+                "python/precommit.yaml.j2"
+            )
 
         content = template.render()
 
