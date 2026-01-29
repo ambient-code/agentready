@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 
-from ..services.eval_harness.harbor_config import HarborConfig
+from ..services.eval_harness.harbor_config import ALLOWED_MODELS, HarborConfig
 from ..services.eval_harness.tbench_runner import _real_tbench_result
 from ..services.harbor.agent_toggler import AssessorStateToggler
 from ..services.harbor.comparer import compare_assessor_impact
@@ -35,7 +35,7 @@ from ..services.harbor.comparer import compare_assessor_impact
 )
 @click.option(
     "--model",
-    type=click.Choice(["claude-haiku-4-5", "claude-sonnet-4-5"]),
+    type=click.Choice(list(ALLOWED_MODELS)),
     default="claude-haiku-4-5",
     help="Model for evaluation",
 )
