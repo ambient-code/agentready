@@ -12,11 +12,21 @@ from typing import Optional
 ALLOWED_MODELS = {
     "anthropic/claude-haiku-4-5",
     "anthropic/claude-sonnet-4-5",
+    "cursor/composer-1",
+    "cursor/gpt-5.2-codex",
+    "cursor/gpt-5.2-codex-fast",
+    "cursor/gemini-3-pro",
+    "cursor/opus-4.5",
+    "cursor/sonnet-4.5",
+    "cursor/sonnet-4.5-thinking",
+    "cursor/gpt-5.1-high",
+    "cursor/gemini-3-flash",
 }
 
 # Allowed agents (excludes oracle as it's not relevant for real-world assessment)
 ALLOWED_AGENTS = {
     "claude-code",
+    "cursor-cli",
 }
 
 

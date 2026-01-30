@@ -125,31 +125,50 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
     # Pass through current environment but ensure API key is set
     # Harbor's claude-code agent has MiniMax API hardcoded - override it
     clean_env = os.environ.copy()
-    clean_env["ANTHROPIC_API_KEY"] = config.api_key
-    clean_env["ANTHROPIC_AUTH_TOKEN"] = config.api_key  # Harbor uses this
-    clean_env["ANTHROPIC_BASE_URL"] = "https://api.anthropic.com"  # Override MiniMax
-    clean_env["ANTHROPIC_API_BASE"] = "https://api.anthropic.com"  # Alternative var
+
+    # Define agent-specific environment variable configurations
+    # Structure: (Env Key, Env Value, Is Sensitive)
+    agent_env_configs = {
+        "claude-code": [
+            ("ANTHROPIC_API_KEY", config.api_key, True),
+            ("ANTHROPIC_AUTH_TOKEN", config.api_key, True),
+            ("ANTHROPIC_BASE_URL", "https://api.anthropic.com", False),
+            ("ANTHROPIC_API_BASE", "https://api.anthropic.com", False),
+        ],
+        "cursor-cli": [
+            ("CURSOR_API_KEY", config.api_key, True),
+        ],
+    }
+
+    if config.agent not in agent_env_configs:
+        raise ValueError(f"Invalid agent: {config.agent}")
+
+    # Set environment variables and build display/copyable lists
+    env_vars_display = []
+    env_vars_copyable = []
+
+    for var_name, var_value, is_sensitive in agent_env_configs[config.agent]:
+        clean_env[var_name] = var_value
+
+        # Build display string (truncate sensitive values)
+        if is_sensitive:
+            display_value = f"{var_value[:20]}..."
+        else:
+            display_value = var_value
+        env_vars_display.append(f"{var_name}={display_value}")
+
+        # Build copyable string (use variable reference for sensitive values)
+        if is_sensitive:
+            copyable_value = f"${var_name}"
+        else:
+            copyable_value = var_value
+        env_vars_copyable.append(f"{var_name}={copyable_value}")
+
     # Clear MiniMax settings if present
     clean_env.pop("MINIMAX_API_KEY", None)
 
     # Print Harbor command for debugging and manual execution
     shell_cmd = " ".join(shlex.quote(arg) for arg in cmd)
-
-    # Prepare environment variable strings (truncate API key for security in display)
-    env_vars_display = [
-        f"ANTHROPIC_API_KEY={config.api_key[:20]}...",  # Truncated for display
-        f"ANTHROPIC_AUTH_TOKEN={config.api_key[:20]}...",
-        f"ANTHROPIC_BASE_URL={clean_env['ANTHROPIC_BASE_URL']}",
-        f"ANTHROPIC_API_BASE={clean_env['ANTHROPIC_API_BASE']}",
-    ]
-
-    # Full command for copy/paste (use $ANTHROPIC_API_KEY to avoid exposing key)
-    env_vars_copyable = [
-        "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY",
-        "ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_API_KEY",
-        f"ANTHROPIC_BASE_URL={clean_env['ANTHROPIC_BASE_URL']}",
-        f"ANTHROPIC_API_BASE={clean_env['ANTHROPIC_API_BASE']}",
-    ]
     full_cmd_copyable = " ".join(env_vars_copyable) + " " + shell_cmd
 
     print(f"\n{'=' * 70}")
