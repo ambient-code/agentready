@@ -102,12 +102,10 @@ class TestDependencyPinningAssessor:
 
         # Create requirements.txt with exact versions
         requirements = tmp_path / "requirements.txt"
-        requirements.write_text(
-            """requests==2.28.1
+        requirements.write_text("""requests==2.28.1
 flask==2.3.0
 pytest==7.4.0
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -134,13 +132,11 @@ pytest==7.4.0
 
         # Create requirements.txt with mix of pinned and unpinned
         requirements = tmp_path / "requirements.txt"
-        requirements.write_text(
-            """requests==2.28.1
+        requirements.write_text("""requests==2.28.1
 flask>=2.0.0
 pytest~=7.0
 numpy
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -296,8 +292,7 @@ class TestGitignoreAssessor:
 
         # Create .gitignore with Python patterns
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text(
-            """# Python
+        gitignore.write_text("""# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -311,8 +306,7 @@ venv/
 .vscode/
 .idea/
 *.swp
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -340,8 +334,7 @@ venv/
 
         # Create .gitignore with JavaScript patterns
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text(
-            """# JavaScript
+        gitignore.write_text("""# JavaScript
 node_modules/
 dist/
 build/
@@ -351,8 +344,7 @@ build/
 # General
 .DS_Store
 .vscode/
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -380,12 +372,10 @@ build/
 
         # Create .gitignore with only general patterns
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text(
-            """# General only
+        gitignore.write_text("""# General only
 .DS_Store
 .vscode/
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -414,8 +404,7 @@ build/
 
         # Create .gitignore with Python and JavaScript patterns
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text(
-            """# Python
+        gitignore.write_text("""# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -435,8 +424,7 @@ build/
 .DS_Store
 .vscode/
 .idea/
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -463,13 +451,11 @@ build/
 
         # Create .gitignore with mixed slash usage
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text(
-            """__pycache__
+        gitignore.write_text("""__pycache__
 venv
 .venv/
 .DS_Store
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,

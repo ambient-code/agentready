@@ -355,14 +355,12 @@ class TestConfigLoading:
     def test_load_config_valid_yaml(self, tmp_path):
         """Test loading valid config file."""
         config_file = tmp_path / "config.yaml"
-        config_file.write_text(
-            """
+        config_file.write_text("""
 weights:
   claude_md_file: 2.0
 excluded_attributes:
   - test_attribute
-"""
-        )
+""")
 
         config = load_config(config_file)
 

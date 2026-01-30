@@ -50,9 +50,7 @@ class PrecommitHooksFixer(BaseFixer):
             )
         except Exception:
             # Template doesn't exist, fallback to python
-            template = self.env_bootstrap.get_template(
-                "python/precommit.yaml.j2"
-            )
+            template = self.env_bootstrap.get_template("python/precommit.yaml.j2")
 
         content = template.render()
 
