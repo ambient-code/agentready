@@ -98,8 +98,7 @@ class TestContainerSetupAssessor:
 
         # Create multi-stage Dockerfile
         dockerfile = tmp_path / "Dockerfile"
-        dockerfile.write_text(
-            """FROM node:18 AS builder
+        dockerfile.write_text("""FROM node:18 AS builder
 WORKDIR /app
 COPY . .
 RUN npm ci && npm run build
@@ -108,8 +107,7 @@ FROM node:18-alpine
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 CMD ["node", "dist/index.js"]
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -138,15 +136,13 @@ CMD ["node", "dist/index.js"]
 
         # Create docker-compose.yml
         compose = tmp_path / "docker-compose.yml"
-        compose.write_text(
-            """version: '3.8'
+        compose.write_text("""version: '3.8'
 services:
   app:
     build: .
     ports:
       - "8000:8000"
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -177,15 +173,13 @@ services:
 
         # Create .dockerignore
         dockerignore = tmp_path / ".dockerignore"
-        dockerignore.write_text(
-            """.git
+        dockerignore.write_text(""".git
 .venv
 __pycache__
 *.pyc
 .env
 node_modules
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -239,14 +233,12 @@ node_modules
         subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         # Multi-stage Dockerfile
-        (tmp_path / "Dockerfile").write_text(
-            """FROM python:3.12 AS builder
+        (tmp_path / "Dockerfile").write_text("""FROM python:3.12 AS builder
 RUN pip install build
 
 FROM python:3.12-slim
 COPY --from=builder /app /app
-"""
-        )
+""")
 
         # docker-compose.yml
         (tmp_path / "docker-compose.yml").write_text(

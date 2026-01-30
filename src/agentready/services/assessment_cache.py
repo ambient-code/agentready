@@ -33,8 +33,7 @@ class AssessmentCache:
         """Initialize database schema."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS assessments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         repository_url TEXT NOT NULL,
@@ -45,23 +44,18 @@ class AssessmentCache:
                         expires_at TIMESTAMP,
                         UNIQUE(repository_url, commit_hash)
                     )
-                    """
-                )
+                    """)
 
                 # Create index for faster queries
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE INDEX IF NOT EXISTS idx_repo_commit
                     ON assessments(repository_url, commit_hash)
-                    """
-                )
+                    """)
 
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE INDEX IF NOT EXISTS idx_expires_at
                     ON assessments(expires_at)
-                    """
-                )
+                    """)
 
                 conn.commit()
         except sqlite3.Error as e:
