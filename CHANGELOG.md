@@ -1,3 +1,10 @@
+# [2.24.0](https://github.com/ambient-code/agentready/compare/v2.23.0...v2.24.0) (2026-01-30)
+
+
+### Features
+
+* integrate ACL file with Claude Code Action allowed_users ([#261](https://github.com/ambient-code/agentready/issues/261)) ([fe52489](https://github.com/ambient-code/agentready/commit/fe524895e529772dcb26d32eb4cf440e691b6d80))
+
 # [2.23.0](https://github.com/ambient-code/agentready/compare/v2.22.3...v2.23.0) (2026-01-16)
 
 
