@@ -1,27 +1,31 @@
 """Fixers for documentation-related attributes."""
 
-from datetime import datetime
+import os
+import shutil
 from pathlib import Path
 from typing import Optional
 
-from jinja2 import Environment, PackageLoader
-
 from ..models.finding import Finding
-from ..models.fix import FileCreationFix, Fix
+from ..models.fix import CommandFix, Fix
 from ..models.repository import Repository
 from .base import BaseFixer
 
+# Env var required for Claude CLI (used by CLAUDEmdFixer)
+ANTHROPIC_API_KEY_ENV = "ANTHROPIC_API_KEY"
+
+# Command run by CLAUDEmdFixer to generate CLAUDE.md via Claude CLI
+CLAUDE_MD_COMMAND = (
+    'claude -p "Initialize this project with a CLAUDE.md file" '
+    '--allowedTools "Read,Edit,Write,Bash"'
+)
+
 
 class CLAUDEmdFixer(BaseFixer):
-    """Fixer for missing CLAUDE.md file."""
+    """Fixer for missing CLAUDE.md file.
 
-    def __init__(self):
-        """Initialize with Jinja2 environment."""
-        self.env = Environment(
-            loader=PackageLoader("agentready", "templates/align"),
-            trim_blocks=True,
-            lstrip_blocks=True,
-        )
+    Runs the Claude CLI to generate CLAUDE.md in the repository
+    instead of using a static template.
+    """
 
     @property
     def attribute_id(self) -> str:
@@ -33,27 +37,26 @@ class CLAUDEmdFixer(BaseFixer):
         return finding.status == "fail" and finding.attribute.id == self.attribute_id
 
     def generate_fix(self, repository: Repository, finding: Finding) -> Optional[Fix]:
-        """Generate CLAUDE.md from template."""
+        """Return a fix that runs Claude CLI to create CLAUDE.md.
+
+        Returns None if Claude CLI is not on PATH or ANTHROPIC_API_KEY is not set.
+        """
         if not self.can_fix(finding):
             return None
 
-        # Load template
-        template = self.env.get_template("CLAUDE.md.j2")
+        if not shutil.which("claude"):
+            return None
+        if not os.environ.get(ANTHROPIC_API_KEY_ENV):
+            return None
 
-        # Render with repository context
-        content = template.render(
-            repo_name=repository.path.name,
-            current_date=datetime.now().strftime("%Y-%m-%d"),
-        )
-
-        # Create fix
-        return FileCreationFix(
+        return CommandFix(
             attribute_id=self.attribute_id,
-            description="Create CLAUDE.md with project documentation template",
+            description="Run Claude CLI to create CLAUDE.md in the project",
             points_gained=self.estimate_score_improvement(finding),
-            file_path=Path("CLAUDE.md"),
-            content=content,
+            command=CLAUDE_MD_COMMAND,
+            working_dir=repository.path,
             repository_path=repository.path,
+            capture_output=False,  # Stream Claude output to terminal
         )
 
 

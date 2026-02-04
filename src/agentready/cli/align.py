@@ -145,6 +145,12 @@ def align(repository, dry_run, attributes, interactive):
 
     if not fix_plan.fixes:
         click.echo("\n✅ No automatic fixes available.")
+        failing_ids = {f.attribute.id for f in assessment.findings if f.status == "fail"}
+        if "claude_md_file" in failing_ids:
+            click.echo(
+                "\n💡 Tip: Install the Claude CLI and set ANTHROPIC_API_KEY to "
+                "enable automatic CLAUDE.md generation."
+            )
         sys.exit(0)
 
     # Show fix plan
@@ -191,7 +197,15 @@ def align(repository, dry_run, attributes, interactive):
     # Step 4: Apply fixes
     click.echo(f"\n🔨 Applying {len(fixes_to_apply)} fixes...\n")
 
-    results = fixer_service.apply_fixes(fixes_to_apply, dry_run=False)
+    def progress_callback(fix, phase: str, success: bool | None) -> None:
+        if fix.attribute_id == "claude_md_file" and phase == "before":
+            click.echo("  Generating CLAUDE.md file...")
+
+    results = fixer_service.apply_fixes(
+        fixes_to_apply,
+        dry_run=False,
+        progress_callback=progress_callback,
+    )
 
     # Report results
     click.echo("=" * 60)
