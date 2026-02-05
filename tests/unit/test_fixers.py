@@ -1,13 +1,21 @@
 """Unit tests for fixers."""
 
+import os
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from agentready.fixers.documentation import CLAUDEmdFixer, GitignoreFixer
+from agentready.fixers.documentation import (
+    ANTHROPIC_API_KEY_ENV,
+    CLAUDE_MD_COMMAND,
+    CLAUDEmdFixer,
+    GitignoreFixer,
+)
 from agentready.models.attribute import Attribute
 from agentready.models.finding import Finding, Remediation
+from agentready.models.fix import CommandFix
 from agentready.models.repository import Repository
 
 
@@ -118,42 +126,75 @@ class TestCLAUDEmdFixer:
         assert fixer.can_fix(claude_md_failing_finding) is False
 
     def test_generate_fix(self, temp_repo, claude_md_failing_finding):
-        """Test generating CLAUDE.md fix."""
-        fixer = CLAUDEmdFixer()
-        fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+        """Test generating CLAUDE.md fix returns CommandFix with correct properties."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
 
         assert fix is not None
+        assert isinstance(fix, CommandFix)
         assert fix.attribute_id == "claude_md_file"
-        assert fix.file_path == Path("CLAUDE.md")
-        assert "# " in fix.content  # Has markdown header
+        assert fix.command == CLAUDE_MD_COMMAND
+        assert fix.working_dir == temp_repo.path
+        assert fix.capture_output is False
         assert fix.points_gained > 0
 
+    def test_generate_fix_returns_none_when_claude_not_on_path(
+        self, temp_repo, claude_md_failing_finding
+    ):
+        """Test that no fix is generated when Claude CLI is not on PATH."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value=None):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+
+        assert fix is None
+
+    def test_generate_fix_returns_none_when_no_api_key(
+        self, temp_repo, claude_md_failing_finding
+    ):
+        """Test that no fix is generated when ANTHROPIC_API_KEY is not set."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: ""}, clear=False):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+
+        assert fix is None
+
     def test_apply_fix_dry_run(self, temp_repo, claude_md_failing_finding):
-        """Test applying fix in dry-run mode."""
-        fixer = CLAUDEmdFixer()
-        fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+        """Test applying fix in dry-run mode (command not executed)."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
 
         result = fix.apply(dry_run=True)
         assert result is True
 
-        # File should NOT be created in dry run
+        # File should NOT be created in dry run (claude CLI not run)
         assert not (temp_repo.path / "CLAUDE.md").exists()
 
     def test_apply_fix_real(self, temp_repo, claude_md_failing_finding):
-        """Test applying fix for real."""
-        fixer = CLAUDEmdFixer()
-        fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+        """Test applying fix runs Claude CLI (subprocess mocked)."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
 
-        result = fix.apply(dry_run=False)
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = None  # run() returns None when check=True succeeds
+            result = fix.apply(dry_run=False)
+
         assert result is True
-
-        # File should be created
-        assert (temp_repo.path / "CLAUDE.md").exists()
-
-        # Content should be valid
-        content = (temp_repo.path / "CLAUDE.md").read_text()
-        assert len(content) > 0
-        assert "# " in content
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args
+        # Verify command contains 'claude'
+        assert "claude" in call_args[0][0]
+        # Verify capture_output=False was passed
+        assert call_args[1]["capture_output"] is False
+        # Verify cwd is set to repository path
+        assert call_args[1]["cwd"] == temp_repo.path
 
 
 class TestGitignoreFixer:

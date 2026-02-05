@@ -424,3 +424,142 @@ class TestAlignCommandEdgeCases:
 
         # Should handle error gracefully
         assert result.exit_code != 0
+
+
+class TestAlignClaudeMdFileFeatures:
+    """Test align command features specific to claude_md_file attribute.
+
+    These tests verify the tip message when CLAUDE.md fix is skipped and
+    the progress callback logging for CLAUDE.md generation.
+    """
+
+    @patch("agentready.cli.align.FixerService")
+    @patch("agentready.cli.align.Scanner")
+    @patch("agentready.cli.align.Config")
+    @patch("agentready.cli.main.create_all_assessors")
+    def test_align_echoes_tip_when_no_fixes_and_claude_md_file_failing(
+        self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
+    ):
+        """Test that align shows tip when claude_md_file fails but no fix is available."""
+        # Setup mock finding with claude_md_file failing
+        mock_finding = MagicMock()
+        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.status = "fail"
+        mock_finding.score = 0.0
+
+        mock_assessment = MagicMock()
+        mock_assessment.overall_score = 65.0
+        mock_assessment.findings = [mock_finding]
+        mock_assessment.repository = MagicMock()
+        mock_scanner.return_value.scan.return_value = mock_assessment
+
+        # No fixes available (e.g., claude CLI not installed or no API key)
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 65.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        mock_assessors.return_value = []
+
+        result = runner.invoke(align, [str(temp_repo)])
+
+        # Should show the tip about Claude CLI and API key
+        assert "Install the Claude CLI and set ANTHROPIC_API_KEY" in result.output
+        assert "CLAUDE.md" in result.output
+
+    @patch("agentready.cli.align.FixerService")
+    @patch("agentready.cli.align.Scanner")
+    @patch("agentready.cli.align.Config")
+    @patch("agentready.cli.main.create_all_assessors")
+    def test_align_does_not_show_tip_when_claude_md_file_passes(
+        self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
+    ):
+        """Test that align does not show tip when claude_md_file passes."""
+        # Setup mock finding with claude_md_file passing
+        mock_finding = MagicMock()
+        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.status = "pass"
+        mock_finding.score = 100.0
+
+        mock_assessment = MagicMock()
+        mock_assessment.overall_score = 85.0
+        mock_assessment.findings = [mock_finding]
+        mock_assessment.repository = MagicMock()
+        mock_scanner.return_value.scan.return_value = mock_assessment
+
+        # No fixes available
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = []
+        mock_fix_plan.projected_score = 85.0
+        mock_fix_plan.points_gained = 0.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        mock_assessors.return_value = []
+
+        result = runner.invoke(align, [str(temp_repo)])
+
+        # Should NOT show the tip
+        assert "Install the Claude CLI and set ANTHROPIC_API_KEY" not in result.output
+
+    @patch("agentready.cli.align.FixerService")
+    @patch("agentready.cli.align.Scanner")
+    @patch("agentready.cli.align.Config")
+    @patch("agentready.cli.main.create_all_assessors")
+    def test_align_echoes_generating_claude_md_when_fix_applies(
+        self, mock_assessors, mock_config, mock_scanner, mock_fixer_cls, runner, temp_repo
+    ):
+        """Test that align echoes 'Generating CLAUDE.md file...' when applying fix."""
+        # Setup mock finding
+        mock_finding = MagicMock()
+        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.status = "fail"
+        mock_finding.score = 0.0
+
+        mock_assessment = MagicMock()
+        mock_assessment.overall_score = 65.0
+        mock_assessment.findings = [mock_finding]
+        mock_assessment.repository = MagicMock()
+        mock_scanner.return_value.scan.return_value = mock_assessment
+
+        # Setup mock fix for claude_md_file
+        mock_fix = MagicMock()
+        mock_fix.attribute_id = "claude_md_file"
+        mock_fix.description = "Run Claude CLI to create CLAUDE.md"
+        mock_fix.preview.return_value = "RUN claude -p ..."
+        mock_fix.points_gained = 10.0
+        mock_fix.apply.return_value = True
+
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = [mock_fix]
+        mock_fix_plan.projected_score = 75.0
+        mock_fix_plan.points_gained = 10.0
+
+        # Capture the progress_callback when apply_fixes is called
+        captured_callback = None
+
+        def capture_apply_fixes(fixes, dry_run=False, progress_callback=None):
+            nonlocal captured_callback
+            captured_callback = progress_callback
+            # Call the callback to simulate the real behavior
+            if progress_callback:
+                for fix in fixes:
+                    progress_callback(fix, "before", None)
+                    progress_callback(fix, "after", True)
+            return {"succeeded": 1, "failed": 0, "failures": []}
+
+        mock_fixer_instance = MagicMock()
+        mock_fixer_instance.generate_fix_plan.return_value = mock_fix_plan
+        mock_fixer_instance.apply_fixes.side_effect = capture_apply_fixes
+        mock_fixer_cls.return_value = mock_fixer_instance
+
+        mock_assessors.return_value = []
+
+        # Provide "y" input to confirm applying fixes
+        result = runner.invoke(align, [str(temp_repo)], input="y\n")
+
+        # Should show the "Generating CLAUDE.md file..." message
+        assert "Generating CLAUDE.md file..." in result.output
+
+        # Verify the callback was captured
+        assert captured_callback is not None
