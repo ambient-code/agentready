@@ -59,7 +59,15 @@ from ..services.harbor.comparer import compare_assessor_impact
     help="Skip dependency checks (for advanced users)",
 )
 def benchmark(
-    repository, harness, subset, agent, model, verbose, timeout, output_dir, skip_preflight
+    repository,
+    harness,
+    subset,
+    agent,
+    model,
+    verbose,
+    timeout,
+    output_dir,
+    skip_preflight,
 ):
     """Run agent coding benchmarks.
 
@@ -87,14 +95,23 @@ def benchmark(
     # Route to appropriate harness
     if harness == "tbench":
         _run_tbench(
-            repo_path, subset, agent, model, verbose, timeout, output_dir, skip_preflight
+            repo_path,
+            subset,
+            agent,
+            model,
+            verbose,
+            timeout,
+            output_dir,
+            skip_preflight,
         )
     else:
         click.echo(f"Unknown harness: {harness}", err=True)
         raise click.Abort()
 
 
-def _run_tbench(repo_path, subset, agent, model, verbose, timeout, output_dir, skip_preflight):
+def _run_tbench(
+    repo_path, subset, agent, model, verbose, timeout, output_dir, skip_preflight
+):
     """Run Terminal-Bench evaluation."""
     # Default subset to 'full' if not specified
     if subset is None:

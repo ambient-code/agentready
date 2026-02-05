@@ -45,15 +45,13 @@ class TestDependencySecurityAssessor:
         github_dir = tmp_path / ".github"
         github_dir.mkdir()
         dependabot_file = github_dir / "dependabot.yml"
-        dependabot_file.write_text(
-            """version: 2
+        dependabot_file.write_text("""version: 2
 updates:
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -109,12 +107,10 @@ updates:
 
         # Create pyproject.toml with security tools
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            """[tool.poetry.dev-dependencies]
+        pyproject.write_text("""[tool.poetry.dev-dependencies]
 pip-audit = "^2.0.0"
 bandit = "^1.7.0"
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -143,14 +139,12 @@ bandit = "^1.7.0"
 
         # Create .pre-commit-config.yaml with detect-secrets
         precommit = tmp_path / ".pre-commit-config.yaml"
-        precommit.write_text(
-            """repos:
+        precommit.write_text("""repos:
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -261,8 +255,7 @@ bandit = "^1.7.0"
 
         # Create package.json with audit script
         package_json = tmp_path / "package.json"
-        package_json.write_text(
-            """{
+        package_json.write_text("""{
   "scripts": {
     "audit": "npm audit",
     "test": "jest"
@@ -271,8 +264,7 @@ bandit = "^1.7.0"
     "snyk": "^1.0.0"
   }
 }
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,

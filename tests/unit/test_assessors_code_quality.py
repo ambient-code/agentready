@@ -69,14 +69,12 @@ class TestCodeSmellsAssessor:
 
         # Create .pylintrc
         pylintrc = tmp_path / ".pylintrc"
-        pylintrc.write_text(
-            """[MASTER]
+        pylintrc.write_text("""[MASTER]
 max-line-length=100
 
 [MESSAGES CONTROL]
 disable=C0111
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -105,11 +103,9 @@ disable=C0111
 
         # Create ruff.toml
         ruff_toml = tmp_path / "ruff.toml"
-        ruff_toml.write_text(
-            """line-length = 100
+        ruff_toml.write_text("""line-length = 100
 select = ["E", "F", "W"]
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -135,14 +131,12 @@ select = ["E", "F", "W"]
 
         # Create pyproject.toml with both tools
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            """[tool.pylint]
+        pyproject.write_text("""[tool.pylint]
 max-line-length = 100
 
 [tool.ruff]
 line-length = 100
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -171,15 +165,13 @@ line-length = 100
 
         # Create .eslintrc.json
         eslintrc = tmp_path / ".eslintrc.json"
-        eslintrc.write_text(
-            """{
+        eslintrc.write_text("""{
   "extends": "eslint:recommended",
   "rules": {
     "no-console": "warn"
   }
 }
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -234,14 +226,12 @@ line-length = 100
 
         # Create .rubocop.yml
         rubocop = tmp_path / ".rubocop.yml"
-        rubocop.write_text(
-            """AllCops:
+        rubocop.write_text("""AllCops:
   TargetRubyVersion: 3.0
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -269,14 +259,12 @@ Style/StringLiterals:
 
         # Create .golangci.yml
         golangci = tmp_path / ".golangci.yml"
-        golangci.write_text(
-            """linters:
+        golangci.write_text("""linters:
   enable:
     - gofmt
     - golint
     - govet
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -311,14 +299,12 @@ Style/StringLiterals:
 
         # Create .pre-commit-config.yaml with actionlint
         precommit = tmp_path / ".pre-commit-config.yaml"
-        precommit.write_text(
-            """repos:
+        precommit.write_text("""repos:
   - repo: https://github.com/rhysd/actionlint
     rev: v1.6.0
     hooks:
       - id: actionlint
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,
@@ -344,13 +330,11 @@ Style/StringLiterals:
 
         # Create .markdownlint.json
         markdownlint = tmp_path / ".markdownlint.json"
-        markdownlint.write_text(
-            """{
+        markdownlint.write_text("""{
   "default": true,
   "MD013": false
 }
-"""
-        )
+""")
 
         repo = Repository(
             path=tmp_path,

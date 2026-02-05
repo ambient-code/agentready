@@ -276,14 +276,12 @@ class TestCriticalConfigHandling:
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Create valid config file
             config_file = Path(tmp_dir) / "config.yaml"
-            config_file.write_text(
-                """
+            config_file.write_text("""
 weights:
   claude_md: 2.0
 excluded_attributes:
   - repomix_config
-"""
-            )
+""")
 
             output_dir = Path(tmp_dir) / "output"
 

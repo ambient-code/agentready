@@ -453,8 +453,7 @@ class READMEAssessor(BaseAssessor):
             ],
             tools=[],
             commands=[],
-            examples=[
-                """# Project Name
+            examples=["""# Project Name
 
 ## Overview
 What this project does and why it exists.
@@ -477,8 +476,7 @@ pytest
 # Format code
 black .
 ```
-"""
-            ],
+"""],
             citations=[
                 Citation(
                     source="GitHub",

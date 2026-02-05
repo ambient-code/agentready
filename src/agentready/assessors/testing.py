@@ -286,8 +286,7 @@ class PreCommitHooksAssessor(BaseAssessor):
                 "pre-commit install",
                 "pre-commit run --all-files",
             ],
-            examples=[
-                """# .pre-commit-config.yaml
+            examples=["""# .pre-commit-config.yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -306,8 +305,7 @@ repos:
     rev: 5.12.0
     hooks:
       - id: isort
-"""
-            ],
+"""],
             citations=[
                 Citation(
                     source="pre-commit.com",
