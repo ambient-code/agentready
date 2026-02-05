@@ -151,9 +151,7 @@ def _real_tbench_result(repo_path: Path, config: HarborConfig) -> TbenchResult:
         clean_env[var_name] = var_value
 
         # Build display string (truncate sensitive values)
-        if is_sensitive:
-            display_value = f"{var_value[:20]}..."
-        else:
+        if not is_sensitive:
             display_value = var_value
         env_vars_display.append(f"{var_name}={display_value}")
 
