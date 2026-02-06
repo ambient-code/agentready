@@ -10,10 +10,13 @@
     "overall_score",
     "certification_level",
     "attributes_assessed",
-    "attributes_skipped",
     "attributes_total",
     "findings",
     "duration_seconds"
+  ],
+  "anyOf": [
+    {"required": ["attributes_skipped"]},
+    {"required": ["attributes_not_assessed"]}
   ],
   "properties": {
     "schema_version": {
@@ -60,7 +63,14 @@
     "attributes_skipped": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 25
+      "maximum": 25,
+      "description": "Canonical key name for skipped/not-assessed attributes"
+    },
+    "attributes_not_assessed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 25,
+      "description": "Deprecated alias for attributes_skipped (backwards compatibility)"
     },
     "attributes_total": {
       "type": "integer",
