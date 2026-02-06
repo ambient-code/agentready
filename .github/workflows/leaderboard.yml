@@ -15,6 +15,11 @@ on:
   # Manual trigger for testing
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
   # Job 1: Validate leaderboard submissions (PR only)
   validate:
