@@ -10,12 +10,13 @@ import pytest
 from agentready.fixers.documentation import (
     ANTHROPIC_API_KEY_ENV,
     CLAUDE_MD_COMMAND,
+    CLAUDE_MD_REDIRECT_LINE,
     CLAUDEmdFixer,
     GitignoreFixer,
 )
 from agentready.models.attribute import Attribute
 from agentready.models.finding import Finding, Remediation
-from agentready.models.fix import CommandFix
+from agentready.models.fix import CommandFix, MultiStepFix
 from agentready.models.repository import Repository
 
 
@@ -125,25 +126,42 @@ class TestCLAUDEmdFixer:
         claude_md_failing_finding.status = "pass"
         assert fixer.can_fix(claude_md_failing_finding) is False
 
-    def test_generate_fix(self, temp_repo, claude_md_failing_finding):
-        """Test generating CLAUDE.md fix returns CommandFix with correct properties."""
+    def test_generate_fix_when_agent_md_missing(self, temp_repo, claude_md_failing_finding):
+        """Test generating fix when AGENTS.md is missing returns MultiStepFix with CommandFix + post-step."""
         with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
 
         assert fix is not None
-        assert isinstance(fix, CommandFix)
+        assert isinstance(fix, MultiStepFix)
+        assert len(fix.steps) == 2
+        assert isinstance(fix.steps[0], CommandFix)
+        assert fix.steps[0].command == CLAUDE_MD_COMMAND
+        assert fix.steps[0].working_dir == temp_repo.path
+        assert fix.steps[0].capture_output is False
         assert fix.attribute_id == "claude_md_file"
-        assert fix.command == CLAUDE_MD_COMMAND
-        assert fix.working_dir == temp_repo.path
-        assert fix.capture_output is False
         assert fix.points_gained > 0
+        assert "Move" in fix.steps[1].preview() and "AGENTS.md" in fix.steps[1].preview()
+
+    def test_generate_fix_when_agent_md_exists_still_returns_multistep(
+        self, temp_repo, claude_md_failing_finding
+    ):
+        """Test that when AGENTS.md exists, fixer still returns MultiStepFix (no early exit)."""
+        (temp_repo.path / "AGENTS.md").write_text("# Agent docs\n", encoding="utf-8")
+
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+
+        assert fix is not None
+        assert isinstance(fix, MultiStepFix)
 
     def test_generate_fix_returns_none_when_claude_not_on_path(
         self, temp_repo, claude_md_failing_finding
     ):
-        """Test that no fix is generated when Claude CLI is not on PATH."""
+        """Test that no fix is generated when Claude CLI is not on PATH (AGENTS.md missing)."""
         with patch("agentready.fixers.documentation.shutil.which", return_value=None):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
@@ -162,8 +180,10 @@ class TestCLAUDEmdFixer:
 
         assert fix is None
 
-    def test_apply_fix_dry_run(self, temp_repo, claude_md_failing_finding):
-        """Test applying fix in dry-run mode (command not executed)."""
+    def test_apply_fix_dry_run_when_agent_md_missing(
+        self, temp_repo, claude_md_failing_finding
+    ):
+        """Test applying MultiStep fix in dry-run (command not executed)."""
         with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
@@ -175,8 +195,8 @@ class TestCLAUDEmdFixer:
         # File should NOT be created in dry run (claude CLI not run)
         assert not (temp_repo.path / "CLAUDE.md").exists()
 
-    def test_apply_fix_real(self, temp_repo, claude_md_failing_finding):
-        """Test applying fix runs Claude CLI (subprocess mocked)."""
+    def test_apply_fix_real_runs_claude_cli(self, temp_repo, claude_md_failing_finding):
+        """Test applying MultiStep fix runs Claude CLI (subprocess mocked)."""
         with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
@@ -189,12 +209,26 @@ class TestCLAUDEmdFixer:
         assert result is True
         mock_run.assert_called_once()
         call_args = mock_run.call_args
-        # Verify command contains 'claude'
         assert "claude" in call_args[0][0]
-        # Verify capture_output=False was passed
         assert call_args[1]["capture_output"] is False
-        # Verify cwd is set to repository path
         assert call_args[1]["cwd"] == temp_repo.path
+
+    def test_post_step_moves_content_to_agent_md(self, temp_repo, claude_md_failing_finding):
+        """Test second step moves CLAUDE.md content to AGENTS.md and replaces CLAUDE.md with @AGENTS.md."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+
+        assert isinstance(fix, MultiStepFix)
+        (temp_repo.path / "CLAUDE.md").write_text("# Full content from Claude\nLine 2\n", encoding="utf-8")
+
+        result = fix.steps[1].apply(dry_run=False)
+
+        assert result is True
+        assert (temp_repo.path / "AGENTS.md").exists()
+        assert (temp_repo.path / "AGENTS.md").read_text() == "# Full content from Claude\nLine 2\n"
+        assert (temp_repo.path / "CLAUDE.md").read_text() == CLAUDE_MD_REDIRECT_LINE
 
 
 class TestGitignoreFixer:
