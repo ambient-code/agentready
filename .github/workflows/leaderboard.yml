@@ -16,15 +16,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
   # Job 1: Validate leaderboard submissions (PR only)
   validate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read            # Checkout PR branch
+      pull-requests: write      # Post validation results as PR comment
+      issues: write             # Required by github-script (PRs are issues in GH API)
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v6
@@ -183,6 +185,8 @@ jobs:
   update:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write           # Commit and push updated leaderboard data
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
