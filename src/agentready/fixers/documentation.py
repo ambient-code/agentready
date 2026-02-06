@@ -39,20 +39,52 @@ class _ClaudeMdToAgentRedirectFix(Fix):
         self.repository_path = repository_path
 
     def apply(self, dry_run: bool = False) -> bool:
-        """Move CLAUDE.md content to AGENTS.md and replace CLAUDE.md with @AGENTS.md."""
+        """Move CLAUDE.md content to AGENTS.md and replace CLAUDE.md with @AGENTS.md.
+
+        If AGENTS.md already exists, it is preserved and only CLAUDE.md is replaced
+        with the redirect (idempotent behavior).
+        """
         claude_md = self.repository_path / "CLAUDE.md"
         if not claude_md.exists():
             return True  # Nothing to do (e.g. dry run of first step did not create it)
         if dry_run:
             return True
-        content = claude_md.read_text(encoding="utf-8")
-        (self.repository_path / "AGENTS.md").write_text(content, encoding="utf-8")
+        agents_md = self.repository_path / "AGENTS.md"
+        if not agents_md.exists():
+            content = claude_md.read_text(encoding="utf-8")
+            agents_md.write_text(content, encoding="utf-8")
         claude_md.write_text(CLAUDE_MD_REDIRECT_LINE, encoding="utf-8")
         return True
 
     def preview(self) -> str:
         """Preview move and redirect."""
         return "Move CLAUDE.md content to AGENTS.md and replace CLAUDE.md with @AGENTS.md"
+
+
+class _ClaudeMdRedirectOnlyFix(Fix):
+    """Single-step fix: create or overwrite CLAUDE.md with @AGENTS.md (when AGENTS.md already exists)."""
+
+    def __init__(
+        self,
+        attribute_id: str,
+        description: str,
+        points_gained: float,
+        repository_path: Path,
+    ):
+        self.attribute_id = attribute_id
+        self.description = description
+        self.points_gained = points_gained
+        self.repository_path = repository_path
+
+    def apply(self, dry_run: bool = False) -> bool:
+        """Write CLAUDE.md with redirect to AGENTS.md."""
+        if dry_run:
+            return True
+        (self.repository_path / "CLAUDE.md").write_text(CLAUDE_MD_REDIRECT_LINE, encoding="utf-8")
+        return True
+
+    def preview(self) -> str:
+        return "Create CLAUDE.md with @AGENTS.md redirect"
 
 
 class CLAUDEmdFixer(BaseFixer):
@@ -74,12 +106,23 @@ class CLAUDEmdFixer(BaseFixer):
     def generate_fix(self, repository: Repository, finding: Finding) -> Optional[Fix]:
         """Return a fix for missing CLAUDE.md.
 
-        Runs Claude CLI to generate CLAUDE.md, then moves its content to AGENTS.md
-        and replaces CLAUDE.md with a single line @AGENTS.md. Returns None if
-        Claude CLI is not on PATH or ANTHROPIC_API_KEY is not set.
+        If AGENTS.md already exists: create CLAUDE.md with @AGENTS.md only (no Claude CLI).
+        Otherwise: run Claude CLI to generate CLAUDE.md, then move content to AGENTS.md
+        and replace CLAUDE.md with @AGENTS.md. Returns None if Claude CLI is required
+        but not on PATH or ANTHROPIC_API_KEY is not set.
         """
         if not self.can_fix(finding):
             return None
+
+        agents_md = repository.path / "AGENTS.md"
+        if agents_md.exists():
+            points = self.estimate_score_improvement(finding)
+            return _ClaudeMdRedirectOnlyFix(
+                attribute_id=self.attribute_id,
+                description="Create CLAUDE.md with @AGENTS.md redirect",
+                points_gained=points,
+                repository_path=repository.path,
+            )
 
         if not shutil.which("claude"):
             return None
