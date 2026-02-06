@@ -222,3 +222,39 @@ class TestAllowlists:
     def test_allowed_agents_is_set(self):
         """Test that ALLOWED_AGENTS is a set (not list)"""
         assert isinstance(ALLOWED_AGENTS, set)
+
+
+class TestHarborConfigCursorModels:
+    """Test cursor/* model acceptance"""
+
+    def test_harbor_config_cursor_models_accepted(self):
+        """Test that cursor/* models are accepted"""
+        config = HarborConfig(
+            model="cursor/sonnet-4.5",
+            agent="cursor-cli",
+            jobs_dir=Path("/tmp/test"),
+            api_key="test-key",
+        )
+        assert config.model == "cursor/sonnet-4.5"
+
+        config_gemini = HarborConfig(
+            model="cursor/gemini-3-pro",
+            agent="cursor-cli",
+            jobs_dir=Path("/tmp/test"),
+            api_key="test-key",
+        )
+        assert config_gemini.model == "cursor/gemini-3-pro"
+
+
+class TestHarborConfigCursorAgent:
+    """Test cursor-cli agent acceptance"""
+
+    def test_harbor_config_cursor_agent_accepted(self):
+        """Test that cursor-cli agent is accepted"""
+        config = HarborConfig(
+            model="anthropic/claude-haiku-4-5",
+            agent="cursor-cli",
+            jobs_dir=Path("/tmp/test"),
+            api_key="test-key",
+        )
+        assert config.agent == "cursor-cli"

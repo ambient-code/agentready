@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 
-from ..services.eval_harness.harbor_config import HarborConfig
+from ..services.eval_harness.harbor_config import ALLOWED_MODELS, HarborConfig
 from ..services.eval_harness.tbench_runner import _real_tbench_result
 from ..services.harbor.agent_toggler import AssessorStateToggler
 from ..services.harbor.comparer import compare_assessor_impact
@@ -28,9 +28,15 @@ from ..services.harbor.comparer import compare_assessor_impact
     help="Benchmark subset (tbench: smoketest/full)",
 )
 @click.option(
+    "--agent",
+    type=click.Choice(["claude-code", "cursor-cli"]),
+    default="claude-code",
+    help="Agent for evaluation",
+)
+@click.option(
     "--model",
-    type=click.Choice(["claude-haiku-4-5", "claude-sonnet-4-5"]),
-    default="claude-haiku-4-5",
+    type=click.Choice(list(ALLOWED_MODELS)),
+    default="anthropic/claude-haiku-4-5",
     help="Model for evaluation",
 )
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
@@ -53,7 +59,15 @@ from ..services.harbor.comparer import compare_assessor_impact
     help="Skip dependency checks (for advanced users)",
 )
 def benchmark(
-    repository, harness, subset, model, verbose, timeout, output_dir, skip_preflight
+    repository,
+    harness,
+    subset,
+    agent,
+    model,
+    verbose,
+    timeout,
+    output_dir,
+    skip_preflight,
 ):
     """Run agent coding benchmarks.
 
@@ -81,14 +95,23 @@ def benchmark(
     # Route to appropriate harness
     if harness == "tbench":
         _run_tbench(
-            repo_path, subset, model, verbose, timeout, output_dir, skip_preflight
+            repo_path,
+            subset,
+            agent,
+            model,
+            verbose,
+            timeout,
+            output_dir,
+            skip_preflight,
         )
     else:
         click.echo(f"Unknown harness: {harness}", err=True)
         raise click.Abort()
 
 
-def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir, skip_preflight):
+def _run_tbench(
+    repo_path, subset, agent, model, verbose, timeout, output_dir, skip_preflight
+):
     """Run Terminal-Bench evaluation."""
     # Default subset to 'full' if not specified
     if subset is None:
@@ -107,6 +130,7 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir, skip_pre
         click.echo("AgentReady Terminal-Bench Benchmark")
         click.echo(f"{'=' * 50}\n")
         click.echo(f"Repository: {repo_path}")
+        click.echo(f"Agent: {agent}")
         click.echo(f"Model: {model}")
         click.echo(f"Subset: {subset} ({'1-2 tasks' if smoketest else '89 tasks'})")
         click.echo(f"Timeout: {timeout}s\n")
@@ -135,19 +159,24 @@ def _run_tbench(repo_path, subset, model, verbose, timeout, output_dir, skip_pre
             raise click.Abort()
 
     # Validate API key BEFORE creating HarborConfig
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if agent == "claude-code":
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    elif agent == "cursor-cli":
+        api_key = os.environ.get("CURSOR_API_KEY", "")
+
     if not api_key:
+        key_name = "ANTHROPIC_API_KEY" if agent == "claude-code" else "CURSOR_API_KEY"
         click.echo(
-            "Error: ANTHROPIC_API_KEY environment variable not set.\n"
-            "Set it with: export ANTHROPIC_API_KEY=your-key-here",
+            f"Error: {key_name} environment variable not set.\n"
+            f"Set it with: export {key_name}=your-key-here",
             err=True,
         )
         raise click.Abort()
 
     # Create HarborConfig (will not raise ValueError now)
     harbor_config = HarborConfig(
-        model=f"anthropic/{model}",
-        agent="claude-code",
+        model=model,
+        agent=agent,
         jobs_dir=Path(tempfile.mkdtemp()),
         api_key=api_key,
         timeout=timeout,

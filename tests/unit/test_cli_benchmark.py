@@ -161,8 +161,8 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        # Verbose flag passed to _run_tbench
-        _, _, _, verbose, _, _, _ = mock_run.call_args[0]
+        # Verbose flag passed to _run_tbench (repo_path, subset, agent, model, verbose, timeout, output_dir, skip_preflight)
+        _, _, _, _, verbose, _, _, _ = mock_run.call_args[0]
         assert verbose is True
 
     @patch("agentready.cli.benchmark._run_tbench")
@@ -174,7 +174,7 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        _, _, _, _, timeout, _, _ = mock_run.call_args[0]
+        _, _, _, _, _, timeout, _, _ = mock_run.call_args[0]
         assert timeout == 7200
 
     @patch("agentready.cli.benchmark._run_tbench")
@@ -192,7 +192,7 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        _, _, _, _, _, output_dir, _ = mock_run.call_args[0]
+        _, _, _, _, _, _, output_dir, _ = mock_run.call_args[0]
         assert output_dir == "/custom/output"
 
     @patch("agentready.cli.benchmark._run_tbench")
@@ -204,7 +204,7 @@ class TestBenchmarkCommand:
         )
 
         assert result.exit_code == 0
-        _, _, _, _, _, _, skip_preflight = mock_run.call_args[0]
+        _, _, _, _, _, _, _, skip_preflight = mock_run.call_args[0]
         assert skip_preflight is True
 
     def test_benchmark_unknown_harness(self, runner, temp_repo):
@@ -225,15 +225,62 @@ class TestBenchmarkCommand:
             [
                 str(temp_repo),
                 "--model",
-                "claude-sonnet-4-5",
+                "anthropic/claude-sonnet-4-5",
                 "--subset",
                 "smoketest",
             ],
         )
 
         assert result.exit_code == 0
-        _, _, model, _, _, _, _ = mock_run.call_args[0]
-        assert model == "claude-sonnet-4-5"
+        _, _, _, model, _, _, _, _ = mock_run.call_args[0]
+        assert model == "anthropic/claude-sonnet-4-5"
+
+    @patch.dict("os.environ", {}, clear=True)
+    def test_benchmark_cursor_cli_agent_requires_cursor_api_key(
+        self, runner, temp_repo
+    ):
+        """Test that cursor-cli agent requires CURSOR_API_KEY."""
+        result = runner.invoke(
+            benchmark,
+            [
+                str(temp_repo),
+                "--agent",
+                "cursor-cli",
+                "--model",
+                "cursor/sonnet-4.5",
+                "--subset",
+                "smoketest",
+                "--skip-preflight",
+            ],
+        )
+
+        assert result.exit_code != 0
+        assert "CURSOR_API_KEY" in result.output
+
+    @patch("agentready.cli.benchmark._run_tbench")
+    @patch.dict("os.environ", {"CURSOR_API_KEY": "test-cursor-key"})
+    def test_benchmark_cursor_cli_with_valid_cursor_model(
+        self, mock_run, runner, temp_repo
+    ):
+        """Test cursor-cli works with cursor/ prefixed models."""
+        result = runner.invoke(
+            benchmark,
+            [
+                str(temp_repo),
+                "--agent",
+                "cursor-cli",
+                "--model",
+                "cursor/sonnet-4.5",
+                "--subset",
+                "smoketest",
+            ],
+        )
+
+        assert result.exit_code == 0
+        mock_run.assert_called_once()
+        _, _, agent, model, _, _, _, _ = mock_run.call_args[0]
+        assert agent == "cursor-cli"
+        assert model == "cursor/sonnet-4.5"
 
 
 class TestRunTbench:
@@ -253,7 +300,8 @@ class TestRunTbench:
         _run_tbench(
             repo_path=repo_path,
             subset="smoketest",
-            model="claude-haiku-4-5",
+            agent="claude-code",
+            model="anthropic/claude-haiku-4-5",
             verbose=False,
             timeout=3600,
             output_dir=None,
@@ -275,7 +323,8 @@ class TestRunTbench:
         _run_tbench(
             repo_path=repo_path,
             subset="full",
-            model="claude-haiku-4-5",
+            agent="claude-code",
+            model="anthropic/claude-haiku-4-5",
             verbose=False,
             timeout=3600,
             output_dir=None,
@@ -295,7 +344,8 @@ class TestRunTbench:
             _run_tbench(
                 repo_path=repo_path,
                 subset="invalid",
-                model="claude-haiku-4-5",
+                agent="claude-code",
+                model="anthropic/claude-haiku-4-5",
                 verbose=False,
                 timeout=3600,
                 output_dir=None,
@@ -314,7 +364,8 @@ class TestRunTbench:
             _run_tbench(
                 repo_path=repo_path,
                 subset="smoketest",
-                model="claude-haiku-4-5",
+                agent="claude-code",
+                model="anthropic/claude-haiku-4-5",
                 verbose=False,
                 timeout=3600,
                 output_dir=None,
@@ -335,7 +386,8 @@ class TestRunTbench:
         _run_tbench(
             repo_path=repo_path,
             subset=None,  # Should default to 'full'
-            model="claude-haiku-4-5",
+            agent="claude-code",
+            model="anthropic/claude-haiku-4-5",
             verbose=False,
             timeout=3600,
             output_dir=None,
@@ -361,7 +413,8 @@ class TestRunTbench:
             _run_tbench(
                 repo_path=repo_path,
                 subset="smoketest",
-                model="claude-haiku-4-5",
+                agent="claude-code",
+                model="anthropic/claude-haiku-4-5",
                 verbose=False,
                 timeout=3600,
                 output_dir=None,
