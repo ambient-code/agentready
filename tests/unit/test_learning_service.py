@@ -62,7 +62,7 @@ def sample_assessment_file(temp_dir):
         "overall_score": 85.0,
         "certification_level": "Gold",
         "attributes_assessed": 2,
-        "attributes_not_assessed": 0,
+        "attributes_skipped": 0,
         "attributes_total": 2,
         "findings": [
             {
@@ -352,7 +352,7 @@ class TestLearningService:
 
     def test_extract_patterns_with_old_schema_key(self, temp_dir):
         """Test extract_patterns handles old schema key names."""
-        # Old schema used "attributes_skipped" instead of "attributes_not_assessed"
+        # Old reports used "attributes_not_assessed" instead of "attributes_skipped"
         old_schema_assessment = {
             "schema_version": "1.0.0",
             "timestamp": "2025-11-22T06:00:00",
@@ -428,7 +428,7 @@ class TestLearningServiceEdgeCases:
             "overall_score": 0.0,
             "certification_level": "Needs Improvement",
             "attributes_assessed": 0,
-            "attributes_not_assessed": 1,
+            "attributes_skipped": 1,
             "attributes_total": 1,
             "findings": [
                 create_dummy_finding()

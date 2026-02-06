@@ -68,7 +68,7 @@ def create_test_assessment_json(
         "overall_score": overall_score,
         "certification_level": certification_level,
         "attributes_assessed": num_findings,
-        "attributes_not_assessed": 0,
+        "attributes_skipped": 0,
         "attributes_total": num_findings,
         "findings": findings,
         "config": None,  # CRITICAL: Must be present in current schema

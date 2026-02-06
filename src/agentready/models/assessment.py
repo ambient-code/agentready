@@ -88,7 +88,7 @@ class Assessment:
             "overall_score": self.overall_score,
             "certification_level": self.certification_level,
             "attributes_assessed": self.attributes_assessed,
-            "attributes_not_assessed": self.attributes_not_assessed,
+            "attributes_skipped": self.attributes_not_assessed,
             "attributes_total": self.attributes_total,
             "findings": [f.to_dict() for f in self.findings],
             "config": self.config.to_dict() if self.config else None,

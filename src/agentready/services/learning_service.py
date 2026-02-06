@@ -146,7 +146,7 @@ class LearningService:
             certification_level=assessment_data["certification_level"],
             attributes_assessed=assessment_data["attributes_assessed"],
             attributes_not_assessed=assessment_data.get(
-                "attributes_not_assessed", assessment_data.get("attributes_skipped", 0)
+                "attributes_skipped", assessment_data.get("attributes_not_assessed", 0)
             ),
             attributes_total=assessment_data["attributes_total"],
             findings=findings,
