@@ -16,7 +16,7 @@ from agentready.fixers.documentation import (
 )
 from agentready.models.attribute import Attribute
 from agentready.models.finding import Finding, Remediation
-from agentready.models.fix import CommandFix, MultiStepFix
+from agentready.models.fix import CommandFix, Fix, MultiStepFix
 from agentready.models.repository import Repository
 
 
@@ -144,19 +144,24 @@ class TestCLAUDEmdFixer:
         assert fix.points_gained > 0
         assert "Move" in fix.steps[1].preview() and "AGENTS.md" in fix.steps[1].preview()
 
-    def test_generate_fix_when_agent_md_exists_still_returns_multistep(
+    def test_generate_fix_when_agent_md_exists_returns_redirect_only_fix(
         self, temp_repo, claude_md_failing_finding
     ):
-        """Test that when AGENTS.md exists, fixer still returns MultiStepFix (no early exit)."""
+        """Test that when AGENTS.md exists, fixer returns single-step redirect fix (no Claude CLI)."""
         (temp_repo.path / "AGENTS.md").write_text("# Agent docs\n", encoding="utf-8")
 
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
-            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
-                fixer = CLAUDEmdFixer()
-                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+        fixer = CLAUDEmdFixer()
+        fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
 
         assert fix is not None
-        assert isinstance(fix, MultiStepFix)
+        assert isinstance(fix, Fix)
+        assert not isinstance(fix, MultiStepFix)
+        assert fix.attribute_id == "claude_md_file"
+        assert fix.points_gained > 0
+        # Applying the fix should create CLAUDE.md with redirect only
+        result = fix.apply(dry_run=False)
+        assert result is True
+        assert (temp_repo.path / "CLAUDE.md").read_text() == CLAUDE_MD_REDIRECT_LINE
 
     def test_generate_fix_returns_none_when_claude_not_on_path(
         self, temp_repo, claude_md_failing_finding
@@ -228,6 +233,24 @@ class TestCLAUDEmdFixer:
         assert result is True
         assert (temp_repo.path / "AGENTS.md").exists()
         assert (temp_repo.path / "AGENTS.md").read_text() == "# Full content from Claude\nLine 2\n"
+        assert (temp_repo.path / "CLAUDE.md").read_text() == CLAUDE_MD_REDIRECT_LINE
+
+    def test_post_step_preserves_existing_agents_md(self, temp_repo, claude_md_failing_finding):
+        """Test second step does not overwrite AGENTS.md when it already exists (idempotency)."""
+        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+            with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
+                fixer = CLAUDEmdFixer()
+                fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
+
+        assert isinstance(fix, MultiStepFix)
+        existing_content = "# Existing AGENTS.md\nCustom rules here.\n"
+        (temp_repo.path / "AGENTS.md").write_text(existing_content, encoding="utf-8")
+        (temp_repo.path / "CLAUDE.md").write_text("# New content from Claude\n", encoding="utf-8")
+
+        result = fix.steps[1].apply(dry_run=False)
+
+        assert result is True
+        assert (temp_repo.path / "AGENTS.md").read_text() == existing_content
         assert (temp_repo.path / "CLAUDE.md").read_text() == CLAUDE_MD_REDIRECT_LINE
 
 
