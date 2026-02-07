@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,11 @@ from github import Github, GithubException
 
 
 UPSTREAM_REPO = "ambient-code/agentready"
+SUBPROCESS_TIMEOUT = 60  # seconds
+MAX_ASSESSMENT_SIZE = 10 * 1024 * 1024  # 10 MB
+
+# Valid GitHub org/repo name pattern: alphanumeric, hyphens, underscores, dots
+GITHUB_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9._-]+$")
 
 
 def find_assessment_file(repository: str, assessment_file: str | None) -> Path:
@@ -73,6 +79,18 @@ def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str]:
         click.echo(f"Error: Could not parse GitHub repository from URL: {repo_url}")
         sys.exit(1)
 
+    # Validate org/repo names to prevent injection
+    if not GITHUB_NAME_PATTERN.match(org) or not GITHUB_NAME_PATTERN.match(repo):
+        click.echo(
+            f"Error: Invalid GitHub org/repo name: {org}/{repo}",
+            err=True,
+        )
+        click.echo(
+            "Names must contain only alphanumeric characters, hyphens, underscores, or dots.",
+            err=True,
+        )
+        sys.exit(1)
+
     return org, repo, score, tier
 
 
@@ -101,15 +119,29 @@ Submitted via `agentready submit` command.
 
 
 def run_gh_command(
-    args: list[str], capture_output: bool = True
+    args: list[str], capture_output: bool = True, timeout: int = SUBPROCESS_TIMEOUT
 ) -> subprocess.CompletedProcess:
-    """Run a gh CLI command and return the result."""
-    result = subprocess.run(
-        ["gh"] + args,
-        capture_output=capture_output,
-        text=True,
-    )
-    return result
+    """Run a gh CLI command and return the result.
+
+    Args:
+        args: Arguments to pass to gh CLI.
+        capture_output: Whether to capture stdout/stderr.
+        timeout: Timeout in seconds (default: SUBPROCESS_TIMEOUT).
+
+    Returns:
+        CompletedProcess with returncode, stdout, stderr.
+    """
+    try:
+        result = subprocess.run(
+            ["gh"] + args,
+            capture_output=capture_output,
+            text=True,
+            timeout=timeout,
+        )
+        return result
+    except subprocess.TimeoutExpired:
+        click.echo(f"Error: gh command timed out after {timeout}s", err=True)
+        sys.exit(1)
 
 
 def submit_with_gh_cli(
@@ -159,7 +191,11 @@ def submit_with_gh_cli(
         )
         sys.exit(1)
 
-    repo_info = json.loads(result.stdout)
+    try:
+        repo_info = json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        click.echo(f"Error: Failed to parse GitHub API response: {e}", err=True)
+        sys.exit(1)
     if repo_info.get("private"):
         click.echo(
             f"Error: Repository {org_repo} is private. Only public repositories can be submitted.",
@@ -224,6 +260,16 @@ def submit_with_gh_cli(
     click.echo(f"Created branch: {branch_name}")
 
     # 7. Commit assessment file
+    # Check file size before reading
+    file_size = assessment_path.stat().st_size
+    if file_size > MAX_ASSESSMENT_SIZE:
+        click.echo(
+            f"Error: Assessment file too large ({file_size / 1024 / 1024:.1f} MB). "
+            f"Maximum allowed: {MAX_ASSESSMENT_SIZE / 1024 / 1024:.0f} MB",
+            err=True,
+        )
+        sys.exit(1)
+
     with open(assessment_path, encoding="utf-8") as f:
         content = f.read()
 
