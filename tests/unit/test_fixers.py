@@ -126,9 +126,14 @@ class TestCLAUDEmdFixer:
         claude_md_failing_finding.status = "pass"
         assert fixer.can_fix(claude_md_failing_finding) is False
 
-    def test_generate_fix_when_agent_md_missing(self, temp_repo, claude_md_failing_finding):
+    def test_generate_fix_when_agent_md_missing(
+        self, temp_repo, claude_md_failing_finding
+    ):
         """Test generating fix when AGENTS.md is missing returns MultiStepFix with CommandFix + post-step."""
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+        with patch(
+            "agentready.fixers.documentation.shutil.which",
+            return_value="/usr/bin/claude",
+        ):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
@@ -142,7 +147,9 @@ class TestCLAUDEmdFixer:
         assert fix.steps[0].capture_output is False
         assert fix.attribute_id == "claude_md_file"
         assert fix.points_gained > 0
-        assert "Move" in fix.steps[1].preview() and "AGENTS.md" in fix.steps[1].preview()
+        assert (
+            "Move" in fix.steps[1].preview() and "AGENTS.md" in fix.steps[1].preview()
+        )
 
     def test_generate_fix_when_agent_md_exists_returns_redirect_only_fix(
         self, temp_repo, claude_md_failing_finding
@@ -178,7 +185,10 @@ class TestCLAUDEmdFixer:
         self, temp_repo, claude_md_failing_finding
     ):
         """Test that no fix is generated when ANTHROPIC_API_KEY is not set."""
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+        with patch(
+            "agentready.fixers.documentation.shutil.which",
+            return_value="/usr/bin/claude",
+        ):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: ""}, clear=False):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
@@ -189,7 +199,10 @@ class TestCLAUDEmdFixer:
         self, temp_repo, claude_md_failing_finding
     ):
         """Test applying MultiStep fix in dry-run (command not executed)."""
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+        with patch(
+            "agentready.fixers.documentation.shutil.which",
+            return_value="/usr/bin/claude",
+        ):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
@@ -202,7 +215,10 @@ class TestCLAUDEmdFixer:
 
     def test_apply_fix_real_runs_claude_cli(self, temp_repo, claude_md_failing_finding):
         """Test applying MultiStep fix runs Claude CLI (subprocess mocked)."""
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+        with patch(
+            "agentready.fixers.documentation.shutil.which",
+            return_value="/usr/bin/claude",
+        ):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
@@ -218,26 +234,40 @@ class TestCLAUDEmdFixer:
         assert call_args[1]["capture_output"] is False
         assert call_args[1]["cwd"] == temp_repo.path
 
-    def test_post_step_moves_content_to_agent_md(self, temp_repo, claude_md_failing_finding):
+    def test_post_step_moves_content_to_agent_md(
+        self, temp_repo, claude_md_failing_finding
+    ):
         """Test second step moves CLAUDE.md content to AGENTS.md and replaces CLAUDE.md with @AGENTS.md."""
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+        with patch(
+            "agentready.fixers.documentation.shutil.which",
+            return_value="/usr/bin/claude",
+        ):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
 
         assert isinstance(fix, MultiStepFix)
-        (temp_repo.path / "CLAUDE.md").write_text("# Full content from Claude\nLine 2\n", encoding="utf-8")
+        (temp_repo.path / "CLAUDE.md").write_text(
+            "# Full content from Claude\nLine 2\n", encoding="utf-8"
+        )
 
         result = fix.steps[1].apply(dry_run=False)
 
         assert result is True
         assert (temp_repo.path / "AGENTS.md").exists()
-        assert (temp_repo.path / "AGENTS.md").read_text() == "# Full content from Claude\nLine 2\n"
+        assert (
+            temp_repo.path / "AGENTS.md"
+        ).read_text() == "# Full content from Claude\nLine 2\n"
         assert (temp_repo.path / "CLAUDE.md").read_text() == CLAUDE_MD_REDIRECT_LINE
 
-    def test_post_step_preserves_existing_agents_md(self, temp_repo, claude_md_failing_finding):
+    def test_post_step_preserves_existing_agents_md(
+        self, temp_repo, claude_md_failing_finding
+    ):
         """Test second step does not overwrite AGENTS.md when it already exists (idempotency)."""
-        with patch("agentready.fixers.documentation.shutil.which", return_value="/usr/bin/claude"):
+        with patch(
+            "agentready.fixers.documentation.shutil.which",
+            return_value="/usr/bin/claude",
+        ):
             with patch.dict(os.environ, {ANTHROPIC_API_KEY_ENV: "test-key"}):
                 fixer = CLAUDEmdFixer()
                 fix = fixer.generate_fix(temp_repo, claude_md_failing_finding)
@@ -245,7 +275,9 @@ class TestCLAUDEmdFixer:
         assert isinstance(fix, MultiStepFix)
         existing_content = "# Existing AGENTS.md\nCustom rules here.\n"
         (temp_repo.path / "AGENTS.md").write_text(existing_content, encoding="utf-8")
-        (temp_repo.path / "CLAUDE.md").write_text("# New content from Claude\n", encoding="utf-8")
+        (temp_repo.path / "CLAUDE.md").write_text(
+            "# New content from Claude\n", encoding="utf-8"
+        )
 
         result = fix.steps[1].apply(dry_run=False)
 

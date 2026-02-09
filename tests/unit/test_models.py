@@ -808,7 +808,9 @@ class TestFixModels:
 
         assert fix.capture_output is True
 
-    def test_command_fix_apply_passes_capture_output_false_to_subprocess(self, tmp_path):
+    def test_command_fix_apply_passes_capture_output_false_to_subprocess(
+        self, tmp_path
+    ):
         """Test CommandFix.apply() passes capture_output=False to subprocess.run."""
         fix = CommandFix(
             attribute_id="test_attr",

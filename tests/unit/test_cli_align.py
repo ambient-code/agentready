@@ -507,7 +507,13 @@ class TestAlignClaudeMdFileFeatures:
     @patch("agentready.cli.align.Config")
     @patch("agentready.cli.main.create_all_assessors")
     def test_align_echoes_generating_claude_md_when_fix_applies(
-        self, mock_assessors, mock_config, mock_scanner, mock_fixer_cls, runner, temp_repo
+        self,
+        mock_assessors,
+        mock_config,
+        mock_scanner,
+        mock_fixer_cls,
+        runner,
+        temp_repo,
     ):
         """Test that align echoes 'Generating CLAUDE.md file...' when applying fix."""
         # Setup mock finding

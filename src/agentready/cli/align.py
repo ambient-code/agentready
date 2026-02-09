@@ -145,7 +145,9 @@ def align(repository, dry_run, attributes, interactive):
 
     if not fix_plan.fixes:
         click.echo("\n✅ No automatic fixes available.")
-        failing_ids = {f.attribute.id for f in assessment.findings if f.status == "fail"}
+        failing_ids = {
+            f.attribute.id for f in assessment.findings if f.status == "fail"
+        }
         if "claude_md_file" in failing_ids:
             click.echo(
                 "\n💡 Tip: Install the Claude CLI and set ANTHROPIC_API_KEY to "

@@ -91,9 +91,7 @@ class FixerService:
         self,
         fixes: List[Fix],
         dry_run: bool = False,
-        progress_callback: Optional[
-            Callable[[Fix, str, Optional[bool]], None]
-        ] = None,
+        progress_callback: Optional[Callable[[Fix, str, Optional[bool]], None]] = None,
     ) -> dict:
         """Apply a list of fixes.
 

@@ -58,7 +58,9 @@ class _ClaudeMdToAgentRedirectFix(Fix):
 
     def preview(self) -> str:
         """Preview move and redirect."""
-        return "Move CLAUDE.md content to AGENTS.md and replace CLAUDE.md with @AGENTS.md"
+        return (
+            "Move CLAUDE.md content to AGENTS.md and replace CLAUDE.md with @AGENTS.md"
+        )
 
 
 class _ClaudeMdRedirectOnlyFix(Fix):
@@ -80,7 +82,9 @@ class _ClaudeMdRedirectOnlyFix(Fix):
         """Write CLAUDE.md with redirect to AGENTS.md."""
         if dry_run:
             return True
-        (self.repository_path / "CLAUDE.md").write_text(CLAUDE_MD_REDIRECT_LINE, encoding="utf-8")
+        (self.repository_path / "CLAUDE.md").write_text(
+            CLAUDE_MD_REDIRECT_LINE, encoding="utf-8"
+        )
         return True
 
     def preview(self) -> str:
