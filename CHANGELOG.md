@@ -1,3 +1,10 @@
+# [2.26.0](https://github.com/ambient-code/agentready/compare/v2.25.2...v2.26.0) (2026-02-09)
+
+
+### Features
+
+* centralize Claude instructions via AGENTS.md and add init redirect tests ([#273](https://github.com/ambient-code/agentready/issues/273)) ([92c8f3f](https://github.com/ambient-code/agentready/commit/92c8f3f0f560e27de114a740801c75df733dbe2c))
+
 ## [2.25.2](https://github.com/ambient-code/agentready/compare/v2.25.1...v2.25.2) (2026-02-06)
 
 

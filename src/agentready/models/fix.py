@@ -133,11 +133,13 @@ class CommandFix(Fix):
         command: Command to execute
         working_dir: Directory to run command in
         repository_path: Repository root path
+        capture_output: If True, suppress stdout/stderr; if False, stream to terminal
     """
 
     command: str
     working_dir: Optional[Path]
     repository_path: Path
+    capture_output: bool = True
 
     def apply(self, dry_run: bool = False) -> bool:
         """Execute the command.
@@ -166,7 +168,7 @@ class CommandFix(Fix):
                 cmd_list,
                 cwd=cwd,
                 check=True,
-                capture_output=True,
+                capture_output=self.capture_output,
                 text=True,
                 # Security: Never use shell=True - explicitly removed
             )

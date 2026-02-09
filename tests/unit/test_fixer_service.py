@@ -446,6 +446,112 @@ class TestFixerService:
         assert results["failed"] == 1
         assert len(results["failures"]) == 1
 
+    def test_apply_fixes_invokes_progress_callback_before_and_after_success(
+        self, tmp_path
+    ):
+        """Test that progress_callback is invoked with correct phases on success."""
+        fix = FileCreationFix(
+            attribute_id="test_attr",
+            description="Create test file",
+            points_gained=10.0,
+            file_path=Path("test.txt"),
+            content="test content",
+            repository_path=tmp_path,
+        )
+
+        callback_calls = []
+
+        def progress_callback(fix, phase, success):
+            callback_calls.append((fix.attribute_id, phase, success))
+
+        service = FixerService()
+        results = service.apply_fixes([fix], progress_callback=progress_callback)
+
+        assert results["succeeded"] == 1
+        assert len(callback_calls) == 2
+        assert callback_calls[0] == ("test_attr", "before", None)
+        assert callback_calls[1] == ("test_attr", "after", True)
+
+    def test_apply_fixes_invokes_progress_callback_after_false_on_exception(
+        self, tmp_path
+    ):
+        """Test that progress_callback is invoked with success=False on exception."""
+
+        class FailingFix(FileCreationFix):
+            def apply(self, dry_run=False):
+                raise RuntimeError("Intentional failure")
+
+        fix = FailingFix(
+            attribute_id="test_attr",
+            description="Failing fix",
+            points_gained=10.0,
+            file_path=Path("test.txt"),
+            content="content",
+            repository_path=tmp_path,
+        )
+
+        callback_calls = []
+
+        def progress_callback(fix, phase, success):
+            callback_calls.append((fix.attribute_id, phase, success))
+
+        service = FixerService()
+        results = service.apply_fixes([fix], progress_callback=progress_callback)
+
+        assert results["failed"] == 1
+        assert len(callback_calls) == 2
+        assert callback_calls[0] == ("test_attr", "before", None)
+        assert callback_calls[1] == ("test_attr", "after", False)
+
+    def test_apply_fixes_invokes_progress_callback_after_false_on_apply_failure(
+        self, tmp_path
+    ):
+        """Test progress_callback is invoked with success=False when apply returns False."""
+        # Create fix that will fail (file already exists)
+        test_file = tmp_path / "existing.txt"
+        test_file.write_text("existing content")
+
+        fix = FileCreationFix(
+            attribute_id="test_attr",
+            description="Create existing file",
+            points_gained=10.0,
+            file_path=Path("existing.txt"),
+            content="new content",
+            repository_path=tmp_path,
+        )
+
+        callback_calls = []
+
+        def progress_callback(fix, phase, success):
+            callback_calls.append((fix.attribute_id, phase, success))
+
+        service = FixerService()
+        results = service.apply_fixes([fix], progress_callback=progress_callback)
+
+        assert results["failed"] == 1
+        assert len(callback_calls) == 2
+        assert callback_calls[0] == ("test_attr", "before", None)
+        assert callback_calls[1] == ("test_attr", "after", False)
+
+    def test_apply_fixes_without_callback_unchanged_behavior(self, tmp_path):
+        """Test that apply_fixes works correctly without progress_callback (backward compat)."""
+        fix = FileCreationFix(
+            attribute_id="test_attr",
+            description="Create test file",
+            points_gained=10.0,
+            file_path=Path("test.txt"),
+            content="test content",
+            repository_path=tmp_path,
+        )
+
+        service = FixerService()
+        # Call without progress_callback - should not raise
+        results = service.apply_fixes([fix])
+
+        assert results["succeeded"] == 1
+        assert results["failed"] == 0
+        assert (tmp_path / "test.txt").exists()
+
     def test_find_fixer_existing(self):
         """Test finding fixer for existing attribute."""
         service = FixerService()
