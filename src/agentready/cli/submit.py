@@ -13,7 +13,6 @@ from pathlib import Path
 import click
 from github import Github, GithubException
 
-
 UPSTREAM_REPO = "ambient-code/agentready"
 SUBPROCESS_TIMEOUT = 60  # seconds
 MAX_ASSESSMENT_SIZE = 10 * 1024 * 1024  # 10 MB
