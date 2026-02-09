@@ -1,7 +1,7 @@
 """Service for orchestrating automated fixes."""
 
 from dataclasses import dataclass
-from typing import List
+from typing import Callable, List, Optional
 
 from ..fixers.base import BaseFixer
 from ..fixers.documentation import CLAUDEmdFixer, GitignoreFixer
@@ -87,12 +87,21 @@ class FixerService:
             points_gained=points_gained,
         )
 
-    def apply_fixes(self, fixes: List[Fix], dry_run: bool = False) -> dict:
+    def apply_fixes(
+        self,
+        fixes: List[Fix],
+        dry_run: bool = False,
+        progress_callback: Optional[
+            Callable[[Fix, str, Optional[bool]], None]
+        ] = None,
+    ) -> dict:
         """Apply a list of fixes.
 
         Args:
             fixes: Fixes to apply
             dry_run: If True, don't make changes
+            progress_callback: Optional callback(fix, phase, success) where
+                phase is "before" or "after", and success is set only for "after".
 
         Returns:
             Dict with success counts and failures
@@ -100,8 +109,12 @@ class FixerService:
         results = {"succeeded": 0, "failed": 0, "failures": []}
 
         for fix in fixes:
+            if progress_callback:
+                progress_callback(fix, "before", None)
             try:
                 success = fix.apply(dry_run=dry_run)
+                if progress_callback:
+                    progress_callback(fix, "after", success)
                 if success:
                     results["succeeded"] += 1
                 else:
@@ -110,6 +123,8 @@ class FixerService:
                         f"{fix.description}: Unable to apply fix"
                     )
             except Exception as e:
+                if progress_callback:
+                    progress_callback(fix, "after", False)
                 results["failed"] += 1
                 results["failures"].append(f"{fix.description}: {str(e)}")
 

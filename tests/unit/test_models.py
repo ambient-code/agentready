@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -793,6 +794,61 @@ class TestFixModels:
         preview = fix.preview()
         assert "RUN" in preview
         assert "echo test" in preview
+
+    def test_command_fix_capture_output_default_true(self, tmp_path):
+        """Test that CommandFix defaults to capture_output=True."""
+        fix = CommandFix(
+            attribute_id="test_attr",
+            description="Run test command",
+            points_gained=10.0,
+            command="echo test",
+            working_dir=None,
+            repository_path=tmp_path,
+        )
+
+        assert fix.capture_output is True
+
+    def test_command_fix_apply_passes_capture_output_false_to_subprocess(self, tmp_path):
+        """Test CommandFix.apply() passes capture_output=False to subprocess.run."""
+        fix = CommandFix(
+            attribute_id="test_attr",
+            description="Run test command",
+            points_gained=10.0,
+            command="echo hello",
+            working_dir=None,
+            repository_path=tmp_path,
+            capture_output=False,
+        )
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = None
+            result = fix.apply(dry_run=False)
+
+        assert result is True
+        mock_run.assert_called_once()
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["capture_output"] is False
+
+    def test_command_fix_apply_passes_capture_output_true_to_subprocess(self, tmp_path):
+        """Test CommandFix.apply() passes capture_output=True (default) to subprocess.run."""
+        fix = CommandFix(
+            attribute_id="test_attr",
+            description="Run test command",
+            points_gained=10.0,
+            command="echo hello",
+            working_dir=None,
+            repository_path=tmp_path,
+            # capture_output defaults to True
+        )
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = None
+            result = fix.apply(dry_run=False)
+
+        assert result is True
+        mock_run.assert_called_once()
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["capture_output"] is True
 
     def test_multi_step_fix_construction(self, tmp_path):
         """Test creating a MultiStepFix."""
