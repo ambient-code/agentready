@@ -33,9 +33,6 @@ def _claude_md_command() -> str:
         ]
     )
 
-# Command run by CLAUDEmdFixer to generate CLAUDE.md via Claude CLI
-CLAUDE_MD_COMMAND = _claude_md_command()
-
 
 class _ClaudeMdToAgentRedirectFix(Fix):
     """Post-step fix: move CLAUDE.md content to AGENTS.md, replace CLAUDE.md with @AGENTS.md."""
@@ -152,7 +149,7 @@ class CLAUDEmdFixer(BaseFixer):
             attribute_id=self.attribute_id,
             description="Run Claude CLI to create CLAUDE.md in the project",
             points_gained=points,
-            command=CLAUDE_MD_COMMAND,
+            command=_claude_md_command(),
             working_dir=repository.path,
             repository_path=repository.path,
             capture_output=False,  # Stream Claude output to terminal

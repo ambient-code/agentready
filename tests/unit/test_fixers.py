@@ -9,10 +9,10 @@ import pytest
 
 from agentready.fixers.documentation import (
     ANTHROPIC_API_KEY_ENV,
-    CLAUDE_MD_COMMAND,
     CLAUDE_MD_REDIRECT_LINE,
     CLAUDEmdFixer,
     GitignoreFixer,
+    _claude_md_command,
 )
 from agentready.models.attribute import Attribute
 from agentready.models.finding import Finding, Remediation
@@ -107,6 +107,14 @@ def gitignore_failing_finding():
     )
 
 
+def test_claude_md_command_shell_safe():
+    """_claude_md_command returns a command with shell-quoted arguments."""
+    cmd = _claude_md_command()
+    assert "claude" in cmd
+    assert "-p" in cmd
+    assert "'" in cmd or '"' in cmd  # shlex.quote applied
+
+
 class TestCLAUDEmdFixer:
     """Tests for CLAUDEmdFixer."""
 
@@ -142,7 +150,7 @@ class TestCLAUDEmdFixer:
         assert isinstance(fix, MultiStepFix)
         assert len(fix.steps) == 2
         assert isinstance(fix.steps[0], CommandFix)
-        assert fix.steps[0].command == CLAUDE_MD_COMMAND
+        assert fix.steps[0].command == _claude_md_command()
         assert fix.steps[0].working_dir == temp_repo.path
         assert fix.steps[0].capture_output is False
         assert fix.attribute_id == "claude_md_file"

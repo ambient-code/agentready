@@ -46,6 +46,7 @@ src/agentready/
 ├── reporters/       # Report generation (HTML, Markdown, JSON)
 │   ├── html.py      # Interactive HTML with Jinja2
 │   └── markdown.py  # GitHub-Flavored Markdown
+├── prompts/        # LLM prompt .md templates; load_prompt(name) from loader.py
 ├── templates/       # Jinja2 templates
 │   └── report.html.j2  # Self-contained HTML report (73KB)
 └── cli/             # Click-based CLI
