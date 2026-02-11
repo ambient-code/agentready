@@ -8,6 +8,7 @@ from typing import Optional
 from ..models.finding import Finding
 from ..models.fix import CommandFix, Fix, MultiStepFix
 from ..models.repository import Repository
+from ..prompts import load_prompt
 from .base import BaseFixer
 
 # Env var required for Claude CLI (used by CLAUDEmdFixer)
@@ -16,11 +17,24 @@ ANTHROPIC_API_KEY_ENV = "ANTHROPIC_API_KEY"
 # Single line written to CLAUDE.md when pointing to AGENTS.md
 CLAUDE_MD_REDIRECT_LINE = "@AGENTS.md\n"
 
+
+def _claude_md_command() -> str:
+    """Build Claude CLI command with prompt loaded from resources (safe shell quoting)."""
+    import shlex
+
+    prompt = load_prompt("claude_md_generator")
+    return " ".join(
+        [
+            "claude",
+            "-p",
+            shlex.quote(prompt),
+            "--allowedTools",
+            shlex.quote("Read,Edit,Write,Bash"),
+        ]
+    )
+
 # Command run by CLAUDEmdFixer to generate CLAUDE.md via Claude CLI
-CLAUDE_MD_COMMAND = (
-    'claude -p "Initialize this project with a CLAUDE.md file" '
-    '--allowedTools "Read,Edit,Write,Bash"'
-)
+CLAUDE_MD_COMMAND = _claude_md_command()
 
 
 class _ClaudeMdToAgentRedirectFix(Fix):

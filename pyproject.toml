@@ -59,6 +59,7 @@ where = ["src"]
 agentready = [
     "data/*.md",
     "data/*.yaml",
+    "prompts/*.md",
     "templates/*.j2",
     "templates/**/*.j2",
     "templates/**/*.yml.j2",
