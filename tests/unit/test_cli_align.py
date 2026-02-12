@@ -569,3 +569,172 @@ class TestAlignClaudeMdFileFeatures:
 
         # Verify the callback was captured
         assert captured_callback is not None
+
+
+class TestAlignMultiLineIndentation_Issue285:
+    """Regression tests for issue #285 - multi-line fix preview indentation.
+
+    Tests verify that multi-step fix substeps are properly indented in align output.
+    See: https://github.com/ambient-code/agentready/issues/285
+    """
+
+    @patch("agentready.cli.align.FixerService")
+    @patch("agentready.cli.align.Scanner")
+    @patch("agentready.cli.align.Config")
+    @patch("agentready.cli.main.create_all_assessors")
+    def test_multiline_preview_indentation(
+        self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
+    ):
+        """Test that multi-line fix preview is properly indented.
+
+        Regression test for issue #285: MULTI-STEP FIX substeps were not
+        indented correctly. They appeared flush-left instead of aligned
+        under the "MULTI-STEP FIX (N steps):" header.
+        """
+        # Setup mock assessment
+        mock_finding = MagicMock()
+        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.status = "fail"
+        mock_finding.score = 0.0
+
+        mock_assessment = MagicMock()
+        mock_assessment.overall_score = 65.0
+        mock_assessment.findings = [mock_finding]
+        mock_assessment.repository = MagicMock()
+        mock_scanner.return_value.scan.return_value = mock_assessment
+
+        # Create a mock fix with multi-line preview (simulating MultiStepFix)
+        mock_fix = MagicMock()
+        mock_fix.attribute_id = "claude_md_file"
+        mock_fix.description = "Run Claude CLI to create CLAUDE.md, then move content to AGENTS.md"
+        # This simulates the output from MultiStepFix.preview()
+        mock_fix.preview.return_value = (
+            "MULTI-STEP FIX (2 steps):\n"
+            "  1. RUN claude -p 'Initialize this project with a CLAUDE.md file' --allowedTools Read,Edit,Write,Bash\n"
+            "  2. Move CLAUDE.md content to AGENTS.md and replace CLAUDE.md with @AGENTS.md"
+        )
+        mock_fix.points_gained = 10.0
+
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = [mock_fix]
+        mock_fix_plan.projected_score = 75.0
+        mock_fix_plan.points_gained = 10.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        mock_assessors.return_value = []
+
+        # Run align in dry-run mode (no user interaction needed)
+        result = runner.invoke(align, [str(temp_repo), "--dry-run"])
+
+        # Verify the output contains properly indented substeps
+        assert result.exit_code == 0
+
+        # The fix header should be indented with 2 spaces + "1. "
+        assert "  1. [claude_md_file]" in result.output
+
+        # The "MULTI-STEP FIX" header should be indented with 5 spaces
+        assert "     MULTI-STEP FIX (2 steps):" in result.output
+
+        # The substeps should be indented with 7 spaces (5 base + 2 from preview)
+        # This is the key regression check for issue #285
+        assert "       1. RUN claude -p" in result.output
+        assert "       2. Move CLAUDE.md content" in result.output
+
+        # Verify substeps are NOT flush-left (the bug behavior)
+        # If the bug exists, these lines would appear with only 2 spaces
+        assert "\n  1. RUN claude -p" not in result.output
+        assert "\n  2. Move CLAUDE.md content" not in result.output
+
+    @patch("agentready.cli.align.FixerService")
+    @patch("agentready.cli.align.Scanner")
+    @patch("agentready.cli.align.Config")
+    @patch("agentready.cli.main.create_all_assessors")
+    def test_single_line_preview_still_works(
+        self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
+    ):
+        """Test that single-line fix previews still display correctly.
+
+        Ensures that the fix for issue #285 (textwrap.indent) doesn't
+        break single-line previews from other fix types.
+        """
+        # Setup mock assessment
+        mock_finding = MagicMock()
+        mock_finding.attribute.id = "gitignore_file"
+        mock_finding.status = "fail"
+        mock_finding.score = 0.0
+
+        mock_assessment = MagicMock()
+        mock_assessment.overall_score = 65.0
+        mock_assessment.findings = [mock_finding]
+        mock_assessment.repository = MagicMock()
+        mock_scanner.return_value.scan.return_value = mock_assessment
+
+        # Create a mock fix with single-line preview
+        mock_fix = MagicMock()
+        mock_fix.attribute_id = "gitignore_file"
+        mock_fix.description = "Add standard .gitignore entries"
+        mock_fix.preview.return_value = "MODIFY .gitignore (+15 lines)"
+        mock_fix.points_gained = 5.0
+
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = [mock_fix]
+        mock_fix_plan.projected_score = 70.0
+        mock_fix_plan.points_gained = 5.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        mock_assessors.return_value = []
+
+        # Run align in dry-run mode
+        result = runner.invoke(align, [str(temp_repo), "--dry-run"])
+
+        # Verify the output is correct
+        assert result.exit_code == 0
+
+        # Single-line preview should be indented with 5 spaces
+        assert "     MODIFY .gitignore (+15 lines)" in result.output
+
+    @patch("agentready.cli.align.FixerService")
+    @patch("agentready.cli.align.Scanner")
+    @patch("agentready.cli.align.Config")
+    @patch("agentready.cli.main.create_all_assessors")
+    def test_empty_line_handling_in_preview(
+        self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
+    ):
+        """Test that empty lines in previews are handled correctly.
+
+        Verifies that textwrap.indent() properly handles multi-line
+        previews that contain empty lines.
+        """
+        # Setup mock assessment
+        mock_finding = MagicMock()
+        mock_finding.attribute.id = "test_attribute"
+        mock_finding.status = "fail"
+
+        mock_assessment = MagicMock()
+        mock_assessment.overall_score = 65.0
+        mock_assessment.findings = [mock_finding]
+        mock_assessment.repository = MagicMock()
+        mock_scanner.return_value.scan.return_value = mock_assessment
+
+        # Create a mock fix with preview containing empty line
+        mock_fix = MagicMock()
+        mock_fix.attribute_id = "test_attribute"
+        mock_fix.description = "Test fix with empty line"
+        mock_fix.preview.return_value = "Header\n\nContent after empty line"
+        mock_fix.points_gained = 5.0
+
+        mock_fix_plan = MagicMock()
+        mock_fix_plan.fixes = [mock_fix]
+        mock_fix_plan.projected_score = 70.0
+        mock_fix_plan.points_gained = 5.0
+        mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
+
+        mock_assessors.return_value = []
+
+        # Run align in dry-run mode
+        result = runner.invoke(align, [str(temp_repo), "--dry-run"])
+
+        # Verify the output handles empty lines
+        assert result.exit_code == 0
+        assert "     Header" in result.output
+        assert "     Content after empty line" in result.output
