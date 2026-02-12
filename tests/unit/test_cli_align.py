@@ -709,6 +709,7 @@ class TestAlignMultiLineIndentation_Issue285:
         mock_finding = MagicMock()
         mock_finding.attribute.id = "test_attribute"
         mock_finding.status = "fail"
+        mock_finding.score = 0.0
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 65.0
