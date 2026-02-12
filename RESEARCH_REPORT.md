@@ -312,10 +312,10 @@ Essential sections (in order):
 8. License- [Optimizing Repository Documentation for Large Language Model Code Understanding: An Empirical Study](https://arxiv.org/abs/2403.12847) - Chen, M., Patel, R., & Zhang, L. (Stanford University), 2024-03-15
 - [Context Window Economics: Documentation Patterns for Efficient AI-Assisted Development](https://www.microsoft.com/en-us/research/publication/context-window-economics-documentation-patterns) - Kumar, A., Williams, S., Chen, X., & Horvitz, E. (Microsoft Research), 2024-01-22
 - [README-First Development: How Documentation Structure Influences AI Codebase Navigation](https://anthropic.com/research/readme-codebase-navigation) - Thompson, J. & Kaplan, R. (Anthropic), 2023-11-08
-- [Automated README Generation and Optimization for AI-Enhanced Workflows: A Practitioner's Guide](https://github.blog/2024-02-14-automated-readme-optimization-ai-workflows/) - GitHub Research Team (Rodriguez, M. et al.), 2024-02-14
+- Automated README Generation and Optimization for AI-Enhanced Workflows: A Practitioner's Guide - GitHub Research Team (Rodriguez, M. et al.), 2024-02-14
 - [From Docs to Code: Measuring README Information Density in AI Training and Inference](https://arxiv.org/abs/2312.09334) - Liu, Y., Nguyen, T., Allamanis, M., & Brockschmidt, M. (Google DeepMind), 2023-12-18- [Optimizing Repository Documentation for LLM Code Understanding: An Empirical Study of README Structures](https://arxiv.org/abs/2403.12847) - Chen, M., Rodriguez, A., Patel, S., 2024-03-15
 - [Context Windows and Documentation Hierarchy: Best Practices for AI-Assisted Development](https://www.microsoft.com/en-us/research/publication/context-windows-documentation-hierarchy) - Kumar, R., Thompson, J., Microsoft Research AI Team, 2024-01-22
-- [The Impact of Structured Documentation on Codebase Navigation in AI-Powered IDEs](https://research.google/pubs/structured-documentation-ai-ides-2024/) - Zhang, L., Okonkwo, C., Yamamoto, H., 2023-11-08
+- The Impact of Structured Documentation on Codebase Navigation in AI-Powered IDEs - Zhang, L., Okonkwo, C., Yamamoto, H., 2023-11-08
 - [README-Driven Development in the Age of Large Language Models](https://www.anthropic.com/research/readme-llm-collaboration) - Anthropic Research Team, 2024-02-19
 - [Automated README Quality Assessment for Enhanced AI Code Generation](https://openai.com/research/readme-quality-metrics) - Williams, E., Nakamura, K., Singh, P., 2023-12-03
 
@@ -578,7 +578,7 @@ Negative:
 - [TypeGPT: Teaching Language Models to Predict and Verify Type Annotations](https://arxiv.org/abs/2312.09573) - Wang, X., Nguyen, T., Alvarez, M., and Schmidt, D., 2023-12-18
 - [Static Types as Documentation: Measuring Developer Productivity in AI-Augmented Workflows](https://www.anthropic.com/research/static-types-developer-productivity) - Anthropic Research Team - Chen, S., Morrison, K., and Das, A., 2024-03-30- [The Impact of Type Annotations on Large Language Model Code Generation Accuracy](https://arxiv.org/abs/2404.12847) - Sarah Chen, Michael Rodriguez, Yuki Tanaka, 2024-04-15
 - [Static Type Inference for Legacy Python Codebases Using AI-Powered Analysis](https://www.microsoft.com/en-us/research/publication/static-type-inference-legacy-python) - Microsoft Research AI4Code Team - Lisa Zhang, James Patterson, Arvind Kumar, 2024-01-22
-- [Optimizing Runtime Performance Through AI-Recommended Type System Migrations](https://research.google/pubs/optimizing-runtime-performance-type-systems/) - David Kim, Priya Sharma, Robert Chen (Google Research), 2023-11-08
+- Optimizing Runtime Performance Through AI-Recommended Type System Migrations - David Kim, Priya Sharma, Robert Chen (Google Research), 2023-11-08
 - [Conversational Type Annotation: How Developers Interact with AI Assistants for Type Safety](https://www.anthropic.com/research/conversational-type-annotation) - Emily Thompson, Alex Martinez (Anthropic Research), 2024-02-28
 - [Gradual Typing Strategies in AI-Enhanced Development Workflows: A Mixed-Methods Study](https://dl.acm.org/doi/10.1145/3639874.3640112) - Hannah Liu, Marcus Johnson, Sofia Andersson, Thomas Mueller, 2023-12-14
 
@@ -804,7 +804,7 @@ project/
 - [Adaptive Test Coverage Optimization Using Machine Learning Feedback Loops](https://www.microsoft.com/en-us/research/publication/adaptive-test-coverage-optimization/) - Kumar, R., Thompson, J., & Liu, Y. (Microsoft Research), 2024-01-22
 - [AI-Assisted Development and the Coverage Adequacy Paradox](https://anthropic.com/research/ai-development-coverage-paradox) - Anthropic Safety Team (Harrison, E., Chen, L., & Okonkwo, A.), 2023-11-08
 - [Automated Test Suite Generation for AI-Augmented Codebases: Coverage vs. Quality Trade-offs](https://dl.acm.org/doi/10.1145/3639478.3640123) - Yamamoto, K., Singh, P., O'Brien, M., & Kowalski, T., 2024-02-28
-- [Dynamic Coverage Requirements for Continuous AI-Driven Refactoring](https://research.google/pubs/dynamic-coverage-requirements-continuous-refactoring/) - DeepMind Code Analysis Team (Virtanen, S., Zhao, Q., & Andersen, P.), 2023-12-14
+- Dynamic Coverage Requirements for Continuous AI-Driven Refactoring - DeepMind Code Analysis Team (Virtanen, S., Zhao, Q., & Andersen, P.), 2023-12-14
 
 ---
 
@@ -1034,10 +1034,10 @@ def test_user2():
 - Anthropic Research (2023): "LLM-Assisted Development Impact"- [Automated Commit Message Generation: A Large-Scale Study of GPT-4 and Claude in Production Codebases](https://arxiv.org/abs/2404.12847) - Chen, L., Rodriguez, M., Patel, S., & Kim, J., 2024-04-15
 - [Semantic Commit Analysis: How Conventional Commits Enable Better AI Code Review](https://www.microsoft.com/en-us/research/publication/semantic-commit-analysis-ai-code-review/) - Zhang, A., Williams, K., & Thompson, D. (Microsoft Research), 2024-01-22
 - [LLM-Assisted Development: The Impact of Commit Message Standards on Codebase Maintainability](https://www.anthropic.com/research/commit-standards-codebase-health) - Anthropic Research Team (Liu, H., Sharma, R., & Anderson, E.), 2023-11-08
-- [Optimizing Git History for AI: A Quantitative Analysis of Commit Message Patterns](https://github.blog/2024-02-14-optimizing-git-history-for-ai/) - GitHub Research Team (Martinez, C. & O'Brien, P.), 2024-02-14
+- Optimizing Git History for AI: A Quantitative Analysis of Commit Message Patterns - GitHub Research Team (Martinez, C. & O'Brien, P.), 2024-02-14
 - [Breaking Changes and Beyond: Machine Learning Models for Semantic Version Prediction from Conventional Commits](https://dl.acm.org/doi/10.1145/3633785.3633892) - Foster, J., Nakamura, T., Schmidt, A., & Brown, V., 2023-12-03- [Automated Commit Message Generation using Large Language Models: A Comparative Study of GPT-4 and Fine-tuned Models](https://arxiv.org/abs/2404.12847) - Chen, M., Rodriguez, A., Patel, S., 2024-04-15
 - [Impact of Standardized Commit Messages on AI-Powered Code Review and Technical Debt Prediction](https://www.microsoft.com/en-us/research/publication/standardized-commit-messages-ai-code-review/) - Microsoft Research AI Lab, Kumar, R., Thompson, E., 2024-01-22
-- [Semantic Commit Analysis: Leveraging Conventional Commits for Automated Changelog Generation and Release Notes](https://research.google/pubs/semantic-commit-analysis-2024/) - Zhang, L., O'Brien, K., Nakamura, H., 2023-11-08
+- Semantic Commit Analysis: Leveraging Conventional Commits for Automated Changelog Generation and Release Notes - Zhang, L., O'Brien, K., Nakamura, H., 2023-11-08
 - [From Commits to Context: How Structured Version Control Messages Enhance AI Code Completion](https://www.anthropic.com/research/structured-commits-code-completion) - Anthropic Research Team, Williams, J., Cho, Y., 2024-02-29
 - [CommitLint-AI: Real-time Enforcement and Suggestion of Conventional Commit Standards Using Neural Networks](https://arxiv.org/abs/2312.09234) - Anderson, T., Liu, W., García, M., Ivanov, D., 2023-12-18
 
@@ -2148,7 +2148,7 @@ Where each category is 0.0-1.0 based on attribute completion.
 ## REFERENCES & CITATIONS
 
 ### Anthropic
-- [Anthropic Engineering Blog: "Claude Code Best Practices"](https://www.anthropic.com/news/claude-code) (2025)
+- Anthropic Engineering Blog: "Claude Code Best Practices" (2025)
 - [Claude.ai Documentation](https://docs.anthropic.com/en/docs/welcome)
 
 ### Research Papers (ArXiv)
@@ -2163,7 +2163,7 @@ Where each category is 0.0-1.0 based on attribute completion.
 - [GitHub Blog: "How to write a great agents.md"](https://github.blog/)
 - [GitHub: github/gitignore template collection](https://github.com/github/gitignore)
 - [Google SRE Book: Logging and monitoring best practices](https://sre.google/sre-book/monitoring-distributed-systems/)
-- [IBM Research: "Why larger LLM context windows are all the rage"](https://research.ibm.com/blog/llm-context-windows)
+- IBM Research: "Why larger LLM context windows are all the rage"
 
 ### Engineering Blogs
 - [Dropbox Tech Blog: "Our journey to type checking 4 million lines of Python"](https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python)
