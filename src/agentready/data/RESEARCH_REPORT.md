@@ -235,7 +235,7 @@ Essential sections (in order):
 8. License- [Optimizing Repository Documentation for Large Language Model Code Understanding: An Empirical Study](https://arxiv.org/abs/2403.12847) - Chen, M., Patel, R., & Zhang, L. (Stanford University), 2024-03-15
 - [Context Window Economics: Documentation Patterns for Efficient AI-Assisted Development](https://www.microsoft.com/en-us/research/publication/context-window-economics-documentation-patterns) - Kumar, A., Williams, S., Chen, X., & Horvitz, E. (Microsoft Research), 2024-01-22
 - [README-First Development: How Documentation Structure Influences AI Codebase Navigation](https://anthropic.com/research/readme-codebase-navigation) - Thompson, J. & Kaplan, R. (Anthropic), 2023-11-08
-- [Automated README Generation and Optimization for AI-Enhanced Workflows: A Practitioner's Guide](https://github.blog/2024-02-14-automated-readme-optimization-ai-workflows/) - GitHub Research Team (Rodriguez, M. et al.), 2024-02-14
+- Automated README Generation and Optimization for AI-Enhanced Workflows: A Practitioner's Guide - GitHub Research Team (Rodriguez, M. et al.), 2024-02-14
 - [From Docs to Code: Measuring README Information Density in AI Training and Inference](https://arxiv.org/abs/2312.09334) - Liu, Y., Nguyen, T., Allamanis, M., & Brockschmidt, M. (Google DeepMind), 2023-12-18
 
 
@@ -857,7 +857,7 @@ def test_user2():
 - Anthropic Research (2023): "LLM-Assisted Development Impact"- [Automated Commit Message Generation: A Large-Scale Study of GPT-4 and Claude in Production Codebases](https://arxiv.org/abs/2404.12847) - Chen, L., Rodriguez, M., Patel, S., & Kim, J., 2024-04-15
 - [Semantic Commit Analysis: How Conventional Commits Enable Better AI Code Review](https://www.microsoft.com/en-us/research/publication/semantic-commit-analysis-ai-code-review/) - Zhang, A., Williams, K., & Thompson, D. (Microsoft Research), 2024-01-22
 - [LLM-Assisted Development: The Impact of Commit Message Standards on Codebase Maintainability](https://www.anthropic.com/research/commit-standards-codebase-health) - Anthropic Research Team (Liu, H., Sharma, R., & Anderson, E.), 2023-11-08
-- [Optimizing Git History for AI: A Quantitative Analysis of Commit Message Patterns](https://github.blog/2024-02-14-optimizing-git-history-for-ai/) - GitHub Research Team (Martinez, C. & O'Brien, P.), 2024-02-14
+- Optimizing Git History for AI: A Quantitative Analysis of Commit Message Patterns - GitHub Research Team (Martinez, C. & O'Brien, P.), 2024-02-14
 - [Breaking Changes and Beyond: Machine Learning Models for Semantic Version Prediction from Conventional Commits](https://dl.acm.org/doi/10.1145/3633785.3633892) - Foster, J., Nakamura, T., Schmidt, A., & Brown, V., 2023-12-03
 
 
@@ -1966,7 +1966,7 @@ Where each category is 0.0-1.0 based on attribute completion.
 ## REFERENCES & CITATIONS
 
 ### Anthropic
-- [Anthropic Engineering Blog: "Claude Code Best Practices"](https://www.anthropic.com/news/claude-code) (2025)
+- Anthropic Engineering Blog: "Claude Code Best Practices" (2025)
 - [Claude.ai Documentation](https://docs.anthropic.com/en/docs/welcome)
 
 ### Research Papers (ArXiv)
@@ -1981,7 +1981,7 @@ Where each category is 0.0-1.0 based on attribute completion.
 - [GitHub Blog: "How to write a great agents.md"](https://github.blog/)
 - [GitHub: github/gitignore template collection](https://github.com/github/gitignore)
 - [Google SRE Book: Logging and monitoring best practices](https://sre.google/sre-book/monitoring-distributed-systems/)
-- [IBM Research: "Why larger LLM context windows are all the rage"](https://research.ibm.com/blog/llm-context-windows)
+- IBM Research: "Why larger LLM context windows are all the rage"
 
 ### Engineering Blogs
 - [Dropbox Tech Blog: "Our journey to type checking 4 million lines of Python"](https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python)
