@@ -1,0 +1,53 @@
+name: Container Tests (Podman Rootless)
+
+on:
+  pull_request:
+    paths:
+      - 'CONTAINER.md'
+      - 'Containerfile.scratch'
+      - '.github/workflows/container-test.yml'
+  workflow_dispatch:
+
+jobs:
+  podman-rootless-test:
+    name: Podman Rootless Mode Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Create test directories
+        run: mkdir -p ${{ github.workspace }}/test-reports
+
+      - name: Pull AgentReady container
+        run: podman pull ghcr.io/ambient-code/agentready:latest
+
+      - name: Run assessment with Podman rootless command
+        run: |
+          podman run --rm \
+            --user $(id -u):$(id -g) \
+            --userns=keep-id \
+            -e GIT_CONFIG_COUNT=1 \
+            -e GIT_CONFIG_KEY_0=safe.directory \
+            -e GIT_CONFIG_VALUE_0=/repo \
+            -v ${{ github.workspace }}:/repo:ro,z \
+            -v ${{ github.workspace }}/test-reports:/reports:z \
+            ghcr.io/ambient-code/agentready:latest \
+            assess /repo --output-dir /reports
+
+      - name: Verify reports generated
+        run: |
+          echo "=== Generated Reports ==="
+          ls -la ${{ github.workspace }}/test-reports/
+          ls ${{ github.workspace }}/test-reports/*.json
+          ls ${{ github.workspace }}/test-reports/*.html
+          ls ${{ github.workspace }}/test-reports/*.md
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: podman-rootless-test-reports
+          path: ${{ github.workspace }}/test-reports/
+          retention-days: 30

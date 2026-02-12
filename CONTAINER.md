@@ -119,6 +119,48 @@ docker run --rm \
   assess /repo --output-dir /reports
 ```
 
+## Podman Rootless Mode
+
+On **rootless Podman** (common on Fedora, RHEL, CentOS), additional flags are required to handle SELinux labeling, UID mapping, and Git security checks.
+
+### Complete Command
+
+```bash
+podman run --rm -it \
+  --user $(id -u):$(id -g) \
+  --userns=keep-id \
+  -e GIT_CONFIG_COUNT=1 \
+  -e GIT_CONFIG_KEY_0=safe.directory \
+  -e GIT_CONFIG_VALUE_0=/repo \
+  -v /path/to/repo:/repo:ro,z \
+  -v /path/to/reports:/reports:z \
+  ghcr.io/ambient-code/agentready:latest \
+  assess /repo --output-dir /reports
+```
+
+### Why These Flags?
+
+| Flag | Purpose |
+|------|---------|
+| `--userns=keep-id` | Maps container UID to match your host UID, fixing permission mismatches |
+| `--user $(id -u):$(id -g)` | Runs the container process as your host user |
+| `GIT_CONFIG_*` | Tells Git to trust the mounted `/repo` directory (required for Git 2.35.2+) |
+| `:z` (lowercase) | SELinux shared label - allows container access to mounted volumes |
+
+### When Do I Need This?
+
+Use the rootless Podman command if you encounter any of these errors:
+
+- `Path '/repo' is not readable` (SELinux blocking access)
+- `SHA is empty, possible dubious ownership` (Git security check)
+- `PermissionError: [Errno 13] Permission denied` (UID mismatch)
+
+### Note on SELinux Labels
+
+- Use `:z` (lowercase) for shared volumes that multiple containers may access
+- Use `:Z` (uppercase) for private volumes exclusive to one container
+- Both options relabel the volume for SELinux access
+
 ## CI/CD Integration
 
 ### GitHub Actions
@@ -195,15 +237,34 @@ Without the `-v ~/agentready-reports:/reports` mount, reports written to `/tmp` 
 
 ### Permission denied on mounted volumes
 
-Add SELinux context (`:Z` flag) on SELinux systems:
+**On rootless Podman** (Fedora, RHEL, CentOS), see the [Podman Rootless Mode](#podman-rootless-mode) section for the complete solution.
+
+**Quick fix for SELinux only** - add the `:z` label to volumes:
 
 ```bash
 podman run --rm \
-  -v $(pwd):/repo:ro,Z \
-  -v $(pwd)/agentready-reports:/reports,Z \
+  -v $(pwd):/repo:ro,z \
+  -v $(pwd)/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 ```
+
+### Git "dubious ownership" error
+
+If you see `SHA is empty, possible dubious ownership`, the container's Git doesn't trust the mounted repository. Add Git safe.directory configuration:
+
+```bash
+podman run --rm \
+  -e GIT_CONFIG_COUNT=1 \
+  -e GIT_CONFIG_KEY_0=safe.directory \
+  -e GIT_CONFIG_VALUE_0=/repo \
+  -v $(pwd):/repo:ro \
+  -v $(pwd)/agentready-reports:/reports \
+  ghcr.io/ambient-code/agentready:latest \
+  assess /repo --output-dir /reports
+```
+
+For the complete solution addressing all rootless Podman issues, see [Podman Rootless Mode](#podman-rootless-mode).
 
 ## Links
 
