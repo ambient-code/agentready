@@ -606,7 +606,9 @@ class TestAlignMultiLineIndentation_Issue285:
         # Create a mock fix with multi-line preview (simulating MultiStepFix)
         mock_fix = MagicMock()
         mock_fix.attribute_id = "claude_md_file"
-        mock_fix.description = "Run Claude CLI to create CLAUDE.md, then move content to AGENTS.md"
+        mock_fix.description = (
+            "Run Claude CLI to create CLAUDE.md, then move content to AGENTS.md"
+        )
         # This simulates the output from MultiStepFix.preview()
         mock_fix.preview.return_value = (
             "MULTI-STEP FIX (2 steps):\n"
