@@ -74,7 +74,10 @@ class AssessmentMetadata:
 
         # Format timestamps
         iso_timestamp = timestamp.isoformat()
-        human_timestamp = timestamp.strftime("%B %d, %Y at %-I:%M %p")
+        if os.name == "nt":
+            human_timestamp = timestamp.strftime("%B %d, %Y at %#I:%M %p")
+        else:
+            human_timestamp = timestamp.strftime("%B %d, %Y at %-I:%M %p")
 
         # Get current working directory
         try:
