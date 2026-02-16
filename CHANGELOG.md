@@ -1,3 +1,10 @@
+## [2.27.3](https://github.com/ambient-code/agentready/compare/v2.27.2...v2.27.3) (2026-02-16)
+
+
+### Bug Fixes
+
+* **metadata:** use Windows-compatible strftime token for human timestamp ([#291](https://github.com/ambient-code/agentready/issues/291)) ([faf536d](https://github.com/ambient-code/agentready/commit/faf536d3aa6789e7dac49c25f7c25e1efb1e3742))
+
 ## [2.27.2](https://github.com/ambient-code/agentready/compare/v2.27.1...v2.27.2) (2026-02-16)
 
 
