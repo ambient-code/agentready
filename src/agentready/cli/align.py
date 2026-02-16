@@ -168,7 +168,6 @@ def align(repository, dry_run, attributes, interactive):
     click.echo("Changes to be applied:\n")
     for i, fix in enumerate(fix_plan.fixes, 1):
         click.echo(f"  {i}. [{fix.attribute_id}] {fix.description}")
-        # Fix for #285: Indent all lines of multi-line preview output
         click.echo(textwrap.indent(fix.preview(), "     "))
         click.echo(f"     Points: +{fix.points_gained:.1f}\n")
 
