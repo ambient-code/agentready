@@ -68,10 +68,10 @@ def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str]:
     try:
         # Handle SSH format: git@github.com:org/repo.git
         if repo_url.startswith("git@github.com:"):
-            org_repo = repo_url.split("git@github.com:")[1].rstrip(".git")
+            org_repo = repo_url.split("git@github.com:")[1].removesuffix(".git")
         # Handle HTTPS format: https://github.com/org/repo.git
         else:
-            org_repo = repo_url.split("github.com/")[1].strip("/").rstrip(".git")
+            org_repo = repo_url.split("github.com/")[1].strip("/").removesuffix(".git")
 
         org, repo = org_repo.split("/")
     except (IndexError, ValueError):

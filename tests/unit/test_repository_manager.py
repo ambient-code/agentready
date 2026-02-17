@@ -119,3 +119,41 @@ class TestRepositoryManager:
 
         # Should return True even if directory doesn't exist
         assert success is True
+
+    def test_get_repository_name_preserves_ending_letters(self):
+        """Test that repo names ending in .git characters are preserved.
+
+        Regression test: rstrip('.git') incorrectly strips individual characters
+        (., g, i, t) from the end of names. removesuffix('.git') is correct.
+        """
+        manager = RepositoryManager(Path("/tmp/cache"))
+
+        # These were incorrectly truncated before the fix
+        assert (
+            manager.get_repository_name_from_url(
+                "https://github.com/feast-dev/feast.git"
+            )
+            == "feast"
+        )  # Not "feas"
+
+        assert (
+            manager.get_repository_name_from_url("https://github.com/user/audit.git")
+            == "audit"
+        )  # Not "aud"
+
+        assert (
+            manager.get_repository_name_from_url("https://github.com/user/digit.git")
+            == "digit"
+        )  # Not "di"
+
+    def test_get_repository_name_from_url_with_trailing_slash(self):
+        """Test extracting repository name from URL with trailing slash."""
+        manager = RepositoryManager(Path("/tmp/cache"))
+        name = manager.get_repository_name_from_url("https://github.com/user/my-repo/")
+        assert name == "my-repo"
+
+    def test_get_repository_name_from_git_protocol_url(self):
+        """Test extracting repository name from git:// URL."""
+        manager = RepositoryManager(Path("/tmp/cache"))
+        name = manager.get_repository_name_from_url("git://github.com/user/my-repo.git")
+        assert name == "my-repo"
