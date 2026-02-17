@@ -93,7 +93,7 @@ class RepositoryManager:
         # For URLs, extract from the last part of the path
         # https://github.com/user/repo.git -> repo
         parsed = urlparse(url)
-        path = parsed.path.rstrip("/").rstrip(".git")
+        path = parsed.path.rstrip("/").removesuffix(".git")
         return Path(path).name or "repository"
 
     def clone_repository(
