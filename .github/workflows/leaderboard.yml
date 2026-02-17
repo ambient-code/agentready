@@ -88,7 +88,7 @@ jobs:
           REPO_URL: ${{ steps.extract.outputs.repo_url }}
         run: |
           # SAFE: REPO_URL comes from workflow output, not direct user input
-          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
 
           IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
 
@@ -106,7 +106,7 @@ jobs:
           SUBMITTER: ${{ github.event.pull_request.user.login }}
         run: |
           # SAFE: All values in environment variables
-          ORG_REPO=$(echo "$REPO_URL" | sed 's|https://github.com/||' | sed 's|\.git$||')
+          ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
 
           if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
             echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
