@@ -1,0 +1,1018 @@
+{
+  "schema_version": "1.0.0",
+  "metadata": {
+    "agentready_version": "2.27.3",
+    "research_version": "1.0.1",
+    "assessment_timestamp": "2026-02-17T19:39:40.733449",
+    "assessment_timestamp_human": "February 17, 2026 at 7:39 PM",
+    "executed_by": "nikhilkathole",
+    "command": "/.local/bin/agentready assess .",
+    "working_directory": "/feast"
+  },
+  "repository": {
+    "path": "/feast",
+    "name": "feast",
+    "url": "git@github.com:feast-dev/feast.git",
+    "branch": "master",
+    "commit_hash": "7de3db1c0d35ffe03e72385384a0197693dc2629",
+    "languages": {
+      "YAML": 224,
+      "Markdown": 293,
+      "JavaScript": 20,
+      "Python": 855,
+      "JSON": 21,
+      "Shell": 27,
+      "Go": 104,
+      "TOML": 3,
+      "TypeScript": 159,
+      "XML": 6,
+      "Java": 58
+    },
+    "total_files": 2578,
+    "total_lines": 1320912
+  },
+  "timestamp": "2026-02-17T19:39:40.733449",
+  "overall_score": 61.6,
+  "certification_level": "Silver",
+  "attributes_assessed": 22,
+  "attributes_skipped": 3,
+  "attributes_total": 25,
+  "findings": [
+    {
+      "attribute": {
+        "id": "claude_md_file",
+        "name": "CLAUDE.md Configuration Files",
+        "category": "Context Window Optimization",
+        "tier": 1,
+        "description": "Project-specific configuration for Claude Code",
+        "criteria": "CLAUDE.md file exists in repository root",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "present",
+      "threshold": "present",
+      "evidence": [
+        "CLAUDE.md found at /feast/CLAUDE.md"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "readme_structure",
+        "name": "README Structure",
+        "category": "Documentation Standards",
+        "tier": 1,
+        "description": "Well-structured README with key sections",
+        "criteria": "README.md with installation, usage, and development sections",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "3/3 sections",
+      "threshold": "3/3 sections",
+      "evidence": [
+        "Found 3/3 essential sections",
+        "Installation: \u2713",
+        "Usage: \u2713",
+        "Development: \u2713"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "type_annotations",
+        "name": "Type Annotations",
+        "category": "Code Quality",
+        "tier": 1,
+        "description": "Type hints in function signatures",
+        "criteria": ">80% of functions have type annotations",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 76.71734234234235,
+      "measured_value": "61.4%",
+      "threshold": "\u226580%",
+      "evidence": [
+        "Typed functions: 3270/5328",
+        "Coverage: 61.4%"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "standard_layout",
+        "name": "Standard Project Layouts",
+        "category": "Repository Structure",
+        "tier": 1,
+        "description": "Follows standard project structure for language",
+        "criteria": "Standard directories (src/, tests/, docs/) present",
+        "default_weight": 0.1
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "0/2 directories",
+      "threshold": "2/2 directories",
+      "evidence": [
+        "Found 0/2 standard directories",
+        "src/: \u2717",
+        "tests/: \u2717"
+      ],
+      "remediation": {
+        "summary": "Organize code into standard directories (src/, tests/, docs/)",
+        "steps": [
+          "Create src/ directory for source code",
+          "Create tests/ directory for test files",
+          "Create docs/ directory for documentation",
+          "Move source code into src/",
+          "Move tests into tests/"
+        ],
+        "tools": [],
+        "commands": [
+          "mkdir -p src tests docs",
+          "# Move source files to src/",
+          "# Move test files to tests/"
+        ],
+        "examples": [],
+        "citations": [
+          {
+            "source": "Python Packaging Authority",
+            "title": "Python Project Structure",
+            "url": "https://packaging.python.org/en/latest/tutorials/packaging-projects/",
+            "relevance": "Standard Python project layout"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "lock_files",
+        "name": "Dependency Pinning for Reproducibility",
+        "category": "Dependency Management",
+        "tier": 1,
+        "description": "Dependencies pinned to exact versions in lock files",
+        "criteria": "Lock file with pinned versions, updated within 6 months",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "uv.lock, go.sum",
+      "threshold": "lock file with pinned versions, < 6 months old",
+      "evidence": [
+        "Found lock file(s): uv.lock, go.sum"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dependency_security",
+        "name": "Dependency Security & Vulnerability Scanning",
+        "category": "Security",
+        "tier": 1,
+        "description": "Security scanning tools configured for dependencies and code",
+        "criteria": "Dependabot, CodeQL, or SAST tools configured; secret detection enabled",
+        "default_weight": 0.04
+      },
+      "status": "fail",
+      "score": 0,
+      "measured_value": "No security scanning tools configured",
+      "threshold": "\u226560 points (Dependabot + SAST or multiple scanners)",
+      "evidence": [
+        "No security scanning tools detected"
+      ],
+      "remediation": {
+        "summary": "Configure security scanning for dependencies and code",
+        "steps": [
+          "Enable Dependabot in GitHub repository settings",
+          "Add .github/dependabot.yml configuration file",
+          "Set up CodeQL scanning for SAST",
+          "Add secret detection to pre-commit hooks",
+          "Configure language-specific security scanners"
+        ],
+        "tools": [
+          "Dependabot",
+          "CodeQL",
+          "detect-secrets",
+          "Bandit",
+          "Semgrep"
+        ],
+        "commands": [
+          "gh repo edit --enable-security",
+          "pip install pre-commit detect-secrets",
+          "pre-commit install"
+        ],
+        "examples": [
+          "# .github/dependabot.yml\nversion: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: weekly",
+          "# .pre-commit-config.yaml\nrepos:\n  - repo: https://github.com/Yelp/detect-secrets\n    rev: v1.4.0\n    hooks:\n      - id: detect-secrets"
+        ],
+        "citations": [
+          {
+            "source": "OWASP",
+            "title": "OWASP Top 10",
+            "url": "https://owasp.org/www-project-top-ten/",
+            "relevance": "Industry-standard list of critical web application security risks"
+          },
+          {
+            "source": "GitHub",
+            "title": "Security Best Practices",
+            "url": "https://docs.github.com/en/code-security",
+            "relevance": "Official GitHub security features and best practices documentation"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "test_coverage",
+        "name": "Test Coverage Requirements",
+        "category": "Testing & CI/CD",
+        "tier": 2,
+        "description": "Test coverage thresholds configured and enforced",
+        "criteria": ">80% code coverage",
+        "default_weight": 0.03
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['YAML', 'Markdown', 'JavaScript', 'Python', 'JSON', 'Shell', 'Go', 'TOML', 'TypeScript', 'XML', 'Java']"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "precommit_hooks",
+        "name": "Pre-commit Hooks & CI/CD Linting",
+        "category": "Testing & CI/CD",
+        "tier": 2,
+        "description": "Pre-commit hooks configured for linting and formatting",
+        "criteria": ".pre-commit-config.yaml exists",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "configured",
+      "threshold": "configured",
+      "evidence": [
+        ".pre-commit-config.yaml found"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "conventional_commits",
+        "name": "Conventional Commit Messages",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Follows conventional commit format",
+        "criteria": "\u226580% of recent commits follow convention",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "not configured",
+      "threshold": "configured",
+      "evidence": [
+        "No commitlint or husky configuration"
+      ],
+      "remediation": {
+        "summary": "Configure conventional commits with commitlint",
+        "steps": [
+          "Install commitlint",
+          "Configure husky for commit-msg hook"
+        ],
+        "tools": [
+          "commitlint",
+          "husky"
+        ],
+        "commands": [
+          "npm install --save-dev @commitlint/cli @commitlint/config-conventional husky"
+        ],
+        "examples": [],
+        "citations": []
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "gitignore_completeness",
+        "name": ".gitignore Completeness",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Comprehensive .gitignore file with language-specific patterns",
+        "criteria": ".gitignore exists and includes language-specific patterns from GitHub templates",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 65.38461538461539,
+      "measured_value": "17/26 patterns",
+      "threshold": "\u226570% of language-specific patterns",
+      "evidence": [
+        ".gitignore found (3059 bytes)",
+        "Pattern coverage: 17/26 (65%)",
+        "Missing 9 recommended patterns"
+      ],
+      "remediation": {
+        "summary": "Add missing language-specific ignore patterns",
+        "steps": [
+          "Review GitHub's gitignore templates for your language",
+          "Add the 9 missing patterns",
+          "Ensure editor/IDE patterns are included"
+        ],
+        "tools": [],
+        "commands": [],
+        "examples": [
+          "# Missing patterns:\n*.swo\n*.out\n.npm/\n*.class\n*.swp"
+        ],
+        "citations": [
+          {
+            "source": "GitHub",
+            "title": "gitignore Templates Collection",
+            "url": "https://github.com/github/gitignore",
+            "relevance": "Comprehensive collection of language-specific gitignore patterns"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "one_command_setup",
+        "name": "One-Command Build/Setup",
+        "category": "Build & Development",
+        "tier": 2,
+        "description": "Single command to set up development environment from fresh clone",
+        "criteria": "Single command (make setup, npm install, etc.) documented prominently",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 70,
+      "measured_value": "pip install",
+      "threshold": "single command",
+      "evidence": [
+        "Setup command found in README: 'pip install'",
+        "Setup automation found: Makefile, pyproject.toml",
+        "Setup instructions not in first 3 sections"
+      ],
+      "remediation": {
+        "summary": "Create single-command setup for development environment",
+        "steps": [
+          "Choose setup automation tool (Makefile, setup script, or package manager)",
+          "Create setup command that handles all dependencies",
+          "Document setup command prominently in README (Quick Start section)",
+          "Ensure setup is idempotent (safe to run multiple times)",
+          "Test setup on fresh clone to verify it works"
+        ],
+        "tools": [
+          "make",
+          "npm",
+          "pip",
+          "poetry"
+        ],
+        "commands": [
+          "# Example Makefile",
+          "cat > Makefile << 'EOF'",
+          ".PHONY: setup",
+          "setup:",
+          "\tpython -m venv venv",
+          "\t. venv/bin/activate && pip install -r requirements.txt",
+          "\tpre-commit install",
+          "\tcp .env.example .env",
+          "\t@echo 'Setup complete! Run make test to verify.'",
+          "EOF"
+        ],
+        "examples": [
+          "# Quick Start section in README\n\n## Quick Start\n\n```bash\nmake setup  # One command to set up development environment\nmake test   # Run tests to verify setup\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "freeCodeCamp",
+            "title": "Using make for project automation",
+            "url": "https://www.freecodecamp.org/news/want-to-know-the-easiest-way-to-save-time-use-make/",
+            "relevance": "Guide to using Makefiles for one-command setup"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "file_size_limits",
+        "name": "File Size Limits",
+        "category": "Context Window Optimization",
+        "tier": 2,
+        "description": "Files are reasonably sized for AI context windows",
+        "criteria": "<5% of files >500 lines, no files >1000 lines",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 45.945017182130584,
+      "measured_value": "28 huge, 68 large out of 1164",
+      "threshold": "<5% files >500 lines, 0 files >1000 lines",
+      "evidence": [
+        "Found 28 files >1000 lines (2.4% of 1164 files)",
+        "Largest: infra/feast-operator/api/v1/zz_generated.deepcopy.go (1205 lines)"
+      ],
+      "remediation": {
+        "summary": "Refactor large files into smaller, focused modules",
+        "steps": [
+          "Identify files >1000 lines",
+          "Split into logical submodules",
+          "Extract classes/functions into separate files",
+          "Maintain single responsibility principle"
+        ],
+        "tools": [
+          "refactoring tools",
+          "linters"
+        ],
+        "commands": [],
+        "examples": [
+          "# Split large file:\n# models.py (1500 lines) \u2192 models/user.py, models/product.py, models/order.py"
+        ],
+        "citations": []
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "separation_of_concerns",
+        "name": "Separation of Concerns",
+        "category": "Code Organization",
+        "tier": 2,
+        "description": "Code organized with single responsibility per module",
+        "criteria": "Feature-based organization, cohesive modules, low coupling",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 64.483883105481,
+      "measured_value": "organization:100, cohesion:82, naming:0",
+      "threshold": "\u226575 overall",
+      "evidence": [
+        "Good directory organization (feature-based or flat)",
+        "File cohesion: 1466/7973 files >500 lines",
+        "Anti-pattern files found: utils.py, utils.py, utils.py"
+      ],
+      "remediation": {
+        "summary": "Refactor code to improve separation of concerns",
+        "steps": [
+          "Avoid layer-based directories (models/, views/, controllers/)",
+          "Organize by feature/domain instead (auth/, users/, billing/)",
+          "Break large files (>500 lines) into focused modules",
+          "Eliminate catch-all modules (utils.py, helpers.py)",
+          "Each module should have single, well-defined responsibility",
+          "Group related functions/classes by domain, not technical layer"
+        ],
+        "tools": [],
+        "commands": [],
+        "examples": [
+          "# Good: Feature-based organization\nproject/\n\u251c\u2500\u2500 auth/\n\u2502   \u251c\u2500\u2500 login.py\n\u2502   \u251c\u2500\u2500 signup.py\n\u2502   \u2514\u2500\u2500 tokens.py\n\u251c\u2500\u2500 users/\n\u2502   \u251c\u2500\u2500 profile.py\n\u2502   \u2514\u2500\u2500 preferences.py\n\u2514\u2500\u2500 billing/\n    \u251c\u2500\u2500 invoices.py\n    \u2514\u2500\u2500 payments.py\n\n# Bad: Layer-based organization\nproject/\n\u251c\u2500\u2500 models/\n\u2502   \u251c\u2500\u2500 user.py\n\u2502   \u251c\u2500\u2500 invoice.py\n\u251c\u2500\u2500 views/\n\u2502   \u251c\u2500\u2500 user_view.py\n\u2502   \u251c\u2500\u2500 invoice_view.py\n\u2514\u2500\u2500 controllers/\n    \u251c\u2500\u2500 user_controller.py\n    \u251c\u2500\u2500 invoice_controller.py\n"
+        ],
+        "citations": [
+          {
+            "source": "Martin Fowler",
+            "title": "PresentationDomainDataLayering",
+            "url": "https://martinfowler.com/bliki/PresentationDomainDataLayering.html",
+            "relevance": "Explains layering vs feature organization"
+          },
+          {
+            "source": "Uncle Bob Martin",
+            "title": "The Single Responsibility Principle",
+            "url": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
+            "relevance": "Core SRP principle for module design"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "concise_documentation",
+        "name": "Concise Documentation",
+        "category": "Documentation",
+        "tier": 2,
+        "description": "Documentation maximizes information density while minimizing token consumption",
+        "criteria": "README <500 lines with clear structure, bullet points over prose",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 75.0,
+      "measured_value": "278 lines, 20 headings, 17 bullets",
+      "threshold": "<500 lines, structured format",
+      "evidence": [
+        "README length: 278 lines (excellent)",
+        "Heading density: 7.2 per 100 lines (target: 3-5)",
+        "2 paragraphs exceed 10 lines (walls of text)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "inline_documentation",
+        "name": "Inline Documentation",
+        "category": "Documentation",
+        "tier": 2,
+        "description": "Function, class, and module-level documentation using language-specific conventions",
+        "criteria": "\u226580% of public functions/classes have docstrings",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 44.88043869111831,
+      "measured_value": "35.9%",
+      "threshold": "\u226580%",
+      "evidence": [
+        "Documented items: 1997/5562",
+        "Coverage: 35.9%",
+        "Many public functions/classes lack docstrings"
+      ],
+      "remediation": {
+        "summary": "Add docstrings to public functions and classes",
+        "steps": [
+          "Identify functions/classes without docstrings",
+          "Add PEP 257 compliant docstrings for Python",
+          "Add JSDoc comments for JavaScript/TypeScript",
+          "Include: description, parameters, return values, exceptions",
+          "Add examples for complex functions",
+          "Run pydocstyle to validate docstring format"
+        ],
+        "tools": [
+          "pydocstyle",
+          "jsdoc"
+        ],
+        "commands": [
+          "# Install pydocstyle",
+          "pip install pydocstyle",
+          "",
+          "# Check docstring coverage",
+          "pydocstyle src/",
+          "",
+          "# Generate documentation",
+          "pip install sphinx",
+          "sphinx-apidoc -o docs/ src/"
+        ],
+        "examples": [
+          "# Python - Good docstring\ndef calculate_discount(price: float, discount_percent: float) -> float:\n    \"\"\"Calculate discounted price.\n\n    Args:\n        price: Original price in USD\n        discount_percent: Discount percentage (0-100)\n\n    Returns:\n        Discounted price\n\n    Raises:\n        ValueError: If discount_percent not in 0-100 range\n\n    Example:\n        >>> calculate_discount(100.0, 20.0)\n        80.0\n    \"\"\"\n    if not 0 <= discount_percent <= 100:\n        raise ValueError(\"Discount must be 0-100\")\n    return price * (1 - discount_percent / 100)\n",
+          "// JavaScript - Good JSDoc\n/**\n * Calculate discounted price\n *\n * @param {number} price - Original price in USD\n * @param {number} discountPercent - Discount percentage (0-100)\n * @returns {number} Discounted price\n * @throws {Error} If discountPercent not in 0-100 range\n * @example\n * calculateDiscount(100.0, 20.0)\n * // Returns: 80.0\n */\nfunction calculateDiscount(price, discountPercent) {\n    if (discountPercent < 0 || discountPercent > 100) {\n        throw new Error(\"Discount must be 0-100\");\n    }\n    return price * (1 - discountPercent / 100);\n}\n"
+        ],
+        "citations": [
+          {
+            "source": "Python.org",
+            "title": "PEP 257 - Docstring Conventions",
+            "url": "https://peps.python.org/pep-0257/",
+            "relevance": "Python docstring standards"
+          },
+          {
+            "source": "TypeScript",
+            "title": "TSDoc Reference",
+            "url": "https://tsdoc.org/",
+            "relevance": "TypeScript documentation standard"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "cyclomatic_complexity",
+        "name": "Cyclomatic Complexity Thresholds",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Cyclomatic complexity thresholds enforced",
+        "criteria": "Average complexity <10, no functions >15",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "3.3",
+      "threshold": "<10.0",
+      "evidence": [
+        "Average cyclomatic complexity: 3.3"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "architecture_decisions",
+        "name": "Architecture Decision Records (ADRs)",
+        "category": "Documentation Standards",
+        "tier": 3,
+        "description": "Lightweight documents capturing architectural decisions",
+        "criteria": "ADR directory with documented decisions",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "no ADR directory",
+      "threshold": "ADR directory with decisions",
+      "evidence": [
+        "No ADR directory found (checked docs/adr/, .adr/, adr/, docs/decisions/)"
+      ],
+      "remediation": {
+        "summary": "Create Architecture Decision Records (ADRs) directory and document key decisions",
+        "steps": [
+          "Create docs/adr/ directory in repository root",
+          "Use Michael Nygard ADR template or MADR format",
+          "Document each significant architectural decision",
+          "Number ADRs sequentially (0001-*.md, 0002-*.md)",
+          "Include Status, Context, Decision, and Consequences sections",
+          "Update ADR status when decisions are revised (Superseded, Deprecated)"
+        ],
+        "tools": [
+          "adr-tools",
+          "log4brains"
+        ],
+        "commands": [
+          "# Create ADR directory",
+          "mkdir -p docs/adr",
+          "",
+          "# Create first ADR using template",
+          "cat > docs/adr/0001-use-architecture-decision-records.md << 'EOF'",
+          "# 1. Use Architecture Decision Records",
+          "",
+          "Date: 2025-11-22",
+          "",
+          "## Status",
+          "Accepted",
+          "",
+          "## Context",
+          "We need to record architectural decisions made in this project.",
+          "",
+          "## Decision",
+          "We will use Architecture Decision Records (ADRs) as described by Michael Nygard.",
+          "",
+          "## Consequences",
+          "- Decisions are documented with context",
+          "- Future contributors understand rationale",
+          "- ADRs are lightweight and version-controlled",
+          "EOF"
+        ],
+        "examples": [
+          "# Example ADR Structure\n\n```markdown\n# 2. Use PostgreSQL for Database\n\nDate: 2025-11-22\n\n## Status\nAccepted\n\n## Context\nWe need a relational database for complex queries and ACID transactions.\nTeam has PostgreSQL experience. Need full-text search capabilities.\n\n## Decision\nUse PostgreSQL 15+ as primary database.\n\n## Consequences\n- Positive: Robust ACID, full-text search, team familiarity\n- Negative: Higher resource usage than SQLite\n- Neutral: Need to manage migrations, backups\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "Michael Nygard",
+            "title": "Documenting Architecture Decisions",
+            "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
+            "relevance": "Original ADR format and rationale"
+          },
+          {
+            "source": "GitHub adr/madr",
+            "title": "Markdown ADR (MADR) Template",
+            "url": "https://github.com/adr/madr",
+            "relevance": "Modern ADR template with examples"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "issue_pr_templates",
+        "name": "Issue & Pull Request Templates",
+        "category": "Repository Structure",
+        "tier": 3,
+        "description": "Standardized templates for issues and PRs",
+        "criteria": "PR template and issue templates in .github/",
+        "default_weight": 0.015
+      },
+      "status": "pass",
+      "score": 100,
+      "measured_value": "PR:True, Issues:2",
+      "threshold": "PR template + \u22652 issue templates",
+      "evidence": [
+        "PR template found",
+        "Issue templates found: 2 templates"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "cicd_pipeline_visibility",
+        "name": "CI/CD Pipeline Visibility",
+        "category": "Testing & CI/CD",
+        "tier": 3,
+        "description": "Clear, well-documented CI/CD configuration files",
+        "criteria": "CI config with descriptive names, caching, parallelization",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 70,
+      "measured_value": "basic config",
+      "threshold": "CI with best practices",
+      "evidence": [
+        "CI config found: .github/workflows/release.yml, .github/workflows/check_skip_tests.yml, .github/workflows/publish.yml, .github/workflows/publish_helm_charts.yml, .github/workflows/pr_local_integration_tests.yml, .github/workflows/operator_pr.yml, .github/workflows/lint_pr.yml, .github/workflows/linter.yml, .github/workflows/smoke_tests.yml, .github/workflows/deploy-website.yml, .github/workflows/unit_tests.yml, .github/workflows/master_only.yml, .github/workflows/publish_web_ui.yml, .github/workflows/build_wheels.yml, .github/workflows/dbt-integration-tests.yml, .github/workflows/pr_remote_rbac_integration_tests.yml, .github/workflows/pr_integration_tests.yml, .github/workflows/update_stable_branch.yml, .github/workflows/nightly-ci.yml, .github/workflows/operator-e2e-integration-tests.yml, .github/workflows/publish_images.yml, .github/workflows/registry-rest-api-tests.yml, .github/workflows/publish_python_sdk.yml",
+        "Descriptive job/step names found",
+        "No caching detected",
+        "Parallel job execution detected"
+      ],
+      "remediation": {
+        "summary": "Add or improve CI/CD pipeline configuration",
+        "steps": [
+          "Create CI config for your platform (GitHub Actions, GitLab CI, etc.)",
+          "Define jobs: lint, test, build",
+          "Use descriptive job and step names",
+          "Configure dependency caching",
+          "Enable parallel job execution",
+          "Upload artifacts: test results, coverage reports",
+          "Add status badge to README"
+        ],
+        "tools": [
+          "github-actions",
+          "gitlab-ci",
+          "circleci"
+        ],
+        "commands": [
+          "# Create GitHub Actions workflow",
+          "mkdir -p .github/workflows",
+          "touch .github/workflows/ci.yml",
+          "",
+          "# Validate workflow",
+          "gh workflow view ci.yml"
+        ],
+        "examples": [
+          "# .github/workflows/ci.yml - Good example\n\nname: CI Pipeline\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  lint:\n    name: Lint Code\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n          cache: 'pip'  # Caching\n\n      - name: Install dependencies\n        run: pip install -r requirements.txt\n\n      - name: Run linters\n        run: |\n          black --check .\n          isort --check .\n          ruff check .\n\n  test:\n    name: Run Tests\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n          cache: 'pip'\n\n      - name: Install dependencies\n        run: pip install -r requirements.txt\n\n      - name: Run tests with coverage\n        run: pytest --cov --cov-report=xml\n\n      - name: Upload coverage reports\n        uses: codecov/codecov-action@v3\n        with:\n          files: ./coverage.xml\n\n  build:\n    name: Build Package\n    runs-on: ubuntu-latest\n    needs: [lint, test]  # Runs after lint/test pass\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Build package\n        run: python -m build\n\n      - name: Upload build artifacts\n        uses: actions/upload-artifact@v3\n        with:\n          name: dist\n          path: dist/\n"
+        ],
+        "citations": [
+          {
+            "source": "GitHub",
+            "title": "GitHub Actions Documentation",
+            "url": "https://docs.github.com/en/actions",
+            "relevance": "Official GitHub Actions guide"
+          },
+          {
+            "source": "CircleCI",
+            "title": "CI/CD Best Practices",
+            "url": "https://circleci.com/blog/ci-cd-best-practices/",
+            "relevance": "Industry best practices for CI/CD"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "semantic_naming",
+        "name": "Semantic Naming",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Systematic naming patterns following language conventions",
+        "criteria": "Language conventions followed, avoid generic names",
+        "default_weight": 0.015
+      },
+      "status": "pass",
+      "score": 98.99441340782121,
+      "measured_value": "functions:98%, classes:100%",
+      "threshold": "\u226575% compliance",
+      "evidence": [
+        "Functions: 176/179 follow snake_case (98.3%)",
+        "Classes: 32/32 follow PascalCase (100.0%)",
+        "No generic names (temp, data, obj) detected"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "structured_logging",
+        "name": "Structured Logging",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Logging in structured format (JSON) with consistent fields",
+        "criteria": "Structured logging library configured (structlog, winston, zap)",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "not configured",
+      "threshold": "structured logging library",
+      "evidence": [
+        "No structured logging library found",
+        "Checked files: pyproject.toml",
+        "Using built-in logging module (unstructured)"
+      ],
+      "remediation": {
+        "summary": "Add structured logging library for machine-parseable logs",
+        "steps": [
+          "Choose structured logging library (structlog for Python, winston for Node.js)",
+          "Install library and configure JSON formatter",
+          "Add standard fields: timestamp, level, message, context",
+          "Include request context: request_id, user_id, session_id",
+          "Use consistent field naming (snake_case for Python)",
+          "Never log sensitive data (passwords, tokens, PII)",
+          "Configure different formats for dev (pretty) and prod (JSON)"
+        ],
+        "tools": [
+          "structlog",
+          "winston",
+          "zap"
+        ],
+        "commands": [
+          "# Install structlog",
+          "pip install structlog",
+          "",
+          "# Configure structlog",
+          "# See examples for configuration"
+        ],
+        "examples": [
+          "# Python with structlog\nimport structlog\n\n# Configure structlog\nstructlog.configure(\n    processors=[\n        structlog.stdlib.add_log_level,\n        structlog.processors.TimeStamper(fmt=\"iso\"),\n        structlog.processors.JSONRenderer()\n    ]\n)\n\nlogger = structlog.get_logger()\n\n# Good: Structured logging\nlogger.info(\n    \"user_login\",\n    user_id=\"123\",\n    email=\"user@example.com\",\n    ip_address=\"192.168.1.1\"\n)\n\n# Bad: Unstructured logging\nlogger.info(f\"User {user_id} logged in from {ip}\")\n"
+        ],
+        "citations": [
+          {
+            "source": "structlog",
+            "title": "structlog Documentation",
+            "url": "https://www.structlog.org/en/stable/",
+            "relevance": "Python structured logging library"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "openapi_specs",
+        "name": "OpenAPI/Swagger Specifications",
+        "category": "API Documentation",
+        "tier": 3,
+        "description": "Machine-readable API documentation in OpenAPI format",
+        "criteria": "OpenAPI 3.x spec with complete endpoint documentation",
+        "default_weight": 0.015
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "no OpenAPI spec",
+      "threshold": "OpenAPI 3.x spec present",
+      "evidence": [
+        "No OpenAPI specification found",
+        "Searched recursively for: openapi.yaml, openapi.yml, openapi.json, swagger.yaml, swagger.yml, swagger.json"
+      ],
+      "remediation": {
+        "summary": "Create OpenAPI specification for API endpoints",
+        "steps": [
+          "Create openapi.yaml in repository root",
+          "Define OpenAPI version 3.x",
+          "Document all API endpoints with full schemas",
+          "Add request/response examples",
+          "Define security schemes (API keys, OAuth, etc.)",
+          "Validate spec with Swagger Editor or Spectral",
+          "Generate API documentation with Swagger UI or ReDoc"
+        ],
+        "tools": [
+          "swagger-editor",
+          "spectral",
+          "openapi-generator"
+        ],
+        "commands": [
+          "# Install OpenAPI validator",
+          "npm install -g @stoplight/spectral-cli",
+          "",
+          "# Validate spec",
+          "spectral lint openapi.yaml",
+          "",
+          "# Generate client SDK",
+          "npx @openapitools/openapi-generator-cli generate \\",
+          "  -i openapi.yaml \\",
+          "  -g python \\",
+          "  -o client/"
+        ],
+        "examples": [
+          "# openapi.yaml - Minimal example\nopenapi: 3.1.0\ninfo:\n  title: My API\n  version: 1.0.0\n  description: API for managing users\n\nservers:\n  - url: https://api.example.com/v1\n\npaths:\n  /users/{userId}:\n    get:\n      summary: Get user by ID\n      parameters:\n        - name: userId\n          in: path\n          required: true\n          schema:\n            type: string\n      responses:\n        '200':\n          description: User found\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/User'\n        '404':\n          description: User not found\n\ncomponents:\n  schemas:\n    User:\n      type: object\n      required:\n        - id\n        - email\n      properties:\n        id:\n          type: string\n          example: \"user_123\"\n        email:\n          type: string\n          format: email\n          example: \"user@example.com\"\n        name:\n          type: string\n          example: \"John Doe\"\n"
+        ],
+        "citations": [
+          {
+            "source": "OpenAPI Initiative",
+            "title": "OpenAPI Specification",
+            "url": "https://spec.openapis.org/oas/v3.1.0",
+            "relevance": "Official OpenAPI 3.1 specification"
+          },
+          {
+            "source": "Swagger",
+            "title": "API Documentation Best Practices",
+            "url": "https://swagger.io/resources/articles/best-practices-in-api-documentation/",
+            "relevance": "Guide to writing effective API docs"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "branch_protection",
+        "name": "Branch Protection Rules",
+        "category": "Git & Version Control",
+        "tier": 4,
+        "description": "Required status checks and review approvals before merging",
+        "criteria": "Branch protection enabled with status checks and required reviews",
+        "default_weight": 0.005
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Requires GitHub API integration for branch protection checks. Future implementation will verify: required status checks, required reviews, force push prevention, and branch update requirements."
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "code_smells",
+        "name": "Code Smell Elimination",
+        "category": "Code Quality",
+        "tier": 4,
+        "description": "Linter configuration for detecting code smells and anti-patterns",
+        "criteria": "Language-specific linters configured (pylint, ESLint, RuboCop, etc.)",
+        "default_weight": 0.01
+      },
+      "status": "fail",
+      "score": 40.0,
+      "measured_value": "pylint, ruff",
+      "threshold": "\u226560% of applicable linters configured",
+      "evidence": [
+        "Linters configured: pylint, ruff",
+        "Coverage: 40/100 points (40%)"
+      ],
+      "remediation": {
+        "summary": "Configure 4 missing linter(s)",
+        "steps": [
+          "Configure ESLint for JavaScript/TypeScript",
+          "Configure golangci-lint for Go",
+          "Add actionlint for GitHub Actions workflow validation",
+          "Configure markdownlint for documentation quality"
+        ],
+        "tools": [
+          "ESLint",
+          "golangci-lint",
+          "actionlint",
+          "markdownlint"
+        ],
+        "commands": [
+          "npm install --save-dev eslint && npx eslint --init",
+          "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+          "npm install --save-dev markdownlint-cli && touch .markdownlint.json"
+        ],
+        "examples": [
+          "# .pylintrc example\n[MASTER]\nmax-line-length=100\n\n[MESSAGES CONTROL]\ndisable=C0111",
+          "# .eslintrc.json example\n{\n  \"extends\": \"eslint:recommended\",\n  \"rules\": {\n    \"no-console\": \"warn\"\n  }\n}"
+        ],
+        "citations": [
+          {
+            "source": "Pylint",
+            "title": "Pylint Documentation",
+            "url": "https://pylint.readthedocs.io/",
+            "relevance": "Official documentation for Pylint code analysis tool"
+          },
+          {
+            "source": "ESLint",
+            "title": "ESLint Documentation",
+            "url": "https://eslint.org/docs/latest/",
+            "relevance": "Official documentation for ESLint JavaScript/TypeScript linter"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "container_setup",
+        "name": "Container/Virtualization Setup",
+        "category": "Build & Development",
+        "tier": 4,
+        "description": "Container configuration for consistent development environments",
+        "criteria": "Dockerfile/Containerfile, docker-compose.yml, .dockerignore, multi-stage builds",
+        "default_weight": 0.01
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['YAML', 'Markdown', 'JavaScript', 'Python', 'JSON', 'Shell', 'Go', 'TOML', 'TypeScript', 'XML', 'Java']"
+      ],
+      "remediation": null,
+      "error_message": null
+    }
+  ],
+  "config": {
+    "weights": {},
+    "excluded_attributes": [],
+    "language_overrides": {},
+    "output_dir": null,
+    "report_theme": "default",
+    "custom_theme": null
+  },
+  "duration_seconds": 45.3,
+  "discovered_skills": []
+}
