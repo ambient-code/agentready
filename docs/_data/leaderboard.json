@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-09T18:41:08.660176Z",
-  "total_repositories": 8,
+  "generated_at": "2026-02-17T22:07:33.795485Z",
+  "total_repositories": 9,
   "overall": [
     {
       "repo": "ambient-code/agentready",
@@ -37,15 +37,21 @@
       "repo": "opendatahub-io/ai-helpers",
       "org": "opendatahub-io",
       "name": "ai-helpers",
-      "score": 65.1,
+      "score": 64.7,
       "tier": "Silver",
       "language": "Unknown",
       "size": "Unknown",
-      "last_updated": "2026-02-06",
-      "url": "https://github.com/opendatahub-io/ai-helpers.git",
-      "agentready_version": "2.25.0",
+      "last_updated": "2026-02-17",
+      "url": "git@github.com:opendatahub-io/ai-helpers.git",
+      "agentready_version": "2.27.3",
       "research_version": "1.0.1",
       "history": [
+        {
+          "date": "2026-02-17",
+          "score": 64.7,
+          "agentready_version": "2.27.3",
+          "research_version": "1.0.1"
+        },
         {
           "date": "2026-02-06",
           "score": 65.1,
@@ -109,22 +115,22 @@
       }
     },
     {
-      "repo": "ambient-code/reference",
-      "org": "ambient-code",
-      "name": "reference",
-      "score": 55.8,
-      "tier": "Bronze",
+      "repo": "feast-dev/feast",
+      "org": "feast-dev",
+      "name": "feast",
+      "score": 61.6,
+      "tier": "Silver",
       "language": "Unknown",
       "size": "Unknown",
-      "last_updated": "2026-01-15",
-      "url": "https://github.com/ambient-code/reference",
-      "agentready_version": "2.22.1",
+      "last_updated": "2026-02-17",
+      "url": "git@github.com:feast-dev/feast.git",
+      "agentready_version": "2.27.3",
       "research_version": "1.0.1",
       "history": [
         {
-          "date": "2026-01-15",
-          "score": 55.8,
-          "agentready_version": "2.22.1",
+          "date": "2026-02-17",
+          "score": 61.6,
+          "agentready_version": "2.27.3",
           "research_version": "1.0.1"
         }
       ],
@@ -159,6 +165,31 @@
       }
     },
     {
+      "repo": "ambient-code/reference",
+      "org": "ambient-code",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/ambient-code/reference",
+      "agentready_version": "2.22.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 7,
+      "lang_rank": {
+        "Unknown": 7
+      }
+    },
+    {
       "repo": "quay/quay",
       "org": "quay",
       "name": "quay",
@@ -178,9 +209,9 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 7,
+      "rank": 8,
       "lang_rank": {
-        "Unknown": 7
+        "Unknown": 8
       }
     },
     {
@@ -203,9 +234,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 8,
+      "rank": 9,
       "lang_rank": {
-        "Unknown": 8
+        "Unknown": 9
       }
     }
   ],
@@ -246,15 +277,21 @@
         "repo": "opendatahub-io/ai-helpers",
         "org": "opendatahub-io",
         "name": "ai-helpers",
-        "score": 65.1,
+        "score": 64.7,
         "tier": "Silver",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-02-06",
-        "url": "https://github.com/opendatahub-io/ai-helpers.git",
-        "agentready_version": "2.25.0",
+        "last_updated": "2026-02-17",
+        "url": "git@github.com:opendatahub-io/ai-helpers.git",
+        "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
+          {
+            "date": "2026-02-17",
+            "score": 64.7,
+            "agentready_version": "2.27.3",
+            "research_version": "1.0.1"
+          },
           {
             "date": "2026-02-06",
             "score": 65.1,
@@ -318,22 +355,22 @@
         }
       },
       {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
+        "repo": "feast-dev/feast",
+        "org": "feast-dev",
+        "name": "feast",
+        "score": 61.6,
+        "tier": "Silver",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
+        "last_updated": "2026-02-17",
+        "url": "git@github.com:feast-dev/feast.git",
+        "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
+            "date": "2026-02-17",
+            "score": 61.6,
+            "agentready_version": "2.27.3",
             "research_version": "1.0.1"
           }
         ],
@@ -368,6 +405,31 @@
         }
       },
       {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 7,
+        "lang_rank": {
+          "Unknown": 7
+        }
+      },
+      {
         "repo": "quay/quay",
         "org": "quay",
         "name": "quay",
@@ -387,9 +449,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 7,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 8
         }
       },
       {
@@ -412,9 +474,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 9
         }
       }
     ]
@@ -456,15 +518,21 @@
         "repo": "opendatahub-io/ai-helpers",
         "org": "opendatahub-io",
         "name": "ai-helpers",
-        "score": 65.1,
+        "score": 64.7,
         "tier": "Silver",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-02-06",
-        "url": "https://github.com/opendatahub-io/ai-helpers.git",
-        "agentready_version": "2.25.0",
+        "last_updated": "2026-02-17",
+        "url": "git@github.com:opendatahub-io/ai-helpers.git",
+        "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
+          {
+            "date": "2026-02-17",
+            "score": 64.7,
+            "agentready_version": "2.27.3",
+            "research_version": "1.0.1"
+          },
           {
             "date": "2026-02-06",
             "score": 65.1,
@@ -528,22 +596,22 @@
         }
       },
       {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
+        "repo": "feast-dev/feast",
+        "org": "feast-dev",
+        "name": "feast",
+        "score": 61.6,
+        "tier": "Silver",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
+        "last_updated": "2026-02-17",
+        "url": "git@github.com:feast-dev/feast.git",
+        "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
+            "date": "2026-02-17",
+            "score": 61.6,
+            "agentready_version": "2.27.3",
             "research_version": "1.0.1"
           }
         ],
@@ -578,6 +646,31 @@
         }
       },
       {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 7,
+        "lang_rank": {
+          "Unknown": 7
+        }
+      },
+      {
         "repo": "quay/quay",
         "org": "quay",
         "name": "quay",
@@ -597,9 +690,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 7,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 8
         }
       },
       {
@@ -622,9 +715,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 9
         }
       }
     ]
