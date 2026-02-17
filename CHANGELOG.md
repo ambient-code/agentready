@@ -1,3 +1,10 @@
+## [2.27.5](https://github.com/ambient-code/agentready/compare/v2.27.4...v2.27.5) (2026-02-17)
+
+
+### Bug Fixes
+
+* **cli:** Use removesuffix instead of rstrip for .git URL stripping ([#292](https://github.com/ambient-code/agentready/issues/292)) ([6bd08cf](https://github.com/ambient-code/agentready/commit/6bd08cf50d541ed4a73ed347d43da48a4a540f3f))
+
 ## [2.27.4](https://github.com/ambient-code/agentready/compare/v2.27.3...v2.27.4) (2026-02-17)
 
 
