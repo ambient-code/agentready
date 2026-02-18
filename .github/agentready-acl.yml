@@ -2,4 +2,5 @@
 # Add users via pull request to maintain audit trail
 authorized_users:
   - jeremyeder
+  - kami619
   # Add more users here via PR
