@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - 'submissions/**/*-assessment.json'
+      - 'scripts/generate-leaderboard-data.py'
 
   # Manual trigger for testing
   workflow_dispatch:
@@ -181,9 +182,9 @@ jobs:
               body: body
             });
 
-  # Job 2: Update leaderboard data (after merge to main)
+  # Job 2: Update leaderboard data (after merge to main, or manual trigger)
   update:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: write           # Commit and push updated leaderboard data

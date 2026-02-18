@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-17T22:07:33.795485Z",
+  "generated_at": "2026-02-18T15:41:53.494737Z",
   "total_repositories": 9,
   "overall": [
     {
@@ -42,7 +42,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-02-17",
-      "url": "git@github.com:opendatahub-io/ai-helpers.git",
+      "url": "https://github.com/opendatahub-io/ai-helpers",
       "agentready_version": "2.27.3",
       "research_version": "1.0.1",
       "history": [
@@ -73,7 +73,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-02-06",
-      "url": "https://github.com/python-wheel-build/fromager.git",
+      "url": "https://github.com/python-wheel-build/fromager",
       "agentready_version": "2.25.0",
       "research_version": "1.0.1",
       "history": [
@@ -98,7 +98,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-02-07",
-      "url": "git@github.com:Red-Hat-AI-Innovation-Team/sdg_hub.git",
+      "url": "https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub",
       "agentready_version": "2.25.2",
       "research_version": "1.0.1",
       "history": [
@@ -123,7 +123,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-02-17",
-      "url": "git@github.com:feast-dev/feast.git",
+      "url": "https://github.com/feast-dev/feast",
       "agentready_version": "2.27.3",
       "research_version": "1.0.1",
       "history": [
@@ -137,31 +137,6 @@
       "rank": 5,
       "lang_rank": {
         "Unknown": 5
-      }
-    },
-    {
-      "repo": "jeremyeder/reference",
-      "org": "jeremyeder",
-      "name": "reference",
-      "score": 55.8,
-      "tier": "Bronze",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-01-15",
-      "url": "https://github.com/jeremyeder/reference",
-      "agentready_version": "2.22.0",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-01-15",
-          "score": 55.8,
-          "agentready_version": "2.22.0",
-          "research_version": "1.0.1"
-        }
-      ],
-      "rank": 6,
-      "lang_rank": {
-        "Unknown": 6
       }
     },
     {
@@ -184,6 +159,31 @@
           "research_version": "1.0.1"
         }
       ],
+      "rank": 6,
+      "lang_rank": {
+        "Unknown": 6
+      }
+    },
+    {
+      "repo": "jeremyeder/reference",
+      "org": "jeremyeder",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/jeremyeder/reference",
+      "agentready_version": "2.22.0",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.0",
+          "research_version": "1.0.1"
+        }
+      ],
       "rank": 7,
       "lang_rank": {
         "Unknown": 7
@@ -198,7 +198,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2025-12-04",
-      "url": "git@github.com:quay/quay.git",
+      "url": "https://github.com/quay/quay",
       "agentready_version": "2.12.2",
       "research_version": "1.0.0",
       "history": [
@@ -223,7 +223,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-01-28",
-      "url": "git@github.com:dgutride/odh-dashboard.git",
+      "url": "https://github.com/dgutride/odh-dashboard",
       "agentready_version": "2.23.0",
       "research_version": "1.0.1",
       "history": [
@@ -282,7 +282,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-17",
-        "url": "git@github.com:opendatahub-io/ai-helpers.git",
+        "url": "https://github.com/opendatahub-io/ai-helpers",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
@@ -313,7 +313,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-06",
-        "url": "https://github.com/python-wheel-build/fromager.git",
+        "url": "https://github.com/python-wheel-build/fromager",
         "agentready_version": "2.25.0",
         "research_version": "1.0.1",
         "history": [
@@ -338,7 +338,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-07",
-        "url": "git@github.com:Red-Hat-AI-Innovation-Team/sdg_hub.git",
+        "url": "https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub",
         "agentready_version": "2.25.2",
         "research_version": "1.0.1",
         "history": [
@@ -363,7 +363,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-17",
-        "url": "git@github.com:feast-dev/feast.git",
+        "url": "https://github.com/feast-dev/feast",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
@@ -377,31 +377,6 @@
         "rank": 5,
         "lang_rank": {
           "Unknown": 5
-        }
-      },
-      {
-        "repo": "jeremyeder/reference",
-        "org": "jeremyeder",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/jeremyeder/reference",
-        "agentready_version": "2.22.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 6,
-        "lang_rank": {
-          "Unknown": 6
         }
       },
       {
@@ -424,6 +399,31 @@
             "research_version": "1.0.1"
           }
         ],
+        "rank": 6,
+        "lang_rank": {
+          "Unknown": 6
+        }
+      },
+      {
+        "repo": "jeremyeder/reference",
+        "org": "jeremyeder",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/jeremyeder/reference",
+        "agentready_version": "2.22.0",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.0",
+            "research_version": "1.0.1"
+          }
+        ],
         "rank": 7,
         "lang_rank": {
           "Unknown": 7
@@ -438,7 +438,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2025-12-04",
-        "url": "git@github.com:quay/quay.git",
+        "url": "https://github.com/quay/quay",
         "agentready_version": "2.12.2",
         "research_version": "1.0.0",
         "history": [
@@ -463,7 +463,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-01-28",
-        "url": "git@github.com:dgutride/odh-dashboard.git",
+        "url": "https://github.com/dgutride/odh-dashboard",
         "agentready_version": "2.23.0",
         "research_version": "1.0.1",
         "history": [
@@ -523,7 +523,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-17",
-        "url": "git@github.com:opendatahub-io/ai-helpers.git",
+        "url": "https://github.com/opendatahub-io/ai-helpers",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
@@ -554,7 +554,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-06",
-        "url": "https://github.com/python-wheel-build/fromager.git",
+        "url": "https://github.com/python-wheel-build/fromager",
         "agentready_version": "2.25.0",
         "research_version": "1.0.1",
         "history": [
@@ -579,7 +579,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-07",
-        "url": "git@github.com:Red-Hat-AI-Innovation-Team/sdg_hub.git",
+        "url": "https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub",
         "agentready_version": "2.25.2",
         "research_version": "1.0.1",
         "history": [
@@ -604,7 +604,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-02-17",
-        "url": "git@github.com:feast-dev/feast.git",
+        "url": "https://github.com/feast-dev/feast",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
         "history": [
@@ -618,31 +618,6 @@
         "rank": 5,
         "lang_rank": {
           "Unknown": 5
-        }
-      },
-      {
-        "repo": "jeremyeder/reference",
-        "org": "jeremyeder",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/jeremyeder/reference",
-        "agentready_version": "2.22.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 6,
-        "lang_rank": {
-          "Unknown": 6
         }
       },
       {
@@ -665,6 +640,31 @@
             "research_version": "1.0.1"
           }
         ],
+        "rank": 6,
+        "lang_rank": {
+          "Unknown": 6
+        }
+      },
+      {
+        "repo": "jeremyeder/reference",
+        "org": "jeremyeder",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/jeremyeder/reference",
+        "agentready_version": "2.22.0",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.0",
+            "research_version": "1.0.1"
+          }
+        ],
         "rank": 7,
         "lang_rank": {
           "Unknown": 7
@@ -679,7 +679,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2025-12-04",
-        "url": "git@github.com:quay/quay.git",
+        "url": "https://github.com/quay/quay",
         "agentready_version": "2.12.2",
         "research_version": "1.0.0",
         "history": [
@@ -704,7 +704,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-01-28",
-        "url": "git@github.com:dgutride/odh-dashboard.git",
+        "url": "https://github.com/dgutride/odh-dashboard",
         "agentready_version": "2.23.0",
         "research_version": "1.0.1",
         "history": [
