@@ -95,7 +95,7 @@ def generate_leaderboard_data(repos: dict[str, list[dict[str, Any]]]) -> dict[st
                 "language": latest["repository"].get("primary_language", "Unknown"),
                 "size": latest["repository"].get("size_category", "Unknown"),
                 "last_updated": submissions[0]["timestamp"][:10],  # YYYY-MM-DD
-                "url": latest["repository"]["url"],
+                "url": f"https://github.com/{repo_name}",
                 "agentready_version": agentready_version,
                 "research_version": research_version,
                 "history": [
