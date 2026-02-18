@@ -275,12 +275,13 @@ class TestCriticalConfigHandling:
         """E2E: Verify assessment works with valid config file."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Create valid config file
+            # Note: Use a valid attribute ID (openapi_specs) for excluded_attributes
             config_file = Path(tmp_dir) / "config.yaml"
             config_file.write_text("""
 weights:
-  claude_md: 2.0
+  claude_md_file: 2.0
 excluded_attributes:
-  - repomix_config
+  - openapi_specs
 """)
 
             output_dir = Path(tmp_dir) / "output"
@@ -303,14 +304,14 @@ excluded_attributes:
             assert result.returncode == 0
             assert "Assessment complete" in result.stdout
 
-            # Verify config was applied (repomix_config should be excluded)
+            # Verify config was applied (openapi_specs should be excluded)
             json_file = output_dir / "assessment-latest.json"
             with open(json_file) as f:
                 data = json.load(f)
 
-            # Check that repomix_config is not in findings
+            # Check that openapi_specs is not in findings
             finding_ids = [f["attribute"]["id"] for f in data["findings"]]
-            assert "repomix_config" not in finding_ids
+            assert "openapi_specs" not in finding_ids
 
 
 class TestCriticalSecurityFeatures:
