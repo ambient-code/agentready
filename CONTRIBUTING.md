@@ -10,6 +10,30 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Prerequisites
 
+- Python 3.10 or higher
+- [uv](https://github.com/astral-sh/uv) (recommended) or pip
+- Git
+
+#### Installing uv
+
+**macOS (Homebrew):**
+```bash
+brew install uv
+```
+
+**Fedora/RHEL/CentOS (dnf):**
+```bash
+dnf install uv
+```
+
+**Other platforms:**
+```bash
+# Using pip
+pip install uv
+
+# Or using the official installer
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 ### Development Setup
 
@@ -21,6 +45,17 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
    ```
 
 3. Set up your development environment:
+   ```bash
+   # Using uv (recommended)
+   uv venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   uv pip install -e ".[dev]"
+
+   # Or using pip
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -e ".[dev]"
+   ```
 
 4. Add the upstream remote (to sync with the original repository):
    ```bash
@@ -58,8 +93,55 @@ Use descriptive branch names:
 
 ### Running Tests
 
+The project uses pytest for testing. You can run tests using make or directly with pytest:
+
+```bash
+# Run all tests (recommended)
+make test
+
+# Run tests with coverage report
+make test-coverage
+
+# Or run pytest directly
+pytest
+
+# Run specific test file
+pytest tests/unit/cli/test_main.py
+
+# Run specific test class or function
+pytest tests/unit/cli/test_main.py::TestRunAssessment
+pytest tests/unit/cli/test_main.py::TestRunAssessment::test_run_assessment_function
+
+# Run with verbose output
+pytest -v
+
+# Run only unit tests
+pytest tests/unit/
+
+# Run only e2e tests
+pytest tests/e2e/
+```
 
 ### Code Style
+
+We use the following tools to maintain code quality:
+
+- **black** - Code formatting
+- **isort** - Import sorting
+- **ruff** - Linting
+
+```bash
+# Run all linters (check only)
+make lint
+
+# Auto-format code
+make format
+
+# Or run tools individually
+black src/ tests/
+isort src/ tests/
+ruff check src/ tests/
+```
 
 
 ### Commit Messages
