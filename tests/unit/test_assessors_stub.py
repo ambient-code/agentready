@@ -1,8 +1,12 @@
 """Tests for stub assessors (enhanced implementations)."""
 
+import os
 import subprocess
 
+import pytest
+
 from agentready.assessors.stub_assessors import (
+    ConventionalCommitsAssessor,
     DependencyPinningAssessor,
     FileSizeLimitsAssessor,
     GitignoreAssessor,
@@ -675,3 +679,445 @@ class TestFileSizeLimitsAssessor:
 
         assert finding.status == "pass"
         assert "3000" not in str(finding.evidence)
+
+
+class TestConventionalCommitsAssessor:
+    """Test ConventionalCommitsAssessor with pre-commit support."""
+
+    def test_no_configuration_files(self, tmp_path):
+        """Test that assessor fails when no conventional commit tools are configured."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert "not configured" in finding.measured_value
+        assert (
+            "No commitlint configuration found (.commitlintrc.json, package.json, husky, or pre-commit)"
+            in finding.evidence
+        )
+        assert finding.remediation is not None
+
+    def test_commitlint_configuration(self, tmp_path):
+        """Test detection of commitlint configuration."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .commitlintrc.json
+        commitlint_config = tmp_path / ".commitlintrc.json"
+        commitlint_config.write_text('{"extends": ["@commitlint/config-conventional"]}')
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "configured" in finding.measured_value
+        assert "Commit linting configured" in finding.evidence
+
+    def test_husky_configuration(self, tmp_path):
+        """Test detection of husky configuration."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .husky directory
+        husky_dir = tmp_path / ".husky"
+        husky_dir.mkdir()
+        commit_msg_hook = husky_dir / "commit-msg"
+        commit_msg_hook.write_text("#!/bin/sh\nnpx --no -- commitlint --edit $1")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "configured" in finding.measured_value
+
+    def test_package_json_commitlint_configuration(self, tmp_path):
+        """Test detection of commitlint configuration in package.json."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create package.json with commitlint config
+        package_json = tmp_path / "package.json"
+        package_json.write_text("""{
+  "name": "test-project",
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-conventional": "^17.0.0"
+  }
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "configured" in finding.measured_value
+
+    def test_package_json_malformed(self, tmp_path):
+        """Test handling of malformed package.json."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create malformed package.json
+        package_json = tmp_path / "package.json"
+        package_json.write_text("{ invalid json content")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        # Should fail gracefully and not crash
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_package_json_no_commitlint(self, tmp_path):
+        """Test package.json without commitlint configuration."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create package.json without commitlint config
+        package_json = tmp_path / "package.json"
+        package_json.write_text("""{
+  "name": "test-project",
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_precommit_conventional_linter(self, tmp_path):
+        """Test detection of conventional-precommit-linter in pre-commit config."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .pre-commit-config.yaml with conventional-precommit-linter
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("""repos:
+  - repo: https://github.com/compilerla/conventional-precommit-linter
+    rev: v2.1.1
+    hooks:
+      - id: conventional-precommit-linter
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, test, chore]
+""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "configured" in finding.measured_value
+        assert "Commit linting configured" in finding.evidence
+
+    def test_precommit_conventional_pre_commit(self, tmp_path):
+        """Test detection of conventional-pre-commit in pre-commit config."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .pre-commit-config.yaml with conventional-pre-commit
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("""repos:
+  - repo: https://github.com/example/conventional-pre-commit
+    rev: v1.0.0
+    hooks:
+      - id: conventional-commit
+""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_precommit_commitlint_hook(self, tmp_path):
+        """Test detection of commitlint-pre-commit-hook in pre-commit config."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .pre-commit-config.yaml with commitlint-pre-commit-hook
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("""repos:
+  - repo: https://github.com/example/commitlint-pre-commit-hook
+    rev: v1.0.0
+    hooks:
+      - id: commitlint
+""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_precommit_no_conventional_tools(self, tmp_path):
+        """Test that pre-commit config without conventional tools fails."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .pre-commit-config.yaml without conventional commit tools
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("""repos:
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert "not configured" in finding.measured_value
+
+    def test_precommit_empty_config(self, tmp_path):
+        """Test that empty pre-commit config fails."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create empty .pre-commit-config.yaml
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_precommit_invalid_yaml_fallback(self, tmp_path):
+        """Test that invalid YAML in pre-commit config falls back to string matching and fails gracefully."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .pre-commit-config.yaml with invalid YAML (tests error handling)
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("invalid: yaml: content: [")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        # Should fail gracefully and not crash
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_multiple_tools_configured(self, tmp_path):
+        """Test repository with both commitlint and pre-commit conventional tools."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .commitlintrc.json
+        commitlint_config = tmp_path / ".commitlintrc.json"
+        commitlint_config.write_text('{"extends": ["@commitlint/config-conventional"]}')
+
+        # Create .pre-commit-config.yaml with conventional tools
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("""repos:
+  - repo: https://github.com/compilerla/conventional-precommit-linter
+    rev: v2.1.1
+    hooks:
+      - id: conventional-precommit-linter
+        stages: [commit-msg]
+""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 50, "JavaScript": 50},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "configured" in finding.measured_value
+
+    @pytest.mark.skipif(os.getuid() == 0, reason="chmod has no effect as root")
+    def test_precommit_file_permission_error(self, tmp_path):
+        """Test handling of permission error when reading pre-commit config."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .pre-commit-config.yaml
+        precommit_config = tmp_path / ".pre-commit-config.yaml"
+        precommit_config.write_text("repos: []")
+
+        # Make file unreadable (simulate permission error)
+        os.chmod(precommit_config, 0o000)
+
+        try:
+            repo = Repository(
+                path=tmp_path,
+                name="test-repo",
+                url=None,
+                branch="main",
+                commit_hash="abc123",
+                languages={"Python": 100},
+                total_files=10,
+                total_lines=100,
+            )
+
+            assessor = ConventionalCommitsAssessor()
+            finding = assessor.assess(repo)
+
+            # Should handle the exception gracefully
+            assert finding.status == "fail"
+            assert finding.score == 0.0
+
+        finally:
+            # Restore permissions for cleanup
+            os.chmod(precommit_config, 0o644)

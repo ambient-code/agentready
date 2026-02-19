@@ -4,7 +4,10 @@ These are simplified implementations to get the MVP working. Each can be
 enhanced later with more sophisticated detection and scoring logic.
 """
 
+import json
 from pathlib import Path
+
+import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -236,11 +239,64 @@ class ConventionalCommitsAssessor(BaseAssessor):
         )
 
     def assess(self, repository: Repository) -> Finding:
-        # Simplified: Check if commitlint or husky is configured
+        # Check if commitlint, husky, or pre-commit conventional commits are configured
         has_commitlint = (repository.path / ".commitlintrc.json").exists()
         has_husky = (repository.path / ".husky").exists()
 
-        if has_commitlint or has_husky:
+        # Check for commitlint config in package.json (common in Node.js projects)
+        package_json = repository.path / "package.json"
+        has_package_commitlint = False
+        if package_json.exists():
+            try:
+                package_data = json.loads(package_json.read_text())
+                has_package_commitlint = "commitlint" in package_data
+            except (json.JSONDecodeError, OSError):
+                pass
+
+        precommit_config = repository.path / ".pre-commit-config.yaml"
+        # Check for conventional commits in pre-commit config
+        has_precommit_conventional = False
+
+        if precommit_config.exists():
+            try:
+                content = precommit_config.read_text()
+
+                # Note: gitlint and committed are generic linters that don't enforce
+                # conventional commits by default. So they are not being added.
+                conventional_patterns = {
+                    "conventional-precommit-linter",
+                    "conventional-pre-commit",
+                    "commitlint-pre-commit-hook",
+                }
+
+                # Parse YAML to check repo URLs (avoids false positives from comments)
+                try:
+                    data = yaml.safe_load(content)
+                    repos = data.get("repos", []) if isinstance(data, dict) else []
+
+                    for repo in repos:
+                        if not isinstance(repo, dict):
+                            continue
+                        repo_url = repo.get("repo", "")
+                        if any(
+                            pattern in repo_url for pattern in conventional_patterns
+                        ):
+                            has_precommit_conventional = True
+                            break
+
+                except yaml.YAMLError:
+                    # Return False on YAML parse failure - malformed configs shouldn't count as "configured"
+                    # Avoids false positives from string matching against comments or invalid syntax
+                    has_precommit_conventional = False
+            except OSError:
+                pass
+
+        if (
+            has_commitlint
+            or has_husky
+            or has_package_commitlint
+            or has_precommit_conventional
+        ):
             return Finding(
                 attribute=self.attribute,
                 status="pass",
@@ -258,13 +314,26 @@ class ConventionalCommitsAssessor(BaseAssessor):
                 score=0.0,
                 measured_value="not configured",
                 threshold="configured",
-                evidence=["No commitlint or husky configuration"],
+                evidence=[
+                    "No commitlint configuration found (.commitlintrc.json, package.json, husky, or pre-commit)"
+                ],
                 remediation=Remediation(
                     summary="Configure conventional commits with commitlint",
-                    steps=["Install commitlint", "Configure husky for commit-msg hook"],
-                    tools=["commitlint", "husky"],
+                    steps=[
+                        "Option A (Python/pre-commit): Add conventional-pre-commit to .pre-commit-config.yaml",
+                        "Option B (JS/commitlint): Install commitlint and configure husky for commit-msg hook",
+                    ],
+                    tools=[
+                        "pre-commit",
+                        "conventional-pre-commit",
+                        "commitlint",
+                        "husky",
+                    ],
                     commands=[
-                        "npm install --save-dev @commitlint/cli @commitlint/config-conventional husky"
+                        "# Python (pre-commit):",
+                        "pip install pre-commit && pre-commit install --hook-type commit-msg",
+                        "# JS (commitlint + husky):",
+                        "npm install --save-dev @commitlint/cli @commitlint/config-conventional husky",
                     ],
                     examples=[],
                     citations=[],
