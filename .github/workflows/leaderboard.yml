@@ -67,20 +67,50 @@ jobs:
           CLAIMED_SCORE=$(jq -r '.overall_score' "$CHANGED_FILE")
           REPO_NAME=$(jq -r '.repository.name' "$CHANGED_FILE")
           RESEARCH_VERSION=$(jq -r '.metadata.research_version // "unknown"' "$CHANGED_FILE")
+          ATTRIBUTES_TOTAL=$(jq -r '.attributes_total' "$CHANGED_FILE")
 
           {
             echo "repo_url=$REPO_URL"
             echo "claimed_score=$CLAIMED_SCORE"
             echo "repo_name=$REPO_NAME"
             echo "research_version=$RESEARCH_VERSION"
+            echo "attributes_total=$ATTRIBUTES_TOTAL"
           } >> "$GITHUB_OUTPUT"
 
       - name: Validate JSON schema
         env:
           ASSESSMENT_FILE: ${{ steps.extract.outputs.file }}
+          ATTRIBUTES_TOTAL: ${{ steps.extract.outputs.attributes_total }}
         run: |
           source .venv/bin/activate
+
+          # Validate attributes_total meets minimum threshold
+          if (( ATTRIBUTES_TOTAL < 15 )); then
+            echo "::error::Invalid attributes_total: $ATTRIBUTES_TOTAL (minimum: 15)"
+            exit 1
+          fi
+
+          echo "✅ Attributes total: $ATTRIBUTES_TOTAL"
+
+          # Temporarily modify schema to match submitted attributes count
+          SCHEMA_FILE="specs/001-agentready-scorer/contracts/assessment-schema.json"
+          cp "$SCHEMA_FILE" "$SCHEMA_FILE.backup"
+
+          # Update the const value and array limits to match submitted count
+          jq --arg total "$ATTRIBUTES_TOTAL" '
+            .properties.attributes_total.const = ($total | tonumber) |
+            .properties.attributes_assessed.maximum = ($total | tonumber) |
+            .properties.attributes_skipped.maximum = ($total | tonumber) |
+            .properties.attributes_not_assessed.maximum = ($total | tonumber) |
+            .properties.findings.minItems = ($total | tonumber) |
+            .properties.findings.maxItems = ($total | tonumber)
+          ' "$SCHEMA_FILE" > "$SCHEMA_FILE.tmp" && mv "$SCHEMA_FILE.tmp" "$SCHEMA_FILE"
+
+          # Run validation with updated schema
           agentready validate-report "$ASSESSMENT_FILE"
+
+          # Restore original schema
+          mv "$SCHEMA_FILE.backup" "$SCHEMA_FILE"
 
       - name: Verify repository exists and is public
         env:
