@@ -2,7 +2,10 @@
 
 import subprocess
 
+import pytest
+
 from agentready.assessors.stub_assessors import (
+    ConventionalCommitsAssessor,
     DependencyPinningAssessor,
     FileSizeLimitsAssessor,
     GitignoreAssessor,
@@ -675,3 +678,71 @@ class TestFileSizeLimitsAssessor:
 
         assert finding.status == "pass"
         assert "3000" not in str(finding.evidence)
+
+
+class TestConventionalCommitsAssessor:
+    """Test ConventionalCommitsAssessor config file detection."""
+
+    def _make_repo(self, tmp_path):
+        (tmp_path / ".git").mkdir(exist_ok=True)
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+    @pytest.mark.parametrize(
+        "config_file",
+        [
+            ".commitlintrc",
+            ".commitlintrc.json",
+            ".commitlintrc.yaml",
+            ".commitlintrc.yml",
+            ".commitlintrc.js",
+            ".commitlintrc.cjs",
+            ".commitlintrc.mjs",
+            ".commitlintrc.ts",
+            ".commitlintrc.cts",
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.ts",
+            "commitlint.config.cts",
+        ],
+    )
+    def test_detects_all_config_formats(self, tmp_path, config_file):
+        """Each supported commitlint config format should be detected."""
+        (tmp_path / config_file).touch()
+        repo = self._make_repo(tmp_path)
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert finding.measured_value == "configured"
+
+    def test_detects_husky_directory(self, tmp_path):
+        """A .husky directory should also count as configured."""
+        (tmp_path / ".husky").mkdir()
+        repo = self._make_repo(tmp_path)
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_fails_with_no_config(self, tmp_path):
+        """Without any config files, the check must fail."""
+        repo = self._make_repo(tmp_path)
+        assessor = ConventionalCommitsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert finding.measured_value == "not configured"
+        assert finding.remediation is not None
