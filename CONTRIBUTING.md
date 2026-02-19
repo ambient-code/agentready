@@ -11,7 +11,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 ### Prerequisites
 
 - Python 3.10 or higher
-- [uv](https://github.com/astral-sh/uv) (recommended) or pip
+- [uv](https://github.com/astral-sh/uv)
 - Git
 
 #### Installing uv
@@ -30,9 +30,6 @@ dnf install uv
 ```bash
 # Using pip
 pip install uv
-
-# Or using the official installer
-curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### Development Setup
@@ -51,10 +48,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    uv pip install -e ".[dev]"
 
-   # Or using pip
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -e ".[dev]"
    ```
 
 4. Add the upstream remote (to sync with the original repository):
