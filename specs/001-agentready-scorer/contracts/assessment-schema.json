@@ -74,11 +74,13 @@
     },
     "attributes_total": {
       "type": "integer",
-      "const": 25
+      "minimum": 10,
+      "maximum": 25,
+      "description": "Total attributes in assessment (may be < 25 if --exclude was used)"
     },
     "findings": {
       "type": "array",
-      "minItems": 25,
+      "minItems": 10,
       "maxItems": 25,
       "items": {
         "type": "object",

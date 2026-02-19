@@ -165,3 +165,58 @@ def test_validate_lenient_mode(validator, valid_report_data):
 
     # Lenient mode should pass
     assert is_valid is True or len(errors) == 0
+
+
+def test_validate_excluded_attributes_issue_309(validator, valid_report_data):
+    """Test validation passes for assessments with excluded attributes.
+
+    Regression test for issue #309: Schema rejected valid assessments
+    generated with --exclude flags because it hardcoded attributes_total=25.
+
+    The schema now allows 10-25 attributes to support exclusions.
+    """
+    # Simulate an assessment with 15 excluded attributes (10 remaining)
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 9
+    valid_report_data["attributes_skipped"] = 1
+    valid_report_data["findings"] = valid_report_data["findings"][:10]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is True, f"Validation failed unexpectedly: {errors}"
+    assert len(errors) == 0
+
+
+def test_validate_partial_exclusion_issue_309(validator, valid_report_data):
+    """Test validation passes for assessments with some excluded attributes.
+
+    Tests the common case from issue #309: user excludes 3 attributes,
+    resulting in 22 attributes instead of 25.
+    """
+    # Simulate PR #301: 22 attributes (3 excluded)
+    valid_report_data["attributes_total"] = 22
+    valid_report_data["attributes_assessed"] = 21
+    valid_report_data["attributes_skipped"] = 1
+    valid_report_data["findings"] = valid_report_data["findings"][:22]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is True, f"Validation failed unexpectedly: {errors}"
+    assert len(errors) == 0
+
+
+def test_validate_too_few_attributes_rejected(validator, valid_report_data):
+    """Test validation fails when too many attributes are excluded.
+
+    The schema requires at least 10 attributes to ensure meaningful assessments.
+    """
+    # Try to submit with only 5 attributes (below minimum of 10)
+    valid_report_data["attributes_total"] = 5
+    valid_report_data["attributes_assessed"] = 5
+    valid_report_data["attributes_skipped"] = 0
+    valid_report_data["findings"] = valid_report_data["findings"][:5]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is False, "Should reject assessments with fewer than 10 attributes"
+    assert len(errors) > 0
