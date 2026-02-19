@@ -10,7 +10,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.12 or higher
 - [uv](https://github.com/astral-sh/uv)
 - Git
 
@@ -21,7 +21,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 brew install uv
 ```
 
-**Fedora/RHEL/CentOS (dnf):**
+**Fedora 40+ (dnf):**
 ```bash
 dnf install uv
 ```
