@@ -816,3 +816,42 @@ excluded_attributes:
             assert result.exit_code == 0
             assert "Excluded 1 attribute(s)" in result.output
             assert "test_coverage" in result.output
+
+    def test_run_assessment_validates_mixed_source_invalid_attrs_issue_302(
+        self, test_repo, tmp_path
+    ):
+        """Test that invalid IDs from both CLI and config are reported together.
+
+        Regression test for issue #302: when both sources have invalid IDs,
+        the error message should include all of them so the user can fix
+        both in one round trip.
+        """
+        import click
+
+        # Create config with invalid attribute ID
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("""
+excluded_attributes:
+  - invalid_config_attr
+  - test_coverage
+""")
+
+        with patch("agentready.cli.main.Scanner") as mock_scanner_class:
+            mock_scanner = MagicMock()
+            mock_scanner_class.return_value = mock_scanner
+
+            # Should raise ClickException with both invalid IDs mentioned
+            with pytest.raises(click.exceptions.ClickException) as exc_info:
+                run_assessment(
+                    str(test_repo),
+                    verbose=False,
+                    output_dir=None,
+                    config_path=str(config_file),
+                    exclude=["invalid_cli_attr"],  # CLI invalid ID
+                )
+
+            error_msg = str(exc_info.value)
+            # Verify both sources are mentioned
+            assert "invalid_cli_attr" in error_msg
+            assert "invalid_config_attr" in error_msg
+            assert "Also invalid in config file" in error_msg

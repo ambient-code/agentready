@@ -270,7 +270,7 @@ def run_assessment(
     # Merge exclusions from CLI --exclude flag and config.excluded_attributes
     # Fix for #302: config.excluded_attributes was previously ignored
     cli_exclusions = set(exclude or [])
-    config_exclusions = set(config.excluded_attributes) if config else set()
+    config_exclusions = set(config.excluded_attributes if config else [])
     all_exclusions = cli_exclusions | config_exclusions
 
     # Validate exclusions (strict mode) - applies to both CLI and config sources
@@ -283,19 +283,16 @@ def run_assessment(
             invalid_from_config = invalid_ids & config_exclusions
 
             # Build error message that includes all invalid IDs from both sources
+            msg = ""
             if invalid_from_cli:
                 msg = f"Invalid attribute ID(s): {', '.join(sorted(invalid_from_cli))}."
-                if invalid_from_config:
-                    # Report config errors too so user can fix both in one round trip
+            if invalid_from_config:
+                if msg:
                     msg += f" Also invalid in config file: {', '.join(sorted(invalid_from_config))}."
-                msg += f" Valid IDs: {', '.join(sorted(valid_ids))}"
-                raise click.BadParameter(msg)
-            else:
-                # Config-only errors use ClickException with source context
-                raise click.ClickException(
-                    f"Invalid attribute ID(s) in config file: {', '.join(sorted(invalid_from_config))}. "
-                    f"Valid IDs: {', '.join(sorted(valid_ids))}"
-                )
+                else:
+                    msg = f"Invalid attribute ID(s) in config file: {', '.join(sorted(invalid_from_config))}."
+            msg += f" Valid IDs: {', '.join(sorted(valid_ids))}"
+            raise click.ClickException(msg)
         # Filter out excluded assessors
         assessors = [a for a in all_assessors if a.attribute_id not in all_exclusions]
         if verbose:
