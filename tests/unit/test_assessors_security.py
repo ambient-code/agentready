@@ -285,3 +285,263 @@ bandit = "^1.7.0"
             "npm/yarn audit" in finding.measured_value
             or "Snyk" in finding.measured_value
         )
+
+    def test_renovate_json_configuration(self, tmp_path):
+        """Test that Renovate configuration in renovate.json is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create renovate.json
+        renovate_file = tmp_path / "renovate.json"
+        renovate_file.write_text("""{
+  "extends": ["config:base"],
+  "schedule": "after 10pm every weekday"
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30  # Renovate = 30 points
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured" in e for e in finding.evidence)
+
+    def test_renovate_github_directory(self, tmp_path):
+        """Test that Renovate configuration in .github/renovate.json is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .github/renovate.json
+        github_dir = tmp_path / ".github"
+        github_dir.mkdir()
+        renovate_file = github_dir / "renovate.json"
+        renovate_file.write_text("""{
+  "extends": ["config:base"]
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30  # Renovate = 30 points
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured" in e for e in finding.evidence)
+
+    def test_renovate_rc_configuration(self, tmp_path):
+        """Test that Renovate configuration in .renovaterc.json is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .renovaterc.json
+        renovaterc_file = tmp_path / ".renovaterc.json"
+        renovaterc_file.write_text("""{
+  "extends": ["config:base"],
+  "timezone": "America/New_York"
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30  # Renovate = 30 points
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured" in e for e in finding.evidence)
+
+    def test_renovate_package_json_configuration(self, tmp_path):
+        """Test that Renovate configuration in package.json is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create package.json with renovate config
+        package_json = tmp_path / "package.json"
+        package_json.write_text("""{
+  "name": "test-project",
+  "renovate": {
+    "extends": ["config:base"],
+    "schedule": "after 10pm every weekday"
+  },
+  "dependencies": {
+    "react": "^18.0.0"
+  }
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30  # Renovate = 30 points
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured in package.json" in e for e in finding.evidence)
+
+    def test_renovate_json5_configuration(self, tmp_path):
+        """Test that Renovate configuration in renovate.json5 is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create renovate.json5 (JSON5 format allows comments and trailing commas)
+        renovate_file = tmp_path / "renovate.json5"
+        renovate_file.write_text("""{
+  // JSON5 config with comments
+  "extends": ["config:base"],
+  "schedule": "after 10pm every weekday", // trailing comma allowed
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30  # Renovate = 30 points
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured" in e for e in finding.evidence)
+
+    def test_renovaterc_configuration(self, tmp_path):
+        """Test that Renovate configuration in .renovaterc is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create .renovaterc (config without extension)
+        renovaterc_file = tmp_path / ".renovaterc"
+        renovaterc_file.write_text("""{
+  "extends": ["config:base"],
+  "timezone": "America/New_York",
+  "dependencyDashboard": true
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30  # Renovate = 30 points
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured" in e for e in finding.evidence)
+
+    def test_dependabot_takes_precedence_over_renovate(self, tmp_path):
+        """Test that if both Dependabot and Renovate exist, only Dependabot is counted."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create both Dependabot and Renovate configs
+        github_dir = tmp_path / ".github"
+        github_dir.mkdir()
+
+        # Dependabot
+        dependabot_file = github_dir / "dependabot.yml"
+        dependabot_file.write_text("""version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+""")
+
+        # Renovate
+        renovate_file = tmp_path / "renovate.json"
+        renovate_file.write_text("""{
+  "extends": ["config:base"]
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        # Should detect Dependabot (takes precedence), not both
+        assert "Dependabot" in finding.measured_value
+        assert "Renovate" not in finding.measured_value
+        assert any("Dependabot configured" in e for e in finding.evidence)
+
+    def test_renovate_package_json_malformed(self, tmp_path):
+        """Test that malformed package.json doesn't crash when checking for Renovate."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create malformed package.json
+        package_json = tmp_path / "package.json"
+        package_json.write_text("{ malformed json")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        # Should not crash and should not give credit for malformed config
+        assert finding.status == "fail"
+        assert "Renovate" not in finding.measured_value

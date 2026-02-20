@@ -1,6 +1,6 @@
 """Security assessors for dependency scanning, SAST, and secret detection."""
 
-import yaml
+import json
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -41,23 +41,38 @@ class DependencySecurityAssessor(BaseAssessor):
         evidence = []
         tools_found = []
 
-        # 1. Dependabot configuration (30 points)
+        # 1. Dependency update tools - Dependabot OR Renovate (30 points)
         dependabot_config = repository.path / ".github" / "dependabot.yml"
+        renovate_configs = [
+            repository.path / "renovate.json",
+            repository.path / "renovate.json5",
+            repository.path / ".github" / "renovate.json",
+            repository.path / ".renovaterc",
+            repository.path / ".renovaterc.json",
+        ]
+
         if dependabot_config.exists():
             score += 30
             tools_found.append("Dependabot")
-            evidence.append("✓ Dependabot configured for dependency alerts")
+            evidence.append("✓ Dependabot configured for dependency updates")
 
-            # Bonus: Check if updates are scheduled
-            try:
-                config = yaml.safe_load(dependabot_config.read_text())
-                if config and "updates" in config and len(config["updates"]) > 0:
-                    score += 5
-                    evidence.append(
-                        f"  {len(config['updates'])} package ecosystem(s) monitored"
-                    )
-            except Exception:
-                pass
+        elif any(config.exists() for config in renovate_configs):
+            score += 30
+            tools_found.append("Renovate")
+            evidence.append("✓ Renovate configured for dependency updates")
+
+        else:
+            # Check for Renovate in package.json
+            package_json = repository.path / "package.json"
+            if package_json.exists():
+                try:
+                    pkg = json.loads(package_json.read_text())
+                    if "renovate" in pkg:
+                        score += 30
+                        tools_found.append("Renovate")
+                        evidence.append("✓ Renovate configured in package.json")
+                except Exception:
+                    pass
 
         # 2. CodeQL / GitHub Security Scanning (25 points)
         codeql_workflow = repository.path / ".github" / "workflows"
@@ -102,8 +117,6 @@ class DependencySecurityAssessor(BaseAssessor):
             package_json = repository.path / "package.json"
             if package_json.exists():
                 try:
-                    import json
-
                     pkg = json.loads(package_json.read_text())
                     scripts = pkg.get("scripts", {})
 
