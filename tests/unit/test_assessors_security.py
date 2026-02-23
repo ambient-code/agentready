@@ -504,12 +504,15 @@ bandit = "^1.7.0"
         assessor = DependencySecurityAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.score >= 30  # Renovate = 30 points
+        assert finding.score == 35  # Renovate (30) + bonus for "extends" (5)
         assert "Renovate" in finding.measured_value
         assert any("Renovate configured" in e for e in finding.evidence)
+        assert any(
+            "Meaningful Renovate configuration detected" in e for e in finding.evidence
+        )
 
     def test_dependabot_first_match_wins_over_renovate(self, tmp_path):
-        """Test that if both Dependabot and Renovate exist, first match (Dependabot) wins due to elif structure."""
+        """Test that if both Dependabot and Renovate exist, first match (Dependabot) wins due to if/else structure."""
         # Initialize git repository
         subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
@@ -793,3 +796,45 @@ updates:
         # Check examples include renovate.json
         examples_text = " ".join(finding.remediation.examples)
         assert "renovate.json" in examples_text
+
+    def test_renovate_json5_with_meaningful_package_json_fallback(self, tmp_path):
+        """Test that when only JSON5 file exists (no bonus), meaningful package.json awards bonus via fallback."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create renovate.json5 (gets base points but no bonus due to JSON5 parsing limitation)
+        renovate_json5 = tmp_path / "renovate.json5"
+        renovate_json5.write_text("""{
+  // JSON5 config that can't be parsed for bonus
+  "extends": ["config:base"], // meaningful config but unparseable
+}""")
+
+        # Create package.json with meaningful renovate config (should get bonus via fallback)
+        package_json = tmp_path / "package.json"
+        package_json.write_text("""{
+  "name": "test-project",
+  "renovate": {
+    "schedule": "after 10pm every weekday"
+  }
+}""")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"JavaScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 35  # Base (30) + fallback bonus from package.json (5)
+        assert "Renovate" in finding.measured_value
+        assert any("Renovate configured" in e for e in finding.evidence)
+        assert any(
+            "Meaningful Renovate configuration detected" in e for e in finding.evidence
+        )

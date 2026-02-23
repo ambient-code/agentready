@@ -33,7 +33,7 @@ class DependencySecurityAssessor(BaseAssessor):
             category="Security",
             tier=self.tier,
             description="Security scanning tools configured for dependencies and code",
-            criteria="Dependabot or Renovate, CodeQL, or SAST tools configured; secret detection enabled",
+            criteria="Dependabot, Renovate, CodeQL, or SAST tools configured; secret detection enabled",
             default_weight=0.04,  # Combined weight
         )
 
@@ -42,10 +42,11 @@ class DependencySecurityAssessor(BaseAssessor):
         score = 0
         evidence = []
         tools_found = []
+        package_json = repository.path / "package.json"
 
         # 1. Dependency update tools - Dependabot OR Renovate (30 points)
-        # Note: Only one tool gets credit since both serve the same purpose.
-        # Dependabot is checked first; Renovate only if Dependabot is absent.
+        # Note: Both tools serve the same purpose (dependency updates), so only one gets credit
+        # to avoid double-counting. If both are present, Dependabot wins (checked first).
         dependabot_config = repository.path / ".github" / "dependabot.yml"
         renovate_configs = [
             repository.path / "renovate.json",
@@ -77,10 +78,9 @@ class DependencySecurityAssessor(BaseAssessor):
 
         else:
             # Check for any Renovate configuration (files or package.json)
-            package_json = repository.path / "package.json"
             has_renovate_files = any(config.exists() for config in renovate_configs)
             has_renovate_package_json = False
-            cached_renovate_config = None
+            pkg_renovate_config = None
 
             # Check package.json for renovate config
             if package_json.exists():
@@ -88,7 +88,7 @@ class DependencySecurityAssessor(BaseAssessor):
                     pkg = json.loads(package_json.read_text())
                     if "renovate" in pkg:
                         has_renovate_package_json = True
-                        cached_renovate_config = pkg["renovate"]
+                        pkg_renovate_config = pkg["renovate"]
                 except Exception:
                     pass
 
@@ -133,9 +133,9 @@ class DependencySecurityAssessor(BaseAssessor):
                 if (
                     not bonus_awarded
                     and has_renovate_package_json
-                    and cached_renovate_config
+                    and pkg_renovate_config
                 ):
-                    if any(key in cached_renovate_config for key in meaningful_keys):
+                    if any(key in pkg_renovate_config for key in meaningful_keys):
                         score += 5
                         evidence.append("  Meaningful Renovate configuration detected")
 
@@ -179,7 +179,6 @@ class DependencySecurityAssessor(BaseAssessor):
 
         # 4. JavaScript/TypeScript dependency scanners (20 points)
         if "JavaScript" in repository.languages or "TypeScript" in repository.languages:
-            package_json = repository.path / "package.json"
             if package_json.exists():
                 try:
                     pkg = json.loads(package_json.read_text())
