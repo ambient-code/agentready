@@ -661,3 +661,197 @@ class TestRunAssessment:
             # Should have created reports
             assert (test_repo / ".agentready").exists()
             mock_scanner.scan.assert_called_once()
+
+    def test_run_assessment_excludes_attributes_from_config_issue_302(
+        self, test_repo, mock_assessment, tmp_path
+    ):
+        """Test that excluded_attributes in config file are honored.
+
+        Regression test for issue #302: excluded_attributes in config file
+        was previously ignored - only --exclude CLI flag worked.
+        """
+        # Create config with excluded_attributes
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("""
+excluded_attributes:
+  - test_coverage
+  - openapi_specs
+""")
+
+        with patch("agentready.cli.main.Scanner") as mock_scanner_class:
+            mock_scanner = MagicMock()
+            mock_scanner.scan.return_value = mock_assessment
+            mock_scanner_class.return_value = mock_scanner
+
+            # Call run_assessment with config
+            run_assessment(
+                str(test_repo),
+                verbose=False,
+                output_dir=None,
+                config_path=str(config_file),
+            )
+
+            # Verify scan was called
+            mock_scanner.scan.assert_called_once()
+
+            # Get the assessors passed to scan using modern mock API
+            call_args = mock_scanner.scan.call_args
+            assessors = call_args.args[0]  # More robust than call_args[0][0]
+
+            # Verify excluded attributes are NOT in the assessor list
+            assessor_ids = {a.attribute_id for a in assessors}
+            assert (
+                "test_coverage" not in assessor_ids
+            ), "test_coverage should be excluded by config"
+            assert (
+                "openapi_specs" not in assessor_ids
+            ), "openapi_specs should be excluded by config"
+
+    def test_run_assessment_merges_cli_and_config_exclusions_issue_302(
+        self, test_repo, mock_assessment, tmp_path
+    ):
+        """Test that CLI --exclude and config excluded_attributes are merged.
+
+        Regression test for issue #302: both sources of exclusions should
+        be combined, not one overriding the other.
+        """
+        # Create config with one exclusion
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("""
+excluded_attributes:
+  - test_coverage
+""")
+
+        with patch("agentready.cli.main.Scanner") as mock_scanner_class:
+            mock_scanner = MagicMock()
+            mock_scanner.scan.return_value = mock_assessment
+            mock_scanner_class.return_value = mock_scanner
+
+            # Call run_assessment with config AND CLI exclusion
+            run_assessment(
+                str(test_repo),
+                verbose=False,
+                output_dir=None,
+                config_path=str(config_file),
+                exclude=["openapi_specs"],  # CLI exclusion
+            )
+
+            # Get the assessors passed to scan using modern mock API
+            call_args = mock_scanner.scan.call_args
+            assessors = call_args.args[0]  # More robust than call_args[0][0]
+
+            # Verify BOTH exclusions are applied
+            assessor_ids = {a.attribute_id for a in assessors}
+            assert (
+                "test_coverage" not in assessor_ids
+            ), "test_coverage should be excluded by config"
+            assert (
+                "openapi_specs" not in assessor_ids
+            ), "openapi_specs should be excluded by CLI"
+
+    def test_run_assessment_validates_config_excluded_attributes_issue_302(
+        self, test_repo, tmp_path
+    ):
+        """Test that invalid attribute IDs in config are rejected.
+
+        Regression test for issue #302: invalid attribute IDs in config
+        were previously silently ignored - now they should raise an error.
+        Config-sourced errors use ClickException (not BadParameter) for clarity.
+        """
+        import click
+
+        # Create config with invalid attribute ID
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("""
+excluded_attributes:
+  - nonexistent_attribute
+  - test_coverage
+""")
+
+        with patch("agentready.cli.main.Scanner") as mock_scanner_class:
+            mock_scanner = MagicMock()
+            mock_scanner_class.return_value = mock_scanner
+
+            # Should raise ClickException for invalid attribute ID from config
+            with pytest.raises(click.exceptions.ClickException) as exc_info:
+                run_assessment(
+                    str(test_repo),
+                    verbose=False,
+                    output_dir=None,
+                    config_path=str(config_file),
+                )
+
+            # Verify error message mentions the invalid ID and source
+            assert "nonexistent_attribute" in str(exc_info.value)
+            assert "config file" in str(exc_info.value)
+
+    def test_run_assessment_verbose_echoes_config_exclusions_issue_302(
+        self, runner, test_repo, mock_assessment, tmp_path
+    ):
+        """Test that verbose mode echoes exclusions from config file.
+
+        Regression test for issue #302: verbose output should show exclusions
+        even when they come only from config (not CLI).
+        Uses CliRunner for reliable Click output capture.
+        """
+        # Create config with exclusions
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("""
+excluded_attributes:
+  - test_coverage
+""")
+
+        with patch("agentready.cli.main.Scanner") as mock_scanner_class:
+            mock_scanner = MagicMock()
+            mock_scanner.scan.return_value = mock_assessment
+            mock_scanner_class.return_value = mock_scanner
+
+            # Use CliRunner for reliable Click output capture
+            result = runner.invoke(
+                assess,
+                [str(test_repo), "--verbose", "--config", str(config_file)],
+            )
+
+            # Verify exclusion message in output
+            assert result.exit_code == 0
+            assert "Excluded 1 attribute(s)" in result.output
+            assert "test_coverage" in result.output
+
+    def test_run_assessment_validates_mixed_source_invalid_attrs_issue_302(
+        self, test_repo, tmp_path
+    ):
+        """Test that invalid IDs from both CLI and config are reported together.
+
+        Regression test for issue #302: when both sources have invalid IDs,
+        the error message should include all of them so the user can fix
+        both in one round trip.
+        """
+        import click
+
+        # Create config with invalid attribute ID
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("""
+excluded_attributes:
+  - invalid_config_attr
+  - test_coverage
+""")
+
+        with patch("agentready.cli.main.Scanner") as mock_scanner_class:
+            mock_scanner = MagicMock()
+            mock_scanner_class.return_value = mock_scanner
+
+            # Should raise ClickException with both invalid IDs mentioned
+            with pytest.raises(click.exceptions.ClickException) as exc_info:
+                run_assessment(
+                    str(test_repo),
+                    verbose=False,
+                    output_dir=None,
+                    config_path=str(config_file),
+                    exclude=["invalid_cli_attr"],  # CLI invalid ID
+                )
+
+            error_msg = str(exc_info.value)
+            # Verify both sources are mentioned
+            assert "invalid_cli_attr" in error_msg
+            assert "invalid_config_attr" in error_msg
+            assert "Also invalid in config file" in error_msg

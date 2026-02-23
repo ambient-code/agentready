@@ -267,20 +267,37 @@ def run_assessment(
     # Create all assessors first
     all_assessors = create_all_assessors()
 
-    # Validate exclusions (strict mode)
-    if exclude:
+    # Merge exclusions from CLI --exclude flag and config.excluded_attributes
+    # Fix for #302: config.excluded_attributes was previously ignored
+    cli_exclusions = set(exclude or [])
+    config_exclusions = set(config.excluded_attributes if config else [])
+    all_exclusions = cli_exclusions | config_exclusions
+
+    # Validate exclusions (strict mode) - applies to both CLI and config sources
+    if all_exclusions:
         valid_ids = {a.attribute_id for a in all_assessors}
-        invalid_ids = set(exclude) - valid_ids
+        invalid_ids = all_exclusions - valid_ids
         if invalid_ids:
-            raise click.BadParameter(
-                f"Invalid attribute ID(s): {', '.join(sorted(invalid_ids))}. "
-                f"Valid IDs: {', '.join(sorted(valid_ids))}"
-            )
+            # Determine source of invalid IDs for clearer error messages
+            invalid_from_cli = invalid_ids & cli_exclusions
+            invalid_from_config = invalid_ids & config_exclusions
+
+            # Build error message that includes all invalid IDs from both sources
+            msg = ""
+            if invalid_from_cli:
+                msg = f"Invalid attribute ID(s): {', '.join(sorted(invalid_from_cli))}."
+            if invalid_from_config:
+                if msg:
+                    msg += f" Also invalid in config file: {', '.join(sorted(invalid_from_config))}."
+                else:
+                    msg = f"Invalid attribute ID(s) in config file: {', '.join(sorted(invalid_from_config))}."
+            msg += f" Valid IDs: {', '.join(sorted(valid_ids))}"
+            raise click.ClickException(msg)
         # Filter out excluded assessors
-        assessors = [a for a in all_assessors if a.attribute_id not in exclude]
-        if verbose and exclude:
+        assessors = [a for a in all_assessors if a.attribute_id not in all_exclusions]
+        if verbose:
             click.echo(
-                f"Excluded {len(exclude)} attribute(s): {', '.join(sorted(exclude))}\n"
+                f"Excluded {len(all_exclusions)} attribute(s): {', '.join(sorted(all_exclusions))}\n"
             )
     else:
         assessors = all_assessors

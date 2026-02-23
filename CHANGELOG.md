@@ -1,3 +1,25 @@
+## [2.29.1](https://github.com/ambient-code/agentready/compare/v2.29.0...v2.29.1) (2026-02-20)
+
+
+### Bug Fixes
+
+* Check for all official commitlint config file formats ([#308](https://github.com/ambient-code/agentready/issues/308)) ([50588cf](https://github.com/ambient-code/agentready/commit/50588cf1dc974e83a6427fbb3e5f5d9e5d4ed3b6))
+
+# [2.29.0](https://github.com/ambient-code/agentready/compare/v2.28.2...v2.29.0) (2026-02-20)
+
+
+### Features
+
+* add dbasunag/opendatahub-tests to leaderboard ([#301](https://github.com/ambient-code/agentready/issues/301)) ([be7a55f](https://github.com/ambient-code/agentready/commit/be7a55f2a4d0969af01880c42bf3b09446e68caf))
+* add opendatahub-io/opendatahub-tests to leaderboard ([#314](https://github.com/ambient-code/agentready/issues/314)) ([7a52466](https://github.com/ambient-code/agentready/commit/7a5246631e6541fa5aa922cc6d6b6ee21b6c0549))
+
+## [2.28.2](https://github.com/ambient-code/agentready/compare/v2.28.1...v2.28.2) (2026-02-19)
+
+
+### Bug Fixes
+
+* **cli:** Honor excluded_attributes from config file ([#306](https://github.com/ambient-code/agentready/issues/306)) ([ffda546](https://github.com/ambient-code/agentready/commit/ffda546e6e780ea13c357a8faaf8d1e98629a800)), closes [#302](https://github.com/ambient-code/agentready/issues/302) [#302](https://github.com/ambient-code/agentready/issues/302)
+
 ## [2.28.1](https://github.com/ambient-code/agentready/compare/v2.28.0...v2.28.1) (2026-02-18)
 
 

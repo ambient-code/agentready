@@ -239,8 +239,25 @@ class ConventionalCommitsAssessor(BaseAssessor):
         )
 
     def assess(self, repository: Repository) -> Finding:
-        # Check if commitlint, husky, or pre-commit conventional commits are configured
-        has_commitlint = (repository.path / ".commitlintrc.json").exists()
+        commitlint_configs = [
+            ".commitlintrc",
+            ".commitlintrc.json",
+            ".commitlintrc.yaml",
+            ".commitlintrc.yml",
+            ".commitlintrc.js",
+            ".commitlintrc.cjs",
+            ".commitlintrc.mjs",
+            ".commitlintrc.ts",
+            ".commitlintrc.cts",
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.ts",
+            "commitlint.config.cts",
+        ]
+        has_commitlint = any(
+            (repository.path / cfg).exists() for cfg in commitlint_configs
+        )
         has_husky = (repository.path / ".husky").exists()
 
         # Check for commitlint config in package.json (common in Node.js projects)
