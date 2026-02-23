@@ -73,43 +73,68 @@ class DependencySecurityAssessor(BaseAssessor):
             except Exception:
                 pass
 
-        elif any(config.exists() for config in renovate_configs):
-            score += 30
-            tools_found.append("Renovate")
-            evidence.append("✓ Renovate configured for dependency updates")
-
-            # Bonus: Check if Renovate has meaningful configuration
-            # Skip .json5 files since stdlib json can't parse JSON5 format
-            for config_file in renovate_configs:
-                if config_file.exists() and not config_file.name.endswith(".json5"):
-                    try:
-                        config = json.loads(config_file.read_text())
-                        if config and len(config) > 0:
-                            score += 5
-                            evidence.append("  Active Renovate configuration detected")
-                            break
-                    except Exception:
-                        continue
-
         else:
-            # Check for Renovate in package.json
+            # Check for any Renovate configuration (files or package.json)
             package_json = repository.path / "package.json"
+            has_renovate_files = any(config.exists() for config in renovate_configs)
+            has_renovate_package_json = False
+
+            # Check package.json for renovate config
             if package_json.exists():
                 try:
                     pkg = json.loads(package_json.read_text())
-                    if "renovate" in pkg:
-                        score += 30
-                        tools_found.append("Renovate")
-                        evidence.append("✓ Renovate configured in package.json")
-
-                        # Bonus: Check if package.json renovate config has content
-                        if pkg["renovate"] and len(pkg["renovate"]) > 0:
-                            score += 5
-                            evidence.append(
-                                "  Active Renovate configuration in package.json"
-                            )
+                    has_renovate_package_json = "renovate" in pkg
                 except Exception:
                     pass
+
+            # If any Renovate source exists, apply scoring
+            if has_renovate_files or has_renovate_package_json:
+                score += 30
+                tools_found.append("Renovate")
+
+                # Add specific evidence based on source
+                if has_renovate_files:
+                    evidence.append("✓ Renovate configured for dependency updates")
+                elif has_renovate_package_json:
+                    evidence.append("✓ Renovate configured in package.json")
+
+                # Bonus: Check for meaningful configuration across all sources
+                meaningful_keys = {
+                    "extends",
+                    "schedule",
+                    "packageRules",
+                    "rangeStrategy",
+                    "semanticCommits",
+                }
+
+                # Check file-based configs first
+                for config_file in renovate_configs:
+                    if config_file.exists() and not config_file.name.endswith(".json5"):
+                        try:
+                            config = json.loads(config_file.read_text())
+                            if config and any(key in config for key in meaningful_keys):
+                                score += 5
+                                evidence.append(
+                                    "  Meaningful Renovate configuration detected"
+                                )
+                                break
+                        except Exception:
+                            continue
+                else:
+                    # If no file-based bonus found, check package.json
+                    if has_renovate_package_json:
+                        try:
+                            pkg = json.loads(package_json.read_text())
+                            renovate_config = pkg["renovate"]
+                            if renovate_config and any(
+                                key in renovate_config for key in meaningful_keys
+                            ):
+                                score += 5
+                                evidence.append(
+                                    "  Meaningful Renovate configuration detected"
+                                )
+                        except Exception:
+                            pass
 
         # 2. CodeQL / GitHub Security Scanning (25 points)
         codeql_workflow = repository.path / ".github" / "workflows"
