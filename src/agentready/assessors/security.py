@@ -44,6 +44,8 @@ class DependencySecurityAssessor(BaseAssessor):
         tools_found = []
 
         # 1. Dependency update tools - Dependabot OR Renovate (30 points)
+        # Note: Only one tool gets credit since both serve the same purpose.
+        # Dependabot is checked first; Renovate only if Dependabot is absent.
         dependabot_config = repository.path / ".github" / "dependabot.yml"
         renovate_configs = [
             repository.path / "renovate.json",
@@ -78,12 +80,15 @@ class DependencySecurityAssessor(BaseAssessor):
             package_json = repository.path / "package.json"
             has_renovate_files = any(config.exists() for config in renovate_configs)
             has_renovate_package_json = False
+            cached_renovate_config = None
 
             # Check package.json for renovate config
             if package_json.exists():
                 try:
                     pkg = json.loads(package_json.read_text())
-                    has_renovate_package_json = "renovate" in pkg
+                    if "renovate" in pkg:
+                        has_renovate_package_json = True
+                        cached_renovate_config = pkg["renovate"]
                 except Exception:
                     pass
 
@@ -107,6 +112,8 @@ class DependencySecurityAssessor(BaseAssessor):
                     "semanticCommits",
                 }
 
+                bonus_awarded = False
+
                 # Check file-based configs first
                 for config_file in renovate_configs:
                     if config_file.exists() and not config_file.name.endswith(".json5"):
@@ -117,24 +124,20 @@ class DependencySecurityAssessor(BaseAssessor):
                                 evidence.append(
                                     "  Meaningful Renovate configuration detected"
                                 )
+                                bonus_awarded = True
                                 break
                         except Exception:
                             continue
-                else:
-                    # If no file-based bonus found, check package.json
-                    if has_renovate_package_json:
-                        try:
-                            pkg = json.loads(package_json.read_text())
-                            renovate_config = pkg["renovate"]
-                            if renovate_config and any(
-                                key in renovate_config for key in meaningful_keys
-                            ):
-                                score += 5
-                                evidence.append(
-                                    "  Meaningful Renovate configuration detected"
-                                )
-                        except Exception:
-                            pass
+
+                # If no file-based bonus found, check cached package.json renovate config
+                if (
+                    not bonus_awarded
+                    and has_renovate_package_json
+                    and cached_renovate_config
+                ):
+                    if any(key in cached_renovate_config for key in meaningful_keys):
+                        score += 5
+                        evidence.append("  Meaningful Renovate configuration detected")
 
         # 2. CodeQL / GitHub Security Scanning (25 points)
         codeql_workflow = repository.path / ".github" / "workflows"

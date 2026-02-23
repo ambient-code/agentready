@@ -757,40 +757,39 @@ updates:
             "Meaningful Renovate configuration detected" in e for e in finding.evidence
         )
 
+    def test_remediation_includes_renovate(self, tmp_path):
+        """Test that remediation guidance mentions Renovate as option."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
-def test_remediation_includes_renovate(self, tmp_path):
-    """Test that remediation guidance mentions Renovate as option."""
-    # Initialize git repository
-    subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
 
-    repo = Repository(
-        path=tmp_path,
-        name="test-repo",
-        url=None,
-        branch="main",
-        commit_hash="abc123",
-        languages={"Python": 100},
-        total_files=10,
-        total_lines=100,
-    )
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
 
-    assessor = DependencySecurityAssessor()
-    finding = assessor.assess(repo)
+        # Should fail and have remediation
+        assert finding.status == "fail"
+        assert finding.remediation is not None
 
-    # Should fail and have remediation
-    assert finding.status == "fail"
-    assert finding.remediation is not None
+        # Check remediation mentions both options
+        remediation_text = " ".join(finding.remediation.steps)
+        assert "Dependabot" in remediation_text
+        assert "Renovate" in remediation_text
+        assert "renovate.json" in remediation_text
 
-    # Check remediation mentions both options
-    remediation_text = " ".join(finding.remediation.steps)
-    assert "Dependabot" in remediation_text
-    assert "Renovate" in remediation_text
-    assert "renovate.json" in remediation_text
+        # Check tools list includes both
+        assert "Dependabot" in finding.remediation.tools
+        assert "Renovate" in finding.remediation.tools
 
-    # Check tools list includes both
-    assert "Dependabot" in finding.remediation.tools
-    assert "Renovate" in finding.remediation.tools
-
-    # Check examples include renovate.json
-    examples_text = " ".join(finding.remediation.examples)
-    assert "renovate.json" in examples_text
+        # Check examples include renovate.json
+        examples_text = " ".join(finding.remediation.examples)
+        assert "renovate.json" in examples_text
