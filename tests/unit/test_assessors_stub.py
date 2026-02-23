@@ -1087,7 +1087,7 @@ class TestConventionalCommitsAssessor:
         assert finding.score == 0.0
 
     def test_precommit_invalid_yaml_fallback(self, tmp_path):
-        """Test that invalid YAML in pre-commit config falls back to string matching and fails gracefully."""
+        """Test that invalid YAML in pre-commit config fails gracefully without attempting string matching fallback"""
         # Initialize git repository
         subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
