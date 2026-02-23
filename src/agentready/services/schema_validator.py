@@ -139,7 +139,54 @@ class SchemaValidator:
         except Exception as e:
             errors.append(f"Validation error: {str(e)}")
 
+        # Cross-field validation: JSON Schema draft-07 cannot enforce these constraints
+        # Fix for #309: ensure cross-field consistency after relaxing schema constraints
+        cross_field_errors = self._validate_cross_field_constraints(report_data)
+        errors.extend(cross_field_errors)
+
         return (len(errors) == 0, errors)
+
+    def _validate_cross_field_constraints(
+        self, report_data: dict[str, Any]
+    ) -> list[str]:
+        """Validate cross-field constraints that JSON Schema cannot express.
+
+        These constraints are documented in specs/001-agentready-scorer/data-model.md
+        but cannot be enforced by JSON Schema draft-07.
+
+        Args:
+            report_data: Parsed JSON report data
+
+        Returns:
+            List of validation error messages (empty if valid)
+        """
+        errors = []
+
+        # Constraint 1: len(findings) == attributes_total
+        findings = report_data.get("findings", [])
+        attributes_total = report_data.get("attributes_total", 0)
+
+        if len(findings) != attributes_total:
+            errors.append(
+                f"findings count ({len(findings)}) must equal "
+                f"attributes_total ({attributes_total})"
+            )
+
+        # Constraint 2: attributes_assessed + attributes_skipped == attributes_total
+        # Note: attributes_skipped is the canonical key, attributes_not_assessed is deprecated
+        attributes_assessed = report_data.get("attributes_assessed", 0)
+        attributes_skipped = report_data.get(
+            "attributes_skipped", report_data.get("attributes_not_assessed", 0)
+        )
+
+        if attributes_assessed + attributes_skipped != attributes_total:
+            errors.append(
+                f"attributes_assessed ({attributes_assessed}) + "
+                f"attributes_skipped ({attributes_skipped}) must equal "
+                f"attributes_total ({attributes_total})"
+            )
+
+        return errors
 
     def validate_report_file(
         self, report_path: Path, strict: bool = True
