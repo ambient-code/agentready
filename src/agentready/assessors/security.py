@@ -2,6 +2,8 @@
 
 import json
 
+import yaml
+
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
@@ -31,7 +33,7 @@ class DependencySecurityAssessor(BaseAssessor):
             category="Security",
             tier=self.tier,
             description="Security scanning tools configured for dependencies and code",
-            criteria="Dependabot, CodeQL, or SAST tools configured; secret detection enabled",
+            criteria="Dependabot or Renovate, CodeQL, or SAST tools configured; secret detection enabled",
             default_weight=0.04,  # Combined weight
         )
 
@@ -45,8 +47,9 @@ class DependencySecurityAssessor(BaseAssessor):
         dependabot_config = repository.path / ".github" / "dependabot.yml"
         renovate_configs = [
             repository.path / "renovate.json",
-            repository.path / "renovate.json5",
+            repository.path / "renovate.json5",  # Note: JSON5 not parseable by stdlib json
             repository.path / ".github" / "renovate.json",
+            repository.path / ".github" / "renovate.json5",  # Note: JSON5 not parseable by stdlib json
             repository.path / ".renovaterc",
             repository.path / ".renovaterc.json",
         ]
@@ -56,10 +59,34 @@ class DependencySecurityAssessor(BaseAssessor):
             tools_found.append("Dependabot")
             evidence.append("✓ Dependabot configured for dependency updates")
 
+            # Bonus: Check if updates are scheduled
+            try:
+                config = yaml.safe_load(dependabot_config.read_text())
+                if config and "updates" in config and len(config["updates"]) > 0:
+                    score += 5
+                    evidence.append(
+                        f"  {len(config['updates'])} package ecosystem(s) monitored"
+                    )
+            except Exception:
+                pass
+
         elif any(config.exists() for config in renovate_configs):
             score += 30
             tools_found.append("Renovate")
             evidence.append("✓ Renovate configured for dependency updates")
+
+            # Bonus: Check if Renovate has meaningful configuration
+            # Skip .json5 files since stdlib json can't parse JSON5 format
+            for config_file in renovate_configs:
+                if config_file.exists() and not config_file.name.endswith('.json5'):
+                    try:
+                        config = json.loads(config_file.read_text())
+                        if config and len(config) > 0:
+                            score += 5
+                            evidence.append("  Active Renovate configuration detected")
+                            break
+                    except Exception:
+                        continue
 
         else:
             # Check for Renovate in package.json
@@ -71,6 +98,11 @@ class DependencySecurityAssessor(BaseAssessor):
                         score += 30
                         tools_found.append("Renovate")
                         evidence.append("✓ Renovate configured in package.json")
+
+                        # Bonus: Check if package.json renovate config has content
+                        if pkg["renovate"] and len(pkg["renovate"]) > 0:
+                            score += 5
+                            evidence.append("  Active Renovate configuration in package.json")
                 except Exception:
                     pass
 
@@ -186,13 +218,14 @@ class DependencySecurityAssessor(BaseAssessor):
             remediation = Remediation(
                 summary="Add more security scanning tools for comprehensive coverage",
                 steps=[
-                    "Enable Dependabot alerts in GitHub repository settings",
+                    "Enable Dependabot alerts in GitHub repository settings (or configure Renovate: add renovate.json to repository root)",
                     "Add CodeQL scanning workflow for SAST",
                     "Configure secret detection (detect-secrets, gitleaks)",
                     "Set up language-specific scanners (pip-audit, npm audit, Snyk)",
                 ],
                 tools=[
                     "Dependabot",
+                    "Renovate",
                     "CodeQL",
                     "detect-secrets",
                     "pip-audit",
@@ -228,11 +261,12 @@ class DependencySecurityAssessor(BaseAssessor):
                 steps=[
                     "Enable Dependabot in GitHub repository settings",
                     "Add .github/dependabot.yml configuration file",
+                    "Or configure Renovate: add renovate.json to repository root",
                     "Set up CodeQL scanning for SAST",
                     "Add secret detection to pre-commit hooks",
                     "Configure language-specific security scanners",
                 ],
-                tools=["Dependabot", "CodeQL", "detect-secrets", "Bandit", "Semgrep"],
+                tools=["Dependabot", "Renovate", "CodeQL", "detect-secrets", "Bandit", "Semgrep"],
                 commands=[
                     "gh repo edit --enable-security",
                     "pip install pre-commit detect-secrets",
@@ -240,6 +274,7 @@ class DependencySecurityAssessor(BaseAssessor):
                 ],
                 examples=[
                     "# .github/dependabot.yml\nversion: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: weekly",
+                    "# renovate.json\n{\n  \"extends\": [\"config:base\"],\n  \"schedule\": \"after 10pm every weekday\"\n}",
                     "# .pre-commit-config.yaml\nrepos:\n  - repo: https://github.com/Yelp/detect-secrets\n    rev: v1.4.0\n    hooks:\n      - id: detect-secrets",
                 ],
                 citations=[
@@ -269,7 +304,7 @@ class DependencySecurityAssessor(BaseAssessor):
             status=status,
             score=min(score, 100),  # Cap at 100
             measured_value=summary,
-            threshold="≥60 points (Dependabot + SAST or multiple scanners)",
+            threshold="≥60 points (Dependabot/Renovate + SAST or multiple scanners)",
             evidence=evidence if evidence else ["No security scanning tools detected"],
             remediation=remediation,
             error_message=None,

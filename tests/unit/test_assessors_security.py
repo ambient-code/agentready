@@ -475,8 +475,8 @@ bandit = "^1.7.0"
         assert "Renovate" in finding.measured_value
         assert any("Renovate configured" in e for e in finding.evidence)
 
-    def test_dependabot_takes_precedence_over_renovate(self, tmp_path):
-        """Test that if both Dependabot and Renovate exist, only Dependabot is counted."""
+    def test_dependabot_first_match_wins_over_renovate(self, tmp_path):
+        """Test that if both Dependabot and Renovate exist, first match (Dependabot) wins due to elif structure."""
         # Initialize git repository
         subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
@@ -484,7 +484,7 @@ bandit = "^1.7.0"
         github_dir = tmp_path / ".github"
         github_dir.mkdir()
 
-        # Dependabot
+        # Dependabot (checked first in if/elif chain)
         dependabot_file = github_dir / "dependabot.yml"
         dependabot_file.write_text("""version: 2
 updates:
@@ -494,7 +494,7 @@ updates:
       interval: weekly
 """)
 
-        # Renovate
+        # Renovate (would be detected if Dependabot wasn't present)
         renovate_file = tmp_path / "renovate.json"
         renovate_file.write_text("""{
   "extends": ["config:base"]
@@ -514,7 +514,7 @@ updates:
         assessor = DependencySecurityAssessor()
         finding = assessor.assess(repo)
 
-        # Should detect Dependabot (takes precedence), not both
+        # Should detect first match (Dependabot), not both tools
         assert "Dependabot" in finding.measured_value
         assert "Renovate" not in finding.measured_value
         assert any("Dependabot configured" in e for e in finding.evidence)
