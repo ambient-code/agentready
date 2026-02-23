@@ -47,9 +47,12 @@ class DependencySecurityAssessor(BaseAssessor):
         dependabot_config = repository.path / ".github" / "dependabot.yml"
         renovate_configs = [
             repository.path / "renovate.json",
-            repository.path / "renovate.json5",  # Note: JSON5 not parseable by stdlib json
+            repository.path
+            / "renovate.json5",  # Note: JSON5 not parseable by stdlib json
             repository.path / ".github" / "renovate.json",
-            repository.path / ".github" / "renovate.json5",  # Note: JSON5 not parseable by stdlib json
+            repository.path
+            / ".github"
+            / "renovate.json5",  # Note: JSON5 not parseable by stdlib json
             repository.path / ".renovaterc",
             repository.path / ".renovaterc.json",
         ]
@@ -78,7 +81,7 @@ class DependencySecurityAssessor(BaseAssessor):
             # Bonus: Check if Renovate has meaningful configuration
             # Skip .json5 files since stdlib json can't parse JSON5 format
             for config_file in renovate_configs:
-                if config_file.exists() and not config_file.name.endswith('.json5'):
+                if config_file.exists() and not config_file.name.endswith(".json5"):
                     try:
                         config = json.loads(config_file.read_text())
                         if config and len(config) > 0:
@@ -102,7 +105,9 @@ class DependencySecurityAssessor(BaseAssessor):
                         # Bonus: Check if package.json renovate config has content
                         if pkg["renovate"] and len(pkg["renovate"]) > 0:
                             score += 5
-                            evidence.append("  Active Renovate configuration in package.json")
+                            evidence.append(
+                                "  Active Renovate configuration in package.json"
+                            )
                 except Exception:
                     pass
 
@@ -266,7 +271,14 @@ class DependencySecurityAssessor(BaseAssessor):
                     "Add secret detection to pre-commit hooks",
                     "Configure language-specific security scanners",
                 ],
-                tools=["Dependabot", "Renovate", "CodeQL", "detect-secrets", "Bandit", "Semgrep"],
+                tools=[
+                    "Dependabot",
+                    "Renovate",
+                    "CodeQL",
+                    "detect-secrets",
+                    "Bandit",
+                    "Semgrep",
+                ],
                 commands=[
                     "gh repo edit --enable-security",
                     "pip install pre-commit detect-secrets",
@@ -274,7 +286,7 @@ class DependencySecurityAssessor(BaseAssessor):
                 ],
                 examples=[
                     "# .github/dependabot.yml\nversion: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: weekly",
-                    "# renovate.json\n{\n  \"extends\": [\"config:base\"],\n  \"schedule\": \"after 10pm every weekday\"\n}",
+                    '# renovate.json\n{\n  "extends": ["config:base"],\n  "schedule": "after 10pm every weekday"\n}',
                     "# .pre-commit-config.yaml\nrepos:\n  - repo: https://github.com/Yelp/detect-secrets\n    rev: v1.4.0\n    hooks:\n      - id: detect-secrets",
                 ],
                 citations=[
