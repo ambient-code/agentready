@@ -17,6 +17,7 @@ class SourceDirectoryInfo(TypedDict):
     type: Literal["src", "project-named", "heuristic", "none"]
     directory: str
 
+
 # Directories that should not be considered as source directories.
 # These are generic pattern names that almost never serve as primary source.
 # Avoid blocking package proper names (celery, alembic, etc.) which are
