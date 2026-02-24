@@ -10,21 +10,46 @@ from .base import BaseAssessor
 
 # Directories that should not be considered as source directories
 # Fix for #246, #305: These are common non-source directories
+# PR #322 feedback: Expanded blocklist to prevent false positives
 _NON_SOURCE_DIRS = frozenset(
     {
+        # Test directories
         "tests",
         "test",
+        "fixtures",
+        "benchmarks",
+        # Documentation
         "docs",
         "doc",
         "documentation",
+        # Scripts and utilities
         "scripts",
         "utilities",
         "utils",
         "tools",
         "examples",
         "samples",
-        "benchmarks",
-        "fixtures",
+        # Database migrations (common dirs with __init__.py)
+        "migrations",
+        "alembic",
+        # Configuration directories
+        "config",
+        "settings",
+        "conf",
+        # Web framework directories
+        "middleware",
+        "static",
+        "assets",
+        "templates",
+        "locale",
+        "i18n",
+        # Data and resources
+        "data",
+        "resources",
+        # CI/CD
+        "ci",
+        ".circleci",
+        # Hidden/build directories
         ".git",
         ".github",
         ".venv",
@@ -39,6 +64,8 @@ _NON_SOURCE_DIRS = frozenset(
         "dist",
         "htmlcov",
         ".eggs",
+        # Task queue
+        "celery",
     }
 )
 
@@ -167,6 +194,8 @@ class StandardLayoutAssessor(BaseAssessor):
             return {"found": True, "type": "src", "directory": "src/"}
 
         # Strategy 2: Look for project-named directory from pyproject.toml
+        # PR #322 feedback: Only use project-named detection when pyproject.toml
+        # exists to avoid false positives from migrations/, config/, etc.
         package_name = self._get_package_name_from_pyproject(repository)
         if package_name:
             # Normalize package name (replace hyphens with underscores)
@@ -179,21 +208,24 @@ class StandardLayoutAssessor(BaseAssessor):
                     "directory": f"{normalized_name}/",
                 }
 
-        # Strategy 3: Look for any directory with __init__.py at root level
-        # that isn't in the blocklist
-        for item in repository.path.iterdir():
-            if not item.is_dir():
-                continue
-            if item.name.startswith("."):
-                continue
-            if item.name.lower() in _NON_SOURCE_DIRS:
-                continue
-            if (item / "__init__.py").exists():
-                return {
-                    "found": True,
-                    "type": "project-named",
-                    "directory": f"{item.name}/",
-                }
+            # Strategy 3: pyproject.toml exists but package name doesn't match
+            # a directory. Look for any directory with __init__.py at root level
+            # that isn't in the blocklist. Only do this when pyproject.toml exists
+            # to avoid false positives.
+            # PR #322 feedback: Sort for deterministic behavior across platforms
+            for item in sorted(repository.path.iterdir(), key=lambda p: p.name):
+                if not item.is_dir():
+                    continue
+                if item.name.startswith("."):
+                    continue
+                if item.name.lower() in _NON_SOURCE_DIRS:
+                    continue
+                if (item / "__init__.py").exists():
+                    return {
+                        "found": True,
+                        "type": "project-named",
+                        "directory": f"{item.name}/",
+                    }
 
         return {"found": False, "type": "none", "directory": ""}
 
@@ -239,32 +271,32 @@ class StandardLayoutAssessor(BaseAssessor):
         A test-only repository has:
         - tests/ or test/ directory
         - No source directory (src/ or project-named)
-        - Test-specific files (conftest.py, pytest.ini, tox.ini)
+        - Test-specific files (conftest.py, pytest.ini)
 
         Returns:
             True if this appears to be a test-only repository.
         """
-        # Must have tests directory (already checked by caller)
-        has_tests = (repository.path / "tests").exists() or (
-            repository.path / "test"
-        ).exists()
-        if not has_tests:
-            return False
+        # PR #322 feedback: Removed redundant has_tests check - caller already
+        # verifies `not has_source and has_tests` before calling this method.
 
         # Look for test-specific indicators
+        # PR #322 feedback: Removed setup.cfg (used by all Python projects) and
+        # tox.ini (used for linting/building, not test-only indicator)
         test_indicators = [
             repository.path / "conftest.py",
             repository.path / "pytest.ini",
-            repository.path / "tox.ini",
-            repository.path / "setup.cfg",  # Often contains pytest config
         ]
 
         has_test_config = any(f.exists() for f in test_indicators)
 
         # Check if the repo name suggests it's a test repo
-        name_suggests_tests = any(
-            pattern in repository.name.lower()
-            for pattern in ["test", "tests", "testing", "spec", "specs"]
+        # PR #322 feedback: Use word-boundary matching to avoid false positives
+        # like "testimonial-service", "contest-platform", "latest-features"
+        name_suggests_tests = bool(
+            re.search(
+                r"(^|[-_.])(?:test|tests|testing|spec|specs)($|[-_.])",
+                repository.name.lower(),
+            )
         )
 
         # It's test-only if it has test configs OR the name suggests it
@@ -287,12 +319,13 @@ class StandardLayoutAssessor(BaseAssessor):
                     "Ensure your package has __init__.py",
                 ]
             )
+            # PR #322 feedback: Use comment lines instead of empty strings
             commands.extend(
                 [
                     "# Option A: src layout",
                     "mkdir -p src/mypackage",
                     "touch src/mypackage/__init__.py",
-                    "",
+                    "# ---",
                     "# Option B: flat layout (project-named)",
                     "mkdir -p mypackage",
                     "touch mypackage/__init__.py",
@@ -308,7 +341,6 @@ class StandardLayoutAssessor(BaseAssessor):
             )
             commands.extend(
                 [
-                    "",
                     "# Create tests directory",
                     "mkdir -p tests",
                     "touch tests/__init__.py",

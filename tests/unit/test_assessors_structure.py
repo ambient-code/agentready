@@ -208,10 +208,11 @@ class TestStandardLayoutAssessor:
         assert finding.status == "pass"
         assert finding.score == 100.0
 
-    def test_recognizes_project_named_directory_without_pyproject(self, tmp_path):
-        """Test fallback detection of project-named directory without pyproject.toml.
+    def test_project_named_directory_without_pyproject_fails(self, tmp_path):
+        """Test that project-named directory without pyproject.toml fails.
 
-        Fix for #246: Should detect any directory with __init__.py not in blocklist.
+        Per PR review feedback: Strategy 3 requires pyproject.toml to exist
+        to prevent false positives on arbitrary repos with Python packages.
         """
         git_dir = tmp_path / ".git"
         git_dir.mkdir()
@@ -235,8 +236,9 @@ class TestStandardLayoutAssessor:
         assessor = StandardLayoutAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.status == "pass"
-        assert finding.score == 100.0
+        # Without pyproject.toml, we can't confirm this is a proper Python project
+        assert finding.status == "fail"
+        assert finding.score == 50.0
 
     def test_blocklist_excludes_non_source_directories(self, tmp_path):
         """Test that directories in blocklist are not considered source dirs.
