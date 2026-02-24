@@ -8,9 +8,10 @@ from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from .base import BaseAssessor
 
-# Directories that should not be considered as source directories
-# Fix for #246, #305: These are common non-source directories
-# PR #322 feedback: Expanded blocklist to prevent false positives
+# Directories that should not be considered as source directories.
+# These are generic pattern names that almost never serve as primary source.
+# Avoid blocking package proper names (celery, alembic, etc.) which are
+# legitimate source directories for their respective projects.
 _NON_SOURCE_DIRS = frozenset(
     {
         # Test directories
@@ -29,15 +30,13 @@ _NON_SOURCE_DIRS = frozenset(
         "tools",
         "examples",
         "samples",
-        # Database migrations (common dirs with __init__.py)
+        # Database migrations (generic name only)
         "migrations",
-        "alembic",
         # Configuration directories
         "config",
         "settings",
         "conf",
-        # Web framework directories
-        "middleware",
+        # Web framework static directories (not source code)
         "static",
         "assets",
         "templates",
@@ -64,8 +63,6 @@ _NON_SOURCE_DIRS = frozenset(
         "dist",
         "htmlcov",
         ".eggs",
-        # Task queue
-        "celery",
     }
 )
 
@@ -152,6 +149,9 @@ class StandardLayoutAssessor(BaseAssessor):
         if has_source:
             if source_type == "src":
                 source_evidence = "src/: ✓"
+            elif source_type == "heuristic":
+                # Strategy 3 match: found via directory scan, not name match
+                source_evidence = f"source (heuristic): ✓ ({source_dir}) — verify"
             else:
                 source_evidence = f"source ({source_type}): ✓ ({source_dir})"
         else:
@@ -194,8 +194,8 @@ class StandardLayoutAssessor(BaseAssessor):
             return {"found": True, "type": "src", "directory": "src/"}
 
         # Strategy 2: Look for project-named directory from pyproject.toml
-        # PR #322 feedback: Only use project-named detection when pyproject.toml
-        # exists to avoid false positives from migrations/, config/, etc.
+        # Only use project-named detection when pyproject.toml exists to avoid
+        # false positives from migrations/, config/, etc.
         package_name = self._get_package_name_from_pyproject(repository)
         if package_name:
             # Normalize package name (replace hyphens with underscores)
@@ -211,8 +211,8 @@ class StandardLayoutAssessor(BaseAssessor):
             # Strategy 3: pyproject.toml exists but package name doesn't match
             # a directory. Look for any directory with __init__.py at root level
             # that isn't in the blocklist. Only do this when pyproject.toml exists
-            # to avoid false positives.
-            # PR #322 feedback: Sort for deterministic behavior across platforms
+            # to avoid false positives. Returns first match alphabetically.
+            # Mark as "heuristic" so evidence shows this is a best-guess match.
             for item in sorted(repository.path.iterdir(), key=lambda p: p.name):
                 if not item.is_dir():
                     continue
@@ -223,7 +223,7 @@ class StandardLayoutAssessor(BaseAssessor):
                 if (item / "__init__.py").exists():
                     return {
                         "found": True,
-                        "type": "project-named",
+                        "type": "heuristic",
                         "directory": f"{item.name}/",
                     }
 
@@ -266,32 +266,25 @@ class StandardLayoutAssessor(BaseAssessor):
     def _is_test_only_repository(self, repository: Repository) -> bool:
         """Detect if this is a test-only repository.
 
-        Fix for #305: Test-only repos should be marked as not_applicable.
-
         A test-only repository has:
         - tests/ or test/ directory
         - No source directory (src/ or project-named)
-        - Test-specific files (conftest.py, pytest.ini)
+        - Strong indicators it's dedicated to tests
+
+        Detection strategy (conservative to avoid false skips):
+        1. Name pattern: repo name contains "test", "tests", "testing", "spec", "specs"
+           as a word boundary (not substring like "testimonial")
+        2. Config-only signal: has conftest.py/pytest.ini AND no pyproject.toml
+           (mixed projects typically have pyproject.toml)
+
+        Note: conftest.py and pytest.ini alone are NOT reliable indicators since
+        mixed projects (source + tests) commonly have these at the root.
 
         Returns:
             True if this appears to be a test-only repository.
         """
-        # PR #322 feedback: Removed redundant has_tests check - caller already
-        # verifies `not has_source and has_tests` before calling this method.
-
-        # Look for test-specific indicators
-        # PR #322 feedback: Removed setup.cfg (used by all Python projects) and
-        # tox.ini (used for linting/building, not test-only indicator)
-        test_indicators = [
-            repository.path / "conftest.py",
-            repository.path / "pytest.ini",
-        ]
-
-        has_test_config = any(f.exists() for f in test_indicators)
-
-        # Check if the repo name suggests it's a test repo
-        # PR #322 feedback: Use word-boundary matching to avoid false positives
-        # like "testimonial-service", "contest-platform", "latest-features"
+        # Strategy 1: Name strongly suggests test-only repo
+        # Word-boundary matching avoids false positives like "testimonial-service"
         name_suggests_tests = bool(
             re.search(
                 r"(^|[-_.])(?:test|tests|testing|spec|specs)($|[-_.])",
@@ -299,8 +292,27 @@ class StandardLayoutAssessor(BaseAssessor):
             )
         )
 
-        # It's test-only if it has test configs OR the name suggests it
-        return has_test_config or name_suggests_tests
+        if name_suggests_tests:
+            return True
+
+        # Strategy 2: Has test config files but NO pyproject.toml
+        # Test-only repos rarely have pyproject.toml with [project] section.
+        # Mixed projects (source + tests) typically DO have pyproject.toml.
+        has_pyproject = (repository.path / "pyproject.toml").exists()
+        if has_pyproject:
+            # If pyproject.toml exists, this is likely a mixed project,
+            # not a test-only repo. Don't mark as test-only just because
+            # it has conftest.py or pytest.ini.
+            return False
+
+        # No pyproject.toml: check for test-specific config files
+        test_config_files = [
+            repository.path / "conftest.py",
+            repository.path / "pytest.ini",
+        ]
+        has_test_config = any(f.exists() for f in test_config_files)
+
+        return has_test_config
 
     def _create_remediation(self, has_source: bool, has_tests: bool) -> Remediation:
         """Create context-aware remediation guidance for standard layout.
@@ -319,7 +331,6 @@ class StandardLayoutAssessor(BaseAssessor):
                     "Ensure your package has __init__.py",
                 ]
             )
-            # PR #322 feedback: Use comment lines instead of empty strings
             commands.extend(
                 [
                     "# Option A: src layout",

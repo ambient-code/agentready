@@ -366,16 +366,18 @@ class TestStandardLayoutAssessor:
 
         assert finding.status == "not_applicable"
 
-    def test_test_only_repo_detected_by_pytest_ini(self, tmp_path):
-        """Test that repos with pytest.ini are detected as test-only.
+    def test_test_only_repo_detected_by_pytest_ini_without_pyproject(self, tmp_path):
+        """Test that repos with pytest.ini (and no pyproject.toml) are test-only.
 
-        Fix for #305: pytest.ini indicates a test-focused repository.
+        pytest.ini/conftest.py are only reliable test-only indicators when
+        pyproject.toml is absent. Mixed projects typically have pyproject.toml.
         """
         git_dir = tmp_path / ".git"
         git_dir.mkdir()
 
         (tmp_path / "tests").mkdir()
         (tmp_path / "pytest.ini").touch()
+        # Note: no pyproject.toml
 
         repo = Repository(
             path=tmp_path,
@@ -392,6 +394,39 @@ class TestStandardLayoutAssessor:
         finding = assessor.assess(repo)
 
         assert finding.status == "not_applicable"
+
+    def test_pytest_ini_with_pyproject_is_not_test_only(self, tmp_path):
+        """Test that pytest.ini alone doesn't mark repo as test-only when pyproject.toml exists.
+
+        Mixed projects (source + tests) commonly have both pytest.ini and pyproject.toml.
+        The presence of pyproject.toml suggests this is a proper Python project, not test-only.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "pytest.ini").touch()
+        # pyproject.toml exists but no matching source directory
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[project]\nname = "myproject"\n')
+
+        repo = Repository(
+            path=tmp_path,
+            name="some-repo",  # Generic name, not test-related
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should FAIL, not be marked as not_applicable
+        # This is a project that's missing its source directory, not a test-only repo
+        assert finding.status == "fail"
 
     def test_repo_with_tests_but_no_source_and_no_indicators_fails(self, tmp_path):
         """Test that repos with tests/ but no test indicators still fail.
@@ -484,3 +519,76 @@ class TestStandardLayoutAssessor:
 
         # Will fail (no source dir found) but shouldn't crash
         assert finding.status in ["fail", "not_applicable"]
+
+    def test_celery_directory_not_blocked(self, tmp_path):
+        """Test that celery/ directory is recognized as valid source.
+
+        The Celery project uses celery/ as its source directory. We should not
+        block package proper names, only generic non-source patterns.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        (tmp_path / "celery").mkdir()
+        (tmp_path / "celery" / "__init__.py").touch()
+        (tmp_path / "tests").mkdir()
+
+        # pyproject.toml with project name
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[project]\nname = "celery"\n')
+
+        repo = Repository(
+            path=tmp_path,
+            name="celery",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_heuristic_match_shows_verify_in_evidence(self, tmp_path):
+        """Test that heuristic source detection shows 'verify' in evidence.
+
+        When pyproject.toml exists but package name doesn't match any directory,
+        Strategy 3 picks the first directory with __init__.py. This is a heuristic
+        guess and should be flagged in the evidence.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # pyproject.toml with name that doesn't match any directory
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[project]\nname = "myproject"\n')
+
+        # Create a package directory with a different name
+        (tmp_path / "api").mkdir()
+        (tmp_path / "api" / "__init__.py").touch()
+        (tmp_path / "tests").mkdir()
+
+        repo = Repository(
+            path=tmp_path,
+            name="myproject",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        evidence_str = " ".join(finding.evidence)
+        # Should indicate this is a heuristic match
+        assert "heuristic" in evidence_str
+        assert "verify" in evidence_str
