@@ -539,34 +539,25 @@ def research_version():
 @cli.command()
 def generate_config():
     """Generate example configuration file."""
+    # Try to find example config in current directory first (development mode)
     example_path = Path(".agentready-config.example.yaml")
 
-    # Try to find example config in current directory first (development mode)
-    if not example_path.exists():
+    if example_path.exists():
+        # Read from current directory (development mode)
+        example_content = example_path.read_text(encoding="utf-8")
+    else:
         # Fall back to package data (pip install mode)
+        # Use same pattern as rest of codebase (research_loader.py, scorer.py, etc.)
         try:
-            from importlib import resources
-
-            # For Python 3.9+, use files() API
-            try:
-                package_files = resources.files("agentready.data")
-                example_content = (
-                    package_files / ".agentready-config.example.yaml"
-                ).read_text()
-            except AttributeError:
-                # Fallback for older Python versions
-                example_content = resources.read_text(
-                    "agentready.data", ".agentready-config.example.yaml"
-                )
-        except Exception:
+            package_data_dir = Path(__file__).parent.parent / "data"
+            package_example_path = package_data_dir / ".agentready-config.example.yaml"
+            example_content = package_example_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
             click.echo(
                 "Error: .agentready-config.example.yaml not found in current directory or package data",
                 err=True,
             )
             sys.exit(1)
-    else:
-        # Read from current directory (development mode)
-        example_content = example_path.read_text()
 
     target = Path(".agentready-config.yaml")
 
@@ -575,7 +566,7 @@ def generate_config():
             return
 
     # Write example config to target file
-    target.write_text(example_content)
+    target.write_text(example_content, encoding="utf-8")
     click.echo(f"Created {target}")
     click.echo("Edit this file to customize weights and behavior.")
 

@@ -520,10 +520,10 @@ class TestGenerateConfigCommand:
     def test_generate_config_no_example(self, runner):
         """Test generate-config fails when example not found in filesystem or package data."""
         with runner.isolated_filesystem():
-            # Mock importlib.resources to simulate missing package data
-            # Need to mock at the point it's imported (inside the function)
-            with patch("importlib.resources.files") as mock_files:
-                mock_files.side_effect = Exception("Package data not found")
+            # Mock Path.read_text to simulate missing package data
+            # The command tries local file first, then package data
+            with patch("pathlib.Path.read_text") as mock_read:
+                mock_read.side_effect = FileNotFoundError("Example config not found")
 
                 result = runner.invoke(generate_config, [])
 
