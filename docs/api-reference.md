@@ -1148,10 +1148,10 @@ except Exception as e:
 
 ## Next Steps
 
-- **[User Guide](user-guide)** — CLI usage and configuration
-- **[Developer Guide](developer-guide)** — Implementing custom assessors
-- **[Attributes](attributes)** — Complete attribute reference
-- **[Examples](examples)** — Real-world integration examples
+- **[User Guide](user-guide.md)** — CLI usage and configuration
+- **[Developer Guide](developer-guide.md)** — Implementing custom assessors
+- **[Attributes](attributes.md)** — Complete attribute reference
+- **[Examples](examples.md)** — Real-world integration examples
 
 ---
 

@@ -64,7 +64,8 @@ agentready = [
     "templates/**/*.j2",
     "templates/**/*.yml.j2",
     "templates/**/*.yaml.j2",
-    "templates/**/*.md.j2"
+    "templates/**/*.md.j2",
+    "*.example.yaml"
 ]
 
 [tool.black]

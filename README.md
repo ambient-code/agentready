@@ -217,7 +217,7 @@ agentready assess PATH --output-dir DIR  # Custom report location
 
 # Configuration commands
 agentready --validate-config FILE        # Validate configuration
-agentready --generate-config             # Create example config
+agentready generate-config               # Create example config
 
 # Research report management
 agentready research-version              # Show bundled research version

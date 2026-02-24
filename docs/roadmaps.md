@@ -499,7 +499,7 @@ git add . && git commit -m "build: Bootstrap agent-ready infrastructure"
 git push
 ```
 
-**Learn more**: [Bootstrap tutorial →](user-guide#bootstrap-your-repository)
+**Learn more**: [Bootstrap tutorial →](user-guide.md#bootstrap-your-repository)
 
 ### For Team Leads
 
@@ -509,7 +509,7 @@ git push
 4. **Track progress**: Use reports to monitor score improvements
 5. **Share results**: Include assessment scores in team metrics
 
-**Learn more**: [User guide →](user-guide)
+**Learn more**: [User guide →](user-guide.md)
 
 ### For Engineering Leadership
 
@@ -525,11 +525,11 @@ git push
 
 ## Next Steps
 
-- **[User Guide](user-guide)** — Install and run your first assessment
-- **[Developer Guide](developer-guide)** — Contribute to AgentReady development
-- **[Attributes Reference](attributes)** — Understand the 25 agent-ready attributes
-- **[API Reference](api-reference)** — Integrate AgentReady into your tools
-- **[Examples](examples)** — See real-world assessment reports
+- **[User Guide](user-guide.md)** — Install and run your first assessment
+- **[Developer Guide](developer-guide.md)** — Contribute to AgentReady development
+- **[Attributes Reference](attributes.md)** — Understand the 25 agent-ready attributes
+- **[API Reference](api-reference.md)** — Integrate AgentReady into your tools
+- **[Examples](examples.md)** — See real-world assessment reports
 
 ---
 

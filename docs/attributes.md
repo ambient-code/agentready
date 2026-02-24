@@ -1071,10 +1071,10 @@ See the [GitHub repository](https://github.com/ambient-code/agentready) for curr
 
 ## Next Steps
 
-- **[User Guide](user-guide)** — Learn how to run assessments
-- **[Developer Guide](developer-guide)** — Implement new assessors
-- **[API Reference](api-reference)** — Integrate AgentReady
-- **[Examples](examples)** — View real assessment reports
+- **[User Guide](user-guide.md)** — Learn how to run assessments
+- **[Developer Guide](developer-guide.md)** — Implement new assessors
+- **[API Reference](api-reference.md)** — Integrate AgentReady
+- **[Examples](examples.md)** — View real assessment reports
 
 ---
 
