@@ -308,7 +308,7 @@ output_dir: ./reports
 
 ```bash
 # Generate example configuration
-agentready generate-config > .agentready-config.yaml
+agentready generate-config
 
 # Validate configuration
 agentready --validate-config .agentready-config.yaml
