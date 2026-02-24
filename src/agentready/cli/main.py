@@ -546,15 +546,23 @@ def generate_config():
         # Fall back to package data (pip install mode)
         try:
             from importlib import resources
+
             # For Python 3.9+, use files() API
             try:
                 package_files = resources.files("agentready.data")
-                example_content = (package_files / ".agentready-config.example.yaml").read_text()
+                example_content = (
+                    package_files / ".agentready-config.example.yaml"
+                ).read_text()
             except AttributeError:
                 # Fallback for older Python versions
-                example_content = resources.read_text("agentready.data", ".agentready-config.example.yaml")
-        except Exception as e:
-            click.echo(f"Error: .agentready-config.example.yaml not found in current directory or package data", err=True)
+                example_content = resources.read_text(
+                    "agentready.data", ".agentready-config.example.yaml"
+                )
+        except Exception:
+            click.echo(
+                "Error: .agentready-config.example.yaml not found in current directory or package data",
+                err=True,
+            )
             sys.exit(1)
     else:
         # Read from current directory (development mode)

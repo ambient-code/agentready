@@ -518,12 +518,17 @@ class TestGenerateConfigCommand:
             assert "Created" in result.output
 
     def test_generate_config_no_example(self, runner):
-        """Test generate-config fails when example not found."""
+        """Test generate-config fails when example not found in filesystem or package data."""
         with runner.isolated_filesystem():
-            result = runner.invoke(generate_config, [])
+            # Mock importlib.resources to simulate missing package data
+            # Need to mock at the point it's imported (inside the function)
+            with patch("importlib.resources.files") as mock_files:
+                mock_files.side_effect = Exception("Package data not found")
 
-            assert result.exit_code != 0
-            assert "not found" in result.output
+                result = runner.invoke(generate_config, [])
+
+                assert result.exit_code != 0
+                assert "not found" in result.output
 
     def test_generate_config_overwrite_prompt(self, runner):
         """Test generate-config prompts when file exists."""
