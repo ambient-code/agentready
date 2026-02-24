@@ -1,3 +1,10 @@
+## [2.29.4](https://github.com/ambient-code/agentready/compare/v2.29.3...v2.29.4) (2026-02-24)
+
+
+### Bug Fixes
+
+* consider renovate for dependency_security check ([#317](https://github.com/ambient-code/agentready/issues/317)) ([35bfbbf](https://github.com/ambient-code/agentready/commit/35bfbbfe783bcda0d3c88a822666f95a88b5e320))
+
 ## [2.29.3](https://github.com/ambient-code/agentready/compare/v2.29.2...v2.29.3) (2026-02-24)
 
 
