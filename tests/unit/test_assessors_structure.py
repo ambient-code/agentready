@@ -592,3 +592,90 @@ class TestStandardLayoutAssessor:
         # Should indicate this is a heuristic match
         assert "heuristic" in evidence_str
         assert "verify" in evidence_str
+
+    # === Tests for PR #322 review feedback ===
+
+    def test_pyproject_without_name_uses_heuristic(self, tmp_path):
+        """Test that pyproject.toml without [project].name still allows heuristic detection.
+
+        PR #322 review feedback: Strategy 3 should run whenever pyproject.toml exists,
+        not just when a package name is found. A pyproject.toml with only [build-system]
+        should still allow heuristic detection of source directories.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # pyproject.toml with only [build-system], no [project].name
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(
+            '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n'
+        )
+
+        # Create a package directory
+        (tmp_path / "mypackage").mkdir()
+        (tmp_path / "mypackage" / "__init__.py").touch()
+        (tmp_path / "tests").mkdir()
+
+        repo = Repository(
+            path=tmp_path,
+            name="mypackage",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should pass via heuristic detection since pyproject.toml exists
+        assert finding.status == "pass"
+        evidence_str = " ".join(finding.evidence)
+        assert "heuristic" in evidence_str
+
+    def test_project_named_directory_without_init_falls_through(self, tmp_path):
+        """Test that project-named directory without __init__.py is not detected.
+
+        PR #322 review feedback: Namespace packages (PEP 420) don't have __init__.py.
+        Strategy 2 should fall through correctly when the directory exists but has
+        no __init__.py.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # pyproject.toml with project name
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[project]\nname = "mypackage"\n')
+
+        # Create project-named directory WITHOUT __init__.py (namespace package style)
+        (tmp_path / "mypackage").mkdir()
+        # Note: no __init__.py - this is a namespace package
+
+        # Create another package that does have __init__.py
+        (tmp_path / "api").mkdir()
+        (tmp_path / "api" / "__init__.py").touch()
+        (tmp_path / "tests").mkdir()
+
+        repo = Repository(
+            path=tmp_path,
+            name="mypackage",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should pass - Strategy 2 fails (no __init__.py), but Strategy 3
+        # finds api/ as a heuristic match
+        assert finding.status == "pass"
+        evidence_str = " ".join(finding.evidence)
+        # Falls through to heuristic since mypackage/ doesn't have __init__.py
+        assert "heuristic" in evidence_str
+        assert "api/" in evidence_str

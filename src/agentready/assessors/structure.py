@@ -2,11 +2,20 @@
 
 import re
 import tomllib
+from typing import Literal, TypedDict
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from .base import BaseAssessor
+
+
+class SourceDirectoryInfo(TypedDict):
+    """Type-safe return value for _find_source_directory method."""
+
+    found: bool
+    type: Literal["src", "project-named", "heuristic", "none"]
+    directory: str
 
 # Directories that should not be considered as source directories.
 # These are generic pattern names that almost never serve as primary source.
@@ -178,15 +187,15 @@ class StandardLayoutAssessor(BaseAssessor):
             error_message=None,
         )
 
-    def _find_source_directory(self, repository: Repository) -> dict:
+    def _find_source_directory(self, repository: Repository) -> SourceDirectoryInfo:
         """Find the source directory using multiple strategies.
 
         Fix for #246: Support both src/ layout and project-named layout.
 
         Returns:
-            dict with keys:
+            SourceDirectoryInfo with keys:
             - found: bool - whether a source directory was found
-            - type: str - "src", "project-named", or "none"
+            - type: "src", "project-named", "heuristic", or "none"
             - directory: str - name of the source directory
         """
         # Strategy 1: Check for src/ directory (PEP 517 recommended)
@@ -196,7 +205,9 @@ class StandardLayoutAssessor(BaseAssessor):
         # Strategy 2: Look for project-named directory from pyproject.toml
         # Only use project-named detection when pyproject.toml exists to avoid
         # false positives from migrations/, config/, etc.
+        pyproject_exists = (repository.path / "pyproject.toml").exists()
         package_name = self._get_package_name_from_pyproject(repository)
+
         if package_name:
             # Normalize package name (replace hyphens with underscores)
             normalized_name = package_name.replace("-", "_")
@@ -208,11 +219,13 @@ class StandardLayoutAssessor(BaseAssessor):
                     "directory": f"{normalized_name}/",
                 }
 
-            # Strategy 3: pyproject.toml exists but package name doesn't match
-            # a directory. Look for any directory with __init__.py at root level
-            # that isn't in the blocklist. Only do this when pyproject.toml exists
-            # to avoid false positives. Returns first match alphabetically.
-            # Mark as "heuristic" so evidence shows this is a best-guess match.
+        # Strategy 3: pyproject.toml exists but no matching project-named directory.
+        # Look for any directory with __init__.py at root level that isn't in the
+        # blocklist. Only do this when pyproject.toml exists to avoid false positives.
+        # Returns first match alphabetically.
+        # Mark as "heuristic" so evidence shows this is a best-guess match.
+        # Fix: Run this whenever pyproject.toml exists, not just when name is found.
+        if pyproject_exists:
             for item in sorted(repository.path.iterdir(), key=lambda p: p.name):
                 if not item.is_dir():
                     continue
