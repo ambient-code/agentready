@@ -1,0 +1,89 @@
+# AgentReady Configuration Example
+#
+# This file demonstrates how to customize the assessment behavior.
+# Copy to .agentready-config.yaml in your repository root to use.
+#
+# All fields are optional - missing values use defaults from src/agentready/data/default-weights.yaml
+
+# Custom attribute weights (must sum to 1.0)
+# Tier 1 (Essential) attributes default to 10% each
+# Tier 2 (Critical) attributes default to 3% each
+# Tier 3 (Important) attributes default to 3% each
+# Tier 4 (Advanced) attributes default to 1% each
+weights:
+  # Tier 1 (Essential) - 50% total
+  claude_md_file: 0.10              # CLAUDE.md configuration files
+  readme_structure: 0.10            # README structure and content
+  type_annotations: 0.10            # Type hints in code
+  standard_layout: 0.10             # Standard project layout
+  lock_files: 0.10                  # Dependency lock files
+
+  # Tier 2 (Critical) - 30% total
+  test_coverage: 0.03               # Test coverage requirements
+  precommit_hooks: 0.03             # Pre-commit hooks & linting
+  conventional_commits: 0.03        # Conventional commit messages
+  gitignore_completeness: 0.03      # Comprehensive .gitignore
+  one_command_setup: 0.03           # One-command build/setup
+  concise_documentation: 0.03       # Concise structured docs
+  inline_documentation: 0.03        # Inline code documentation
+  file_size_limits: 0.03            # File size constraints
+  dependency_freshness: 0.03        # Dependency updates & security
+  separation_concerns: 0.03         # Separation of concerns
+
+  # Tier 3 (Important) - 15% total
+  cyclomatic_complexity: 0.03       # Complexity thresholds
+  structured_logging: 0.03          # Structured logging
+  openapi_specs: 0.03               # OpenAPI/Swagger specs
+  architecture_decisions: 0.03      # Architecture Decision Records
+  semantic_naming: 0.03             # Semantic file naming
+
+  # Tier 4 (Advanced) - 5% total
+  security_scanning: 0.01           # Security scanning automation
+  performance_benchmarks: 0.01      # Performance benchmarks
+  code_smells: 0.01                 # Code smell elimination
+  issue_pr_templates: 0.01          # GitHub templates
+  container_setup: 0.01             # Container/virtualization
+
+# Exclude specific attributes from assessment
+excluded_attributes: []
+  # - performance_benchmarks       # Skip if no benchmarks needed
+  # - container_setup              # Skip if no Docker/containers
+
+# Force language detection (override automatic detection)
+language_overrides: {}
+  # Python: ["*.pyx", "*.pyd"]     # Treat Cython files as Python
+  # JavaScript: ["*.jsx"]          # Treat JSX as JavaScript
+
+# Custom output directory (default: .agentready/)
+# output_dir: ./custom-reports
+
+# HTML Report Theme (default: 'default')
+# Available themes: default, light, dark, high-contrast, solarized-dark, dracula
+report_theme: default
+
+# Custom Theme Colors (optional - overrides report_theme if provided)
+# All fields required if custom_theme is specified
+# custom_theme:
+#   background: "#0a0e27"
+#   surface: "#1a1f3a"
+#   surface_elevated: "#252b4a"
+#   primary: "#8b5cf6"
+#   primary_light: "#a78bfa"
+#   primary_dark: "#6d28d9"
+#   text_primary: "#f8fafc"
+#   text_secondary: "#cbd5e1"
+#   text_muted: "#94a3b8"
+#   success: "#10b981"
+#   warning: "#f59e0b"
+#   danger: "#ef4444"
+#   neutral: "#64748b"
+#   border: "#334155"
+#   shadow: "rgba(0, 0, 0, 0.5)"
+
+# Example: Increase weight for CLAUDE.md and tests
+# This increases CLAUDE.md from 10% to 15% and test_coverage from 3% to 5%
+# Other attributes are automatically rescaled to maintain sum of 1.0
+#
+# weights:
+#   claude_md_file: 0.15
+#   test_coverage: 0.05

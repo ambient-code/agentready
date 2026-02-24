@@ -59,13 +59,13 @@ where = ["src"]
 agentready = [
     "data/*.md",
     "data/*.yaml",
+    "data/.agentready-config.example.yaml",
     "prompts/*.md",
     "templates/*.j2",
     "templates/**/*.j2",
     "templates/**/*.yml.j2",
     "templates/**/*.yaml.j2",
-    "templates/**/*.md.j2",
-    "*.example.yaml"
+    "templates/**/*.md.j2"
 ]
 
 [tool.black]
