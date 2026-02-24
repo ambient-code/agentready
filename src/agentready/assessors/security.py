@@ -133,6 +133,7 @@ class DependencySecurityAssessor(BaseAssessor):
                 if (
                     not bonus_awarded
                     and has_renovate_package_json
+                    and pkg_renovate_config
                     and isinstance(pkg_renovate_config, dict)
                 ):
                     if any(key in pkg_renovate_config for key in meaningful_keys):
