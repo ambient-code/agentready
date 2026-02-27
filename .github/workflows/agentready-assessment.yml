@@ -269,7 +269,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload Assessment Reports
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: agentready-reports-${{ github.run_id }}
