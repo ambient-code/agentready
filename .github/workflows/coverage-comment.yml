@@ -62,7 +62,7 @@ jobs:
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Download coverage data
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage-data
           path: coverage-data
