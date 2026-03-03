@@ -1,7 +1,19 @@
-name: PR Review + Auto-Fix Criticals
+name: PR Review
+
+# Automated code review for pull requests.
+#
+# Security: Uses pull_request trigger (not pull_request_target) to prevent
+# prompt injection attacks. Fork PRs will not receive automated reviews
+# since they don't have access to repository secrets.
+#
+# For fork contributors: Push your branch to the main repo instead of using
+# a fork, or request manual review.
+#
+# Fixes: RHOAIENG-51622 (security), GitHub #324 (wrong PR context)
+# See: https://issues.redhat.com/browse/RHOAIENG-51622
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -13,6 +25,9 @@ jobs:
   review:
     name: Code Review
     runs-on: ubuntu-latest
+    # Skip reviews on fork PRs (no secrets access anyway)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
     steps:
       - name: Minimize old Claude review comments
         uses: actions/github-script@v8
@@ -25,7 +40,7 @@ jobs:
             });
 
             for (const comment of comments.data) {
-              if (comment.body.includes('🤖 AgentReady Code Review') &&
+              if (comment.body.includes('AgentReady Code Review') &&
                   comment.user.login === 'github-actions[bot]') {
                 await github.rest.issues.updateComment({
                   owner: context.repo.owner,
@@ -38,9 +53,6 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          # Use base branch for security - don't execute fork's .claude/commands/
-          ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Run AgentReady Code Review
         uses: anthropics/claude-code-action@v1
@@ -48,7 +60,6 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          allowed_non_write_users: '*'  # Enable reviews on fork PRs
           settings: |
             {
               "permissions": {
@@ -61,7 +72,7 @@ jobs:
               }
             }
           prompt: |
-            Run the /review-agentready command on this pull request.
+            Run the /review-agentready command on pull request #${{ github.event.pull_request.number }}.
 
             Provide a comprehensive code review focusing on:
             - AgentReady attribute compliance
@@ -69,4 +80,4 @@ jobs:
             - Code quality
             - Best practices
 
-            Post the review as a comment on this PR.
+            Post the review as a comment on PR #${{ github.event.pull_request.number }}.
