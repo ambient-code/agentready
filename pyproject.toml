@@ -59,11 +59,8 @@ where = ["src"]
 agentready = [
     "data/*.md",
     "data/*.yaml",
-<<<<<<< bugfix/issue-246-305-standard-layout-flexibility
     "data/*.arsrc",
-=======
     "data/.agentready-config.example.yaml",
->>>>>>> main
     "prompts/*.md",
     "templates/*.j2",
     "templates/**/*.j2",
