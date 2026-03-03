@@ -9,15 +9,15 @@ name: PR Review
 # For fork contributors: Push your branch to the main repo instead of using
 # a fork, or request manual review.
 #
-# Fixes: RHOAIENG-51622 (security), GitHub #324 (wrong PR context)
-# See: https://issues.redhat.com/browse/RHOAIENG-51622
+# Fixes: GitHub #324 (wrong PR context)
+# Security: Prevents prompt injection attacks from fork PRs
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
   issues: write
 

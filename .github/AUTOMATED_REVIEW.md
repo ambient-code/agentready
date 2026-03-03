@@ -172,24 +172,7 @@ mv .github/workflows/pr-review.yml.disabled .github/workflows/pr-review.yml
 
 ## Customization
 
-### Adjust Confidence Threshold
-
-Edit `.github/workflows/pr-review-auto-fix.yml`:
-
-```yaml
-# Change from 90 to 95 for more conservative auto-fixing
-if: needs.review.outputs.has_criticals == 'true'  # confidence ≥90
-# to
-if: needs.review.outputs.has_criticals == 'true'  # confidence ≥95
-```
-
-Also update `.claude/commands/review-agentready.md`:
-
-```markdown
-**Critical Issue Criteria** (confidence ≥95):  # Changed from 90
-```
-
-### Add Custom Focus Areas
+### Adjust Review Focus Areas
 
 Edit `.claude/commands/review-agentready.md` under "AgentReady-Specific Focus Areas":
 
@@ -222,24 +205,6 @@ class ReviewFormatter:
 2. Verify `ANTHROPIC_API_KEY` is set correctly
 3. Ensure `pull-requests: write` permission is granted
 4. **Fork PRs**: Reviews only run on PRs from branches in the main repo, not forks
-
-### Auto-Fix Not Running
-
-**Symptom**: Review posts but auto-fix job doesn't run
-
-**Solutions**:
-1. Verify review found issues with confidence ≥90
-2. Check `.review-results.json` artifact was uploaded
-3. Review `needs.review.outputs.has_criticals` value in logs
-
-### Fixes Causing Test Failures
-
-**Symptom**: Auto-fix commits but tests fail
-
-**Solutions**:
-1. Check the auto-fix logic in `.github/claude-bot-prompt.md`
-2. Verify linters run before tests: `black . && isort . && pytest`
-3. Consider lowering confidence threshold (fixes might be too aggressive)
 
 ### Rate Limiting
 
