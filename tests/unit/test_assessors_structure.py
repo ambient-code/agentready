@@ -679,3 +679,149 @@ class TestStandardLayoutAssessor:
         # Falls through to heuristic since mypackage/ doesn't have __init__.py
         assert "heuristic" in evidence_str
         assert "api/" in evidence_str
+
+    # === Tests for .arsrc config file loading ===
+
+    def test_arsrc_file_exists_and_is_loaded(self):
+        """Test that Python.arsrc config file exists and can be loaded."""
+        from agentready.assessors.structure import _load_arsrc_file
+
+        non_source_dirs = _load_arsrc_file("Python.arsrc")
+
+        # Should load successfully and contain expected entries
+        assert isinstance(non_source_dirs, frozenset)
+        assert len(non_source_dirs) > 0
+        # Check for some expected entries
+        assert "tests" in non_source_dirs
+        assert "docs" in non_source_dirs
+        assert ".git" in non_source_dirs
+        assert "node_modules" in non_source_dirs
+
+    def test_get_non_source_dirs_returns_frozenset(self):
+        """Test that _get_non_source_dirs returns a frozenset."""
+        from agentready.assessors.structure import _get_non_source_dirs
+
+        result = _get_non_source_dirs()
+
+        assert isinstance(result, frozenset)
+        assert len(result) > 0
+
+    def test_arsrc_file_ignores_comments_and_empty_lines(self, tmp_path, monkeypatch):
+        """Test that .arsrc file parsing ignores comments and empty lines."""
+        from agentready.assessors import structure
+
+        # Clear the cache before testing
+        structure._load_arsrc_file.cache_clear()
+
+        # Create a test config file
+        test_config = tmp_path / "Test.arsrc"
+        test_config.write_text("""# This is a comment
+valid_entry
+
+# Another comment
+another_entry
+   # Indented comment should be treated as entry (leading spaces)
+""")
+
+        # Monkey-patch the data directory
+        monkeypatch.setattr(structure, "_get_data_dir", lambda: tmp_path)
+
+        result = structure._load_arsrc_file("Test.arsrc")
+
+        # Should contain valid entries
+        assert "valid_entry" in result
+        assert "another_entry" in result
+        # Comments should be excluded
+        assert "# This is a comment" not in result
+        assert "" not in result
+
+        # Clean up cache
+        structure._load_arsrc_file.cache_clear()
+
+    def test_arsrc_missing_file_returns_empty_set_with_warning(
+        self, tmp_path, monkeypatch
+    ):
+        """Test that missing .arsrc file returns empty frozenset and emits warning."""
+        import warnings
+
+        from agentready.assessors import structure
+
+        # Clear the cache before testing
+        structure._load_arsrc_file.cache_clear()
+
+        # Monkey-patch the data directory to a directory without the file
+        monkeypatch.setattr(structure, "_get_data_dir", lambda: tmp_path)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = structure._load_arsrc_file("NonExistent.arsrc")
+
+            # Should return empty set
+            assert result == frozenset()
+
+            # Should emit a warning
+            assert len(w) == 1
+            assert "NonExistent.arsrc" in str(w[0].message)
+            assert "not found" in str(w[0].message)
+
+        # Clean up cache
+        structure._load_arsrc_file.cache_clear()
+
+    def test_blocklist_excludes_directories_from_heuristic_detection(self, tmp_path):
+        """Test that directories in .arsrc blocklist are excluded from heuristic detection.
+
+        This verifies the integration between the config file and the assessor.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # Create pyproject.toml without project name
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[build-system]\nrequires = ["setuptools"]\n')
+
+        # Create a blocklisted directory with __init__.py
+        (tmp_path / "utils").mkdir()
+        (tmp_path / "utils" / "__init__.py").touch()
+
+        # Create a valid source directory with __init__.py
+        (tmp_path / "myapp").mkdir()
+        (tmp_path / "myapp" / "__init__.py").touch()
+
+        (tmp_path / "tests").mkdir()
+
+        repo = Repository(
+            path=tmp_path,
+            name="myproject",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should pass with myapp/ detected (utils/ should be skipped)
+        assert finding.status == "pass"
+        evidence_str = " ".join(finding.evidence)
+        assert "myapp/" in evidence_str
+        # utils/ should NOT be in evidence as it's blocklisted
+        assert "utils/" not in evidence_str
+
+    def test_python_arsrc_bundled_with_package(self):
+        """Verify Python.arsrc is accessible from the installed package.
+
+        This test ensures the config file is properly included in package-data
+        and will be distributed when the package is installed via pip.
+        """
+        from agentready.assessors.structure import _get_data_dir
+
+        arsrc_path = _get_data_dir() / "Python.arsrc"
+        assert arsrc_path.exists(), f"Python.arsrc not found at {arsrc_path}"
+
+        # Also verify it has content (not empty)
+        content = arsrc_path.read_text()
+        assert len(content) > 0, "Python.arsrc is empty"
+        assert "tests" in content, "Python.arsrc missing expected entry 'tests'"

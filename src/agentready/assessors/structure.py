@@ -2,6 +2,9 @@
 
 import re
 import tomllib
+import warnings
+from functools import lru_cache
+from pathlib import Path
 from typing import Literal, TypedDict
 
 from ..models.attribute import Attribute
@@ -18,63 +21,59 @@ class SourceDirectoryInfo(TypedDict):
     directory: str
 
 
-# Directories that should not be considered as source directories.
-# These are generic pattern names that almost never serve as primary source.
-# Avoid blocking package proper names (celery, alembic, etc.) which are
-# legitimate source directories for their respective projects.
-_NON_SOURCE_DIRS = frozenset(
-    {
-        # Test directories
-        "tests",
-        "test",
-        "fixtures",
-        "benchmarks",
-        # Documentation
-        "docs",
-        "doc",
-        "documentation",
-        # Scripts and utilities
-        "scripts",
-        "utilities",
-        "utils",
-        "tools",
-        "examples",
-        "samples",
-        # Database migrations (generic name only)
-        "migrations",
-        # Configuration directories
-        "config",
-        "settings",
-        "conf",
-        # Web framework static directories (not source code)
-        "static",
-        "assets",
-        "templates",
-        "locale",
-        "i18n",
-        # Data and resources
-        "data",
-        "resources",
-        # CI/CD
-        "ci",
-        ".circleci",
-        # Hidden/build directories
-        ".git",
-        ".github",
-        ".venv",
-        "venv",
-        "env",
-        "node_modules",
-        "__pycache__",
-        ".tox",
-        ".pytest_cache",
-        ".mypy_cache",
-        "build",
-        "dist",
-        "htmlcov",
-        ".eggs",
-    }
-)
+def _get_data_dir() -> Path:
+    """Get the path to the data directory containing config files."""
+    return Path(__file__).parent.parent / "data"
+
+
+@lru_cache(maxsize=8)
+def _load_arsrc_file(filename: str) -> frozenset[str]:
+    """Load directory names from an .arsrc config file.
+
+    Args:
+        filename: Name of the .arsrc file (e.g., "Python.arsrc")
+
+    Returns:
+        Frozenset of directory names to exclude from source detection.
+        Returns empty set if file not found.
+
+    File format:
+        - One directory name per line
+        - Lines starting with # are comments
+        - Empty lines are ignored
+    """
+    config_path = _get_data_dir() / filename
+    if not config_path.exists():
+        warnings.warn(
+            f"Config file {filename} not found at {config_path}. "
+            "Blocklist will be empty, which may cause false positives in "
+            "source directory detection. This usually indicates a packaging issue.",
+            UserWarning,
+            stacklevel=2,
+        )
+        return frozenset()
+
+    entries = set()
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith("#"):
+                    continue
+                entries.add(line)
+    except OSError:
+        return frozenset()
+
+    return frozenset(entries)
+
+
+def _get_non_source_dirs() -> frozenset[str]:
+    """Get the set of directories that should not be considered source directories.
+
+    Loads from Python.arsrc config file. Falls back to empty set if not found.
+    """
+    return _load_arsrc_file("Python.arsrc")
 
 
 class StandardLayoutAssessor(BaseAssessor):
@@ -232,7 +231,7 @@ class StandardLayoutAssessor(BaseAssessor):
                     continue
                 if item.name.startswith("."):
                     continue
-                if item.name.lower() in _NON_SOURCE_DIRS:
+                if item.name.lower() in _get_non_source_dirs():
                     continue
                 if (item / "__init__.py").exists():
                     return {
