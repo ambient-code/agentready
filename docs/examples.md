@@ -895,10 +895,10 @@ print("Trend chart saved: agentready-trend.png")
 
 ## Next Steps
 
-- **[User Guide](user-guide)** — Learn how to run assessments
-- **[Developer Guide](developer-guide)** — Implement custom assessors
-- **[Attributes](attributes)** — Complete attribute reference
-- **[API Reference](api-reference)** — Integrate AgentReady programmatically
+- **[User Guide](user-guide.md)** — Learn how to run assessments
+- **[Developer Guide](developer-guide.md)** — Implement custom assessors
+- **[Attributes](attributes.md)** — Complete attribute reference
+- **[API Reference](api-reference.md)** — Integrate AgentReady programmatically
 
 ---
 

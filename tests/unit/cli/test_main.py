@@ -506,7 +506,7 @@ class TestGenerateConfigCommand:
     """Test generate-config command."""
 
     def test_generate_config_creates_file(self, runner):
-        """Test generate-config creates config file."""
+        """Test generate-config creates config file from local example."""
         with runner.isolated_filesystem():
             # Create example config
             Path(".agentready-config.example.yaml").write_text("weights:\n  attr1: 1.0")
@@ -517,13 +517,43 @@ class TestGenerateConfigCommand:
             assert Path(".agentready-config.yaml").exists()
             assert "Created" in result.output
 
-    def test_generate_config_no_example(self, runner):
-        """Test generate-config fails when example not found."""
+    def test_generate_config_uses_package_data_fallback(self, runner):
+        """Test generate-config falls back to package data when local file missing."""
         with runner.isolated_filesystem():
+            # No local .agentready-config.example.yaml exists
+            # Command should fall back to package data
             result = runner.invoke(generate_config, [])
 
-            assert result.exit_code != 0
-            assert "not found" in result.output
+            # Should succeed by reading from package data
+            assert result.exit_code == 0
+            assert Path(".agentready-config.yaml").exists()
+            assert "Created" in result.output
+            # Verify it contains actual config content (from package data)
+            config_content = Path(".agentready-config.yaml").read_text()
+            assert (
+                "AgentReady Configuration" in config_content
+                or "weights" in config_content
+            )
+
+    def test_generate_config_no_example(self, runner):
+        """Test generate-config fails when example not found in filesystem or package data."""
+        with runner.isolated_filesystem():
+            # Mock only the specific read_text call for the package data path
+            # to simulate missing package data
+            original_read_text = Path.read_text
+
+            def mock_read_text(self, *args, **kwargs):
+                # Fail only for the package data path
+                if ".agentready-config.example.yaml" in str(self):
+                    raise FileNotFoundError("Example config not found")
+                # Allow other paths to work normally
+                return original_read_text(self, *args, **kwargs)
+
+            with patch.object(Path, "read_text", mock_read_text):
+                result = runner.invoke(generate_config, [])
+
+                assert result.exit_code != 0
+                assert "not found" in result.output
 
     def test_generate_config_overwrite_prompt(self, runner):
         """Test generate-config prompts when file exists."""

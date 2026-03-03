@@ -1,3 +1,24 @@
+## [2.29.5](https://github.com/ambient-code/agentready/compare/v2.29.4...v2.29.5) (2026-03-03)
+
+
+### Bug Fixes
+
+* **security:** replace pull_request_target with pull_request trigger ([#328](https://github.com/ambient-code/agentready/issues/328)) ([3c5d31b](https://github.com/ambient-code/agentready/commit/3c5d31b7f3b6a6a6c2b1f470af71d9d4d620aec3)), closes [#324](https://github.com/ambient-code/agentready/issues/324)
+
+## [2.29.4](https://github.com/ambient-code/agentready/compare/v2.29.3...v2.29.4) (2026-02-24)
+
+
+### Bug Fixes
+
+* consider renovate for dependency_security check ([#317](https://github.com/ambient-code/agentready/issues/317)) ([35bfbbf](https://github.com/ambient-code/agentready/commit/35bfbbfe783bcda0d3c88a822666f95a88b5e320))
+
+## [2.29.3](https://github.com/ambient-code/agentready/compare/v2.29.2...v2.29.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* **schema:** allow assessments with excluded attributes ([#312](https://github.com/ambient-code/agentready/issues/312)) ([81b999f](https://github.com/ambient-code/agentready/commit/81b999fb35ff3ddbd799315e714c09582b284024)), closes [#301](https://github.com/ambient-code/agentready/issues/301) [#309](https://github.com/ambient-code/agentready/issues/309) [#309](https://github.com/ambient-code/agentready/issues/309)
+
 ## [2.29.2](https://github.com/ambient-code/agentready/compare/v2.29.1...v2.29.2) (2026-02-23)
 
 

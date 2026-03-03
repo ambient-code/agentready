@@ -165,3 +165,152 @@ def test_validate_lenient_mode(validator, valid_report_data):
 
     # Lenient mode should pass
     assert is_valid is True or len(errors) == 0
+
+
+def test_validate_excluded_attributes_issue_309(validator, valid_report_data):
+    """Test validation passes for assessments with excluded attributes.
+
+    Regression test for issue #309: Schema rejected valid assessments
+    generated with --exclude flags because it hardcoded attributes_total=25.
+
+    The schema now allows 10-25 attributes to support exclusions.
+    """
+    # Simulate an assessment with 15 excluded attributes (10 remaining)
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 9
+    valid_report_data["attributes_skipped"] = 1
+    valid_report_data["findings"] = valid_report_data["findings"][:10]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is True, f"Validation failed unexpectedly: {errors}"
+    assert len(errors) == 0
+
+
+def test_validate_partial_exclusion_issue_309(validator, valid_report_data):
+    """Test validation passes for assessments with some excluded attributes.
+
+    Tests the common case from issue #309: user excludes 3 attributes,
+    resulting in 22 attributes instead of 25.
+    """
+    # Simulate PR #301: 22 attributes (3 excluded)
+    valid_report_data["attributes_total"] = 22
+    valid_report_data["attributes_assessed"] = 21
+    valid_report_data["attributes_skipped"] = 1
+    valid_report_data["findings"] = valid_report_data["findings"][:22]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is True, f"Validation failed unexpectedly: {errors}"
+    assert len(errors) == 0
+
+
+def test_validate_too_few_attributes_rejected(validator, valid_report_data):
+    """Test validation fails when too many attributes are excluded.
+
+    The schema requires at least 10 attributes to ensure meaningful assessments.
+    """
+    # Try to submit with only 5 attributes (below minimum of 10)
+    valid_report_data["attributes_total"] = 5
+    valid_report_data["attributes_assessed"] = 5
+    valid_report_data["attributes_skipped"] = 0
+    valid_report_data["findings"] = valid_report_data["findings"][:5]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is False, "Should reject assessments with fewer than 10 attributes"
+    assert len(errors) > 0
+
+
+# Cross-field validation tests (PR #312 review comment)
+# These test the _validate_cross_field_constraints() method
+
+
+def test_cross_field_findings_count_mismatch(validator, valid_report_data):
+    """Test validation fails when findings count doesn't match attributes_total.
+
+    Regression test for PR #312 review: JSON Schema cannot enforce that
+    len(findings) == attributes_total, so we need programmatic validation.
+    """
+    # Set attributes_total to 10 but keep 25 findings
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 9
+    valid_report_data["attributes_skipped"] = 1
+    # Intentionally leave findings at 25 items (mismatch)
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is False, "Should reject when findings count != attributes_total"
+    assert any("findings count" in err and "must equal" in err for err in errors)
+
+
+def test_cross_field_assessed_skipped_sum_mismatch(validator, valid_report_data):
+    """Test validation fails when assessed + skipped != attributes_total.
+
+    Regression test for PR #312 review: JSON Schema cannot enforce that
+    attributes_assessed + attributes_skipped == attributes_total.
+    """
+    # Set values that don't add up: 20 + 5 = 25, but total is 10
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 20
+    valid_report_data["attributes_skipped"] = 5
+    valid_report_data["findings"] = valid_report_data["findings"][:10]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is False, "Should reject when assessed + skipped != total"
+    assert any("attributes_assessed" in err and "must equal" in err for err in errors)
+
+
+def test_cross_field_both_constraints_violated(validator, valid_report_data):
+    """Test validation catches multiple cross-field violations.
+
+    Both constraints should be checked and all errors reported.
+    """
+    # Violate both constraints
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 20
+    valid_report_data["attributes_skipped"] = 5
+    # Keep 25 findings (mismatch with attributes_total=10)
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is False
+    assert len(errors) >= 2, "Should report both cross-field validation errors"
+    assert any("findings count" in err for err in errors)
+    assert any("attributes_assessed" in err for err in errors)
+
+
+def test_cross_field_valid_partial_assessment(validator, valid_report_data):
+    """Test validation passes when all cross-field constraints are satisfied.
+
+    A valid partial assessment should pass all checks.
+    """
+    # Valid partial assessment: 15 attributes excluded, 10 remaining
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 8
+    valid_report_data["attributes_skipped"] = 2
+    valid_report_data["findings"] = valid_report_data["findings"][:10]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is True, f"Valid partial assessment should pass: {errors}"
+    assert len(errors) == 0
+
+
+def test_cross_field_deprecated_attributes_not_assessed(validator, valid_report_data):
+    """Test validation works with deprecated 'attributes_not_assessed' key.
+
+    The deprecated key should be supported for backwards compatibility.
+    """
+    # Use deprecated key name
+    valid_report_data["attributes_total"] = 10
+    valid_report_data["attributes_assessed"] = 8
+    del valid_report_data["attributes_skipped"]
+    valid_report_data["attributes_not_assessed"] = 2
+    valid_report_data["findings"] = valid_report_data["findings"][:10]
+
+    is_valid, errors = validator.validate_report(valid_report_data)
+
+    assert is_valid is True, f"Should accept deprecated key: {errors}"
+    assert len(errors) == 0

@@ -308,7 +308,7 @@ output_dir: ./reports
 
 ```bash
 # Generate example configuration
-agentready --generate-config > .agentready-config.yaml
+agentready generate-config
 
 # Validate configuration
 agentready --validate-config .agentready-config.yaml
@@ -346,10 +346,10 @@ agentready --validate-config .agentready-config.yaml
 
 ## Next Steps
 
-- **[Developer Guide](developer-guide)** — Learn how to contribute and extend AgentReady
-- **[Attributes Reference](attributes)** — Understand each of the 25 attributes
-- **[API Reference](api-reference)** — Integrate AgentReady into your tools
-- **[Examples](examples)** — See real-world assessment reports
+- **[Developer Guide](developer-guide.md)** — Learn how to contribute and extend AgentReady
+- **[Attributes Reference](attributes.md)** — Understand each of the 25 attributes
+- **[API Reference](api-reference.md)** — Integrate AgentReady into your tools
+- **[Examples](examples.md)** — See real-world assessment reports
 
 ---
 

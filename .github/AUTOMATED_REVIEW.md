@@ -1,8 +1,8 @@
-# Automated PR Review + Auto-Fix System
+# Automated PR Review System
 
 **Status**: Active
-**Last Updated**: 2025-11-24
-**Workflow**: `.github/workflows/pr-review-auto-fix.yml`
+**Last Updated**: 2026-03-03
+**Workflow**: `.github/workflows/pr-review.yml`
 
 ## Overview
 
@@ -11,35 +11,34 @@ Every pull request in the agentready repository receives an automated code revie
 1. **Reviews PRs automatically** - Multi-agent review on PR open/update
 2. **Maps findings to AgentReady attributes** - Links issues to the 25 attributes
 3. **Calculates score impact** - Shows how fixing issues improves certification
-4. **Auto-fixes critical issues** - Resolves blockers/criticals (confidence ≥90) automatically
-5. **Commits fixes to PR branch** - Human developer sees clean PR
+
+## Security
+
+The workflow uses `pull_request` trigger (not `pull_request_target`) to prevent prompt injection attacks. See [RHOAIENG-51622](https://issues.redhat.com/browse/RHOAIENG-51622) for details.
+
+**Important**: Fork PRs do not receive automated reviews because they don't have access to repository secrets. This is intentional for security.
+
+### For External Contributors
+
+If you're contributing from a fork:
+- Push your branch to the main repository instead (e.g., `username/feature-name`)
+- Or request manual review from a maintainer
 
 ## Workflow
 
 ```
-PR Opened/Updated
+PR Opened/Updated (from main repo branch)
     ↓
 ┌───────────────────────────────────────┐
-│ Job 1: Code Review                    │
+│ PR Review                             │
+│ (pull_request trigger)                │
 │                                       │
 │ - Minimize old review comments       │
 │ - Run /review-agentready command     │
-│ - Generate .review-results.json      │
 │ - Post review comment with findings  │
 └───────────────────────────────────────┘
-    ↓ (if confidence ≥90 issues found)
-┌───────────────────────────────────────┐
-│ Job 2: Auto-Fix Criticals             │
-│                                       │
-│ - Download review results            │
-│ - Fix each critical issue atomically │
-│ - Run linters + tests after each fix │
-│ - Commit with conventional commits   │
-│ - Update review comment with status  │
-│ - Push fixes to PR branch            │
-└───────────────────────────────────────┘
     ↓
-Developer continues work on clean PR
+Developer receives review on their PR
 ```
 
 ## Review Output Format
@@ -120,10 +119,10 @@ The workflow is enabled by default. To disable:
 
 ```bash
 # Rename to disable
-mv .github/workflows/pr-review-auto-fix.yml .github/workflows/pr-review-auto-fix.yml.disabled
+mv .github/workflows/pr-review.yml .github/workflows/pr-review.yml.disabled
 
 # Re-enable later
-mv .github/workflows/pr-review-auto-fix.yml.disabled .github/workflows/pr-review-auto-fix.yml
+mv .github/workflows/pr-review.yml.disabled .github/workflows/pr-review.yml
 ```
 
 ## Testing
@@ -157,9 +156,8 @@ mv .github/workflows/pr-review-auto-fix.yml.disabled .github/workflows/pr-review
    ```
 
 5. **Observe workflow**:
-   - Check Actions tab: `.github/workflows/pr-review-auto-fix.yml`
-   - Review job should post comment with findings
-   - Auto-fix job should commit fixes to PR branch
+   - Check Actions tab for `PR Review`
+   - Review comment should be posted on the PR
 
 6. **Verify fixes**:
    ```bash
@@ -174,24 +172,7 @@ mv .github/workflows/pr-review-auto-fix.yml.disabled .github/workflows/pr-review
 
 ## Customization
 
-### Adjust Confidence Threshold
-
-Edit `.github/workflows/pr-review-auto-fix.yml`:
-
-```yaml
-# Change from 90 to 95 for more conservative auto-fixing
-if: needs.review.outputs.has_criticals == 'true'  # confidence ≥90
-# to
-if: needs.review.outputs.has_criticals == 'true'  # confidence ≥95
-```
-
-Also update `.claude/commands/review-agentready.md`:
-
-```markdown
-**Critical Issue Criteria** (confidence ≥95):  # Changed from 90
-```
-
-### Add Custom Focus Areas
+### Adjust Review Focus Areas
 
 Edit `.claude/commands/review-agentready.md` under "AgentReady-Specific Focus Areas":
 
@@ -220,28 +201,10 @@ class ReviewFormatter:
 **Symptom**: Workflow runs but no comment appears on PR
 
 **Solutions**:
-1. Check GitHub Actions logs for errors
+1. Check GitHub Actions logs for `PR Review`
 2. Verify `ANTHROPIC_API_KEY` is set correctly
 3. Ensure `pull-requests: write` permission is granted
-4. Check if PR is from a fork (may need `pull_request_target`)
-
-### Auto-Fix Not Running
-
-**Symptom**: Review posts but auto-fix job doesn't run
-
-**Solutions**:
-1. Verify review found issues with confidence ≥90
-2. Check `.review-results.json` artifact was uploaded
-3. Review `needs.review.outputs.has_criticals` value in logs
-
-### Fixes Causing Test Failures
-
-**Symptom**: Auto-fix commits but tests fail
-
-**Solutions**:
-1. Check the auto-fix logic in `.github/claude-bot-prompt.md`
-2. Verify linters run before tests: `black . && isort . && pytest`
-3. Consider lowering confidence threshold (fixes might be too aggressive)
+4. **Fork PRs**: Reviews only run on PRs from branches in the main repo, not forks
 
 ### Rate Limiting
 

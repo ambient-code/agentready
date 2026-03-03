@@ -1,6 +1,6 @@
 [project]
 name = "agentready"
-version = "2.29.2"
+version = "2.29.5"
 description = "Assess and bootstrap git repositories for AI-assisted development with automated remediation and continuous learning"
 authors = [{name = "Jeremy Eder", email = "jeder@redhat.com"}]
 readme = "README.md"
@@ -59,7 +59,11 @@ where = ["src"]
 agentready = [
     "data/*.md",
     "data/*.yaml",
+<<<<<<< bugfix/issue-246-305-standard-layout-flexibility
     "data/*.arsrc",
+=======
+    "data/.agentready-config.example.yaml",
+>>>>>>> main
     "prompts/*.md",
     "templates/*.j2",
     "templates/**/*.j2",
