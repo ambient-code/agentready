@@ -1,3 +1,10 @@
+## [2.29.5](https://github.com/ambient-code/agentready/compare/v2.29.4...v2.29.5) (2026-03-03)
+
+
+### Bug Fixes
+
+* **security:** replace pull_request_target with pull_request trigger ([#328](https://github.com/ambient-code/agentready/issues/328)) ([3c5d31b](https://github.com/ambient-code/agentready/commit/3c5d31b7f3b6a6a6c2b1f470af71d9d4d620aec3)), closes [#324](https://github.com/ambient-code/agentready/issues/324)
+
 ## [2.29.4](https://github.com/ambient-code/agentready/compare/v2.29.3...v2.29.4) (2026-02-24)
 
 
