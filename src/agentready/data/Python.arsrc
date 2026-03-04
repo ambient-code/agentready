@@ -1,0 +1,70 @@
+# Python Non-Source Directories
+# These directories should not be considered as primary source directories
+# when detecting project layout. One entry per line.
+# Lines starting with # are comments. Empty lines are ignored.
+#
+# Format follows .gitignore conventions (partial support):
+# - One directory name per line
+# - Comments start with #
+# - Empty lines are ignored
+#
+# Future: Full gitignore syntax support (wildcards, negation) planned.
+# See: https://github.com/github/gitignore
+
+# Test directories
+tests
+test
+fixtures
+benchmarks
+
+# Documentation
+docs
+doc
+documentation
+
+# Scripts and utilities
+scripts
+utilities
+utils
+tools
+examples
+samples
+
+# Database migrations (generic name only)
+migrations
+
+# Configuration directories
+config
+settings
+conf
+
+# Web framework static directories (not source code)
+static
+assets
+templates
+locale
+i18n
+
+# Data and resources
+data
+resources
+
+# CI/CD
+ci
+.circleci
+
+# Hidden/build directories
+.git
+.github
+.venv
+venv
+env
+node_modules
+__pycache__
+.tox
+.pytest_cache
+.mypy_cache
+build
+dist
+htmlcov
+.eggs
