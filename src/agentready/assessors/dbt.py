@@ -301,9 +301,9 @@ class DbtModelDocumentationAssessor(BaseAssessor):
                 self.attribute, reason="No SQL models found in models/"
             )
 
-        # Find and parse schema YAML files
-        schema_files = _find_yaml_files(models_dir, "*schema.yml")
-        schema_files.extend(_find_yaml_files(models_dir, "*_models.yml"))
+        # Find and parse schema YAML files (any .yml/.yaml file in models/)
+        # dbt supports multiple naming conventions: schema.yml, _models.yml, or one file per model
+        schema_files = _find_yaml_files(models_dir, "*.yml")
 
         # Extract documented model names
         documented_models = set()
@@ -473,9 +473,9 @@ class DbtDataTestsAssessor(BaseAssessor):
                 self.attribute, reason="No SQL models found in models/"
             )
 
-        # Find and parse schema YAML files
-        schema_files = _find_yaml_files(models_dir, "*schema.yml")
-        schema_files.extend(_find_yaml_files(models_dir, "*_models.yml"))
+        # Find and parse schema YAML files (any .yml/.yaml file in models/)
+        # dbt supports multiple naming conventions: schema.yml, _models.yml, or one file per model
+        schema_files = _find_yaml_files(models_dir, "*.yml")
 
         # Extract models with PK tests (unique + not_null)
         models_with_pk_tests = set()
