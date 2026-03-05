@@ -1,7 +1,38 @@
 {
-  "generated_at": "2026-02-23T22:08:53.305118Z",
+  "generated_at": "2026-03-05T20:06:56.945499Z",
   "total_repositories": 10,
   "overall": [
+    {
+      "repo": "opendatahub-io/opendatahub-tests",
+      "org": "opendatahub-io",
+      "name": "opendatahub-tests",
+      "score": 83.5,
+      "tier": "Gold",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-05",
+      "url": "https://github.com/opendatahub-io/opendatahub-tests",
+      "agentready_version": "2.29.5",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-05",
+          "score": 83.5,
+          "agentready_version": "2.29.5",
+          "research_version": "1.0.1"
+        },
+        {
+          "date": "2026-02-19",
+          "score": 73.5,
+          "agentready_version": "2.28.0",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 1,
+      "lang_rank": {
+        "Unknown": 1
+      }
+    },
     {
       "repo": "ambient-code/agentready",
       "org": "ambient-code",
@@ -26,31 +57,6 @@
           "score": 78.6,
           "agentready_version": "2.9.0",
           "research_version": "1.0.0"
-        }
-      ],
-      "rank": 1,
-      "lang_rank": {
-        "Unknown": 1
-      }
-    },
-    {
-      "repo": "opendatahub-io/opendatahub-tests",
-      "org": "opendatahub-io",
-      "name": "opendatahub-tests",
-      "score": 73.5,
-      "tier": "Silver",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-02-19",
-      "url": "https://github.com/opendatahub-io/opendatahub-tests",
-      "agentready_version": "2.28.0",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-02-19",
-          "score": 73.5,
-          "agentready_version": "2.28.0",
-          "research_version": "1.0.1"
         }
       ],
       "rank": 2,
@@ -165,31 +171,6 @@
       }
     },
     {
-      "repo": "ambient-code/reference",
-      "org": "ambient-code",
-      "name": "reference",
-      "score": 55.8,
-      "tier": "Bronze",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-01-15",
-      "url": "https://github.com/ambient-code/reference",
-      "agentready_version": "2.22.1",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-01-15",
-          "score": 55.8,
-          "agentready_version": "2.22.1",
-          "research_version": "1.0.1"
-        }
-      ],
-      "rank": 7,
-      "lang_rank": {
-        "Unknown": 7
-      }
-    },
-    {
       "repo": "jeremyeder/reference",
       "org": "jeremyeder",
       "name": "reference",
@@ -206,6 +187,31 @@
           "date": "2026-01-15",
           "score": 55.8,
           "agentready_version": "2.22.0",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 7,
+      "lang_rank": {
+        "Unknown": 7
+      }
+    },
+    {
+      "repo": "ambient-code/reference",
+      "org": "ambient-code",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/ambient-code/reference",
+      "agentready_version": "2.22.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.1",
           "research_version": "1.0.1"
         }
       ],
@@ -268,6 +274,37 @@
   "by_language": {
     "Unknown": [
       {
+        "repo": "opendatahub-io/opendatahub-tests",
+        "org": "opendatahub-io",
+        "name": "opendatahub-tests",
+        "score": 83.5,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-05",
+        "url": "https://github.com/opendatahub-io/opendatahub-tests",
+        "agentready_version": "2.29.5",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-05",
+            "score": 83.5,
+            "agentready_version": "2.29.5",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-19",
+            "score": 73.5,
+            "agentready_version": "2.28.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 1,
+        "lang_rank": {
+          "Unknown": 1
+        }
+      },
+      {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
@@ -291,31 +328,6 @@
             "score": 78.6,
             "agentready_version": "2.9.0",
             "research_version": "1.0.0"
-          }
-        ],
-        "rank": 1,
-        "lang_rank": {
-          "Unknown": 1
-        }
-      },
-      {
-        "repo": "opendatahub-io/opendatahub-tests",
-        "org": "opendatahub-io",
-        "name": "opendatahub-tests",
-        "score": 73.5,
-        "tier": "Silver",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-02-19",
-        "url": "https://github.com/opendatahub-io/opendatahub-tests",
-        "agentready_version": "2.28.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-02-19",
-            "score": 73.5,
-            "agentready_version": "2.28.0",
-            "research_version": "1.0.1"
           }
         ],
         "rank": 2,
@@ -430,31 +442,6 @@
         }
       },
       {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 7,
-        "lang_rank": {
-          "Unknown": 7
-        }
-      },
-      {
         "repo": "jeremyeder/reference",
         "org": "jeremyeder",
         "name": "reference",
@@ -471,6 +458,31 @@
             "date": "2026-01-15",
             "score": 55.8,
             "agentready_version": "2.22.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 7,
+        "lang_rank": {
+          "Unknown": 7
+        }
+      },
+      {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
             "research_version": "1.0.1"
           }
         ],
@@ -534,6 +546,37 @@
   "by_size": {
     "Unknown": [
       {
+        "repo": "opendatahub-io/opendatahub-tests",
+        "org": "opendatahub-io",
+        "name": "opendatahub-tests",
+        "score": 83.5,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-05",
+        "url": "https://github.com/opendatahub-io/opendatahub-tests",
+        "agentready_version": "2.29.5",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-05",
+            "score": 83.5,
+            "agentready_version": "2.29.5",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-19",
+            "score": 73.5,
+            "agentready_version": "2.28.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 1,
+        "lang_rank": {
+          "Unknown": 1
+        }
+      },
+      {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
@@ -557,31 +600,6 @@
             "score": 78.6,
             "agentready_version": "2.9.0",
             "research_version": "1.0.0"
-          }
-        ],
-        "rank": 1,
-        "lang_rank": {
-          "Unknown": 1
-        }
-      },
-      {
-        "repo": "opendatahub-io/opendatahub-tests",
-        "org": "opendatahub-io",
-        "name": "opendatahub-tests",
-        "score": 73.5,
-        "tier": "Silver",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-02-19",
-        "url": "https://github.com/opendatahub-io/opendatahub-tests",
-        "agentready_version": "2.28.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-02-19",
-            "score": 73.5,
-            "agentready_version": "2.28.0",
-            "research_version": "1.0.1"
           }
         ],
         "rank": 2,
@@ -696,31 +714,6 @@
         }
       },
       {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 7,
-        "lang_rank": {
-          "Unknown": 7
-        }
-      },
-      {
         "repo": "jeremyeder/reference",
         "org": "jeremyeder",
         "name": "reference",
@@ -737,6 +730,31 @@
             "date": "2026-01-15",
             "score": 55.8,
             "agentready_version": "2.22.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 7,
+        "lang_rank": {
+          "Unknown": 7
+        }
+      },
+      {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
             "research_version": "1.0.1"
           }
         ],
@@ -797,5 +815,15 @@
       }
     ]
   },
-  "most_improved": []
+  "most_improved": [
+    {
+      "repo": "opendatahub-io/opendatahub-tests",
+      "improvement": 10.0,
+      "from_score": 73.5,
+      "to_score": 83.5,
+      "from_date": "2026-02-19",
+      "to_date": "2026-03-05",
+      "days": 0
+    }
+  ]
 }
