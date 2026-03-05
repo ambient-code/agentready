@@ -1,3 +1,10 @@
+## [2.29.6](https://github.com/ambient-code/agentready/compare/v2.29.5...v2.29.6) (2026-03-05)
+
+
+### Bug Fixes
+
+* **assessors:** support project-named directories and test-only repos in standard_layout check ([#322](https://github.com/ambient-code/agentready/issues/322)) ([2fbb733](https://github.com/ambient-code/agentready/commit/2fbb73329ce528b971006f6deaf95d50f4428c11)), closes [#246](https://github.com/ambient-code/agentready/issues/246) [#305](https://github.com/ambient-code/agentready/issues/305)
+
 ## [2.29.5](https://github.com/ambient-code/agentready/compare/v2.29.4...v2.29.5) (2026-03-03)
 
 
