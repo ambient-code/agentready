@@ -1,3 +1,15 @@
+# [2.30.0](https://github.com/ambient-code/agentready/compare/v2.29.6...v2.30.0) (2026-03-06)
+
+
+### Bug Fixes
+
+* update CLAUDE.md with accurate codebase info, add BOOKMARKS.md ([#336](https://github.com/ambient-code/agentready/issues/336)) ([99ab035](https://github.com/ambient-code/agentready/commit/99ab035bbec7335b20c8b0e8084ed056fef705d2)), closes [#327](https://github.com/ambient-code/agentready/issues/327)
+
+
+### Features
+
+* add opendatahub-io/opendatahub-tests to leaderboard ([#332](https://github.com/ambient-code/agentready/issues/332)) ([b92713b](https://github.com/ambient-code/agentready/commit/b92713baa73e50413648d9fcb96f6086e0bae19e))
+
 ## [2.29.6](https://github.com/ambient-code/agentready/compare/v2.29.5...v2.29.6) (2026-03-05)
 
 
