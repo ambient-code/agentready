@@ -7,6 +7,7 @@ Quick navigation to detailed documentation for specific tasks.
 | Topic | Location | When to Use |
 |-------|----------|-------------|
 | User Guide | `README.md` | Installation, basic usage, CLI examples |
+| Full User Guide | `docs/user-guide.md` | Comprehensive user documentation |
 | Developer Guide | `docs/developer-guide.md` | In-depth development patterns |
 | API Reference | `docs/api-reference.md` | Module and class documentation |
 | Attributes | `docs/attributes.md` | All 25 assessed attributes explained |

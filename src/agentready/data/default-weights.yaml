@@ -1,6 +1,6 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 23 attributes (updated from 25).
+# This file defines the default weights for all 25 attributes.
 # Weights are based on tier priority from research report:
 #
 # Tier 1 (Essential):  55% total (5×10% + 1×5%, 6 attributes)

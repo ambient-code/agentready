@@ -128,4 +128,3 @@ See `BOOKMARKS.md` for navigation to:
 
 ---
 
-*106 Python files | 24,375 LOC | 25 assessors | 1,182 tests | 16 CI workflows*
