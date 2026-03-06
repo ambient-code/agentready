@@ -91,6 +91,8 @@ Finding.create_fail(self.attribute, evidence="...", remediation="...")
 - `agentready-assessment.yml` - Self-assessment on commits
 - `pr-review.yml` - Automated PR review
 
+**Note for agents**: Always run `actionlint` before pushing workflow changes.
+
 ## Conventions
 
 **Commits**: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`
