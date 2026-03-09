@@ -1,3 +1,10 @@
+## [2.30.1](https://github.com/ambient-code/agentready/compare/v2.30.0...v2.30.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* **leaderboard:** use upstream schema for fork PR validation ([#335](https://github.com/ambient-code/agentready/issues/335)) ([5939b59](https://github.com/ambient-code/agentready/commit/5939b598e336a1dd7842dbbcfa294c5557a277f2)), closes [#312](https://github.com/ambient-code/agentready/issues/312)
+
 # [2.30.0](https://github.com/ambient-code/agentready/compare/v2.29.6...v2.30.0) (2026-03-06)
 
 
