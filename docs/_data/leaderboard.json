@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-18T22:04:45.964072Z",
+  "generated_at": "2026-03-24T19:52:44.432090Z",
   "total_repositories": 10,
   "overall": [
     {
@@ -90,6 +90,37 @@
       }
     },
     {
+      "repo": "python-wheel-build/fromager",
+      "org": "python-wheel-build",
+      "name": "fromager",
+      "score": 74.6,
+      "tier": "Silver",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://github.com/python-wheel-build/fromager",
+      "agentready_version": "2.30.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 74.6,
+          "agentready_version": "2.30.1",
+          "research_version": "1.0.1"
+        },
+        {
+          "date": "2026-02-06",
+          "score": 63.5,
+          "agentready_version": "2.25.0",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 4,
+      "lang_rank": {
+        "Unknown": 4
+      }
+    },
+    {
       "repo": "opendatahub-io/ai-helpers",
       "org": "opendatahub-io",
       "name": "ai-helpers",
@@ -111,31 +142,6 @@
         {
           "date": "2026-02-06",
           "score": 65.1,
-          "agentready_version": "2.25.0",
-          "research_version": "1.0.1"
-        }
-      ],
-      "rank": 4,
-      "lang_rank": {
-        "Unknown": 4
-      }
-    },
-    {
-      "repo": "python-wheel-build/fromager",
-      "org": "python-wheel-build",
-      "name": "fromager",
-      "score": 63.5,
-      "tier": "Silver",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-02-06",
-      "url": "https://github.com/python-wheel-build/fromager",
-      "agentready_version": "2.25.0",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-02-06",
-          "score": 63.5,
           "agentready_version": "2.25.0",
           "research_version": "1.0.1"
         }
@@ -361,6 +367,37 @@
         }
       },
       {
+        "repo": "python-wheel-build/fromager",
+        "org": "python-wheel-build",
+        "name": "fromager",
+        "score": 74.6,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://github.com/python-wheel-build/fromager",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 74.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-06",
+            "score": 63.5,
+            "agentready_version": "2.25.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 4,
+        "lang_rank": {
+          "Unknown": 4
+        }
+      },
+      {
         "repo": "opendatahub-io/ai-helpers",
         "org": "opendatahub-io",
         "name": "ai-helpers",
@@ -382,31 +419,6 @@
           {
             "date": "2026-02-06",
             "score": 65.1,
-            "agentready_version": "2.25.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 4,
-        "lang_rank": {
-          "Unknown": 4
-        }
-      },
-      {
-        "repo": "python-wheel-build/fromager",
-        "org": "python-wheel-build",
-        "name": "fromager",
-        "score": 63.5,
-        "tier": "Silver",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-02-06",
-        "url": "https://github.com/python-wheel-build/fromager",
-        "agentready_version": "2.25.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-02-06",
-            "score": 63.5,
             "agentready_version": "2.25.0",
             "research_version": "1.0.1"
           }
@@ -633,6 +645,37 @@
         }
       },
       {
+        "repo": "python-wheel-build/fromager",
+        "org": "python-wheel-build",
+        "name": "fromager",
+        "score": 74.6,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://github.com/python-wheel-build/fromager",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 74.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-06",
+            "score": 63.5,
+            "agentready_version": "2.25.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 4,
+        "lang_rank": {
+          "Unknown": 4
+        }
+      },
+      {
         "repo": "opendatahub-io/ai-helpers",
         "org": "opendatahub-io",
         "name": "ai-helpers",
@@ -654,31 +697,6 @@
           {
             "date": "2026-02-06",
             "score": 65.1,
-            "agentready_version": "2.25.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 4,
-        "lang_rank": {
-          "Unknown": 4
-        }
-      },
-      {
-        "repo": "python-wheel-build/fromager",
-        "org": "python-wheel-build",
-        "name": "fromager",
-        "score": 63.5,
-        "tier": "Silver",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-02-06",
-        "url": "https://github.com/python-wheel-build/fromager",
-        "agentready_version": "2.25.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-02-06",
-            "score": 63.5,
             "agentready_version": "2.25.0",
             "research_version": "1.0.1"
           }
@@ -816,6 +834,15 @@
     ]
   },
   "most_improved": [
+    {
+      "repo": "python-wheel-build/fromager",
+      "improvement": 11.1,
+      "from_score": 63.5,
+      "to_score": 74.6,
+      "from_date": "2026-02-06",
+      "to_date": "2026-03-24",
+      "days": 0
+    },
     {
       "repo": "opendatahub-io/opendatahub-tests",
       "improvement": 10.0,
