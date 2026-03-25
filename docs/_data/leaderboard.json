@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-25T21:41:23.058988Z",
-  "total_repositories": 11,
+  "generated_at": "2026-03-25T21:43:31.943939Z",
+  "total_repositories": 12,
   "overall": [
     {
       "repo": "opendatahub-io/opendatahub-tests",
@@ -34,6 +34,31 @@
       }
     },
     {
+      "repo": "redhat/builder",
+      "org": "redhat",
+      "name": "builder",
+      "score": 78.6,
+      "tier": "Gold",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-25",
+      "url": "https://github.com/redhat/builder",
+      "agentready_version": "2.30.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-25",
+          "score": 78.6,
+          "agentready_version": "2.30.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 2,
+      "lang_rank": {
+        "Unknown": 2
+      }
+    },
+    {
       "repo": "ambient-code/agentready",
       "org": "ambient-code",
       "name": "agentready",
@@ -59,9 +84,9 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 2,
+      "rank": 3,
       "lang_rank": {
-        "Unknown": 2
+        "Unknown": 3
       }
     },
     {
@@ -84,9 +109,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 3,
+      "rank": 4,
       "lang_rank": {
-        "Unknown": 3
+        "Unknown": 4
       }
     },
     {
@@ -115,9 +140,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 4,
+      "rank": 5,
       "lang_rank": {
-        "Unknown": 4
+        "Unknown": 5
       }
     },
     {
@@ -146,9 +171,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 5,
+      "rank": 6,
       "lang_rank": {
-        "Unknown": 5
+        "Unknown": 6
       }
     },
     {
@@ -171,9 +196,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 6,
+      "rank": 7,
       "lang_rank": {
-        "Unknown": 6
+        "Unknown": 7
       }
     },
     {
@@ -196,9 +221,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 7,
+      "rank": 8,
       "lang_rank": {
-        "Unknown": 7
+        "Unknown": 8
       }
     },
     {
@@ -221,9 +246,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 8,
+      "rank": 9,
       "lang_rank": {
-        "Unknown": 8
+        "Unknown": 9
       }
     },
     {
@@ -246,9 +271,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 9,
+      "rank": 10,
       "lang_rank": {
-        "Unknown": 9
+        "Unknown": 10
       }
     },
     {
@@ -271,9 +296,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 10,
+      "rank": 11,
       "lang_rank": {
-        "Unknown": 10
+        "Unknown": 11
       }
     },
     {
@@ -296,9 +321,9 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 11,
+      "rank": 12,
       "lang_rank": {
-        "Unknown": 11
+        "Unknown": 12
       }
     }
   ],
@@ -336,6 +361,31 @@
         }
       },
       {
+        "repo": "redhat/builder",
+        "org": "redhat",
+        "name": "builder",
+        "score": 78.6,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://github.com/redhat/builder",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 78.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
+      },
+      {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
@@ -361,9 +411,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 2,
+        "rank": 3,
         "lang_rank": {
-          "Unknown": 2
+          "Unknown": 3
         }
       },
       {
@@ -386,9 +436,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 3,
+        "rank": 4,
         "lang_rank": {
-          "Unknown": 3
+          "Unknown": 4
         }
       },
       {
@@ -417,9 +467,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 4,
+        "rank": 5,
         "lang_rank": {
-          "Unknown": 4
+          "Unknown": 5
         }
       },
       {
@@ -448,9 +498,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 5,
+        "rank": 6,
         "lang_rank": {
-          "Unknown": 5
+          "Unknown": 6
         }
       },
       {
@@ -473,9 +523,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 6,
+        "rank": 7,
         "lang_rank": {
-          "Unknown": 6
+          "Unknown": 7
         }
       },
       {
@@ -498,9 +548,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 7,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 8
         }
       },
       {
@@ -523,9 +573,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 9
         }
       },
       {
@@ -548,9 +598,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 9,
+        "rank": 10,
         "lang_rank": {
-          "Unknown": 9
+          "Unknown": 10
         }
       },
       {
@@ -573,9 +623,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 10,
+        "rank": 11,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 11
         }
       },
       {
@@ -598,9 +648,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 11,
+        "rank": 12,
         "lang_rank": {
-          "Unknown": 11
+          "Unknown": 12
         }
       }
     ]
@@ -639,6 +689,31 @@
         }
       },
       {
+        "repo": "redhat/builder",
+        "org": "redhat",
+        "name": "builder",
+        "score": 78.6,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://github.com/redhat/builder",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 78.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
+      },
+      {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
@@ -664,9 +739,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 2,
+        "rank": 3,
         "lang_rank": {
-          "Unknown": 2
+          "Unknown": 3
         }
       },
       {
@@ -689,9 +764,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 3,
+        "rank": 4,
         "lang_rank": {
-          "Unknown": 3
+          "Unknown": 4
         }
       },
       {
@@ -720,9 +795,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 4,
+        "rank": 5,
         "lang_rank": {
-          "Unknown": 4
+          "Unknown": 5
         }
       },
       {
@@ -751,9 +826,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 5,
+        "rank": 6,
         "lang_rank": {
-          "Unknown": 5
+          "Unknown": 6
         }
       },
       {
@@ -776,9 +851,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 6,
+        "rank": 7,
         "lang_rank": {
-          "Unknown": 6
+          "Unknown": 7
         }
       },
       {
@@ -801,9 +876,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 7,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 8
         }
       },
       {
@@ -826,9 +901,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 9
         }
       },
       {
@@ -851,9 +926,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 9,
+        "rank": 10,
         "lang_rank": {
-          "Unknown": 9
+          "Unknown": 10
         }
       },
       {
@@ -876,9 +951,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 10,
+        "rank": 11,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 11
         }
       },
       {
@@ -901,9 +976,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 11,
+        "rank": 12,
         "lang_rank": {
-          "Unknown": 11
+          "Unknown": 12
         }
       }
     ]
