@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-24T19:52:44.432090Z",
-  "total_repositories": 10,
+  "generated_at": "2026-03-25T21:41:23.058988Z",
+  "total_repositories": 11,
   "overall": [
     {
       "repo": "opendatahub-io/opendatahub-tests",
@@ -252,6 +252,31 @@
       }
     },
     {
+      "repo": "redhat/rhai-pipeline",
+      "org": "redhat",
+      "name": "rhai-pipeline",
+      "score": 53.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-25",
+      "url": "https://github.com/redhat/rhai-pipeline",
+      "agentready_version": "2.30.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-25",
+          "score": 53.8,
+          "agentready_version": "2.30.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 10,
+      "lang_rank": {
+        "Unknown": 10
+      }
+    },
+    {
       "repo": "quay/quay",
       "org": "quay",
       "name": "quay",
@@ -271,9 +296,9 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 10,
+      "rank": 11,
       "lang_rank": {
-        "Unknown": 10
+        "Unknown": 11
       }
     }
   ],
@@ -529,6 +554,31 @@
         }
       },
       {
+        "repo": "redhat/rhai-pipeline",
+        "org": "redhat",
+        "name": "rhai-pipeline",
+        "score": 53.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://github.com/redhat/rhai-pipeline",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 53.8,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 10,
+        "lang_rank": {
+          "Unknown": 10
+        }
+      },
+      {
         "repo": "quay/quay",
         "org": "quay",
         "name": "quay",
@@ -548,9 +598,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 10,
+        "rank": 11,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 11
         }
       }
     ]
@@ -807,6 +857,31 @@
         }
       },
       {
+        "repo": "redhat/rhai-pipeline",
+        "org": "redhat",
+        "name": "rhai-pipeline",
+        "score": 53.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://github.com/redhat/rhai-pipeline",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 53.8,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 10,
+        "lang_rank": {
+          "Unknown": 10
+        }
+      },
+      {
         "repo": "quay/quay",
         "org": "quay",
         "name": "quay",
@@ -826,9 +901,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 10,
+        "rank": 11,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 11
         }
       }
     ]
