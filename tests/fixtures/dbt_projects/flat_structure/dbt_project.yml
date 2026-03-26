@@ -1,5 +1,0 @@
-name: 'flat_structure'
-config-version: 2
-profile: 'default'
-
-model-paths: ["models"]

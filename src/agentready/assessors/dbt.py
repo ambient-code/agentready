@@ -30,19 +30,17 @@ def _is_dbt_project(repository: Repository) -> bool:
     return (repository.path / "dbt_project.yml").exists()
 
 
-def _find_yaml_files(directory: Path, pattern: str = "*.yml") -> list[Path]:
-    """Find YAML files matching pattern recursively.
+def _find_yaml_files(directory: Path) -> list[Path]:
+    """Find YAML files recursively (.yml and .yaml).
 
     Args:
         directory: Directory to search
-        pattern: Glob pattern (default: "*.yml")
 
     Returns:
         List of matching .yml and .yaml file paths
     """
-    yml_files = list(directory.rglob(pattern))
-    yaml_files = list(directory.rglob(pattern.replace("yml", "yaml")))
-    return yml_files + yaml_files
+    # Fix for #356: search both extensions explicitly instead of fragile replace()
+    return list(directory.rglob("*.yml")) + list(directory.rglob("*.yaml"))
 
 
 def _parse_yaml_safe(path: Path) -> dict:
@@ -300,11 +298,12 @@ class DbtModelDocumentationAssessor(BaseAssessor):
 
         # Find and parse schema YAML files (any .yml/.yaml file in models/)
         # dbt supports multiple naming conventions: schema.yml, _models.yml, or one file per model
-        schema_files = _find_yaml_files(models_dir, "*.yml")
+        schema_files = _find_yaml_files(models_dir)
 
         # Extract documented model names
         documented_models = set()
-        placeholder_texts = {"todo", "tbd", "fixme", "placeholder", "description"}
+        # Fix for #353: use exact match, not substring; removed "description"
+        placeholder_texts = {"todo", "tbd", "fixme", "placeholder"}
 
         for schema_file in schema_files:
             schema_data = _parse_yaml_safe(schema_file)
@@ -319,9 +318,7 @@ class DbtModelDocumentationAssessor(BaseAssessor):
                 description = model.get("description", "").strip().lower()
 
                 # Check if description is meaningful (not empty or placeholder)
-                if description and not any(
-                    placeholder in description for placeholder in placeholder_texts
-                ):
+                if description and description not in placeholder_texts:
                     documented_models.add(model_name)
 
         documented_count = len(documented_models)
@@ -472,7 +469,7 @@ class DbtDataTestsAssessor(BaseAssessor):
 
         # Find and parse schema YAML files (any .yml/.yaml file in models/)
         # dbt supports multiple naming conventions: schema.yml, _models.yml, or one file per model
-        schema_files = _find_yaml_files(models_dir, "*.yml")
+        schema_files = _find_yaml_files(models_dir)
 
         # Extract models with PK tests (unique + not_null)
         models_with_pk_tests = set()
