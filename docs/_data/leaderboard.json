@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-25T21:43:31.943939Z",
+  "generated_at": "2026-03-26T02:50:33.672469Z",
   "total_repositories": 12,
   "overall": [
     {
@@ -34,7 +34,7 @@
       }
     },
     {
-      "repo": "redhat/builder",
+      "repo": "redhat/rhel-ai/wheels/builder",
       "org": "redhat",
       "name": "builder",
       "score": 78.6,
@@ -42,7 +42,7 @@
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-03-25",
-      "url": "https://github.com/redhat/builder",
+      "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
       "agentready_version": "2.30.1",
       "research_version": "1.0.1",
       "history": [
@@ -277,15 +277,15 @@
       }
     },
     {
-      "repo": "redhat/rhai-pipeline",
+      "repo": "redhat/rhel-ai/rhai/pipeline",
       "org": "redhat",
-      "name": "rhai-pipeline",
+      "name": "pipeline",
       "score": 53.8,
       "tier": "Bronze",
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-03-25",
-      "url": "https://github.com/redhat/rhai-pipeline",
+      "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
       "agentready_version": "2.30.1",
       "research_version": "1.0.1",
       "history": [
@@ -361,7 +361,7 @@
         }
       },
       {
-        "repo": "redhat/builder",
+        "repo": "redhat/rhel-ai/wheels/builder",
         "org": "redhat",
         "name": "builder",
         "score": 78.6,
@@ -369,7 +369,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-25",
-        "url": "https://github.com/redhat/builder",
+        "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
         "history": [
@@ -604,15 +604,15 @@
         }
       },
       {
-        "repo": "redhat/rhai-pipeline",
+        "repo": "redhat/rhel-ai/rhai/pipeline",
         "org": "redhat",
-        "name": "rhai-pipeline",
+        "name": "pipeline",
         "score": 53.8,
         "tier": "Bronze",
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-25",
-        "url": "https://github.com/redhat/rhai-pipeline",
+        "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
         "history": [
@@ -689,7 +689,7 @@
         }
       },
       {
-        "repo": "redhat/builder",
+        "repo": "redhat/rhel-ai/wheels/builder",
         "org": "redhat",
         "name": "builder",
         "score": 78.6,
@@ -697,7 +697,7 @@
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-25",
-        "url": "https://github.com/redhat/builder",
+        "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
         "history": [
@@ -932,15 +932,15 @@
         }
       },
       {
-        "repo": "redhat/rhai-pipeline",
+        "repo": "redhat/rhel-ai/rhai/pipeline",
         "org": "redhat",
-        "name": "rhai-pipeline",
+        "name": "pipeline",
         "score": 53.8,
         "tier": "Bronze",
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-25",
-        "url": "https://github.com/redhat/rhai-pipeline",
+        "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
         "history": [
