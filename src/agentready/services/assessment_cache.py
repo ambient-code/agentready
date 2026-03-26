@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
+from pydantic import ValidationError
+
 from ..models import Assessment
 
 
@@ -108,7 +110,14 @@ class AssessmentCache:
                 assessment_data = json.loads(assessment_json)
                 return self._deserialize_assessment(assessment_data)
 
-        except (sqlite3.Error, json.JSONDecodeError, ValueError, KeyError, TypeError):
+        except (
+            sqlite3.Error,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            TypeError,
+            ValidationError,
+        ):
             return None
 
     def set(
