@@ -6,11 +6,49 @@ and generates a consolidated leaderboard.json for Jekyll consumption.
 """
 
 import json
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+
+def git_url_to_https(url: str) -> str:
+    """Convert a git remote URL (SSH or HTTPS) to an HTTPS browse URL.
+
+    Handles GitHub and GitLab SSH/HTTPS formats:
+      git@github.com:org/repo.git -> https://github.com/org/repo
+      git@gitlab.com:group/sub/project.git -> https://gitlab.com/group/sub/project
+      https://github.com/org/repo.git -> https://github.com/org/repo
+    """
+    url = url.strip()
+    # SSH format: git@<host>:<path>.git
+    ssh_match = re.match(r"^git@([^:]+):(.+?)(?:\.git)?$", url)
+    if ssh_match:
+        host, path = ssh_match.groups()
+        return f"https://{host}/{path}"
+    # HTTPS format: strip trailing .git
+    if url.startswith("https://") or url.startswith("http://"):
+        return re.sub(r"\.git$", "", url)
+    return url
+
+
+def repo_display_name_from_url(url: str) -> str | None:
+    """Extract the full repository path from a git URL for display purposes.
+
+    Returns the path portion without the host, e.g.:
+      git@gitlab.com:redhat/rhel-ai/wheels/builder.git -> redhat/rhel-ai/wheels/builder
+      https://github.com/org/repo -> org/repo
+    """
+    url = url.strip()
+    ssh_match = re.match(r"^git@[^:]+:(.+?)(?:\.git)?$", url)
+    if ssh_match:
+        return ssh_match.group(1)
+    https_match = re.match(r"^https?://[^/]+/(.+?)(?:\.git)?$", url)
+    if https_match:
+        return https_match.group(1)
+    return None
 
 
 def scan_submissions(submissions_dir: Path) -> dict[str, list[dict[str, Any]]]:
@@ -86,16 +124,29 @@ def generate_leaderboard_data(repos: dict[str, list[dict[str, Any]]]) -> dict[st
             agentready_version = metadata.get("agentready_version", "unknown")
             research_version = metadata.get("research_version", "unknown")
 
+            # Derive display name and URL from the assessment JSON's
+            # repository.url when available, falling back to the directory-
+            # derived repo_name for backwards compatibility with GitHub repos.
+            raw_url = latest["repository"].get("url", "")
+            display_name = repo_display_name_from_url(raw_url) if raw_url else None
+            browse_url = git_url_to_https(raw_url) if raw_url else None
+
+            # Fall back to directory-derived values (GitHub assumption)
+            if not display_name:
+                display_name = repo_name
+            if not browse_url:
+                browse_url = f"https://github.com/{repo_name}"
+
             entry = {
-                "repo": repo_name,
-                "org": repo_name.split("/")[0],
-                "name": repo_name.split("/")[1],
+                "repo": display_name,
+                "org": display_name.split("/")[0],
+                "name": display_name.rsplit("/", 1)[-1],
                 "score": float(latest["overall_score"]),
                 "tier": latest["certification_level"],
                 "language": latest["repository"].get("primary_language", "Unknown"),
                 "size": latest["repository"].get("size_category", "Unknown"),
                 "last_updated": submissions[0]["timestamp"][:10],  # YYYY-MM-DD
-                "url": f"https://github.com/{repo_name}",
+                "url": browse_url,
                 "agentready_version": agentready_version,
                 "research_version": research_version,
                 "history": [
