@@ -105,7 +105,9 @@ def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str, str,
         sys.exit(1)
 
     if not full_path:
-        click.echo(f"Error: Could not parse repository path from URL: {repo_url}", err=True)
+        click.echo(
+            f"Error: Could not parse repository path from URL: {repo_url}", err=True
+        )
         sys.exit(1)
 
     # For directory structure: use top-level group as org, project name as repo
@@ -471,8 +473,12 @@ def submit_with_token(
             is_owner = submitted_repo.owner.login == user.login
 
             if not (is_collaborator or is_owner):
-                click.echo(f"Error: You must have commit access to {gh_org_repo}", err=True)
-                click.echo("\nYou can only submit repositories where you are:", err=True)
+                click.echo(
+                    f"Error: You must have commit access to {gh_org_repo}", err=True
+                )
+                click.echo(
+                    "\nYou can only submit repositories where you are:", err=True
+                )
                 click.echo("  - Repository owner", err=True)
                 click.echo("  - Collaborator with push access", err=True)
                 sys.exit(1)
@@ -490,7 +496,9 @@ def submit_with_token(
             if e.status == 404:
                 click.echo(f"Error: Repository {gh_org_repo} not found", err=True)
             else:
-                click.echo(f"Error: Cannot access repository {gh_org_repo}: {e}", err=True)
+                click.echo(
+                    f"Error: Cannot access repository {gh_org_repo}: {e}", err=True
+                )
             sys.exit(1)
     else:
         # GitLab/other: verify repo is publicly accessible via git ls-remote
@@ -670,6 +678,10 @@ def submit(repository, assessment_file, dry_run, use_gh_cli):
 
     # 5. Submit using appropriate method
     if use_gh_cli:
-        submit_with_gh_cli(org, repo, score, tier, assessment_path, timestamp, host, full_path)
+        submit_with_gh_cli(
+            org, repo, score, tier, assessment_path, timestamp, host, full_path
+        )
     else:
-        submit_with_token(org, repo, score, tier, assessment_path, timestamp, host, full_path)
+        submit_with_token(
+            org, repo, score, tier, assessment_path, timestamp, host, full_path
+        )

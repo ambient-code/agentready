@@ -85,7 +85,9 @@ class TestExtractRepoInfo:
     def test_extract_repo_info_gitlab_https(self):
         """Test extract_repo_info handles GitLab HTTPS URLs."""
         assessment_data = {
-            "repository": {"url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline.git"},
+            "repository": {
+                "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline.git"
+            },
             "overall_score": 53.8,
             "certification_level": "Bronze",
         }
@@ -120,7 +122,9 @@ class TestExtractRepoInfo:
                     "certification_level": "Gold",
                 }
 
-                org, repo, score, tier, host, full_path = extract_repo_info(assessment_data)
+                org, repo, score, tier, host, full_path = extract_repo_info(
+                    assessment_data
+                )
                 assert (
                     org == expected_org
                 ), f"Expected org '{expected_org}' but got '{org}' for URL: {url_template}"

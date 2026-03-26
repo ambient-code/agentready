@@ -64,14 +64,12 @@ class TestRepoDisplayNameFromUrl:
 
     def test_github_ssh(self):
         assert (
-            gen.repo_display_name_from_url("git@github.com:org/repo.git")
-            == "org/repo"
+            gen.repo_display_name_from_url("git@github.com:org/repo.git") == "org/repo"
         )
 
     def test_github_https(self):
         assert (
-            gen.repo_display_name_from_url("https://github.com/org/repo")
-            == "org/repo"
+            gen.repo_display_name_from_url("https://github.com/org/repo") == "org/repo"
         )
 
     def test_gitlab_ssh_deep_path(self):
@@ -124,7 +122,9 @@ class TestGenerateLeaderboardData:
                         tier="Gold",
                     ),
                     "timestamp": "2026-03-25T12-00-00",
-                    "path": Path("submissions/redhat/builder/2026-03-25T12-00-00-assessment.json"),
+                    "path": Path(
+                        "submissions/redhat/builder/2026-03-25T12-00-00-assessment.json"
+                    ),
                 }
             ]
         }
@@ -148,7 +148,9 @@ class TestGenerateLeaderboardData:
                         tier="Gold",
                     ),
                     "timestamp": "2026-01-15T00-00-00",
-                    "path": Path("submissions/org/repo/2026-01-15T00-00-00-assessment.json"),
+                    "path": Path(
+                        "submissions/org/repo/2026-01-15T00-00-00-assessment.json"
+                    ),
                 }
             ]
         }
@@ -171,7 +173,9 @@ class TestGenerateLeaderboardData:
                         "metadata": {},
                     },
                     "timestamp": "2026-01-15T00-00-00",
-                    "path": Path("submissions/org/repo/2026-01-15T00-00-00-assessment.json"),
+                    "path": Path(
+                        "submissions/org/repo/2026-01-15T00-00-00-assessment.json"
+                    ),
                 }
             ]
         }
