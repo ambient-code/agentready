@@ -45,9 +45,7 @@ agentready submit
     <div class="score-badge">
       <span class="score">{{ entry.score | round: 1 }}</span>
       <span class="tier">{{ entry.tier }}</span>
-      {% if entry.attributes_assessed and entry.attributes_assessed < entry.attributes_total %}
-      <span class="attributes-partial">{{ entry.attributes_assessed }}/{{ entry.attributes_total }} attrs</span>
-      {% endif %}
+      <span class="attributes-count{% if entry.attributes_total < 25 %} attributes-excluded{% endif %}">{{ entry.attributes_assessed }}/{{ entry.attributes_total }} attrs</span>
     </div>
   </div>
 {% endfor %}
@@ -78,10 +76,10 @@ agentready submit
       </td>
       <td class="score">{{ entry.score | round: 1 }}</td>
       <td class="attributes">
-        {% if entry.attributes_assessed and entry.attributes_assessed < entry.attributes_total %}
+        {% if entry.attributes_total < 25 %}
         <span class="badge partial">{{ entry.attributes_assessed }}/{{ entry.attributes_total }}</span>
         {% else %}
-        {{ entry.attributes_total | default: 25 }}/{{ entry.attributes_total | default: 25 }}
+        {{ entry.attributes_assessed }}/{{ entry.attributes_total }}
         {% endif %}
       </td>
       <td>

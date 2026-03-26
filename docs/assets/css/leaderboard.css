@@ -168,16 +168,20 @@
 .badge.bronze { background: #fed7aa; color: #c2410c; }
 .badge.needs-improvement { background: #fee2e2; color: #dc2626; }
 
-/* Partial assessment indicator (#313) */
-.attributes-partial {
+/* Attribute count indicator (#313) */
+.attributes-count {
   display: block;
   font-size: 0.7rem;
+  color: #586069;
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+
+.attributes-excluded {
   color: #b45309;
   background: #fef3c7;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
-  margin-top: 0.25rem;
-  white-space: nowrap;
 }
 
 .badge.partial {
