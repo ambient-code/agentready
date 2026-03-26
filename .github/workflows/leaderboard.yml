@@ -29,11 +29,25 @@ jobs:
       pull-requests: write      # Post validation results as PR comment
       issues: write             # Required by github-script (PRs are issues in GH API)
     steps:
-      - name: Checkout PR branch
+      # Fix for outdated forks: Always use upstream for validation tools/schema
+      # The PR branch may be from a fork that hasn't synced with upstream,
+      # causing validation to use outdated schema. We checkout upstream main
+      # for the agentready tools, then fetch only the submission file from PR.
+      # See: https://github.com/ambient-code/agentready/pull/312
+      - name: Checkout upstream for validation tools
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.repository }}
+          ref: main
           fetch-depth: 0
+
+      - name: Fetch PR submission file
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          # Fetch the PR branch to get the submission file
+          git fetch "https://github.com/${PR_HEAD_REPO}.git" "${PR_HEAD_SHA}:refs/remotes/pr/head"
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -50,11 +64,8 @@ jobs:
       - name: Extract submission details
         id: extract
         run: |
-          # Fetch main branch from upstream for comparison
-          git fetch origin main:refs/remotes/origin/main || true
-
-          # Find changed JSON file
-          CHANGED_FILE=$(git diff --name-only origin/main...HEAD | grep 'submissions/.*-assessment.json' | head -1)
+          # Find changed JSON file between main and PR head
+          CHANGED_FILE=$(git diff --name-only origin/main...pr/head | grep 'submissions/.*-assessment.json' | head -1)
 
           if [ -z "$CHANGED_FILE" ]; then
             echo "No assessment file found in diff"
@@ -63,11 +74,15 @@ jobs:
 
           echo "file=$CHANGED_FILE" >> "$GITHUB_OUTPUT"
 
-          # Parse JSON - all values stored in outputs, not executed
-          REPO_URL=$(jq -r '.repository.url' "$CHANGED_FILE")
-          CLAIMED_SCORE=$(jq -r '.overall_score' "$CHANGED_FILE")
-          REPO_NAME=$(jq -r '.repository.name' "$CHANGED_FILE")
-          RESEARCH_VERSION=$(jq -r '.metadata.research_version // "unknown"' "$CHANGED_FILE")
+          # Extract the submission file from PR branch to a temp location
+          # This ensures we validate the actual submitted file, not main branch
+          git show "pr/head:${CHANGED_FILE}" > /tmp/submission.json
+
+          # Parse JSON from PR's submission file - all values stored in outputs, not executed
+          REPO_URL=$(jq -r '.repository.url' /tmp/submission.json)
+          CLAIMED_SCORE=$(jq -r '.overall_score' /tmp/submission.json)
+          REPO_NAME=$(jq -r '.repository.name' /tmp/submission.json)
+          RESEARCH_VERSION=$(jq -r '.metadata.research_version // "unknown"' /tmp/submission.json)
 
           {
             echo "repo_url=$REPO_URL"
@@ -77,56 +92,91 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Validate JSON schema
-        env:
-          ASSESSMENT_FILE: ${{ steps.extract.outputs.file }}
         run: |
+          # Validate using upstream's schema against the PR's submission file
+          # This ensures outdated forks don't cause false validation failures
           source .venv/bin/activate
-          agentready validate-report "$ASSESSMENT_FILE"
+          agentready validate-report /tmp/submission.json
+
+      - name: Detect repository host
+        id: detect_host
+        env:
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          # Determine if this is a GitHub or GitLab repository
+          if echo "$REPO_URL" | grep -q "github\.com"; then
+            echo "host=github" >> "$GITHUB_OUTPUT"
+          elif echo "$REPO_URL" | grep -q "gitlab\.com"; then
+            echo "host=gitlab" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported repository host in URL: $REPO_URL"
+            exit 1
+          fi
+
+          # Convert SSH/HTTPS URL to an HTTPS clone URL
+          # git@<host>:<path>.git -> https://<host>/<path>.git
+          CLONE_URL=$(echo "$REPO_URL" | sed -E 's|^git@([^:]+):|https://\1/|' | sed 's|\.git$||')
+          echo "clone_url=${CLONE_URL}.git" >> "$GITHUB_OUTPUT"
+          echo "browse_url=$CLONE_URL" >> "$GITHUB_OUTPUT"
 
       - name: Verify repository exists and is public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_URL: ${{ steps.extract.outputs.repo_url }}
+          HOST: ${{ steps.detect_host.outputs.host }}
+          CLONE_URL: ${{ steps.detect_host.outputs.clone_url }}
         run: |
-          # SAFE: REPO_URL comes from workflow output, not direct user input
-          ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
-
-          IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
-
-          if [ "$IS_PRIVATE" == "true" ]; then
-            echo "::error::Repository $ORG_REPO is private."
-            exit 1
+          if [ "$HOST" = "github" ]; then
+            # GitHub: use gh CLI for verification
+            ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
+            IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
+            if [ "$IS_PRIVATE" == "true" ]; then
+              echo "::error::Repository $ORG_REPO is private."
+              exit 1
+            fi
+            echo "✅ Repository $ORG_REPO is public"
+          else
+            # GitLab/other: verify repo is publicly accessible via git ls-remote
+            if git ls-remote --exit-code "$CLONE_URL" HEAD > /dev/null 2>&1; then
+              echo "✅ Repository is publicly accessible: $CLONE_URL"
+            else
+              echo "::error::Repository is not publicly accessible: $CLONE_URL"
+              exit 1
+            fi
           fi
-
-          echo "✅ Repository $ORG_REPO is public"
 
       - name: Verify submitter has access
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_URL: ${{ steps.extract.outputs.repo_url }}
           SUBMITTER: ${{ github.event.pull_request.user.login }}
+          HOST: ${{ steps.detect_host.outputs.host }}
         run: |
-          # SAFE: All values in environment variables
-          ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
-
-          if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
-            echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
-          elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
-            echo "✅ $SUBMITTER is the owner of $ORG_REPO"
+          if [ "$HOST" = "github" ]; then
+            # GitHub: verify via API
+            ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
+            if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
+              echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
+            elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
+              echo "✅ $SUBMITTER is the owner of $ORG_REPO"
+            else
+              echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
+              exit 1
+            fi
           else
-            echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
-            exit 1
+            # Non-GitHub: cannot verify cross-platform access automatically
+            echo "::warning::Cannot verify submitter access for non-GitHub repos. Manual review required."
+            echo "⚠️ Submitter access for non-GitHub repos must be verified manually by maintainers."
           fi
 
       - name: Re-run assessment
         env:
-          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+          CLONE_URL: ${{ steps.detect_host.outputs.clone_url }}
         run: |
           source .venv/bin/activate
 
-          # SAFE: REPO_URL in environment variable
-          echo "Cloning $REPO_URL..."
-          git clone "$REPO_URL" /tmp/repo-to-assess
+          echo "Cloning $CLONE_URL..."
+          git clone "$CLONE_URL" /tmp/repo-to-assess
 
           echo "Running assessment..."
           agentready assess /tmp/repo-to-assess --output-dir /tmp/validation

@@ -1,38 +1,32 @@
 {
   "schema_version": "1.0.0",
   "metadata": {
-    "agentready_version": "2.23.0",
+    "agentready_version": "2.29.6",
     "research_version": "1.0.1",
-    "assessment_timestamp": "2026-01-28T09:55:04.394536",
-    "assessment_timestamp_human": "January 28, 2026 at 9:55 AM",
-    "executed_by": "dgutride@dgutride-mac",
-    "command": "/Users/dgutride/source/odh-dashboard/.venv/bin/agentready assess .",
-    "working_directory": "/Users/dgutride/source/odh-dashboard"
+    "assessment_timestamp": "2026-03-24T17:58:26.569076",
+    "assessment_timestamp_human": "March 24, 2026 at 5:58 PM",
+    "executed_by": "jrusz@92be7378c6bc",
+    "command": "/usr/local/bin/agentready assess /repo --config /agentready-config.yml --output-dir /reports",
+    "working_directory": "/tmp"
   },
   "repository": {
-    "path": "/Users/dgutride/source/odh-dashboard",
-    "name": "odh-dashboard",
-    "url": "git@github.com:dgutride/odh-dashboard.git",
+    "path": "/repo",
+    "name": "repo",
+    "url": "git@gitlab.com:redhat/rhel-ai/ci-cd/toolbox.git",
     "branch": "main",
-    "commit_hash": "7c6e9be28fb749200e0ceb97a631c69d9cbea29e",
+    "commit_hash": "4b26acf789bdfa0602c5ff4439de9585a44aad88",
     "languages": {
-      "YAML": 243,
-      "JavaScript": 95,
-      "Markdown": 107,
-      "JSON": 75,
-      "TypeScript": 4126,
-      "Shell": 16,
-      "Go": 298
+      "Shell": 3
     },
-    "total_files": 5212,
-    "total_lines": 720733
+    "total_files": 8,
+    "total_lines": 935
   },
-  "timestamp": "2026-01-28T09:55:04.394536",
-  "overall_score": 42.8,
-  "certification_level": "Bronze",
-  "attributes_assessed": 19,
-  "attributes_not_assessed": 6,
-  "attributes_total": 25,
+  "timestamp": "2026-03-24T17:58:26.569076",
+  "overall_score": 24.8,
+  "certification_level": "Needs Improvement",
+  "attributes_assessed": 13,
+  "attributes_skipped": 5,
+  "attributes_total": 18,
   "findings": [
     {
       "attribute": {
@@ -119,8 +113,8 @@
       "threshold": "3/3 sections",
       "evidence": [
         "Found 2/3 essential sections",
-        "Installation: \u2713",
-        "Usage: \u2717",
+        "Installation: \u2717",
+        "Usage: \u2713",
         "Development: \u2713"
       ],
       "remediation": {
@@ -158,55 +152,14 @@
         "criteria": ">80% of functions have type annotations",
         "default_weight": 0.1
       },
-      "status": "fail",
-      "score": 0.0,
-      "measured_value": "missing tsconfig.json",
-      "threshold": "strict mode enabled",
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
       "evidence": [
-        "tsconfig.json not found"
+        "Not applicable to ['Shell']"
       ],
-      "remediation": {
-        "summary": "Add type annotations to function signatures",
-        "steps": [
-          "For Python: Add type hints to function parameters and return types",
-          "For TypeScript: Enable strict mode in tsconfig.json",
-          "Use mypy or pyright for Python type checking",
-          "Use tsc --strict for TypeScript",
-          "Add type annotations gradually to existing code"
-        ],
-        "tools": [
-          "mypy",
-          "pyright",
-          "typescript"
-        ],
-        "commands": [
-          "# Python",
-          "pip install mypy",
-          "mypy --strict src/",
-          "",
-          "# TypeScript",
-          "npm install --save-dev typescript",
-          "echo '{\"compilerOptions\": {\"strict\": true}}' > tsconfig.json"
-        ],
-        "examples": [
-          "# Python - Before\ndef calculate(x, y):\n    return x + y\n\n# Python - After\ndef calculate(x: float, y: float) -> float:\n    return x + y\n",
-          "// TypeScript - tsconfig.json\n{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"noImplicitAny\": true,\n    \"strictNullChecks\": true\n  }\n}\n"
-        ],
-        "citations": [
-          {
-            "source": "Python.org",
-            "title": "Type Hints",
-            "url": "https://docs.python.org/3/library/typing.html",
-            "relevance": "Official Python type hints documentation"
-          },
-          {
-            "source": "TypeScript",
-            "title": "TypeScript Handbook",
-            "url": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html",
-            "relevance": "TypeScript type system guide"
-          }
-        ]
-      },
+      "remediation": null,
       "error_message": null
     },
     {
@@ -216,7 +169,7 @@
         "category": "Repository Structure",
         "tier": 1,
         "description": "Follows standard project structure for language",
-        "criteria": "Standard directories (src/, tests/, docs/) present",
+        "criteria": "Standard directories (src/ or project-named, tests/) present",
         "default_weight": 0.1
       },
       "status": "fail",
@@ -225,31 +178,42 @@
       "threshold": "2/2 directories",
       "evidence": [
         "Found 0/2 standard directories",
-        "src/: \u2717",
+        "source directory: \u2717 (no src/ or project-named dir)",
         "tests/: \u2717"
       ],
       "remediation": {
-        "summary": "Organize code into standard directories (src/, tests/, docs/)",
+        "summary": "Organize code into standard directories",
         "steps": [
-          "Create src/ directory for source code",
+          "Create a source directory for your code",
+          "Option A: Use src/ layout (recommended for packages)",
+          "Option B: Use project-named directory (e.g., mypackage/)",
+          "Ensure your package has __init__.py",
           "Create tests/ directory for test files",
-          "Create docs/ directory for documentation",
-          "Move source code into src/",
-          "Move tests into tests/"
+          "Add at least one test file"
         ],
         "tools": [],
         "commands": [
-          "mkdir -p src tests docs",
-          "# Move source files to src/",
-          "# Move test files to tests/"
+          "# Option A: src layout",
+          "mkdir -p src/mypackage",
+          "touch src/mypackage/__init__.py",
+          "# ---",
+          "# Option B: flat layout (project-named)",
+          "mkdir -p mypackage",
+          "touch mypackage/__init__.py",
+          "# Create tests directory",
+          "mkdir -p tests",
+          "touch tests/__init__.py",
+          "touch tests/test_example.py"
         ],
-        "examples": [],
+        "examples": [
+          "# src layout (recommended for distributable packages)\nproject/\n\u251c\u2500\u2500 src/\n\u2502   \u2514\u2500\u2500 mypackage/\n\u2502       \u251c\u2500\u2500 __init__.py\n\u2502       \u2514\u2500\u2500 module.py\n\u251c\u2500\u2500 tests/\n\u2502   \u2514\u2500\u2500 test_module.py\n\u2514\u2500\u2500 pyproject.toml\n\n# flat layout (common in major projects like pandas, numpy)\nproject/\n\u251c\u2500\u2500 mypackage/\n\u2502   \u251c\u2500\u2500 __init__.py\n\u2502   \u2514\u2500\u2500 module.py\n\u251c\u2500\u2500 tests/\n\u2502   \u2514\u2500\u2500 test_module.py\n\u2514\u2500\u2500 pyproject.toml\n"
+        ],
         "citations": [
           {
             "source": "Python Packaging Authority",
-            "title": "Python Project Structure",
-            "url": "https://packaging.python.org/en/latest/tutorials/packaging-projects/",
-            "relevance": "Standard Python project layout"
+            "title": "src layout vs flat layout",
+            "url": "https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/",
+            "relevance": "Official guidance on Python project layouts"
           }
         ]
       },
@@ -265,14 +229,34 @@
         "criteria": "Lock file with pinned versions, updated within 6 months",
         "default_weight": 0.1
       },
-      "status": "pass",
-      "score": 100.0,
-      "measured_value": "package-lock.json",
-      "threshold": "lock file with pinned versions, < 6 months old",
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "none",
+      "threshold": "lock file with pinned versions",
       "evidence": [
-        "Found lock file(s): package-lock.json"
+        "No dependency lock files found"
       ],
-      "remediation": null,
+      "remediation": {
+        "summary": "Add lock file for dependency reproducibility",
+        "steps": [
+          "For npm: run 'npm install' (generates package-lock.json)",
+          "For Python: use 'pip freeze > requirements.txt' or poetry",
+          "For Ruby: run 'bundle install' (generates Gemfile.lock)"
+        ],
+        "tools": [
+          "npm",
+          "pip",
+          "poetry",
+          "bundler"
+        ],
+        "commands": [
+          "npm install  # npm",
+          "pip freeze > requirements.txt  # Python",
+          "poetry lock  # Python with Poetry"
+        ],
+        "examples": [],
+        "citations": []
+      },
       "error_message": null
     },
     {
@@ -282,143 +266,59 @@
         "category": "Security",
         "tier": 1,
         "description": "Security scanning tools configured for dependencies and code",
-        "criteria": "Dependabot, CodeQL, or SAST tools configured; secret detection enabled",
+        "criteria": "Dependabot, Renovate, CodeQL, or SAST tools configured; secret detection enabled",
         "default_weight": 0.04
       },
-      "status": "pass",
-      "score": 35,
-      "measured_value": "Security tools configured: Dependabot",
-      "threshold": "\u226560 points (Dependabot + SAST or multiple scanners)",
+      "status": "fail",
+      "score": 0,
+      "measured_value": "No security scanning tools configured",
+      "threshold": "\u226560 points (Dependabot/Renovate + SAST or multiple scanners)",
       "evidence": [
-        "\u2713 Dependabot configured for dependency alerts",
-        "  1 package ecosystem(s) monitored"
+        "No security scanning tools detected"
       ],
       "remediation": {
-        "summary": "Add more security scanning tools for comprehensive coverage",
+        "summary": "Configure security scanning for dependencies and code",
         "steps": [
-          "Enable Dependabot alerts in GitHub repository settings",
-          "Add CodeQL scanning workflow for SAST",
-          "Configure secret detection (detect-secrets, gitleaks)",
-          "Set up language-specific scanners (pip-audit, npm audit, Snyk)"
+          "Enable Dependabot in GitHub repository settings",
+          "Add .github/dependabot.yml configuration file",
+          "Or configure Renovate: add renovate.json to repository root",
+          "Set up CodeQL scanning for SAST",
+          "Add secret detection to pre-commit hooks",
+          "Configure language-specific security scanners"
         ],
         "tools": [
           "Dependabot",
+          "Renovate",
           "CodeQL",
           "detect-secrets",
-          "pip-audit",
-          "npm audit"
+          "Bandit",
+          "Semgrep"
         ],
         "commands": [
           "gh repo edit --enable-security",
-          "pip install detect-secrets  # Python secret detection",
-          "npm audit  # JavaScript dependency audit"
+          "pip install pre-commit detect-secrets",
+          "pre-commit install"
         ],
         "examples": [
-          "# .github/dependabot.yml\nversion: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: weekly"
+          "# .github/dependabot.yml\nversion: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: weekly",
+          "# renovate.json\n{\n  \"extends\": [\"config:base\"],\n  \"schedule\": \"after 10pm every weekday\"\n}",
+          "# .pre-commit-config.yaml\nrepos:\n  - repo: https://github.com/Yelp/detect-secrets\n    rev: v1.4.0\n    hooks:\n      - id: detect-secrets"
         ],
         "citations": [
           {
             "source": "OWASP",
-            "title": "Dependency-Check Project",
-            "url": "https://owasp.org/www-project-dependency-check/",
-            "relevance": "Open-source tool for detecting known vulnerabilities in dependencies"
+            "title": "OWASP Top 10",
+            "url": "https://owasp.org/www-project-top-ten/",
+            "relevance": "Industry-standard list of critical web application security risks"
           },
           {
             "source": "GitHub",
-            "title": "Dependabot Documentation",
-            "url": "https://docs.github.com/en/code-security/dependabot",
-            "relevance": "Official guide for configuring automated dependency updates and security alerts"
+            "title": "Security Best Practices",
+            "url": "https://docs.github.com/en/code-security",
+            "relevance": "Official GitHub security features and best practices documentation"
           }
         ]
       },
-      "error_message": null
-    },
-    {
-      "attribute": {
-        "id": "test_coverage",
-        "name": "Test Coverage Requirements",
-        "category": "Testing & CI/CD",
-        "tier": 2,
-        "description": "Test coverage thresholds configured and enforced",
-        "criteria": ">80% code coverage",
-        "default_weight": 0.03
-      },
-      "status": "not_applicable",
-      "score": null,
-      "measured_value": null,
-      "threshold": null,
-      "evidence": [
-        "Not applicable to ['YAML', 'JavaScript', 'Markdown', 'JSON', 'TypeScript', 'Shell', 'Go']"
-      ],
-      "remediation": null,
-      "error_message": null
-    },
-    {
-      "attribute": {
-        "id": "precommit_hooks",
-        "name": "Pre-commit Hooks & CI/CD Linting",
-        "category": "Testing & CI/CD",
-        "tier": 2,
-        "description": "Pre-commit hooks configured for linting and formatting",
-        "criteria": ".pre-commit-config.yaml exists",
-        "default_weight": 0.03
-      },
-      "status": "fail",
-      "score": 0.0,
-      "measured_value": "not configured",
-      "threshold": "configured",
-      "evidence": [
-        ".pre-commit-config.yaml not found"
-      ],
-      "remediation": {
-        "summary": "Configure pre-commit hooks for automated code quality checks",
-        "steps": [
-          "Install pre-commit framework",
-          "Create .pre-commit-config.yaml",
-          "Add hooks for linting and formatting",
-          "Install hooks: pre-commit install",
-          "Run on all files: pre-commit run --all-files"
-        ],
-        "tools": [
-          "pre-commit"
-        ],
-        "commands": [
-          "pip install pre-commit",
-          "pre-commit install",
-          "pre-commit run --all-files"
-        ],
-        "examples": [
-          "# .pre-commit-config.yaml\nrepos:\n  - repo: https://github.com/pre-commit/pre-commit-hooks\n    rev: v4.4.0\n    hooks:\n      - id: trailing-whitespace\n      - id: end-of-file-fixer\n      - id: check-yaml\n      - id: check-added-large-files\n\n  - repo: https://github.com/psf/black\n    rev: 23.3.0\n    hooks:\n      - id: black\n\n  - repo: https://github.com/pycqa/isort\n    rev: 5.12.0\n    hooks:\n      - id: isort\n"
-        ],
-        "citations": [
-          {
-            "source": "pre-commit.com",
-            "title": "Pre-commit Framework",
-            "url": "https://pre-commit.com/",
-            "relevance": "Official pre-commit documentation"
-          }
-        ]
-      },
-      "error_message": null
-    },
-    {
-      "attribute": {
-        "id": "conventional_commits",
-        "name": "Conventional Commit Messages",
-        "category": "Git & Version Control",
-        "tier": 2,
-        "description": "Follows conventional commit format",
-        "criteria": "\u226580% of recent commits follow convention",
-        "default_weight": 0.03
-      },
-      "status": "pass",
-      "score": 100.0,
-      "measured_value": "configured",
-      "threshold": "configured",
-      "evidence": [
-        "Commit linting configured"
-      ],
-      "remediation": null,
       "error_message": null
     },
     {
@@ -432,25 +332,25 @@
         "default_weight": 0.03
       },
       "status": "fail",
-      "score": 33.33333333333333,
-      "measured_value": "5/15 patterns",
+      "score": 20.0,
+      "measured_value": "1/5 patterns",
       "threshold": "\u226570% of language-specific patterns",
       "evidence": [
-        ".gitignore found (324 bytes)",
-        "Pattern coverage: 5/15 (33%)",
-        "Missing 10 recommended patterns"
+        ".gitignore found (2318 bytes)",
+        "Pattern coverage: 1/5 (20%)",
+        "Missing 4 recommended patterns"
       ],
       "remediation": {
         "summary": "Add missing language-specific ignore patterns",
         "steps": [
           "Review GitHub's gitignore templates for your language",
-          "Add the 10 missing patterns",
+          "Add the 4 missing patterns",
           "Ensure editor/IDE patterns are included"
         ],
         "tools": [],
         "commands": [],
         "examples": [
-          "# Missing patterns:\n*.tsbuildinfo\n*.swo\n*.exe\n*.out\n*.swp"
+          "# Missing patterns:\n*.swp\n.vscode/\n*.swo\n.DS_Store"
         ],
         "citations": [
           {
@@ -474,13 +374,13 @@
         "default_weight": 0.03
       },
       "status": "fail",
-      "score": 60,
+      "score": 0,
       "measured_value": "multi-step setup",
       "threshold": "single command",
       "evidence": [
         "No clear setup command found in README",
-        "Setup automation found: Makefile, package.json",
-        "Setup instructions in prominent location"
+        "No Makefile or setup script found",
+        "Setup instructions not in first 3 sections"
       ],
       "remediation": {
         "summary": "Create single-command setup for development environment",
@@ -533,32 +433,14 @@
         "criteria": "<5% of files >500 lines, no files >1000 lines",
         "default_weight": 0.03
       },
-      "status": "fail",
-      "score": 63.138556883576804,
-      "measured_value": "31 huge, 104 large out of 4518",
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "0 huge, 0 large out of 1",
       "threshold": "<5% files >500 lines, 0 files >1000 lines",
       "evidence": [
-        "Found 31 files >1000 lines (0.7% of 4518 files)",
-        "Largest: backend/src/types.ts (1327 lines)"
+        "All 1 source files are <500 lines"
       ],
-      "remediation": {
-        "summary": "Refactor large files into smaller, focused modules",
-        "steps": [
-          "Identify files >1000 lines",
-          "Split into logical submodules",
-          "Extract classes/functions into separate files",
-          "Maintain single responsibility principle"
-        ],
-        "tools": [
-          "refactoring tools",
-          "linters"
-        ],
-        "commands": [],
-        "examples": [
-          "# Split large file:\n# models.py (1500 lines) \u2192 models/user.py, models/product.py, models/order.py"
-        ],
-        "citations": []
-      },
+      "remediation": null,
       "error_message": null
     },
     {
@@ -594,13 +476,13 @@
         "default_weight": 0.03
       },
       "status": "fail",
-      "score": 61.0,
-      "measured_value": "28 lines, 3 headings, 2 bullets",
+      "score": 70.0,
+      "measured_value": "127 lines, 23 headings, 8 bullets",
       "threshold": "<500 lines, structured format",
       "evidence": [
-        "README length: 28 lines (excellent)",
-        "Heading density: 10.7 per 100 lines (target: 3-5)",
-        "Only 2 bullet points (prefer bullets over prose)"
+        "README length: 127 lines (excellent)",
+        "Heading density: 18.1 per 100 lines (target: 3-5)",
+        "Only 8 bullet points (prefer bullets over prose)"
       ],
       "remediation": {
         "summary": "Make documentation more concise and structured",
@@ -656,7 +538,7 @@
       "measured_value": null,
       "threshold": null,
       "evidence": [
-        "Docstring check not implemented for ['YAML', 'JavaScript', 'Markdown', 'JSON', 'TypeScript', 'Shell', 'Go']"
+        "Not applicable to ['Shell']"
       ],
       "remediation": null,
       "error_message": null
@@ -671,107 +553,12 @@
         "criteria": "Average complexity <10, no functions >15",
         "default_weight": 0.03
       },
-      "status": "error",
+      "status": "not_applicable",
       "score": null,
       "measured_value": null,
       "threshold": null,
-      "evidence": [],
-      "remediation": null,
-      "error_message": "Complexity analysis failed: Command '['lizard', '/Users/dgutride/source/odh-dashboard']' timed out after 60 seconds"
-    },
-    {
-      "attribute": {
-        "id": "architecture_decisions",
-        "name": "Architecture Decision Records (ADRs)",
-        "category": "Documentation Standards",
-        "tier": 3,
-        "description": "Lightweight documents capturing architectural decisions",
-        "criteria": "ADR directory with documented decisions",
-        "default_weight": 0.015
-      },
-      "status": "fail",
-      "score": 0.0,
-      "measured_value": "no ADR directory",
-      "threshold": "ADR directory with decisions",
       "evidence": [
-        "No ADR directory found (checked docs/adr/, .adr/, adr/, docs/decisions/)"
-      ],
-      "remediation": {
-        "summary": "Create Architecture Decision Records (ADRs) directory and document key decisions",
-        "steps": [
-          "Create docs/adr/ directory in repository root",
-          "Use Michael Nygard ADR template or MADR format",
-          "Document each significant architectural decision",
-          "Number ADRs sequentially (0001-*.md, 0002-*.md)",
-          "Include Status, Context, Decision, and Consequences sections",
-          "Update ADR status when decisions are revised (Superseded, Deprecated)"
-        ],
-        "tools": [
-          "adr-tools",
-          "log4brains"
-        ],
-        "commands": [
-          "# Create ADR directory",
-          "mkdir -p docs/adr",
-          "",
-          "# Create first ADR using template",
-          "cat > docs/adr/0001-use-architecture-decision-records.md << 'EOF'",
-          "# 1. Use Architecture Decision Records",
-          "",
-          "Date: 2025-11-22",
-          "",
-          "## Status",
-          "Accepted",
-          "",
-          "## Context",
-          "We need to record architectural decisions made in this project.",
-          "",
-          "## Decision",
-          "We will use Architecture Decision Records (ADRs) as described by Michael Nygard.",
-          "",
-          "## Consequences",
-          "- Decisions are documented with context",
-          "- Future contributors understand rationale",
-          "- ADRs are lightweight and version-controlled",
-          "EOF"
-        ],
-        "examples": [
-          "# Example ADR Structure\n\n```markdown\n# 2. Use PostgreSQL for Database\n\nDate: 2025-11-22\n\n## Status\nAccepted\n\n## Context\nWe need a relational database for complex queries and ACID transactions.\nTeam has PostgreSQL experience. Need full-text search capabilities.\n\n## Decision\nUse PostgreSQL 15+ as primary database.\n\n## Consequences\n- Positive: Robust ACID, full-text search, team familiarity\n- Negative: Higher resource usage than SQLite\n- Neutral: Need to manage migrations, backups\n```\n"
-        ],
-        "citations": [
-          {
-            "source": "Michael Nygard",
-            "title": "Documenting Architecture Decisions",
-            "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
-            "relevance": "Original ADR format and rationale"
-          },
-          {
-            "source": "GitHub adr/madr",
-            "title": "Markdown ADR (MADR) Template",
-            "url": "https://github.com/adr/madr",
-            "relevance": "Modern ADR template with examples"
-          }
-        ]
-      },
-      "error_message": null
-    },
-    {
-      "attribute": {
-        "id": "issue_pr_templates",
-        "name": "Issue & Pull Request Templates",
-        "category": "Repository Structure",
-        "tier": 3,
-        "description": "Standardized templates for issues and PRs",
-        "criteria": "PR template and issue templates in .github/",
-        "default_weight": 0.015
-      },
-      "status": "pass",
-      "score": 100,
-      "measured_value": "PR:True, Issues:2",
-      "threshold": "PR template + \u22652 issue templates",
-      "evidence": [
-        "PR template found",
-        "Issue templates found: 2 templates"
+        "Not applicable to ['Shell']"
       ],
       "remediation": null,
       "error_message": null
@@ -787,14 +574,12 @@
         "default_weight": 0.015
       },
       "status": "fail",
-      "score": 70,
-      "measured_value": "basic config",
-      "threshold": "CI with best practices",
+      "score": 0.0,
+      "measured_value": "no CI config",
+      "threshold": "CI config present",
       "evidence": [
-        "CI config found: .github/workflows/release-odh-dashboard.yml, .github/workflows/test.yml, .github/workflows/pr-image-expiry.yml, .github/workflows/stale.yml, .github/workflows/gen-ai-frontend-build.yml, .github/workflows/release-auto-merge.yml, .github/workflows/cypress-e2e-test.yml, .github/workflows/gen-ai-bff-build.yml, .github/workflows/validate-kustomize.yml, .github/workflows/modular-arch-quality-gates.yml",
-        "Descriptive job/step names found",
-        "No caching detected",
-        "Parallel job execution detected"
+        "No CI/CD configuration found",
+        "Checked: GitHub Actions, GitLab CI, CircleCI, Travis CI"
       ],
       "remediation": {
         "summary": "Add or improve CI/CD pipeline configuration",
@@ -855,50 +640,7 @@
       "measured_value": null,
       "threshold": null,
       "evidence": [
-        "Naming check not implemented for ['YAML', 'JavaScript', 'Markdown', 'JSON', 'TypeScript', 'Shell', 'Go']"
-      ],
-      "remediation": null,
-      "error_message": null
-    },
-    {
-      "attribute": {
-        "id": "structured_logging",
-        "name": "Structured Logging",
-        "category": "Code Quality",
-        "tier": 3,
-        "description": "Logging in structured format (JSON) with consistent fields",
-        "criteria": "Structured logging library configured (structlog, winston, zap)",
-        "default_weight": 0.015
-      },
-      "status": "not_applicable",
-      "score": null,
-      "measured_value": null,
-      "threshold": null,
-      "evidence": [
-        "Structured logging check not implemented for ['YAML', 'JavaScript', 'Markdown', 'JSON', 'TypeScript', 'Shell', 'Go']"
-      ],
-      "remediation": null,
-      "error_message": null
-    },
-    {
-      "attribute": {
-        "id": "openapi_specs",
-        "name": "OpenAPI/Swagger Specifications",
-        "category": "API Documentation",
-        "tier": 3,
-        "description": "Machine-readable API documentation in OpenAPI format",
-        "criteria": "OpenAPI 3.x spec with complete endpoint documentation",
-        "default_weight": 0.015
-      },
-      "status": "pass",
-      "score": 100,
-      "measured_value": "OpenAPI 3.1.0",
-      "threshold": "OpenAPI 3.x with paths and schemas",
-      "evidence": [
-        "packages/lm-eval/upstream/bff/openapi.yaml found in repository",
-        "OpenAPI version: 3.1.0",
-        "5 endpoints documented",
-        "13 schemas defined"
+        "Naming check not implemented for ['Shell']"
       ],
       "remediation": null,
       "error_message": null
@@ -934,27 +676,21 @@
         "default_weight": 0.01
       },
       "status": "fail",
-      "score": 33.33333333333333,
-      "measured_value": "ESLint",
+      "score": 0.0,
+      "measured_value": "none",
       "threshold": "\u226560% of applicable linters configured",
       "evidence": [
-        "Linters configured: ESLint",
-        "Coverage: 20/60 points (33%)"
+        "No linters configured"
       ],
       "remediation": {
-        "summary": "Configure 3 missing linter(s)",
+        "summary": "Configure 1 missing linter(s)",
         "steps": [
-          "Configure golangci-lint for Go",
-          "Add actionlint for GitHub Actions workflow validation",
           "Configure markdownlint for documentation quality"
         ],
         "tools": [
-          "golangci-lint",
-          "actionlint",
           "markdownlint"
         ],
         "commands": [
-          "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
           "npm install --save-dev markdownlint-cli && touch .markdownlint.json"
         ],
         "examples": [
@@ -989,26 +725,62 @@
         "default_weight": 0.01
       },
       "status": "pass",
-      "score": 70,
-      "measured_value": "70 points",
+      "score": 40,
+      "measured_value": "40 points",
       "threshold": "\u226570 points (Dockerfile + compose + .dockerignore)",
       "evidence": [
-        "\u2713 Dockerfile present",
-        "\u2713 Multi-stage build detected (optimized image size)",
-        "\u2713 .dockerignore present (excludes unnecessary files)"
+        "\u2713 Containerfile present (Podman)",
+        "\u2139\ufe0f Single-stage build (consider multi-stage for smaller images)",
+        "\u2139\ufe0f No .dockerignore file (consider adding to reduce image size)"
       ],
-      "remediation": null,
+      "remediation": {
+        "summary": "Improve container configuration",
+        "steps": [
+          "Add docker-compose.yml for multi-service development",
+          "Create .dockerignore to exclude build artifacts and secrets",
+          "Consider multi-stage builds to reduce image size"
+        ],
+        "tools": [
+          "docker",
+          "podman",
+          "docker-compose"
+        ],
+        "commands": [
+          "docker build -t myapp .",
+          "docker-compose up -d"
+        ],
+        "examples": [
+          "# .dockerignore example\n.git\n.venv\n__pycache__\n*.pyc\n.env\nnode_modules",
+          "# Multi-stage Dockerfile example\nFROM node:18 AS builder\nWORKDIR /app\nCOPY . .\nRUN npm ci && npm run build\n\nFROM node:18-alpine\nWORKDIR /app\nCOPY --from=builder /app/dist ./dist\nCMD [\"node\", \"dist/index.js\"]"
+        ],
+        "citations": [
+          {
+            "source": "Docker",
+            "title": "Dockerfile Best Practices",
+            "url": "https://docs.docker.com/develop/develop-images/dockerfile_best-practices/",
+            "relevance": "Official Docker guide for writing efficient and secure Dockerfiles"
+          }
+        ]
+      },
       "error_message": null
     }
   ],
   "config": {
     "weights": {},
-    "excluded_attributes": [],
+    "excluded_attributes": [
+      "test_coverage",
+      "conventional_commits",
+      "architecture_decisions",
+      "structured_logging",
+      "openapi_specs",
+      "issue_pr_templates",
+      "precommit_hooks"
+    ],
     "language_overrides": {},
     "output_dir": null,
     "report_theme": "default",
     "custom_theme": null
   },
-  "duration_seconds": 85.2,
+  "duration_seconds": 0.0,
   "discovered_skills": []
 }

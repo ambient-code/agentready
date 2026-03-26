@@ -1,3 +1,29 @@
+## [2.30.1](https://github.com/ambient-code/agentready/compare/v2.30.0...v2.30.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* **leaderboard:** use upstream schema for fork PR validation ([#335](https://github.com/ambient-code/agentready/issues/335)) ([5939b59](https://github.com/ambient-code/agentready/commit/5939b598e336a1dd7842dbbcfa294c5557a277f2)), closes [#312](https://github.com/ambient-code/agentready/issues/312)
+
+# [2.30.0](https://github.com/ambient-code/agentready/compare/v2.29.6...v2.30.0) (2026-03-06)
+
+
+### Bug Fixes
+
+* update CLAUDE.md with accurate codebase info, add BOOKMARKS.md ([#336](https://github.com/ambient-code/agentready/issues/336)) ([99ab035](https://github.com/ambient-code/agentready/commit/99ab035bbec7335b20c8b0e8084ed056fef705d2)), closes [#327](https://github.com/ambient-code/agentready/issues/327)
+
+
+### Features
+
+* add opendatahub-io/opendatahub-tests to leaderboard ([#332](https://github.com/ambient-code/agentready/issues/332)) ([b92713b](https://github.com/ambient-code/agentready/commit/b92713baa73e50413648d9fcb96f6086e0bae19e))
+
+## [2.29.6](https://github.com/ambient-code/agentready/compare/v2.29.5...v2.29.6) (2026-03-05)
+
+
+### Bug Fixes
+
+* **assessors:** support project-named directories and test-only repos in standard_layout check ([#322](https://github.com/ambient-code/agentready/issues/322)) ([2fbb733](https://github.com/ambient-code/agentready/commit/2fbb73329ce528b971006f6deaf95d50f4428c11)), closes [#246](https://github.com/ambient-code/agentready/issues/246) [#305](https://github.com/ambient-code/agentready/issues/305)
+
 ## [2.29.5](https://github.com/ambient-code/agentready/compare/v2.29.4...v2.29.5) (2026-03-03)
 
 

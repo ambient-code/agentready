@@ -1,7 +1,63 @@
 {
-  "generated_at": "2026-02-23T22:08:53.305118Z",
-  "total_repositories": 10,
+  "generated_at": "2026-03-26T02:55:46.831328Z",
+  "total_repositories": 25,
   "overall": [
+    {
+      "repo": "opendatahub-io/opendatahub-tests",
+      "org": "opendatahub-io",
+      "name": "opendatahub-tests",
+      "score": 83.5,
+      "tier": "Gold",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-05",
+      "url": "https://github.com/opendatahub-io/opendatahub-tests",
+      "agentready_version": "2.29.5",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-05",
+          "score": 83.5,
+          "agentready_version": "2.29.5",
+          "research_version": "1.0.1"
+        },
+        {
+          "date": "2026-02-19",
+          "score": 73.5,
+          "agentready_version": "2.28.0",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 1,
+      "lang_rank": {
+        "Unknown": 1
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/wheels/builder",
+      "org": "redhat",
+      "name": "builder",
+      "score": 78.6,
+      "tier": "Gold",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-25",
+      "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
+      "agentready_version": "2.30.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-25",
+          "score": 78.6,
+          "agentready_version": "2.30.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 2,
+      "lang_rank": {
+        "Unknown": 2
+      }
+    },
     {
       "repo": "ambient-code/agentready",
       "org": "ambient-code",
@@ -28,34 +84,90 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 1,
+      "rank": 3,
       "lang_rank": {
-        "Unknown": 1
+        "Unknown": 3
       }
     },
     {
-      "repo": "opendatahub-io/opendatahub-tests",
+      "repo": "opendatahub-io/odh-dashboard",
       "org": "opendatahub-io",
-      "name": "opendatahub-tests",
-      "score": 73.5,
-      "tier": "Silver",
+      "name": "odh-dashboard",
+      "score": 76.5,
+      "tier": "Gold",
       "language": "Unknown",
       "size": "Unknown",
-      "last_updated": "2026-02-19",
-      "url": "https://github.com/opendatahub-io/opendatahub-tests",
-      "agentready_version": "2.28.0",
+      "last_updated": "2026-03-18",
+      "url": "https://github.com/opendatahub-io/odh-dashboard",
+      "agentready_version": "2.30.1",
       "research_version": "1.0.1",
       "history": [
         {
-          "date": "2026-02-19",
-          "score": 73.5,
-          "agentready_version": "2.28.0",
+          "date": "2026-03-18",
+          "score": 76.5,
+          "agentready_version": "2.30.1",
           "research_version": "1.0.1"
         }
       ],
-      "rank": 2,
+      "rank": 4,
       "lang_rank": {
-        "Unknown": 2
+        "Unknown": 4
+      }
+    },
+    {
+      "repo": "python-wheel-build/fromager",
+      "org": "python-wheel-build",
+      "name": "fromager",
+      "score": 74.6,
+      "tier": "Silver",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://github.com/python-wheel-build/fromager",
+      "agentready_version": "2.30.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 74.6,
+          "agentready_version": "2.30.1",
+          "research_version": "1.0.1"
+        },
+        {
+          "date": "2026-02-06",
+          "score": 63.5,
+          "agentready_version": "2.25.0",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 5,
+      "lang_rank": {
+        "Unknown": 5
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/ci-cd/aipcc-product-management",
+      "org": "redhat",
+      "name": "aipcc-product-management",
+      "score": 72.2,
+      "tier": "Silver",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 72.2,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 6,
+      "lang_rank": {
+        "Unknown": 6
       }
     },
     {
@@ -84,34 +196,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 3,
+      "rank": 7,
       "lang_rank": {
-        "Unknown": 3
-      }
-    },
-    {
-      "repo": "python-wheel-build/fromager",
-      "org": "python-wheel-build",
-      "name": "fromager",
-      "score": 63.5,
-      "tier": "Silver",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-02-06",
-      "url": "https://github.com/python-wheel-build/fromager",
-      "agentready_version": "2.25.0",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-02-06",
-          "score": 63.5,
-          "agentready_version": "2.25.0",
-          "research_version": "1.0.1"
-        }
-      ],
-      "rank": 4,
-      "lang_rank": {
-        "Unknown": 4
+        "Unknown": 7
       }
     },
     {
@@ -134,9 +221,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 5,
+      "rank": 8,
       "lang_rank": {
-        "Unknown": 5
+        "Unknown": 8
       }
     },
     {
@@ -159,34 +246,59 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 6,
+      "rank": 9,
       "lang_rank": {
-        "Unknown": 6
+        "Unknown": 9
       }
     },
     {
-      "repo": "ambient-code/reference",
-      "org": "ambient-code",
-      "name": "reference",
-      "score": 55.8,
-      "tier": "Bronze",
+      "repo": "redhat/rhel-ai/ci-cd/docs",
+      "org": "redhat",
+      "name": "docs",
+      "score": 60.9,
+      "tier": "Silver",
       "language": "Unknown",
       "size": "Unknown",
-      "last_updated": "2026-01-15",
-      "url": "https://github.com/ambient-code/reference",
-      "agentready_version": "2.22.1",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/docs",
+      "agentready_version": "2.29.6",
       "research_version": "1.0.1",
       "history": [
         {
-          "date": "2026-01-15",
-          "score": 55.8,
-          "agentready_version": "2.22.1",
+          "date": "2026-03-24",
+          "score": 60.9,
+          "agentready_version": "2.29.6",
           "research_version": "1.0.1"
         }
       ],
-      "rank": 7,
+      "rank": 10,
       "lang_rank": {
-        "Unknown": 7
+        "Unknown": 10
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/ci-cd/dashboard",
+      "org": "redhat",
+      "name": "dashboard",
+      "score": 58.5,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/dashboard",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 58.5,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 11,
+      "lang_rank": {
+        "Unknown": 11
       }
     },
     {
@@ -209,9 +321,59 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 8,
+      "rank": 12,
       "lang_rank": {
-        "Unknown": 8
+        "Unknown": 12
+      }
+    },
+    {
+      "repo": "ambient-code/reference",
+      "org": "ambient-code",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/ambient-code/reference",
+      "agentready_version": "2.22.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 13,
+      "lang_rank": {
+        "Unknown": 13
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/rhai/pipeline",
+      "org": "redhat",
+      "name": "pipeline",
+      "score": 53.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-25",
+      "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
+      "agentready_version": "2.30.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-25",
+          "score": 53.8,
+          "agentready_version": "2.30.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 14,
+      "lang_rank": {
+        "Unknown": 14
       }
     },
     {
@@ -234,39 +396,320 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 9,
+      "rank": 15,
       "lang_rank": {
-        "Unknown": 9
+        "Unknown": 15
       }
     },
     {
-      "repo": "dgutride/odh-dashboard",
-      "org": "dgutride",
-      "name": "odh-dashboard",
-      "score": 42.8,
+      "repo": "redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
+      "org": "redhat",
+      "name": "aipcc-product-management-configs",
+      "score": 49.3,
       "tier": "Bronze",
       "language": "Unknown",
       "size": "Unknown",
-      "last_updated": "2026-01-28",
-      "url": "https://github.com/dgutride/odh-dashboard",
-      "agentready_version": "2.23.0",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
+      "agentready_version": "2.29.6",
       "research_version": "1.0.1",
       "history": [
         {
-          "date": "2026-01-28",
-          "score": 42.8,
-          "agentready_version": "2.23.0",
+          "date": "2026-03-24",
+          "score": 49.3,
+          "agentready_version": "2.29.6",
           "research_version": "1.0.1"
         }
       ],
-      "rank": 10,
+      "rank": 16,
       "lang_rank": {
-        "Unknown": 10
+        "Unknown": 16
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/ci-cd/central-linter",
+      "org": "redhat",
+      "name": "central-linter",
+      "score": 45.9,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/central-linter",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 45.9,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 17,
+      "lang_rank": {
+        "Unknown": 17
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/ci-cd/aipcc-claudio",
+      "org": "redhat",
+      "name": "aipcc-claudio",
+      "score": 44.5,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-claudio",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 44.5,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 18,
+      "lang_rank": {
+        "Unknown": 18
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/containers/bootc",
+      "org": "redhat",
+      "name": "bootc",
+      "score": 34.1,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 34.1,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 19,
+      "lang_rank": {
+        "Unknown": 19
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/ci-cd/aipcc-infrastructure",
+      "org": "redhat",
+      "name": "aipcc-infrastructure",
+      "score": 27.6,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-infrastructure",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 27.6,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 20,
+      "lang_rank": {
+        "Unknown": 20
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/disk-images/disk-image-test",
+      "org": "redhat",
+      "name": "disk-image-test",
+      "score": 26.7,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 26.7,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 21,
+      "lang_rank": {
+        "Unknown": 21
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/containers/bootc-test",
+      "org": "redhat",
+      "name": "bootc-test",
+      "score": 26.7,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 26.7,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 22,
+      "lang_rank": {
+        "Unknown": 22
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/ci-cd/toolbox",
+      "org": "redhat",
+      "name": "toolbox",
+      "score": 24.8,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/toolbox",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 24.8,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 23,
+      "lang_rank": {
+        "Unknown": 23
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/renovate-config",
+      "org": "redhat",
+      "name": "renovate-config",
+      "score": 24.1,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/renovate-config",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 24.1,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 24,
+      "lang_rank": {
+        "Unknown": 24
+      }
+    },
+    {
+      "repo": "redhat/rhel-ai/konflux-data",
+      "org": "redhat",
+      "name": "konflux-data",
+      "score": 15.3,
+      "tier": "Needs Improvement",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-03-24",
+      "url": "https://gitlab.com/redhat/rhel-ai/konflux-data",
+      "agentready_version": "2.29.6",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-03-24",
+          "score": 15.3,
+          "agentready_version": "2.29.6",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 25,
+      "lang_rank": {
+        "Unknown": 25
       }
     }
   ],
   "by_language": {
     "Unknown": [
+      {
+        "repo": "opendatahub-io/opendatahub-tests",
+        "org": "opendatahub-io",
+        "name": "opendatahub-tests",
+        "score": 83.5,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-05",
+        "url": "https://github.com/opendatahub-io/opendatahub-tests",
+        "agentready_version": "2.29.5",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-05",
+            "score": 83.5,
+            "agentready_version": "2.29.5",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-19",
+            "score": 73.5,
+            "agentready_version": "2.28.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 1,
+        "lang_rank": {
+          "Unknown": 1
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/wheels/builder",
+        "org": "redhat",
+        "name": "builder",
+        "score": 78.6,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 78.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
+      },
       {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
@@ -293,34 +736,90 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 1,
+        "rank": 3,
         "lang_rank": {
-          "Unknown": 1
+          "Unknown": 3
         }
       },
       {
-        "repo": "opendatahub-io/opendatahub-tests",
+        "repo": "opendatahub-io/odh-dashboard",
         "org": "opendatahub-io",
-        "name": "opendatahub-tests",
-        "score": 73.5,
-        "tier": "Silver",
+        "name": "odh-dashboard",
+        "score": 76.5,
+        "tier": "Gold",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-02-19",
-        "url": "https://github.com/opendatahub-io/opendatahub-tests",
-        "agentready_version": "2.28.0",
+        "last_updated": "2026-03-18",
+        "url": "https://github.com/opendatahub-io/odh-dashboard",
+        "agentready_version": "2.30.1",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-02-19",
-            "score": 73.5,
-            "agentready_version": "2.28.0",
+            "date": "2026-03-18",
+            "score": 76.5,
+            "agentready_version": "2.30.1",
             "research_version": "1.0.1"
           }
         ],
-        "rank": 2,
+        "rank": 4,
         "lang_rank": {
-          "Unknown": 2
+          "Unknown": 4
+        }
+      },
+      {
+        "repo": "python-wheel-build/fromager",
+        "org": "python-wheel-build",
+        "name": "fromager",
+        "score": 74.6,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://github.com/python-wheel-build/fromager",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 74.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-06",
+            "score": 63.5,
+            "agentready_version": "2.25.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 5,
+        "lang_rank": {
+          "Unknown": 5
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-product-management",
+        "org": "redhat",
+        "name": "aipcc-product-management",
+        "score": 72.2,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 72.2,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 6,
+        "lang_rank": {
+          "Unknown": 6
         }
       },
       {
@@ -349,34 +848,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 3,
+        "rank": 7,
         "lang_rank": {
-          "Unknown": 3
-        }
-      },
-      {
-        "repo": "python-wheel-build/fromager",
-        "org": "python-wheel-build",
-        "name": "fromager",
-        "score": 63.5,
-        "tier": "Silver",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-02-06",
-        "url": "https://github.com/python-wheel-build/fromager",
-        "agentready_version": "2.25.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-02-06",
-            "score": 63.5,
-            "agentready_version": "2.25.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 4,
-        "lang_rank": {
-          "Unknown": 4
+          "Unknown": 7
         }
       },
       {
@@ -399,9 +873,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 5,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 5
+          "Unknown": 8
         }
       },
       {
@@ -424,34 +898,59 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 6,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 6
+          "Unknown": 9
         }
       },
       {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
+        "repo": "redhat/rhel-ai/ci-cd/docs",
+        "org": "redhat",
+        "name": "docs",
+        "score": 60.9,
+        "tier": "Silver",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/docs",
+        "agentready_version": "2.29.6",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
+            "date": "2026-03-24",
+            "score": 60.9,
+            "agentready_version": "2.29.6",
             "research_version": "1.0.1"
           }
         ],
-        "rank": 7,
+        "rank": 10,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 10
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/dashboard",
+        "org": "redhat",
+        "name": "dashboard",
+        "score": 58.5,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/dashboard",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 58.5,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 11,
+        "lang_rank": {
+          "Unknown": 11
         }
       },
       {
@@ -474,9 +973,59 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 12,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 12
+        }
+      },
+      {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 13,
+        "lang_rank": {
+          "Unknown": 13
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/rhai/pipeline",
+        "org": "redhat",
+        "name": "pipeline",
+        "score": 53.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 53.8,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 14,
+        "lang_rank": {
+          "Unknown": 14
         }
       },
       {
@@ -499,34 +1048,259 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 9,
+        "rank": 15,
         "lang_rank": {
-          "Unknown": 9
+          "Unknown": 15
         }
       },
       {
-        "repo": "dgutride/odh-dashboard",
-        "org": "dgutride",
-        "name": "odh-dashboard",
-        "score": 42.8,
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
+        "org": "redhat",
+        "name": "aipcc-product-management-configs",
+        "score": 49.3,
         "tier": "Bronze",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-01-28",
-        "url": "https://github.com/dgutride/odh-dashboard",
-        "agentready_version": "2.23.0",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
+        "agentready_version": "2.29.6",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-01-28",
-            "score": 42.8,
-            "agentready_version": "2.23.0",
+            "date": "2026-03-24",
+            "score": 49.3,
+            "agentready_version": "2.29.6",
             "research_version": "1.0.1"
           }
         ],
-        "rank": 10,
+        "rank": 16,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 16
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/central-linter",
+        "org": "redhat",
+        "name": "central-linter",
+        "score": 45.9,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/central-linter",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 45.9,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 17,
+        "lang_rank": {
+          "Unknown": 17
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-claudio",
+        "org": "redhat",
+        "name": "aipcc-claudio",
+        "score": 44.5,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-claudio",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 44.5,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 18,
+        "lang_rank": {
+          "Unknown": 18
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/containers/bootc",
+        "org": "redhat",
+        "name": "bootc",
+        "score": 34.1,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 34.1,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 19,
+        "lang_rank": {
+          "Unknown": 19
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-infrastructure",
+        "org": "redhat",
+        "name": "aipcc-infrastructure",
+        "score": 27.6,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-infrastructure",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 27.6,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 20,
+        "lang_rank": {
+          "Unknown": 20
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/disk-images/disk-image-test",
+        "org": "redhat",
+        "name": "disk-image-test",
+        "score": 26.7,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 26.7,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 21,
+        "lang_rank": {
+          "Unknown": 21
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/containers/bootc-test",
+        "org": "redhat",
+        "name": "bootc-test",
+        "score": 26.7,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 26.7,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 22,
+        "lang_rank": {
+          "Unknown": 22
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/toolbox",
+        "org": "redhat",
+        "name": "toolbox",
+        "score": 24.8,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/toolbox",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 24.8,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 23,
+        "lang_rank": {
+          "Unknown": 23
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/renovate-config",
+        "org": "redhat",
+        "name": "renovate-config",
+        "score": 24.1,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/renovate-config",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 24.1,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 24,
+        "lang_rank": {
+          "Unknown": 24
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/konflux-data",
+        "org": "redhat",
+        "name": "konflux-data",
+        "score": 15.3,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/konflux-data",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 15.3,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 25,
+        "lang_rank": {
+          "Unknown": 25
         }
       }
     ]
@@ -534,6 +1308,62 @@
   "by_size": {
     "Unknown": [
       {
+        "repo": "opendatahub-io/opendatahub-tests",
+        "org": "opendatahub-io",
+        "name": "opendatahub-tests",
+        "score": 83.5,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-05",
+        "url": "https://github.com/opendatahub-io/opendatahub-tests",
+        "agentready_version": "2.29.5",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-05",
+            "score": 83.5,
+            "agentready_version": "2.29.5",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-19",
+            "score": 73.5,
+            "agentready_version": "2.28.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 1,
+        "lang_rank": {
+          "Unknown": 1
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/wheels/builder",
+        "org": "redhat",
+        "name": "builder",
+        "score": 78.6,
+        "tier": "Gold",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 78.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 2,
+        "lang_rank": {
+          "Unknown": 2
+        }
+      },
+      {
         "repo": "ambient-code/agentready",
         "org": "ambient-code",
         "name": "agentready",
@@ -559,34 +1389,90 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 1,
+        "rank": 3,
         "lang_rank": {
-          "Unknown": 1
+          "Unknown": 3
         }
       },
       {
-        "repo": "opendatahub-io/opendatahub-tests",
+        "repo": "opendatahub-io/odh-dashboard",
         "org": "opendatahub-io",
-        "name": "opendatahub-tests",
-        "score": 73.5,
-        "tier": "Silver",
+        "name": "odh-dashboard",
+        "score": 76.5,
+        "tier": "Gold",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-02-19",
-        "url": "https://github.com/opendatahub-io/opendatahub-tests",
-        "agentready_version": "2.28.0",
+        "last_updated": "2026-03-18",
+        "url": "https://github.com/opendatahub-io/odh-dashboard",
+        "agentready_version": "2.30.1",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-02-19",
-            "score": 73.5,
-            "agentready_version": "2.28.0",
+            "date": "2026-03-18",
+            "score": 76.5,
+            "agentready_version": "2.30.1",
             "research_version": "1.0.1"
           }
         ],
-        "rank": 2,
+        "rank": 4,
         "lang_rank": {
-          "Unknown": 2
+          "Unknown": 4
+        }
+      },
+      {
+        "repo": "python-wheel-build/fromager",
+        "org": "python-wheel-build",
+        "name": "fromager",
+        "score": 74.6,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://github.com/python-wheel-build/fromager",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 74.6,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          },
+          {
+            "date": "2026-02-06",
+            "score": 63.5,
+            "agentready_version": "2.25.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 5,
+        "lang_rank": {
+          "Unknown": 5
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-product-management",
+        "org": "redhat",
+        "name": "aipcc-product-management",
+        "score": 72.2,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 72.2,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 6,
+        "lang_rank": {
+          "Unknown": 6
         }
       },
       {
@@ -615,34 +1501,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 3,
+        "rank": 7,
         "lang_rank": {
-          "Unknown": 3
-        }
-      },
-      {
-        "repo": "python-wheel-build/fromager",
-        "org": "python-wheel-build",
-        "name": "fromager",
-        "score": 63.5,
-        "tier": "Silver",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-02-06",
-        "url": "https://github.com/python-wheel-build/fromager",
-        "agentready_version": "2.25.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-02-06",
-            "score": 63.5,
-            "agentready_version": "2.25.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 4,
-        "lang_rank": {
-          "Unknown": 4
+          "Unknown": 7
         }
       },
       {
@@ -665,9 +1526,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 5,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 5
+          "Unknown": 8
         }
       },
       {
@@ -690,34 +1551,59 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 6,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 6
+          "Unknown": 9
         }
       },
       {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
+        "repo": "redhat/rhel-ai/ci-cd/docs",
+        "org": "redhat",
+        "name": "docs",
+        "score": 60.9,
+        "tier": "Silver",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/docs",
+        "agentready_version": "2.29.6",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
+            "date": "2026-03-24",
+            "score": 60.9,
+            "agentready_version": "2.29.6",
             "research_version": "1.0.1"
           }
         ],
-        "rank": 7,
+        "rank": 10,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 10
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/dashboard",
+        "org": "redhat",
+        "name": "dashboard",
+        "score": 58.5,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/dashboard",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 58.5,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 11,
+        "lang_rank": {
+          "Unknown": 11
         }
       },
       {
@@ -740,9 +1626,59 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 12,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 12
+        }
+      },
+      {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 13,
+        "lang_rank": {
+          "Unknown": 13
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/rhai/pipeline",
+        "org": "redhat",
+        "name": "pipeline",
+        "score": 53.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-25",
+        "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
+        "agentready_version": "2.30.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-25",
+            "score": 53.8,
+            "agentready_version": "2.30.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 14,
+        "lang_rank": {
+          "Unknown": 14
         }
       },
       {
@@ -765,37 +1701,281 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 9,
+        "rank": 15,
         "lang_rank": {
-          "Unknown": 9
+          "Unknown": 15
         }
       },
       {
-        "repo": "dgutride/odh-dashboard",
-        "org": "dgutride",
-        "name": "odh-dashboard",
-        "score": 42.8,
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
+        "org": "redhat",
+        "name": "aipcc-product-management-configs",
+        "score": 49.3,
         "tier": "Bronze",
         "language": "Unknown",
         "size": "Unknown",
-        "last_updated": "2026-01-28",
-        "url": "https://github.com/dgutride/odh-dashboard",
-        "agentready_version": "2.23.0",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
+        "agentready_version": "2.29.6",
         "research_version": "1.0.1",
         "history": [
           {
-            "date": "2026-01-28",
-            "score": 42.8,
-            "agentready_version": "2.23.0",
+            "date": "2026-03-24",
+            "score": 49.3,
+            "agentready_version": "2.29.6",
             "research_version": "1.0.1"
           }
         ],
-        "rank": 10,
+        "rank": 16,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 16
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/central-linter",
+        "org": "redhat",
+        "name": "central-linter",
+        "score": 45.9,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/central-linter",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 45.9,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 17,
+        "lang_rank": {
+          "Unknown": 17
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-claudio",
+        "org": "redhat",
+        "name": "aipcc-claudio",
+        "score": 44.5,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-claudio",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 44.5,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 18,
+        "lang_rank": {
+          "Unknown": 18
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/containers/bootc",
+        "org": "redhat",
+        "name": "bootc",
+        "score": 34.1,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 34.1,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 19,
+        "lang_rank": {
+          "Unknown": 19
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/aipcc-infrastructure",
+        "org": "redhat",
+        "name": "aipcc-infrastructure",
+        "score": 27.6,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-infrastructure",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 27.6,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 20,
+        "lang_rank": {
+          "Unknown": 20
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/disk-images/disk-image-test",
+        "org": "redhat",
+        "name": "disk-image-test",
+        "score": 26.7,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 26.7,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 21,
+        "lang_rank": {
+          "Unknown": 21
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/containers/bootc-test",
+        "org": "redhat",
+        "name": "bootc-test",
+        "score": 26.7,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 26.7,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 22,
+        "lang_rank": {
+          "Unknown": 22
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/ci-cd/toolbox",
+        "org": "redhat",
+        "name": "toolbox",
+        "score": 24.8,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/toolbox",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 24.8,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 23,
+        "lang_rank": {
+          "Unknown": 23
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/renovate-config",
+        "org": "redhat",
+        "name": "renovate-config",
+        "score": 24.1,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/renovate-config",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 24.1,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 24,
+        "lang_rank": {
+          "Unknown": 24
+        }
+      },
+      {
+        "repo": "redhat/rhel-ai/konflux-data",
+        "org": "redhat",
+        "name": "konflux-data",
+        "score": 15.3,
+        "tier": "Needs Improvement",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-03-24",
+        "url": "https://gitlab.com/redhat/rhel-ai/konflux-data",
+        "agentready_version": "2.29.6",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-03-24",
+            "score": 15.3,
+            "agentready_version": "2.29.6",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 25,
+        "lang_rank": {
+          "Unknown": 25
         }
       }
     ]
   },
-  "most_improved": []
+  "most_improved": [
+    {
+      "repo": "python-wheel-build/fromager",
+      "improvement": 11.1,
+      "from_score": 63.5,
+      "to_score": 74.6,
+      "from_date": "2026-02-06",
+      "to_date": "2026-03-24",
+      "days": 0
+    },
+    {
+      "repo": "opendatahub-io/opendatahub-tests",
+      "improvement": 10.0,
+      "from_score": 73.5,
+      "to_score": 83.5,
+      "from_date": "2026-02-19",
+      "to_date": "2026-03-05",
+      "days": 0
+    }
+  ]
 }
