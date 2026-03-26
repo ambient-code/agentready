@@ -97,7 +97,12 @@ class TestGenerateLeaderboardData:
     """Test the full leaderboard data generation with GitLab repos."""
 
     def _make_assessment(
-        self, url, score=75.0, tier="Silver", attributes_assessed=25, attributes_total=25
+        self,
+        url,
+        score=75.0,
+        tier="Silver",
+        attributes_assessed=25,
+        attributes_total=25,
     ):
         data = {
             "repository": {
