@@ -1,5 +1,6 @@
 """Unit tests for dbt assessors."""
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -15,41 +16,55 @@ from agentready.assessors.dbt import (
 )
 from agentready.models.repository import Repository
 
+FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "dbt_projects"
+
 # ============================================================================
 # Test Fixtures
 # ============================================================================
 
 
+def _repo_from_fixture(fixture_name: str, tmp_path: Path, **kwargs) -> Repository:
+    """Copy a fixture into tmp_path (adding .git dir) and return a Repository.
+
+    Repository.__post_init__ requires a .git directory, which can't be committed
+    to git as a fixture file. This helper copies fixture content into tmp_path
+    and creates the required .git directory.
+    """
+    src = FIXTURES_DIR / fixture_name
+    # Copy fixture contents into tmp_path
+    for item in src.iterdir():
+        dest = tmp_path / item.name
+        if item.is_dir():
+            shutil.copytree(item, dest)
+        else:
+            shutil.copy2(item, dest)
+    # Create .git dir required by Repository validation
+    (tmp_path / ".git").mkdir(exist_ok=True)
+    defaults = {
+        "path": tmp_path,
+        "name": fixture_name,
+        "url": None,
+        "branch": "main",
+        "commit_hash": "abc123",
+    }
+    defaults.update(kwargs)
+    return Repository(**defaults)
+
+
 @pytest.fixture
 def minimal_valid_repo(tmp_path):
     """Minimal valid dbt project."""
-    fixture_dir = (
-        Path(__file__).parent.parent / "fixtures" / "dbt_projects" / "minimal_valid"
-    )
-    return Repository(
-        path=fixture_dir,
-        name="minimal_valid",
-        url=None,
-        branch="main",
-        commit_hash="abc123",
-        languages={"SQL": 1},
-        total_files=2,
-        total_lines=10,
+    return _repo_from_fixture(
+        "minimal_valid", tmp_path, languages={"SQL": 1}, total_files=2, total_lines=10
     )
 
 
 @pytest.fixture
 def well_structured_repo(tmp_path):
     """Well-structured dbt project with best practices."""
-    fixture_dir = (
-        Path(__file__).parent.parent / "fixtures" / "dbt_projects" / "well_structured"
-    )
-    return Repository(
-        path=fixture_dir,
-        name="well_structured",
-        url=None,
-        branch="main",
-        commit_hash="abc123",
+    return _repo_from_fixture(
+        "well_structured",
+        tmp_path,
         languages={"SQL": 2},
         total_files=10,
         total_lines=50,
@@ -59,47 +74,33 @@ def well_structured_repo(tmp_path):
 @pytest.fixture
 def missing_docs_repo(tmp_path):
     """Valid dbt project but no documentation."""
-    fixture_dir = (
-        Path(__file__).parent.parent / "fixtures" / "dbt_projects" / "missing_docs"
-    )
-    return Repository(
-        path=fixture_dir,
-        name="missing_docs",
-        url=None,
-        branch="main",
-        commit_hash="abc123",
-        languages={"SQL": 2},
-        total_files=3,
-        total_lines=10,
+    return _repo_from_fixture(
+        "missing_docs", tmp_path, languages={"SQL": 2}, total_files=3, total_lines=10
     )
 
 
 @pytest.fixture
 def missing_tests_repo(tmp_path):
     """Valid dbt project but no tests."""
-    fixture_dir = (
-        Path(__file__).parent.parent / "fixtures" / "dbt_projects" / "missing_tests"
-    )
-    return Repository(
-        path=fixture_dir,
-        name="missing_tests",
-        url=None,
-        branch="main",
-        commit_hash="abc123",
-        languages={"SQL": 1},
-        total_files=2,
-        total_lines=10,
+    return _repo_from_fixture(
+        "missing_tests", tmp_path, languages={"SQL": 1}, total_files=2, total_lines=10
     )
 
 
 @pytest.fixture
 def flat_structure_repo(tmp_path):
-    """Valid dbt project but flat structure."""
-    fixture_dir = (
-        Path(__file__).parent.parent / "fixtures" / "dbt_projects" / "flat_structure"
+    """Valid dbt project with flat structure (generated dynamically, fix for #355)."""
+    (tmp_path / ".git").mkdir()
+    models_dir = tmp_path / "models"
+    models_dir.mkdir()
+    for i in range(55):
+        (models_dir / f"model_{i}.sql").write_text(f"select {i} as id")
+    (tmp_path / "dbt_project.yml").write_text(
+        "name: 'flat_structure'\nconfig-version: 2\nprofile: 'default'\n\n"
+        'model-paths: ["models"]'
     )
     return Repository(
-        path=fixture_dir,
+        path=tmp_path,
         name="flat_structure",
         url=None,
         branch="main",
@@ -113,13 +114,9 @@ def flat_structure_repo(tmp_path):
 @pytest.fixture
 def non_dbt_repo(tmp_path):
     """Regular project without dbt."""
-    fixture_dir = Path(__file__).parent.parent / "fixtures" / "dbt_projects" / "non_dbt"
-    return Repository(
-        path=fixture_dir,
-        name="non_dbt",
-        url=None,
-        branch="main",
-        commit_hash="abc123",
+    return _repo_from_fixture(
+        "non_dbt",
+        tmp_path,
         languages={"SQL": 1},
         total_files=2,
         total_lines=5,
@@ -145,7 +142,7 @@ class TestUtilityFunctions:
     def test_find_yaml_files(self, well_structured_repo):
         """Test _find_yaml_files finds YAML files recursively."""
         models_dir = well_structured_repo.path / "models"
-        yaml_files = _find_yaml_files(models_dir, "*schema.yml")
+        yaml_files = _find_yaml_files(models_dir)
 
         assert len(yaml_files) >= 2  # At least staging and marts schema.yml
         assert all(f.suffix in [".yml", ".yaml"] for f in yaml_files)
@@ -346,6 +343,37 @@ class TestDbtModelDocumentationAssessor:
         # This project has 1 model with description
         assert finding.status == "pass"
         assert finding.score == 100.0  # 1/1 = 100%
+
+    def test_assess_description_word_not_flagged_as_placeholder(
+        self, assessor, tmp_path
+    ):
+        """Regression test for #353: descriptions containing 'description' must not be
+        rejected as placeholders."""
+        (tmp_path / ".git").mkdir()
+        models_dir = tmp_path / "models"
+        models_dir.mkdir()
+        (models_dir / "customers.sql").write_text("select 1 as id")
+        (models_dir / "schema.yml").write_text(
+            "version: 2\nmodels:\n"
+            "  - name: customers\n"
+            '    description: "Customer description field from CRM"\n'
+        )
+        (tmp_path / "dbt_project.yml").write_text(
+            "name: 'test'\nconfig-version: 2\nprofile: 'default'"
+        )
+        repo = Repository(
+            path=tmp_path,
+            name="test",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"SQL": 1},
+            total_files=1,
+            total_lines=10,
+        )
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0  # 1/1 documented
 
     def test_assess_no_models_directory(self, assessor, non_dbt_repo):
         """Test assess when models/ directory missing."""
