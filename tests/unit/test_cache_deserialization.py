@@ -209,6 +209,36 @@ class TestModelFromDict:
         assert result.branch == "main"
         assert result.languages == {"Python": 10}
 
+    def test_repository_from_dict_skips_filesystem_validation(self):
+        """from_dict should not validate the path exists on disk,
+        so cached assessments remain readable after the repo is moved."""
+        data = {
+            "path": "/nonexistent/repo/path",
+            "name": "gone-repo",
+            "url": "https://github.com/test/gone",
+            "branch": "main",
+            "commit_hash": "abc123",
+            "languages": {"Python": 5},
+            "total_files": 10,
+            "total_lines": 200,
+        }
+        result = Repository.from_dict(data)
+        assert result.name == "gone-repo"
+        assert str(result.path) == "/nonexistent/repo/path"
+
+    def test_remediation_from_dict_missing_steps_uses_summary(self):
+        """If steps is missing or empty, from_dict should fall back to
+        using the summary as a single step to satisfy the invariant."""
+        data = {
+            "summary": "Fix the issue",
+            "tools": [],
+            "commands": [],
+            "examples": [],
+            "citations": [],
+        }
+        result = Remediation.from_dict(data)
+        assert result.steps == ["Fix the issue"]
+
     def test_assessment_round_trip(self, sample_assessment):
         data = sample_assessment.to_dict()
         result = Assessment.from_dict(data)
@@ -304,6 +334,29 @@ class TestCacheRoundTrip:
                     (repository_url, commit_hash, overall_score, assessment_json, expires_at)
                     VALUES (?, ?, ?, ?, ?)""",
                     (url, commit, 85.0, assessment_json, expired),
+                )
+                conn.commit()
+
+            result = cache.get(url, commit)
+            assert result is None
+
+    def test_cache_malformed_json_returns_none(self):
+        """Malformed cache entries should return None, not crash."""
+        with TemporaryDirectory() as tmpdir:
+            cache = AssessmentCache(Path(tmpdir))
+            url = "https://github.com/test/repo"
+            commit = "abc123"
+
+            # Insert malformed JSON missing required keys
+            malformed = json.dumps({"overall_score": 50.0})
+            expires = (datetime.now() + timedelta(days=7)).isoformat()
+
+            with sqlite3.connect(cache.db_path) as conn:
+                conn.execute(
+                    """INSERT INTO assessments
+                    (repository_url, commit_hash, overall_score, assessment_json, expires_at)
+                    VALUES (?, ?, ?, ?, ?)""",
+                    (url, commit, 50.0, malformed, expires),
                 )
                 conn.commit()
 

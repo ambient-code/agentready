@@ -78,19 +78,20 @@ class Repository:
     def from_dict(cls, data: dict) -> "Repository":
         """Create Repository from dictionary.
 
-        Note: The path in the dictionary must point to a valid git repository
-        on the current machine for validation to pass.
+        Skips filesystem validation so cached assessments remain readable
+        even if the original repository path no longer exists on disk.
         """
-        return cls(
-            path=Path(data["path"]),
-            name=data["name"],
-            url=data.get("url"),
-            branch=data["branch"],
-            commit_hash=data["commit_hash"],
-            languages=data.get("languages", {}),
-            total_files=data.get("total_files", 0),
-            total_lines=data.get("total_lines", 0),
-        )
+        repo = object.__new__(cls)
+        repo.path = Path(data["path"])
+        repo.name = data["name"]
+        repo.url = data.get("url")
+        repo.branch = data["branch"]
+        repo.commit_hash = data["commit_hash"]
+        repo.languages = data.get("languages", {})
+        repo.total_files = data.get("total_files", 0)
+        repo.total_lines = data.get("total_lines", 0)
+        repo.config = None
+        return repo
 
     @property
     def primary_language(self) -> str:

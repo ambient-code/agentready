@@ -108,7 +108,7 @@ class AssessmentCache:
                 assessment_data = json.loads(assessment_json)
                 return self._deserialize_assessment(assessment_data)
 
-        except (sqlite3.Error, json.JSONDecodeError, ValueError):
+        except (sqlite3.Error, json.JSONDecodeError, ValueError, KeyError, TypeError):
             return None
 
     def set(

@@ -37,9 +37,12 @@ class Remediation:
     @classmethod
     def from_dict(cls, data: dict) -> "Remediation":
         """Create Remediation from dictionary."""
+        steps = data.get("steps")
+        if not steps:
+            steps = [data["summary"]]
         return cls(
             summary=data["summary"],
-            steps=data.get("steps", []),
+            steps=steps,
             tools=data.get("tools", []),
             commands=data.get("commands", []),
             examples=data.get("examples", []),
