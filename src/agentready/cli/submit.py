@@ -98,7 +98,7 @@ def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str, str,
 
     if host not in SUPPORTED_HOSTS:
         click.echo(
-            f"Error: Unsupported repository host. Only GitHub and GitLab are supported.",
+            "Error: Unsupported repository host. Only GitHub and GitLab are supported.",
             err=True,
         )
         click.echo(f"Repository URL: {repo_url}", err=True)
