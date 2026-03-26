@@ -344,6 +344,37 @@ class TestDbtModelDocumentationAssessor:
         assert finding.status == "pass"
         assert finding.score == 100.0  # 1/1 = 100%
 
+    def test_assess_description_word_not_flagged_as_placeholder(
+        self, assessor, tmp_path
+    ):
+        """Regression test for #353: descriptions containing 'description' must not be
+        rejected as placeholders."""
+        (tmp_path / ".git").mkdir()
+        models_dir = tmp_path / "models"
+        models_dir.mkdir()
+        (models_dir / "customers.sql").write_text("select 1 as id")
+        (models_dir / "schema.yml").write_text(
+            "version: 2\nmodels:\n"
+            "  - name: customers\n"
+            '    description: "Customer description field from CRM"\n'
+        )
+        (tmp_path / "dbt_project.yml").write_text(
+            "name: 'test'\nconfig-version: 2\nprofile: 'default'"
+        )
+        repo = Repository(
+            path=tmp_path,
+            name="test",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"SQL": 1},
+            total_files=1,
+            total_lines=10,
+        )
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0  # 1/1 documented
+
     def test_assess_no_models_directory(self, assessor, non_dbt_repo):
         """Test assess when models/ directory missing."""
         finding = assessor.assess(non_dbt_repo)
