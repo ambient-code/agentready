@@ -17,8 +17,10 @@ UPSTREAM_REPO = "ambient-code/agentready"
 SUBPROCESS_TIMEOUT = 60  # seconds
 MAX_ASSESSMENT_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# Valid GitHub org/repo name pattern: alphanumeric, hyphens, underscores, dots
-GITHUB_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9._-]+$")
+# Valid GitHub/GitLab org/repo name pattern: alphanumeric, hyphens, underscores, dots
+REPO_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9._-]+$")
+
+SUPPORTED_HOSTS = ("github.com", "gitlab.com")
 
 
 def find_assessment_file(repository: str, assessment_file: str | None) -> Path:
@@ -47,8 +49,39 @@ def load_assessment(assessment_path: Path) -> dict:
         sys.exit(1)
 
 
-def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str]:
-    """Extract org, repo, score, and tier from assessment data."""
+def _parse_repo_url(repo_url: str) -> tuple[str, str]:
+    """Parse a GitHub or GitLab repo URL into (host, path).
+
+    Supports SSH (git@host:path.git) and HTTPS (https://host/path) formats.
+    Returns e.g. ("github.com", "org/repo") or ("gitlab.com", "group/sub/project").
+    """
+    # SSH format: git@<host>:<path>.git
+    ssh_match = re.match(r"^git@([^:]+):(.+?)(?:\.git)?$", repo_url)
+    if ssh_match:
+        return ssh_match.group(1), ssh_match.group(2)
+
+    # HTTPS format
+    for host in SUPPORTED_HOSTS:
+        if host in repo_url:
+            path = repo_url.split(f"{host}/", 1)[-1].strip("/").removesuffix(".git")
+            return host, path
+
+    return "", ""
+
+
+def _repo_browse_url(host: str, path: str) -> str:
+    """Build a browsable HTTPS URL from host and path."""
+    return f"https://{host}/{path}"
+
+
+def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str, str, str]:
+    """Extract org, repo, score, tier, host, and full_path from assessment data.
+
+    For GitHub repos, org/repo is a two-level split.
+    For GitLab repos with deep paths (e.g. redhat/rhel-ai/wheels/builder),
+    org is the top-level group and repo is the project name (last segment).
+    The full_path is preserved for display and URL purposes.
+    """
     try:
         repo_url = assessment_data["repository"]["url"]
         score = assessment_data["overall_score"]
@@ -57,31 +90,35 @@ def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str]:
         click.echo(f"Error: Invalid assessment JSON (missing {e})", err=True)
         sys.exit(1)
 
-    if not repo_url or "github.com" not in repo_url:
+    if not repo_url:
+        click.echo("Error: Assessment JSON has no repository URL", err=True)
+        sys.exit(1)
+
+    host, full_path = _parse_repo_url(repo_url)
+
+    if host not in SUPPORTED_HOSTS:
         click.echo(
-            "Error: Only GitHub repositories are supported for the leaderboard",
+            "Error: Unsupported repository host. Only GitHub and GitLab are supported.",
             err=True,
         )
         click.echo(f"Repository URL: {repo_url}", err=True)
         sys.exit(1)
 
-    try:
-        # Handle SSH format: git@github.com:org/repo.git
-        if repo_url.startswith("git@github.com:"):
-            org_repo = repo_url.split("git@github.com:")[1].removesuffix(".git")
-        # Handle HTTPS format: https://github.com/org/repo.git
-        else:
-            org_repo = repo_url.split("github.com/")[1].strip("/").removesuffix(".git")
-
-        org, repo = org_repo.split("/")
-    except (IndexError, ValueError):
-        click.echo(f"Error: Could not parse GitHub repository from URL: {repo_url}")
+    if not full_path:
+        click.echo(
+            f"Error: Could not parse repository path from URL: {repo_url}", err=True
+        )
         sys.exit(1)
 
-    # Validate org/repo names to prevent injection
-    if not GITHUB_NAME_PATTERN.match(org) or not GITHUB_NAME_PATTERN.match(repo):
+    # For directory structure: use top-level group as org, project name as repo
+    path_parts = full_path.split("/")
+    org = path_parts[0]
+    repo = path_parts[-1]
+
+    # Validate org/repo names to prevent path injection
+    if not REPO_NAME_PATTERN.match(org) or not REPO_NAME_PATTERN.match(repo):
         click.echo(
-            f"Error: Invalid GitHub org/repo name: {org}/{repo}",
+            f"Error: Invalid org/repo name: {org}/{repo}",
             err=True,
         )
         click.echo(
@@ -90,14 +127,27 @@ def extract_repo_info(assessment_data: dict) -> tuple[str, str, float, str]:
         )
         sys.exit(1)
 
-    return org, repo, score, tier
+    return org, repo, score, tier, host, full_path
 
 
-def generate_pr_body(org: str, repo: str, score: float, tier: str, user: str) -> str:
+def generate_pr_body(
+    org: str,
+    repo: str,
+    score: float,
+    tier: str,
+    user: str,
+    host: str = "github.com",
+    full_path: str = "",
+) -> str:
     """Generate the PR body for leaderboard submission."""
+    display_path = full_path or f"{org}/{repo}"
+    browse_url = _repo_browse_url(host, full_path or f"{org}/{repo}")
+    host_label = "GitLab" if "gitlab" in host else "GitHub"
+
     return f"""## Leaderboard Submission
 
-**Repository**: [{org}/{repo}](https://github.com/{org}/{repo})
+**Repository**: [{display_path}]({browse_url})
+**Host**: {host_label}
 **Score**: {score:.1f}/100
 **Tier**: {tier}
 **Submitted by**: @{user}
@@ -150,6 +200,8 @@ def submit_with_gh_cli(
     tier: str,
     assessment_path: Path,
     timestamp: str,
+    host: str = "github.com",
+    full_path: str = "",
 ) -> None:
     """Submit assessment using gh CLI."""
     # 1. Check gh CLI is available
@@ -175,42 +227,70 @@ def submit_with_gh_cli(
     click.echo(f"Authenticated as: {user}\n")
 
     # 4. Verify user has access to submitted repo
-    org_repo = f"{org}/{repo}"
-    result = run_gh_command(
-        [
-            "api",
-            f"repos/{org_repo}",
-            "--jq",
-            "{private: .private, permissions: .permissions}",
-        ]
-    )
-    if result.returncode != 0:
-        click.echo(
-            f"Error: Repository {org_repo} not found or not accessible", err=True
+    browse_url = _repo_browse_url(host, full_path or f"{org}/{repo}")
+
+    if host == "github.com":
+        # GitHub: use gh API for verification
+        gh_org_repo = full_path or f"{org}/{repo}"
+        result = run_gh_command(
+            [
+                "api",
+                f"repos/{gh_org_repo}",
+                "--jq",
+                "{private: .private, permissions: .permissions}",
+            ]
         )
-        sys.exit(1)
+        if result.returncode != 0:
+            click.echo(
+                f"Error: Repository {gh_org_repo} not found or not accessible", err=True
+            )
+            sys.exit(1)
 
-    try:
-        repo_info = json.loads(result.stdout)
-    except json.JSONDecodeError as e:
-        click.echo(f"Error: Failed to parse GitHub API response: {e}", err=True)
-        sys.exit(1)
-    if repo_info.get("private"):
+        try:
+            repo_info = json.loads(result.stdout)
+        except json.JSONDecodeError as e:
+            click.echo(f"Error: Failed to parse GitHub API response: {e}", err=True)
+            sys.exit(1)
+        if repo_info.get("private"):
+            click.echo(
+                f"Error: Repository {gh_org_repo} is private. Only public repositories can be submitted.",
+                err=True,
+            )
+            sys.exit(1)
+
+        permissions = repo_info.get("permissions", {})
+        if not (permissions.get("push") or permissions.get("admin")):
+            click.echo(f"Error: You must have commit access to {gh_org_repo}", err=True)
+            click.echo("\nYou can only submit repositories where you are:", err=True)
+            click.echo("  - Repository owner", err=True)
+            click.echo("  - Collaborator with push access", err=True)
+            sys.exit(1)
+
+        click.echo(f"Verified access to {gh_org_repo}")
+    else:
+        # GitLab/other: verify repo is publicly accessible via git ls-remote
+        clone_url = f"https://{host}/{full_path}.git"
+        try:
+            ls_result = subprocess.run(
+                ["git", "ls-remote", "--exit-code", clone_url, "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=SUBPROCESS_TIMEOUT,
+            )
+            if ls_result.returncode != 0:
+                click.echo(
+                    f"Error: Repository {browse_url} is not publicly accessible",
+                    err=True,
+                )
+                sys.exit(1)
+            click.echo(f"Verified {browse_url} is publicly accessible")
+        except subprocess.TimeoutExpired:
+            click.echo(f"Error: Timed out verifying {browse_url}", err=True)
+            sys.exit(1)
         click.echo(
-            f"Error: Repository {org_repo} is private. Only public repositories can be submitted.",
-            err=True,
+            "Note: Submitter access cannot be verified for non-GitHub repos. "
+            "Maintainers will verify manually.",
         )
-        sys.exit(1)
-
-    permissions = repo_info.get("permissions", {})
-    if not (permissions.get("push") or permissions.get("admin")):
-        click.echo(f"Error: You must have commit access to {org_repo}", err=True)
-        click.echo("\nYou can only submit repositories where you are:", err=True)
-        click.echo("  - Repository owner", err=True)
-        click.echo("  - Collaborator with push access", err=True)
-        sys.exit(1)
-
-    click.echo(f"Verified access to {org_repo}")
 
     # 5. Fork upstream repo (if not already forked)
     click.echo(f"Found upstream: {UPSTREAM_REPO}")
@@ -275,11 +355,12 @@ def submit_with_gh_cli(
     # Base64 encode the content
     content_b64 = base64.b64encode(content.encode()).decode()
 
+    display_path = full_path or f"{org}/{repo}"
     submission_path = f"submissions/{org}/{repo}/{timestamp}-assessment.json"
     commit_message = (
-        f"feat: add {org}/{repo} to leaderboard\n\n"
+        f"feat: add {display_path} to leaderboard\n\n"
         f"Score: {score:.1f}/100 ({tier})\n"
-        f"Repository: https://github.com/{org}/{repo}"
+        f"Repository: {browse_url}"
     )
 
     result = run_gh_command(
@@ -302,8 +383,8 @@ def submit_with_gh_cli(
     click.echo(f"Committed assessment to {submission_path}")
 
     # 8. Create PR
-    pr_title = f"Leaderboard: {org}/{repo} ({score:.1f}/100 - {tier})"
-    pr_body = generate_pr_body(org, repo, score, tier, user)
+    pr_title = f"Leaderboard: {display_path} ({score:.1f}/100 - {tier})"
+    pr_body = generate_pr_body(org, repo, score, tier, user, host, full_path)
 
     result = run_gh_command(
         [
@@ -350,6 +431,8 @@ def submit_with_token(
     tier: str,
     assessment_path: Path,
     timestamp: str,
+    host: str = "github.com",
+    full_path: str = "",
 ) -> None:
     """Submit assessment using GITHUB_TOKEN."""
     # 1. Validate GitHub token
@@ -366,7 +449,8 @@ def submit_with_token(
         click.echo("\nAlternatively, use --gh flag to submit via gh CLI.", err=True)
         sys.exit(1)
 
-    org_repo = f"{org}/{repo}"
+    display_path = full_path or f"{org}/{repo}"
+    browse_url = _repo_browse_url(host, display_path)
     submission_path = f"submissions/{org}/{repo}/{timestamp}-assessment.json"
 
     # 2. Initialize GitHub client
@@ -380,36 +464,66 @@ def submit_with_token(
         sys.exit(1)
 
     # 3. Verify user has access to submitted repo
-    try:
-        submitted_repo = gh.get_repo(org_repo)
+    if host == "github.com":
+        gh_org_repo = full_path or f"{org}/{repo}"
+        try:
+            submitted_repo = gh.get_repo(gh_org_repo)
 
-        # Check if user is collaborator or owner
-        is_collaborator = submitted_repo.has_in_collaborators(user.login)
-        is_owner = submitted_repo.owner.login == user.login
+            is_collaborator = submitted_repo.has_in_collaborators(user.login)
+            is_owner = submitted_repo.owner.login == user.login
 
-        if not (is_collaborator or is_owner):
-            click.echo(f"Error: You must have commit access to {org_repo}", err=True)
-            click.echo("\nYou can only submit repositories where you are:", err=True)
-            click.echo("  - Repository owner", err=True)
-            click.echo("  - Collaborator with push access", err=True)
+            if not (is_collaborator or is_owner):
+                click.echo(
+                    f"Error: You must have commit access to {gh_org_repo}", err=True
+                )
+                click.echo(
+                    "\nYou can only submit repositories where you are:", err=True
+                )
+                click.echo("  - Repository owner", err=True)
+                click.echo("  - Collaborator with push access", err=True)
+                sys.exit(1)
+
+            if submitted_repo.private:
+                click.echo(
+                    f"Error: Repository {gh_org_repo} is private. Only public repositories can be submitted to the leaderboard.",
+                    err=True,
+                )
+                sys.exit(1)
+
+            click.echo(f"Verified access to {gh_org_repo}")
+
+        except GithubException as e:
+            if e.status == 404:
+                click.echo(f"Error: Repository {gh_org_repo} not found", err=True)
+            else:
+                click.echo(
+                    f"Error: Cannot access repository {gh_org_repo}: {e}", err=True
+                )
             sys.exit(1)
-
-        # Verify repository is public
-        if submitted_repo.private:
-            click.echo(
-                f"Error: Repository {org_repo} is private. Only public repositories can be submitted to the leaderboard.",
-                err=True,
+    else:
+        # GitLab/other: verify repo is publicly accessible via git ls-remote
+        clone_url = f"https://{host}/{full_path}.git"
+        try:
+            ls_result = subprocess.run(
+                ["git", "ls-remote", "--exit-code", clone_url, "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=SUBPROCESS_TIMEOUT,
             )
+            if ls_result.returncode != 0:
+                click.echo(
+                    f"Error: Repository {browse_url} is not publicly accessible",
+                    err=True,
+                )
+                sys.exit(1)
+            click.echo(f"Verified {browse_url} is publicly accessible")
+        except subprocess.TimeoutExpired:
+            click.echo(f"Error: Timed out verifying {browse_url}", err=True)
             sys.exit(1)
-
-        click.echo(f"Verified access to {org_repo}")
-
-    except GithubException as e:
-        if e.status == 404:
-            click.echo(f"Error: Repository {org_repo} not found", err=True)
-        else:
-            click.echo(f"Error: Cannot access repository {org_repo}: {e}", err=True)
-        sys.exit(1)
+        click.echo(
+            "Note: Submitter access cannot be verified for non-GitHub repos. "
+            "Maintainers will verify manually.",
+        )
 
     # 4. Fork ambient-code/agentready (if not already forked)
     try:
@@ -451,9 +565,9 @@ def submit_with_token(
             content = f.read()
 
         commit_message = (
-            f"feat: add {org}/{repo} to leaderboard\n\n"
+            f"feat: add {display_path} to leaderboard\n\n"
             f"Score: {score:.1f}/100 ({tier})\n"
-            f"Repository: https://github.com/{org}/{repo}"
+            f"Repository: {browse_url}"
         )
 
         fork.create_file(
@@ -470,8 +584,8 @@ def submit_with_token(
 
     # 7. Create PR
     try:
-        pr_title = f"Leaderboard: {org}/{repo} ({score:.1f}/100 - {tier})"
-        pr_body = generate_pr_body(org, repo, score, tier, user.login)
+        pr_title = f"Leaderboard: {display_path} ({score:.1f}/100 - {tier})"
+        pr_body = generate_pr_body(org, repo, score, tier, user.login, host, full_path)
 
         pr = upstream.create_pull(
             title=pr_title,
@@ -543,24 +657,31 @@ def submit(repository, assessment_file, dry_run, use_gh_cli):
     assessment_path = find_assessment_file(repository, assessment_file)
     assessment_data = load_assessment(assessment_path)
 
-    # 2. Extract repo info
-    org, repo, score, tier = extract_repo_info(assessment_data)
+    # 2. Extract repo info (now includes host and full_path for GitLab support)
+    org, repo, score, tier, host, full_path = extract_repo_info(assessment_data)
 
     # 3. Generate timestamp
     timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%S")
     submission_path = f"submissions/{org}/{repo}/{timestamp}-assessment.json"
+    display_path = full_path or f"{org}/{repo}"
+    browse_url = _repo_browse_url(host, display_path)
 
     # 4. Handle dry-run
     if dry_run:
         click.echo("Dry-run mode - no PR will be created\n")
         click.echo(f"Submission path: {submission_path}")
-        click.echo(f"Repository: {org}/{repo}")
+        click.echo(f"Repository: {display_path}")
+        click.echo(f"URL: {browse_url}")
         click.echo(f"Score: {score:.1f}/100 ({tier})")
         click.echo(f"Assessment file: {assessment_path}")
         return
 
     # 5. Submit using appropriate method
     if use_gh_cli:
-        submit_with_gh_cli(org, repo, score, tier, assessment_path, timestamp)
+        submit_with_gh_cli(
+            org, repo, score, tier, assessment_path, timestamp, host, full_path
+        )
     else:
-        submit_with_token(org, repo, score, tier, assessment_path, timestamp)
+        submit_with_token(
+            org, repo, score, tier, assessment_path, timestamp, host, full_path
+        )

@@ -98,50 +98,85 @@ jobs:
           source .venv/bin/activate
           agentready validate-report /tmp/submission.json
 
+      - name: Detect repository host
+        id: detect_host
+        env:
+          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+        run: |
+          # Determine if this is a GitHub or GitLab repository
+          if echo "$REPO_URL" | grep -q "github\.com"; then
+            echo "host=github" >> "$GITHUB_OUTPUT"
+          elif echo "$REPO_URL" | grep -q "gitlab\.com"; then
+            echo "host=gitlab" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported repository host in URL: $REPO_URL"
+            exit 1
+          fi
+
+          # Convert SSH/HTTPS URL to an HTTPS clone URL
+          # git@<host>:<path>.git -> https://<host>/<path>.git
+          CLONE_URL=$(echo "$REPO_URL" | sed -E 's|^git@([^:]+):|https://\1/|' | sed 's|\.git$||')
+          echo "clone_url=${CLONE_URL}.git" >> "$GITHUB_OUTPUT"
+          echo "browse_url=$CLONE_URL" >> "$GITHUB_OUTPUT"
+
       - name: Verify repository exists and is public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_URL: ${{ steps.extract.outputs.repo_url }}
+          HOST: ${{ steps.detect_host.outputs.host }}
+          CLONE_URL: ${{ steps.detect_host.outputs.clone_url }}
         run: |
-          # SAFE: REPO_URL comes from workflow output, not direct user input
-          ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
-
-          IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
-
-          if [ "$IS_PRIVATE" == "true" ]; then
-            echo "::error::Repository $ORG_REPO is private."
-            exit 1
+          if [ "$HOST" = "github" ]; then
+            # GitHub: use gh CLI for verification
+            ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
+            IS_PRIVATE=$(gh repo view "$ORG_REPO" --json isPrivate -q '.isPrivate')
+            if [ "$IS_PRIVATE" == "true" ]; then
+              echo "::error::Repository $ORG_REPO is private."
+              exit 1
+            fi
+            echo "✅ Repository $ORG_REPO is public"
+          else
+            # GitLab/other: verify repo is publicly accessible via git ls-remote
+            if git ls-remote --exit-code "$CLONE_URL" HEAD > /dev/null 2>&1; then
+              echo "✅ Repository is publicly accessible: $CLONE_URL"
+            else
+              echo "::error::Repository is not publicly accessible: $CLONE_URL"
+              exit 1
+            fi
           fi
-
-          echo "✅ Repository $ORG_REPO is public"
 
       - name: Verify submitter has access
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_URL: ${{ steps.extract.outputs.repo_url }}
           SUBMITTER: ${{ github.event.pull_request.user.login }}
+          HOST: ${{ steps.detect_host.outputs.host }}
         run: |
-          # SAFE: All values in environment variables
-          ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
-
-          if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
-            echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
-          elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
-            echo "✅ $SUBMITTER is the owner of $ORG_REPO"
+          if [ "$HOST" = "github" ]; then
+            # GitHub: verify via API
+            ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
+            if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
+              echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
+            elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
+              echo "✅ $SUBMITTER is the owner of $ORG_REPO"
+            else
+              echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
+              exit 1
+            fi
           else
-            echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
-            exit 1
+            # Non-GitHub: cannot verify cross-platform access automatically
+            echo "::warning::Cannot verify submitter access for non-GitHub repos. Manual review required."
+            echo "⚠️ Submitter access for non-GitHub repos must be verified manually by maintainers."
           fi
 
       - name: Re-run assessment
         env:
-          REPO_URL: ${{ steps.extract.outputs.repo_url }}
+          CLONE_URL: ${{ steps.detect_host.outputs.clone_url }}
         run: |
           source .venv/bin/activate
 
-          # SAFE: REPO_URL in environment variable
-          echo "Cloning $REPO_URL..."
-          git clone "$REPO_URL" /tmp/repo-to-assess
+          echo "Cloning $CLONE_URL..."
+          git clone "$CLONE_URL" /tmp/repo-to-assess
 
           echo "Running assessment..."
           agentready assess /tmp/repo-to-assess --output-dir /tmp/validation
