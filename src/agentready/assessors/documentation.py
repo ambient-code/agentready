@@ -644,7 +644,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
 
         required_sections = ["status", "context", "decision", "consequences"]
         total_points = 0
-        max_points_per_file = 20 // len(sample_files)
+        max_points_per_file = 20 / len(sample_files)
 
         for adr_file in sample_files:
             try:
@@ -662,7 +662,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             except OSError:
                 continue  # Skip unreadable files
 
-        return int(total_points)
+        return round(total_points)
 
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for missing/inadequate ADRs."""

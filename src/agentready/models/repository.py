@@ -74,6 +74,24 @@ class Repository:
         """
         return shorten_commit_hash(self.commit_hash)
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Repository":
+        """Create Repository from dictionary.
+
+        Note: The path in the dictionary must point to a valid git repository
+        on the current machine for validation to pass.
+        """
+        return cls(
+            path=Path(data["path"]),
+            name=data["name"],
+            url=data.get("url"),
+            branch=data["branch"],
+            commit_hash=data["commit_hash"],
+            languages=data.get("languages", {}),
+            total_files=data.get("total_files", 0),
+            total_lines=data.get("total_lines", 0),
+        )
+
     @property
     def primary_language(self) -> str:
         """Get the primary programming language (most files).

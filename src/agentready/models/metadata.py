@@ -32,6 +32,19 @@ class AssessmentMetadata:
     command: str
     working_directory: str
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "AssessmentMetadata":
+        """Create AssessmentMetadata from dictionary."""
+        return cls(
+            agentready_version=data["agentready_version"],
+            research_version=data["research_version"],
+            assessment_timestamp=data["assessment_timestamp"],
+            assessment_timestamp_human=data["assessment_timestamp_human"],
+            executed_by=data["executed_by"],
+            command=data["command"],
+            working_directory=data["working_directory"],
+        )
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {

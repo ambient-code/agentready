@@ -34,6 +34,18 @@ class Remediation:
         if not self.steps:
             raise ValueError("Remediation must have at least one step")
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Remediation":
+        """Create Remediation from dictionary."""
+        return cls(
+            summary=data["summary"],
+            steps=data.get("steps", []),
+            tools=data.get("tools", []),
+            commands=data.get("commands", []),
+            examples=data.get("examples", []),
+            citations=[Citation.from_dict(c) for c in data.get("citations", [])],
+        )
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -87,6 +99,23 @@ class Finding:
 
         if self.status == "error" and not self.error_message:
             raise ValueError("Error message required for status error")
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Finding":
+        """Create Finding from dictionary."""
+        remediation_data = data.get("remediation")
+        return cls(
+            attribute=Attribute.from_dict(data["attribute"]),
+            status=data["status"],
+            score=data.get("score"),
+            measured_value=data.get("measured_value"),
+            threshold=data.get("threshold"),
+            evidence=data.get("evidence", []),
+            remediation=(
+                Remediation.from_dict(remediation_data) if remediation_data else None
+            ),
+            error_message=data.get("error_message"),
+        )
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
