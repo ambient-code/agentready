@@ -5,8 +5,6 @@ repositories with any number of ADR files can achieve the maximum
 score of 20/20 when all required sections are present.
 """
 
-from pathlib import Path
-
 import pytest
 
 from agentready.assessors.documentation import ArchitectureDecisionsAssessor
@@ -45,9 +43,9 @@ class TestCheckTemplateCompliancePrecision:
         """
         files = _make_adr_files(tmp_path, file_count)
         score = assessor._check_template_compliance(files)
-        assert score == 20, (
-            f"Expected 20/20 for {file_count} perfect ADR files, got {score}/20"
-        )
+        assert (
+            score == 20
+        ), f"Expected 20/20 for {file_count} perfect ADR files, got {score}/20"
 
     def test_empty_files_score_zero(self, assessor):
         """Empty file list should return 0."""
