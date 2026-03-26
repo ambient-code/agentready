@@ -12,6 +12,7 @@ from ..models.config import Config
 from ..models.finding import Finding
 from ..models.metadata import AssessmentMetadata
 from ..models.repository import Repository
+from .agent_context_parser import AgentContextParser
 from .language_detector import LanguageDetector
 from .research_loader import ResearchLoader
 from .scorer import Scorer
@@ -100,6 +101,11 @@ class Scanner:
         # Build Repository model
         repository = self._build_repository_model(verbose)
 
+        # Parse AGENTS.md / CLAUDE.md content once for all assessors
+        agent_context = AgentContextParser.parse(self.repository_path)
+        if verbose and agent_context:
+            print(f"Agent context loaded from: {agent_context.source_file}")
+
         if verbose:
             print(f"Languages detected: {', '.join(repository.languages.keys())}")
             print(f"\nEvaluating {len(assessors)} attributes...")
@@ -107,7 +113,9 @@ class Scanner:
         # Execute assessors with graceful degradation
         findings = []
         for assessor in assessors:
-            finding = self._execute_assessor(assessor, repository, verbose)
+            finding = self._execute_assessor(
+                assessor, repository, verbose, agent_context=agent_context
+            )
             findings.append(finding)
 
         # Calculate scores
@@ -210,7 +218,8 @@ class Scanner:
         )
 
     def _execute_assessor(
-        self, assessor, repository: Repository, verbose: bool = False
+        self, assessor, repository: Repository, verbose: bool = False,
+        agent_context=None,
     ) -> Finding:
         """Execute single assessor with error handling.
 
@@ -250,7 +259,7 @@ class Scanner:
 
         # Try to assess
         try:
-            finding = assessor.assess(repository)
+            finding = assessor.assess(repository, agent_context=agent_context)
 
             if verbose:
                 if finding.status == "pass":

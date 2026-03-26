@@ -9,8 +9,10 @@ from typing import Literal, TypedDict
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from .base import BaseAssessor
+from .documentation import _find_readme
 
 
 class SourceDirectoryInfo(TypedDict):
@@ -110,7 +112,9 @@ class StandardLayoutAssessor(BaseAssessor):
             default_weight=0.10,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for standard project layout directories.
 
         Expected patterns:
@@ -126,6 +130,19 @@ class StandardLayoutAssessor(BaseAssessor):
         if not has_tests:
             tests_path = repository.path / "test"
             has_tests = tests_path.exists()
+
+        # If no standard test dir found, check AGENTS.md for test directories
+        agent_test_evidence = []
+        if not has_tests and agent_context and agent_context.test_directories:
+            for test_dir in agent_context.test_directories:
+                test_dir_path = repository.path / test_dir.rstrip("/")
+                if test_dir_path.exists() and test_dir_path.is_dir():
+                    has_tests = True
+                    tests_path = test_dir_path
+                    agent_test_evidence.append(
+                        f"[AGENTS.md] Test directory {test_dir} verified on filesystem"
+                    )
+                    break
 
         # Check for source directory: src/ or project-named
         # Fix for #246: Detect project-named source directories
@@ -171,6 +188,7 @@ class StandardLayoutAssessor(BaseAssessor):
             source_evidence,
             f"tests/: {'✓' if has_tests else '✗'}",
         ]
+        evidence.extend(agent_test_evidence)
 
         return Finding(
             attribute=self.attribute,
@@ -436,7 +454,9 @@ class OneCommandSetupAssessor(BaseAssessor):
             default_weight=0.03,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for single-command setup documentation and tooling.
 
         Scoring:
@@ -444,9 +464,9 @@ class OneCommandSetupAssessor(BaseAssessor):
         - Setup script/Makefile exists (30%)
         - Setup in prominent location (30%)
         """
-        # Check if README exists
-        readme_path = repository.path / "README.md"
-        if not readme_path.exists():
+        # Check if README exists (support .md, .rst, .txt)
+        readme_path, _ = _find_readme(repository.path)
+        if readme_path is None:
             return Finding.not_applicable(
                 self.attribute,
                 reason="No README found, cannot assess setup documentation",
@@ -635,7 +655,9 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             default_weight=0.015,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for GitHub issue and PR templates.
 
         Scoring:
@@ -804,7 +826,9 @@ class SeparationOfConcernsAssessor(BaseAssessor):
             default_weight=0.03,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for separation of concerns anti-patterns.
 
         Scoring:

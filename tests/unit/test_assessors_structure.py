@@ -1,6 +1,7 @@
 """Tests for structure assessors."""
 
 from agentready.assessors.structure import StandardLayoutAssessor
+from agentready.models.agent_context import AgentContext
 from agentready.models.repository import Repository
 
 
@@ -825,3 +826,71 @@ another_entry
         content = arsrc_path.read_text()
         assert len(content) > 0, "Python.arsrc is empty"
         assert "tests" in content, "Python.arsrc missing expected entry 'tests'"
+
+
+class TestStandardLayoutAssessorWithAgentContext:
+    """Test StandardLayoutAssessor with AgentContext from AGENTS.md."""
+
+    def _make_repo(self, tmp_path):
+        (tmp_path / ".git").mkdir()
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+    def test_agents_md_test_dir_verified_on_filesystem(self, tmp_path):
+        """AGENTS.md documents test dir nova/tests/ + dir exists -> full credit for tests."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "src").mkdir()
+        # Create the test dir mentioned in AGENTS.md
+        (tmp_path / "nova" / "tests").mkdir(parents=True)
+
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="Tests in nova/tests/",
+            test_directories=["nova/tests/"],
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert any("[AGENTS.md]" in e and "verified" in e for e in finding.evidence)
+
+    def test_agents_md_test_dir_not_found_ignored(self, tmp_path):
+        """AGENTS.md documents test dir that doesn't exist -> ignored, falls back."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "src").mkdir()
+        # Don't create the test dir
+
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="Tests in nonexistent/tests/",
+            test_directories=["nonexistent/tests/"],
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        # Should fail since neither standard tests/ nor AGENTS.md test dir exists
+        assert finding.status == "fail"
+        assert "1/2" in finding.measured_value
+
+    def test_no_agent_context_existing_behavior_unchanged(self, tmp_path):
+        """No AgentContext -> existing behavior (pass with src + tests)."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo, agent_context=None)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0

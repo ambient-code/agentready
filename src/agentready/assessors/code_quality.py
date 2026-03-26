@@ -6,6 +6,7 @@ import re
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from ..services.scanner import MissingToolError
 from ..utils.subprocess_utils import safe_subprocess_run
@@ -53,7 +54,9 @@ class TypeAnnotationsAssessor(BaseAssessor):
         }
         return bool(set(repository.languages.keys()) & applicable_languages)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check type annotation coverage.
 
         For Python: Use mypy or similar
@@ -288,7 +291,9 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         supported = {"Python", "JavaScript", "TypeScript", "C", "C++", "Java"}
         return bool(set(repository.languages.keys()) & supported)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check cyclomatic complexity using radon or lizard."""
         if "Python" in repository.languages:
             return self._assess_python_complexity(repository)
@@ -452,7 +457,9 @@ class SemanticNamingAssessor(BaseAssessor):
         """Only applicable to code repositories."""
         return len(repository.languages) > 0
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check naming conventions and patterns."""
         if "Python" in repository.languages:
             return self._assess_python_naming(repository)
@@ -666,21 +673,40 @@ class StructuredLoggingAssessor(BaseAssessor):
         """Applicable to any code repository."""
         return len(repository.languages) > 0
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for structured logging library usage."""
         # Check Python dependencies
         if "Python" in repository.languages:
-            return self._assess_python_logging(repository)
+            return self._assess_python_logging(repository, agent_context)
         else:
             return Finding.not_applicable(
                 self.attribute,
                 reason=f"Structured logging check not implemented for {list(repository.languages.keys())}",
             )
 
-    def _assess_python_logging(self, repository: Repository) -> Finding:
+    def _assess_python_logging(
+        self,
+        repository: Repository,
+        agent_context: AgentContext | None = None,
+    ) -> Finding:
         """Check for Python structured logging libraries."""
         # Libraries to check for
         structured_libs = ["structlog", "python-json-logger", "structlog-sentry"]
+        # Extended list matching agent_context_parser known frameworks
+        extended_libs = [
+            "oslo.log",
+            "oslo.logging",
+            "loguru",
+            "winston",
+            "zap",
+            "serilog",
+            "log4j",
+            "slf4j",
+            "bunyan",
+            "pino",
+        ]
 
         # Check dependency files
         dep_files = [
@@ -699,13 +725,13 @@ class StructuredLoggingAssessor(BaseAssessor):
             checked_files.append(dep_file.name)
             try:
                 content = dep_file.read_text(encoding="utf-8")
-                for lib in structured_libs:
+                for lib in structured_libs + extended_libs:
                     if lib in content:
                         found_libs.append(lib)
             except (OSError, UnicodeDecodeError):
                 continue
 
-        if not checked_files:
+        if not checked_files and not (agent_context and agent_context.logging_info):
             return Finding.not_applicable(
                 self.attribute, reason="No Python dependency files found"
             )
@@ -719,6 +745,58 @@ class StructuredLoggingAssessor(BaseAssessor):
                 f"Checked files: {', '.join(checked_files)}",
             ]
             remediation = None
+        elif agent_context and agent_context.logging_info:
+            # AGENTS.md mentions a logging framework — check if verifiable
+            agent_frameworks = agent_context.logging_info.frameworks
+            # Cross-reference with dependency files
+            verified = []
+            unverified = []
+            for fw in agent_frameworks:
+                # Check if this framework appears in any dep file
+                fw_in_deps = False
+                for dep_file in dep_files:
+                    if not dep_file.exists():
+                        continue
+                    try:
+                        content = dep_file.read_text(encoding="utf-8")
+                        if fw.lower() in content.lower():
+                            fw_in_deps = True
+                            break
+                    except (OSError, UnicodeDecodeError):
+                        continue
+                if fw_in_deps:
+                    verified.append(fw)
+                else:
+                    unverified.append(fw)
+
+            evidence = []
+            if verified:
+                score = 100.0
+                status = "pass"
+                evidence.append(
+                    f"[AGENTS.md] Structured logging via {', '.join(verified)} "
+                    f"(verified in dependencies)"
+                )
+            elif unverified:
+                score = 60.0
+                status = "pass"
+                evidence.append(
+                    f"[AGENTS.md] Structured logging via {', '.join(unverified)} "
+                    f"(not verified in local dependencies)"
+                )
+            else:
+                score = 0.0
+                status = "fail"
+                evidence = [
+                    "No structured logging library found",
+                    f"Checked files: {', '.join(checked_files)}",
+                ]
+
+            if agent_context.logging_info.has_structured_logging:
+                evidence.append("[AGENTS.md] Structured logging practices documented")
+            if checked_files:
+                evidence.append(f"Checked files: {', '.join(checked_files)}")
+            remediation = None if score > 0 else self._create_remediation()
         else:
             score = 0.0
             status = "fail"
@@ -733,7 +811,7 @@ class StructuredLoggingAssessor(BaseAssessor):
             attribute=self.attribute,
             status=status,
             score=score,
-            measured_value="configured" if found_libs else "not configured",
+            measured_value="configured" if score > 0 else "not configured",
             threshold="structured logging library",
             evidence=evidence,
             remediation=remediation,
@@ -903,7 +981,9 @@ class CodeSmellsAssessor(BaseAssessor):
             or (repository.path / ".markdownlint.yml").exists()
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for linter configurations across multiple languages."""
         linters_found = []
         score = 0

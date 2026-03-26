@@ -9,9 +9,26 @@ import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
+
+
+def _find_readme(repo_path: Path) -> tuple[Path | None, str]:
+    """Find README file in priority order: .md > .rst > .txt.
+
+    Returns (path, format) tuple. Path is None if no README found.
+    """
+    candidates = [
+        (repo_path / "README.md", "md"),
+        (repo_path / "README.rst", "rst"),
+        (repo_path / "README.txt", "txt"),
+    ]
+    for path, fmt in candidates:
+        if path.exists():
+            return path, fmt
+    return None, ""
 
 
 class CLAUDEmdAssessor(BaseAssessor):
@@ -41,7 +58,9 @@ class CLAUDEmdAssessor(BaseAssessor):
             default_weight=0.10,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for CLAUDE.md file in repository root.
 
         Pass criteria:
@@ -368,15 +387,29 @@ class READMEAssessor(BaseAssessor):
             default_weight=0.10,
         )
 
-    def assess(self, repository: Repository) -> Finding:
-        """Check for README.md with required sections.
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
+        """Check for README with required sections.
 
-        Pass criteria: README.md exists with essential sections
+        Pass criteria: README exists with essential sections
         Scoring: Proportional based on section count
+        Checks README.md first, then README.rst, then README.txt.
         """
-        readme_path = repository.path / "README.md"
+        readme_path, readme_fmt = _find_readme(repository.path)
 
-        # Fix TOCTOU: Use try-except around file read instead of existence check
+        if readme_path is None:
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=0.0,
+                measured_value="missing",
+                threshold="present with sections",
+                evidence=["No README found (checked .md, .rst, .txt)"],
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
+
         try:
             with open(readme_path, "r", encoding="utf-8") as f:
                 content = f.read().lower()
@@ -413,6 +446,9 @@ class READMEAssessor(BaseAssessor):
                 f"Development: {'✓' if required_sections['development'] else '✗'}",
             ]
 
+            if readme_fmt != "md":
+                evidence.append(f"README format: {readme_path.name} ({readme_fmt})")
+
             return Finding(
                 attribute=self.attribute,
                 status=status,
@@ -424,20 +460,9 @@ class READMEAssessor(BaseAssessor):
                 error_message=None,
             )
 
-        except FileNotFoundError:
-            return Finding(
-                attribute=self.attribute,
-                status="fail",
-                score=0.0,
-                measured_value="missing",
-                threshold="present with sections",
-                evidence=["README.md not found"],
-                remediation=self._create_remediation(),
-                error_message=None,
-            )
         except OSError as e:
             return Finding.error(
-                self.attribute, reason=f"Could not read README.md: {str(e)}"
+                self.attribute, reason=f"Could not read {readme_path.name}: {str(e)}"
             )
 
     def _create_remediation(self) -> Remediation:
@@ -515,7 +540,9 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             default_weight=0.015,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for ADR directory and validate ADR format.
 
         Scoring:
@@ -538,6 +565,12 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                 break
 
         if not adr_dir:
+            # Check AGENTS.md for ADR references before failing
+            if agent_context and agent_context.adr_info:
+                return self._assess_from_agent_context(
+                    repository, agent_context.adr_info
+                )
+
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -614,6 +647,85 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
+
+    def _assess_from_agent_context(self, repository: Repository, adr_info) -> Finding:
+        """Assess ADRs based on AGENTS.md content.
+
+        Verified local paths get full credit.
+        Unverified external repos get 60% cap.
+        """
+        evidence = []
+        verified = False
+
+        # Check local ADR paths mentioned in AGENTS.md
+        for local_path in adr_info.local_paths:
+            full_path = repository.path / local_path
+            if full_path.exists() and full_path.is_dir():
+                adr_files = list(full_path.glob("*.md")) + list(full_path.glob("*.rst"))
+                if adr_files:
+                    evidence.append(
+                        f"[AGENTS.md] ADR path {local_path} verified with "
+                        f"{len(adr_files)} decision records"
+                    )
+                    verified = True
+                else:
+                    evidence.append(
+                        f"[AGENTS.md] ADR path {local_path} exists but "
+                        f"contains no decision records"
+                    )
+            else:
+                evidence.append(
+                    f"[AGENTS.md] ADR path {local_path} mentioned but "
+                    f"not found on filesystem"
+                )
+
+        # Check external repos
+        for repo in adr_info.external_repos:
+            evidence.append(
+                f"[AGENTS.md] ADRs documented in external {repo} repository"
+            )
+
+        if adr_info.directory_pattern:
+            evidence.append(
+                f"[AGENTS.md] ADR directory pattern: {adr_info.directory_pattern}"
+            )
+
+        if verified:
+            # Local path verified on filesystem → full credit
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=100.0,
+                measured_value="ADRs verified via AGENTS.md",
+                threshold="ADR directory with decisions",
+                evidence=evidence,
+                remediation=None,
+                error_message=None,
+            )
+        elif adr_info.external_repos:
+            # External repo only → 60% cap (unverifiable)
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=60.0,
+                measured_value="ADRs in external repo (unverified)",
+                threshold="ADR directory with decisions",
+                evidence=evidence,
+                remediation=None,
+                error_message=None,
+            )
+        else:
+            # AGENTS.md mentions ADRs but nothing verifiable
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=30.0,
+                measured_value="ADR paths mentioned but not verified",
+                threshold="ADR directory with decisions",
+                evidence=evidence,
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
 
     def _has_consistent_naming(self, adr_files: list) -> bool:
         """Check if ADR files follow consistent naming pattern."""
@@ -772,7 +884,9 @@ class ConciseDocumentationAssessor(BaseAssessor):
             default_weight=0.03,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check README for conciseness and structure.
 
         Scoring:
@@ -780,11 +894,11 @@ class ConciseDocumentationAssessor(BaseAssessor):
         - Markdown structure (40%): Heading density (target 3-5 per 100 lines)
         - Concise formatting (30%): Bullet points, code blocks, no walls of text
         """
-        readme_path = repository.path / "README.md"
+        readme_path, _ = _find_readme(repository.path)
 
-        if not readme_path.exists():
+        if readme_path is None:
             return Finding.not_applicable(
-                self.attribute, reason="No README.md found in repository"
+                self.attribute, reason="No README found in repository"
             )
 
         try:
@@ -1053,7 +1167,9 @@ class InlineDocumentationAssessor(BaseAssessor):
         applicable_languages = {"Python", "JavaScript", "TypeScript"}
         return bool(set(repository.languages.keys()) & applicable_languages)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check docstring coverage for public functions and classes.
 
         Currently supports Python only. JavaScript/TypeScript can be added later.
@@ -1320,7 +1436,9 @@ class OpenAPISpecsAssessor(BaseAssessor):
         # If no web framework indicators found, not applicable
         return False
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self, repository: Repository, agent_context: AgentContext | None = None
+    ) -> Finding:
         """Check for OpenAPI specification files."""
         # Common OpenAPI spec file names
         spec_files = [
