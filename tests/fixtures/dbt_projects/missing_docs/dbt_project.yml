@@ -1,0 +1,5 @@
+name: 'missing_docs'
+config-version: 2
+profile: 'default'
+
+model-paths: ["models"]

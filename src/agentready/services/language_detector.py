@@ -49,6 +49,7 @@ class LanguageDetector:
         ".sh": "Shell",
         ".bash": "Shell",
         ".zsh": "Shell",
+        ".sql": "SQL",
         ".md": "Markdown",
         ".yaml": "YAML",
         ".yml": "YAML",

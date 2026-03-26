@@ -13,6 +13,12 @@ from .code_quality import (
     TypeAnnotationsAssessor,
 )
 from .containers import ContainerSetupAssessor
+from .dbt import (
+    DbtDataTestsAssessor,
+    DbtModelDocumentationAssessor,
+    DbtProjectConfigAssessor,
+    DbtProjectStructureAssessor,
+)
 from .documentation import (
     ArchitectureDecisionsAssessor,
     CLAUDEmdAssessor,
@@ -47,7 +53,7 @@ __all__ = ["create_all_assessors", "BaseAssessor", "LockFilesAssessor"]
 
 
 def create_all_assessors() -> list[BaseAssessor]:
-    """Create all 25 assessors for assessment.
+    """Create all assessors for assessment.
 
     Centralized factory function to eliminate duplication across CLI commands.
     Returns all implemented and stub assessors.
@@ -56,14 +62,16 @@ def create_all_assessors() -> list[BaseAssessor]:
         List of all assessor instances
     """
     assessors = [
-        # Tier 1 Essential (6 assessors - up from 5)
+        # Tier 1 Essential (10 assessors - up from 6)
         CLAUDEmdAssessor(),
         READMEAssessor(),
         TypeAnnotationsAssessor(),
         StandardLayoutAssessor(),
         DependencyPinningAssessor(),  # Renamed from LockFilesAssessor
         DependencySecurityAssessor(),  # NEW: Merged dependency_freshness + security_scanning
-        # Tier 2 Critical (10 assessors - 7 implemented, 3 stubs)
+        DbtProjectConfigAssessor(),  # NEW: dbt project configuration
+        DbtModelDocumentationAssessor(),  # NEW: dbt model documentation
+        # Tier 2 Critical (12 assessors - up from 10)
         TestCoverageAssessor(),
         PreCommitHooksAssessor(),
         ConventionalCommitsAssessor(),
@@ -74,6 +82,8 @@ def create_all_assessors() -> list[BaseAssessor]:
         ConciseDocumentationAssessor(),
         InlineDocumentationAssessor(),
         CyclomaticComplexityAssessor(),  # Actually Tier 3, but including here
+        DbtDataTestsAssessor(),  # NEW: dbt data tests
+        DbtProjectStructureAssessor(),  # NEW: dbt project structure
         # Tier 3 Important (7 implemented)
         ArchitectureDecisionsAssessor(),
         IssuePRTemplatesAssessor(),

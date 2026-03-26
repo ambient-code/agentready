@@ -1,0 +1,5 @@
+name: 'minimal_valid'
+config-version: 2
+profile: 'default'
+
+model-paths: ["models"]

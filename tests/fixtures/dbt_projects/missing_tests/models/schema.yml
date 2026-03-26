@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: customers
+    description: Customer data without tests
+    columns:
+      - name: customer_id
+        description: Customer identifier
