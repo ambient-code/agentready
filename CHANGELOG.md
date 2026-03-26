@@ -1,3 +1,20 @@
+# [2.31.0](https://github.com/ambient-code/agentready/compare/v2.30.1...v2.31.0) (2026-03-26)
+
+
+### Bug Fixes
+
+* **assessors:** support all YAML file naming conventions in dbt assessors ([3ff475a](https://github.com/ambient-code/agentready/commit/3ff475aa68d3ba5e28ceb44782bf38a432f5da8e))
+* **leaderboard:** add GitLab repository support for URLs and display names ([#350](https://github.com/ambient-code/agentready/issues/350)) ([47d8e71](https://github.com/ambient-code/agentready/commit/47d8e717ccc4def8d3e99774b3a116133d80e949)), closes [#2](https://github.com/ambient-code/agentready/issues/2) [#11](https://github.com/ambient-code/agentready/issues/11) [#347](https://github.com/ambient-code/agentready/issues/347)
+
+
+### Features
+
+* add python-wheel-build/fromager to leaderboard ([#346](https://github.com/ambient-code/agentready/issues/346)) ([6a9fab1](https://github.com/ambient-code/agentready/commit/6a9fab147677aa46768a74df636583d67335f829))
+* add redhat/builder to leaderboard ([#348](https://github.com/ambient-code/agentready/issues/348)) ([480a4a4](https://github.com/ambient-code/agentready/commit/480a4a429bc9ecf50fd66e9bfe4153af33ef8f78))
+* add redhat/rhai-pipeline to leaderboard ([#349](https://github.com/ambient-code/agentready/issues/349)) ([e305a0f](https://github.com/ambient-code/agentready/commit/e305a0fadafffd8759ac245979483a1009b7b6b0))
+* add redhat/rhel-ai AIPCC productization repos to leaderboard ([#347](https://github.com/ambient-code/agentready/issues/347)) ([9b07e37](https://github.com/ambient-code/agentready/commit/9b07e379bbd3d8ead814da82dc670bdd8caa3902))
+* **assessors:** add first-class dbt SQL repository support ([8660e6b](https://github.com/ambient-code/agentready/commit/8660e6ba16e8b4e39c7d59cd67266b6ffa3f89a3))
+
 ## [2.30.1](https://github.com/ambient-code/agentready/compare/v2.30.0...v2.30.1) (2026-03-09)
 
 
