@@ -1,3 +1,10 @@
+## [2.31.1](https://github.com/ambient-code/agentready/compare/v2.31.0...v2.31.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* **dbt:** resolve assessor bugs and test fixture issues ([1972c4a](https://github.com/ambient-code/agentready/commit/1972c4a57ff755905756b8f5911fd186bca70a6d)), closes [#353](https://github.com/ambient-code/agentready/issues/353) [#354](https://github.com/ambient-code/agentready/issues/354) [#355](https://github.com/ambient-code/agentready/issues/355) [#356](https://github.com/ambient-code/agentready/issues/356)
+
 # [2.31.0](https://github.com/ambient-code/agentready/compare/v2.30.1...v2.31.0) (2026-03-26)
 
 
