@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-26T02:55:46.831328Z",
+  "generated_at": "2026-03-26T03:19:09.033606Z",
   "total_repositories": 25,
   "overall": [
     {
@@ -14,6 +14,8 @@
       "url": "https://github.com/opendatahub-io/opendatahub-tests",
       "agentready_version": "2.29.5",
       "research_version": "1.0.1",
+      "attributes_assessed": 20,
+      "attributes_total": 22,
       "history": [
         {
           "date": "2026-03-05",
@@ -45,6 +47,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
       "agentready_version": "2.30.1",
       "research_version": "1.0.1",
+      "attributes_assessed": 16,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-25",
@@ -70,6 +74,8 @@
       "url": "https://github.com/ambient-code/agentready",
       "agentready_version": "2.22.1",
       "research_version": "1.0.1",
+      "attributes_assessed": 22,
+      "attributes_total": 25,
       "history": [
         {
           "date": "2026-01-15",
@@ -101,6 +107,8 @@
       "url": "https://github.com/opendatahub-io/odh-dashboard",
       "agentready_version": "2.30.1",
       "research_version": "1.0.1",
+      "attributes_assessed": 17,
+      "attributes_total": 23,
       "history": [
         {
           "date": "2026-03-18",
@@ -126,6 +134,8 @@
       "url": "https://github.com/python-wheel-build/fromager",
       "agentready_version": "2.30.1",
       "research_version": "1.0.1",
+      "attributes_assessed": 16,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -157,6 +167,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 17,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -182,6 +194,8 @@
       "url": "https://github.com/opendatahub-io/ai-helpers",
       "agentready_version": "2.27.3",
       "research_version": "1.0.1",
+      "attributes_assessed": 20,
+      "attributes_total": 25,
       "history": [
         {
           "date": "2026-02-17",
@@ -213,6 +227,8 @@
       "url": "https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub",
       "agentready_version": "2.25.2",
       "research_version": "1.0.1",
+      "attributes_assessed": 23,
+      "attributes_total": 25,
       "history": [
         {
           "date": "2026-02-07",
@@ -238,6 +254,8 @@
       "url": "https://github.com/feast-dev/feast",
       "agentready_version": "2.27.3",
       "research_version": "1.0.1",
+      "attributes_assessed": 22,
+      "attributes_total": 25,
       "history": [
         {
           "date": "2026-02-17",
@@ -263,6 +281,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/docs",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -288,6 +308,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/dashboard",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 16,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -302,31 +324,6 @@
       }
     },
     {
-      "repo": "jeremyeder/reference",
-      "org": "jeremyeder",
-      "name": "reference",
-      "score": 55.8,
-      "tier": "Bronze",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-01-15",
-      "url": "https://github.com/jeremyeder/reference",
-      "agentready_version": "2.22.0",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-01-15",
-          "score": 55.8,
-          "agentready_version": "2.22.0",
-          "research_version": "1.0.1"
-        }
-      ],
-      "rank": 12,
-      "lang_rank": {
-        "Unknown": 12
-      }
-    },
-    {
       "repo": "ambient-code/reference",
       "org": "ambient-code",
       "name": "reference",
@@ -338,11 +335,40 @@
       "url": "https://github.com/ambient-code/reference",
       "agentready_version": "2.22.1",
       "research_version": "1.0.1",
+      "attributes_assessed": 15,
+      "attributes_total": 25,
       "history": [
         {
           "date": "2026-01-15",
           "score": 55.8,
           "agentready_version": "2.22.1",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 12,
+      "lang_rank": {
+        "Unknown": 12
+      }
+    },
+    {
+      "repo": "jeremyeder/reference",
+      "org": "jeremyeder",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/jeremyeder/reference",
+      "agentready_version": "2.22.0",
+      "research_version": "1.0.1",
+      "attributes_assessed": 15,
+      "attributes_total": 25,
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.0",
           "research_version": "1.0.1"
         }
       ],
@@ -363,6 +389,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
       "agentready_version": "2.30.1",
       "research_version": "1.0.1",
+      "attributes_assessed": 22,
+      "attributes_total": 25,
       "history": [
         {
           "date": "2026-03-25",
@@ -388,6 +416,8 @@
       "url": "https://github.com/quay/quay",
       "agentready_version": "2.12.2",
       "research_version": "1.0.0",
+      "attributes_assessed": 21,
+      "attributes_total": 30,
       "history": [
         {
           "date": "2025-12-04",
@@ -413,6 +443,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -438,6 +470,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/central-linter",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 17,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -463,6 +497,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-claudio",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -488,6 +524,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -513,6 +551,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-infrastructure",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -527,17 +567,19 @@
       }
     },
     {
-      "repo": "redhat/rhel-ai/disk-images/disk-image-test",
+      "repo": "redhat/rhel-ai/containers/bootc-test",
       "org": "redhat",
-      "name": "disk-image-test",
+      "name": "bootc-test",
       "score": 26.7,
       "tier": "Needs Improvement",
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-03-24",
-      "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
+      "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -552,17 +594,19 @@
       }
     },
     {
-      "repo": "redhat/rhel-ai/containers/bootc-test",
+      "repo": "redhat/rhel-ai/disk-images/disk-image-test",
       "org": "redhat",
-      "name": "bootc-test",
+      "name": "disk-image-test",
       "score": 26.7,
       "tier": "Needs Improvement",
       "language": "Unknown",
       "size": "Unknown",
       "last_updated": "2026-03-24",
-      "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
+      "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -588,6 +632,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/toolbox",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 13,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -613,6 +659,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/renovate-config",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 11,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -638,6 +686,8 @@
       "url": "https://gitlab.com/redhat/rhel-ai/konflux-data",
       "agentready_version": "2.29.6",
       "research_version": "1.0.1",
+      "attributes_assessed": 12,
+      "attributes_total": 18,
       "history": [
         {
           "date": "2026-03-24",
@@ -666,6 +716,8 @@
         "url": "https://github.com/opendatahub-io/opendatahub-tests",
         "agentready_version": "2.29.5",
         "research_version": "1.0.1",
+        "attributes_assessed": 20,
+        "attributes_total": 22,
         "history": [
           {
             "date": "2026-03-05",
@@ -697,6 +749,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 16,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-25",
@@ -722,6 +776,8 @@
         "url": "https://github.com/ambient-code/agentready",
         "agentready_version": "2.22.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 22,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-01-15",
@@ -753,6 +809,8 @@
         "url": "https://github.com/opendatahub-io/odh-dashboard",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 17,
+        "attributes_total": 23,
         "history": [
           {
             "date": "2026-03-18",
@@ -778,6 +836,8 @@
         "url": "https://github.com/python-wheel-build/fromager",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 16,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -809,6 +869,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 17,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -834,6 +896,8 @@
         "url": "https://github.com/opendatahub-io/ai-helpers",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
+        "attributes_assessed": 20,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-02-17",
@@ -865,6 +929,8 @@
         "url": "https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub",
         "agentready_version": "2.25.2",
         "research_version": "1.0.1",
+        "attributes_assessed": 23,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-02-07",
@@ -890,6 +956,8 @@
         "url": "https://github.com/feast-dev/feast",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
+        "attributes_assessed": 22,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-02-17",
@@ -915,6 +983,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/docs",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -940,6 +1010,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/dashboard",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 16,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -954,31 +1026,6 @@
         }
       },
       {
-        "repo": "jeremyeder/reference",
-        "org": "jeremyeder",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/jeremyeder/reference",
-        "agentready_version": "2.22.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 12,
-        "lang_rank": {
-          "Unknown": 12
-        }
-      },
-      {
         "repo": "ambient-code/reference",
         "org": "ambient-code",
         "name": "reference",
@@ -990,11 +1037,40 @@
         "url": "https://github.com/ambient-code/reference",
         "agentready_version": "2.22.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 15,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-01-15",
             "score": 55.8,
             "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 12,
+        "lang_rank": {
+          "Unknown": 12
+        }
+      },
+      {
+        "repo": "jeremyeder/reference",
+        "org": "jeremyeder",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/jeremyeder/reference",
+        "agentready_version": "2.22.0",
+        "research_version": "1.0.1",
+        "attributes_assessed": 15,
+        "attributes_total": 25,
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.0",
             "research_version": "1.0.1"
           }
         ],
@@ -1015,6 +1091,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 22,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-03-25",
@@ -1040,6 +1118,8 @@
         "url": "https://github.com/quay/quay",
         "agentready_version": "2.12.2",
         "research_version": "1.0.0",
+        "attributes_assessed": 21,
+        "attributes_total": 30,
         "history": [
           {
             "date": "2025-12-04",
@@ -1065,6 +1145,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1090,6 +1172,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/central-linter",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 17,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1115,6 +1199,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-claudio",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1140,6 +1226,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1165,6 +1253,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-infrastructure",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1179,17 +1269,19 @@
         }
       },
       {
-        "repo": "redhat/rhel-ai/disk-images/disk-image-test",
+        "repo": "redhat/rhel-ai/containers/bootc-test",
         "org": "redhat",
-        "name": "disk-image-test",
+        "name": "bootc-test",
         "score": 26.7,
         "tier": "Needs Improvement",
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-24",
-        "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
+        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1204,17 +1296,19 @@
         }
       },
       {
-        "repo": "redhat/rhel-ai/containers/bootc-test",
+        "repo": "redhat/rhel-ai/disk-images/disk-image-test",
         "org": "redhat",
-        "name": "bootc-test",
+        "name": "disk-image-test",
         "score": 26.7,
         "tier": "Needs Improvement",
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-24",
-        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
+        "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1240,6 +1334,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/toolbox",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 13,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1265,6 +1361,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/renovate-config",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1290,6 +1388,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/konflux-data",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 12,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1319,6 +1419,8 @@
         "url": "https://github.com/opendatahub-io/opendatahub-tests",
         "agentready_version": "2.29.5",
         "research_version": "1.0.1",
+        "attributes_assessed": 20,
+        "attributes_total": 22,
         "history": [
           {
             "date": "2026-03-05",
@@ -1350,6 +1452,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/wheels/builder",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 16,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-25",
@@ -1375,6 +1479,8 @@
         "url": "https://github.com/ambient-code/agentready",
         "agentready_version": "2.22.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 22,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-01-15",
@@ -1406,6 +1512,8 @@
         "url": "https://github.com/opendatahub-io/odh-dashboard",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 17,
+        "attributes_total": 23,
         "history": [
           {
             "date": "2026-03-18",
@@ -1431,6 +1539,8 @@
         "url": "https://github.com/python-wheel-build/fromager",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 16,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1462,6 +1572,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 17,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1487,6 +1599,8 @@
         "url": "https://github.com/opendatahub-io/ai-helpers",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
+        "attributes_assessed": 20,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-02-17",
@@ -1518,6 +1632,8 @@
         "url": "https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub",
         "agentready_version": "2.25.2",
         "research_version": "1.0.1",
+        "attributes_assessed": 23,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-02-07",
@@ -1543,6 +1659,8 @@
         "url": "https://github.com/feast-dev/feast",
         "agentready_version": "2.27.3",
         "research_version": "1.0.1",
+        "attributes_assessed": 22,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-02-17",
@@ -1568,6 +1686,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/docs",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1593,6 +1713,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/dashboard",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 16,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1607,31 +1729,6 @@
         }
       },
       {
-        "repo": "jeremyeder/reference",
-        "org": "jeremyeder",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/jeremyeder/reference",
-        "agentready_version": "2.22.0",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.0",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 12,
-        "lang_rank": {
-          "Unknown": 12
-        }
-      },
-      {
         "repo": "ambient-code/reference",
         "org": "ambient-code",
         "name": "reference",
@@ -1643,11 +1740,40 @@
         "url": "https://github.com/ambient-code/reference",
         "agentready_version": "2.22.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 15,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-01-15",
             "score": 55.8,
             "agentready_version": "2.22.1",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 12,
+        "lang_rank": {
+          "Unknown": 12
+        }
+      },
+      {
+        "repo": "jeremyeder/reference",
+        "org": "jeremyeder",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/jeremyeder/reference",
+        "agentready_version": "2.22.0",
+        "research_version": "1.0.1",
+        "attributes_assessed": 15,
+        "attributes_total": 25,
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.0",
             "research_version": "1.0.1"
           }
         ],
@@ -1668,6 +1794,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/rhai/pipeline",
         "agentready_version": "2.30.1",
         "research_version": "1.0.1",
+        "attributes_assessed": 22,
+        "attributes_total": 25,
         "history": [
           {
             "date": "2026-03-25",
@@ -1693,6 +1821,8 @@
         "url": "https://github.com/quay/quay",
         "agentready_version": "2.12.2",
         "research_version": "1.0.0",
+        "attributes_assessed": 21,
+        "attributes_total": 30,
         "history": [
           {
             "date": "2025-12-04",
@@ -1718,6 +1848,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-product-management-configs",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1743,6 +1875,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/central-linter",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 17,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1768,6 +1902,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-claudio",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1793,6 +1929,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1818,6 +1956,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/aipcc-infrastructure",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1832,17 +1972,19 @@
         }
       },
       {
-        "repo": "redhat/rhel-ai/disk-images/disk-image-test",
+        "repo": "redhat/rhel-ai/containers/bootc-test",
         "org": "redhat",
-        "name": "disk-image-test",
+        "name": "bootc-test",
         "score": 26.7,
         "tier": "Needs Improvement",
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-24",
-        "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
+        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1857,17 +1999,19 @@
         }
       },
       {
-        "repo": "redhat/rhel-ai/containers/bootc-test",
+        "repo": "redhat/rhel-ai/disk-images/disk-image-test",
         "org": "redhat",
-        "name": "bootc-test",
+        "name": "disk-image-test",
         "score": 26.7,
         "tier": "Needs Improvement",
         "language": "Unknown",
         "size": "Unknown",
         "last_updated": "2026-03-24",
-        "url": "https://gitlab.com/redhat/rhel-ai/containers/bootc-test",
+        "url": "https://gitlab.com/redhat/rhel-ai/disk-images/disk-image-test",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1893,6 +2037,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/ci-cd/toolbox",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 13,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1918,6 +2064,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/renovate-config",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 11,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",
@@ -1943,6 +2091,8 @@
         "url": "https://gitlab.com/redhat/rhel-ai/konflux-data",
         "agentready_version": "2.29.6",
         "research_version": "1.0.1",
+        "attributes_assessed": 12,
+        "attributes_total": 18,
         "history": [
           {
             "date": "2026-03-24",

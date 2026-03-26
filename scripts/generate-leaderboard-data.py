@@ -137,6 +137,10 @@ def generate_leaderboard_data(repos: dict[str, list[dict[str, Any]]]) -> dict[st
             if not browse_url:
                 browse_url = f"https://github.com/{repo_name}"
 
+            # Extract attribute counts for partial-assessment indicator (#313)
+            attributes_assessed = int(latest.get("attributes_assessed", 25))
+            attributes_total = int(latest.get("attributes_total", 25))
+
             entry = {
                 "repo": display_name,
                 "org": display_name.split("/")[0],
@@ -149,6 +153,8 @@ def generate_leaderboard_data(repos: dict[str, list[dict[str, Any]]]) -> dict[st
                 "url": browse_url,
                 "agentready_version": agentready_version,
                 "research_version": research_version,
+                "attributes_assessed": attributes_assessed,
+                "attributes_total": attributes_total,
                 "history": [
                     {
                         "date": s["timestamp"][:10],

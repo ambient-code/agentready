@@ -168,6 +168,29 @@
 .badge.bronze { background: #fed7aa; color: #c2410c; }
 .badge.needs-improvement { background: #fee2e2; color: #dc2626; }
 
+/* Partial assessment indicator (#313) */
+.attributes-partial {
+  display: block;
+  font-size: 0.7rem;
+  color: #b45309;
+  background: #fef3c7;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+
+.badge.partial {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.leaderboard-table .attributes {
+  text-align: center;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 /* Improvement column */
 .improvement {
   color: #22c55e;

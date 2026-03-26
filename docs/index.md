@@ -45,6 +45,9 @@ agentready submit
     <div class="score-badge">
       <span class="score">{{ entry.score | round: 1 }}</span>
       <span class="tier">{{ entry.tier }}</span>
+      {% if entry.attributes_assessed and entry.attributes_assessed < entry.attributes_total %}
+      <span class="attributes-partial">{{ entry.attributes_assessed }}/{{ entry.attributes_total }} attrs</span>
+      {% endif %}
     </div>
   </div>
 {% endfor %}
@@ -58,6 +61,7 @@ agentready submit
       <th>Rank</th>
       <th>Repository</th>
       <th>Score</th>
+      <th>Attributes</th>
       <th>Tier</th>
       <th>Ruleset</th>
       <th>Language</th>
@@ -73,6 +77,13 @@ agentready submit
         <a href="{{ entry.url }}">{{ entry.repo }}</a>
       </td>
       <td class="score">{{ entry.score | round: 1 }}</td>
+      <td class="attributes">
+        {% if entry.attributes_assessed and entry.attributes_assessed < entry.attributes_total %}
+        <span class="badge partial">{{ entry.attributes_assessed }}/{{ entry.attributes_total }}</span>
+        {% else %}
+        {{ entry.attributes_total | default: 25 }}/{{ entry.attributes_total | default: 25 }}
+        {% endif %}
+      </td>
       <td>
         <span class="badge {{ entry.tier | downcase }}">{{ entry.tier }}</span>
       </td>
