@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from .base import BaseAssessor
 
@@ -40,7 +41,7 @@ class TestCoverageAssessor(BaseAssessor):
         test_dirs = ["tests", "test", "spec", "__tests__"]
         return any((repository.path / d).exists() for d in test_dirs)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for test coverage configuration and actual coverage.
 
         Looks for:
@@ -242,7 +243,7 @@ class PreCommitHooksAssessor(BaseAssessor):
             default_weight=0.03,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for pre-commit configuration."""
         precommit_config = repository.path / ".pre-commit-config.yaml"
 
@@ -344,7 +345,7 @@ class CICDPipelineVisibilityAssessor(BaseAssessor):
             default_weight=0.015,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for CI/CD configuration and assess quality.
 
         Scoring:
@@ -670,7 +671,7 @@ class BranchProtectionAssessor(BaseAssessor):
             default_weight=0.005,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Stub implementation - requires GitHub API integration."""
         return Finding.not_applicable(
             self.attribute,

@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+from ..models.agent_context import AgentContext
 from ..models.finding import Finding
 from ..models.repository import Repository
 
@@ -33,11 +34,17 @@ class BaseAssessor(ABC):
         pass
 
     @abstractmethod
-    def assess(self, repository: Repository) -> Finding:
+    def assess(
+        self,
+        repository: Repository,
+        agent_context: AgentContext | None = None,
+    ) -> Finding:
         """Execute assessment and return Finding with score, evidence, remediation.
 
         Args:
             repository: Repository entity with path, languages, metadata
+            agent_context: Parsed AGENTS.md/CLAUDE.md content (optional).
+                          Assessors that don't use this can ignore it.
 
         Returns:
             Finding with status (pass/fail/skipped/error/not_applicable),

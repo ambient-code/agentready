@@ -10,6 +10,7 @@ import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from .base import BaseAssessor
 
@@ -94,7 +95,7 @@ class DbtProjectConfigAssessor(BaseAssessor):
         """Applicable only to dbt projects."""
         return _is_dbt_project(repository)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for valid dbt_project.yml configuration.
 
         Pass criteria:
@@ -260,7 +261,7 @@ class DbtModelDocumentationAssessor(BaseAssessor):
         """Applicable only to dbt projects."""
         return _is_dbt_project(repository)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check dbt model documentation coverage.
 
         Pass criteria:
@@ -432,7 +433,7 @@ class DbtDataTestsAssessor(BaseAssessor):
         """Applicable only to dbt projects."""
         return _is_dbt_project(repository)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check dbt data test coverage.
 
         Pass criteria:
@@ -630,7 +631,7 @@ class DbtProjectStructureAssessor(BaseAssessor):
         """Applicable only to dbt projects."""
         return _is_dbt_project(repository)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check dbt project structure.
 
         Pass criteria:
