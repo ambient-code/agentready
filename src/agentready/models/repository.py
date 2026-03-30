@@ -74,6 +74,25 @@ class Repository:
         """
         return shorten_commit_hash(self.commit_hash)
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Repository":
+        """Create Repository from dictionary.
+
+        Skips filesystem validation so cached assessments remain readable
+        even if the original repository path no longer exists on disk.
+        """
+        repo = object.__new__(cls)
+        repo.path = Path(data["path"])
+        repo.name = data["name"]
+        repo.url = data.get("url")
+        repo.branch = data["branch"]
+        repo.commit_hash = data["commit_hash"]
+        repo.languages = data.get("languages", {})
+        repo.total_files = data.get("total_files", 0)
+        repo.total_lines = data.get("total_lines", 0)
+        repo.config = None
+        return repo
+
     @property
     def primary_language(self) -> str:
         """Get the primary programming language (most files).

@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
+from pydantic import ValidationError
+
 from ..models import Assessment
 
 
@@ -108,7 +110,14 @@ class AssessmentCache:
                 assessment_data = json.loads(assessment_json)
                 return self._deserialize_assessment(assessment_data)
 
-        except (sqlite3.Error, json.JSONDecodeError, ValueError):
+        except (
+            sqlite3.Error,
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            TypeError,
+            ValidationError,
+        ):
             return None
 
     def set(
@@ -250,15 +259,4 @@ class AssessmentCache:
         Returns:
             Assessment object
         """
-        # This is a simplified deserialization
-        # In practice, you'd need full deserialization logic
-        # For now, we'll use a placeholder that assumes the cached JSON
-        # has the correct structure
-
-        # Note: This is a simplified approach. In production, you'd need
-        # proper deserialization that reconstructs all nested objects
-        raise NotImplementedError(
-            "Full assessment deserialization not yet implemented. "
-            "Consider caching assessment JSON directly and providing "
-            "a proper deserializer factory."
-        )
+        return Assessment.from_dict(data)

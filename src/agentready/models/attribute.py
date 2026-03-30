@@ -38,6 +38,19 @@ class Attribute:
                 f"Default weight must be in range [0.0, 1.0]: {self.default_weight}"
             )
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Attribute":
+        """Create Attribute from dictionary."""
+        return cls(
+            id=data["id"],
+            name=data["name"],
+            category=data["category"],
+            tier=data["tier"],
+            description=data["description"],
+            criteria=data["criteria"],
+            default_weight=data["default_weight"],
+        )
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {

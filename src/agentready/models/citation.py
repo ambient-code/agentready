@@ -30,6 +30,16 @@ class Citation:
         if not self.relevance:
             raise ValueError("Citation relevance must be non-empty")
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Citation":
+        """Create Citation from dictionary."""
+        return cls(
+            source=data["source"],
+            title=data["title"],
+            url=data.get("url"),
+            relevance=data["relevance"],
+        )
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {

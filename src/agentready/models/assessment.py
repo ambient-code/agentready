@@ -78,6 +78,40 @@ class Assessment:
                     f"attributes total ({self.attributes_total})"
                 )
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Assessment":
+        """Create Assessment from dictionary.
+
+        Handles the key mapping where to_dict() serializes
+        'attributes_not_assessed' as 'attributes_skipped'.
+        """
+        from datetime import datetime
+
+        metadata_data = data.get("metadata")
+        config_data = data.get("config")
+
+        return cls(
+            repository=Repository.from_dict(data["repository"]),
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            overall_score=data["overall_score"],
+            certification_level=data["certification_level"],
+            attributes_assessed=data["attributes_assessed"],
+            attributes_not_assessed=data.get(
+                "attributes_skipped", data.get("attributes_not_assessed", 0)
+            ),
+            attributes_total=data["attributes_total"],
+            findings=[Finding.from_dict(f) for f in data.get("findings", [])],
+            config=Config.model_validate(config_data) if config_data else None,
+            duration_seconds=data.get("duration_seconds", 0.0),
+            discovered_skills=[
+                DiscoveredSkill.from_dict(s) for s in data.get("discovered_skills", [])
+            ],
+            metadata=(
+                AssessmentMetadata.from_dict(metadata_data) if metadata_data else None
+            ),
+            schema_version=data.get("schema_version", cls.CURRENT_SCHEMA_VERSION),
+        )
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {

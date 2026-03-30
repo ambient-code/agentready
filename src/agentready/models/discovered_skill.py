@@ -76,6 +76,22 @@ class DiscoveredSkill:
         if not self.pattern_summary:
             raise ValueError("Pattern summary must be non-empty")
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "DiscoveredSkill":
+        """Create DiscoveredSkill from dictionary."""
+        return cls(
+            skill_id=data["skill_id"],
+            name=data["name"],
+            description=data["description"],
+            confidence=data["confidence"],
+            source_attribute_id=data["source_attribute_id"],
+            reusability_score=data["reusability_score"],
+            impact_score=data["impact_score"],
+            pattern_summary=data["pattern_summary"],
+            code_examples=data.get("code_examples", []),
+            citations=[Citation.from_dict(c) for c in data.get("citations", [])],
+        )
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
