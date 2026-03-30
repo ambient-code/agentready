@@ -1,3 +1,12 @@
+## [2.31.2](https://github.com/ambient-code/agentready/compare/v2.31.1...v2.31.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* address CodeRabbit review feedback ([cb9785a](https://github.com/ambient-code/agentready/commit/cb9785a82e699e2a365eb043b6c08aa077d3bbe3))
+* **cache,scoring:** implement cache deserialization and fix doc scoring precision ([6f69be4](https://github.com/ambient-code/agentready/commit/6f69be4ac6d4244d9d0c511a1755bf90c2043f07))
+* **cache:** catch pydantic ValidationError in cache get() ([0e8cc76](https://github.com/ambient-code/agentready/commit/0e8cc7644cf858f2ffd4d7dfdf1c7fa7e753c182))
+
 ## [2.31.1](https://github.com/ambient-code/agentready/compare/v2.31.0...v2.31.1) (2026-03-26)
 
 
