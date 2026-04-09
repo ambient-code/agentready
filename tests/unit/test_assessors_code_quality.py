@@ -2,7 +2,8 @@
 
 import subprocess
 
-from agentready.assessors.code_quality import CodeSmellsAssessor
+from agentready.assessors.code_quality import CodeSmellsAssessor, StructuredLoggingAssessor
+from agentready.models.agent_context import AgentContext, LoggingInfo
 from agentready.models.repository import Repository
 
 
@@ -435,3 +436,80 @@ Style/StringLiterals:
         assert finding.score < 60  # Below passing threshold
         assert finding.remediation is not None
         assert any("ruff" in s.lower() for s in finding.remediation.steps)
+
+
+class TestStructuredLoggingAssessorWithAgentContext:
+    """Test StructuredLoggingAssessor with AgentContext from AGENTS.md."""
+
+    def _make_repo(self, tmp_path):
+        (tmp_path / ".git").mkdir()
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+    def test_agents_md_oslo_log_verified_in_requirements(self, tmp_path):
+        """AGENTS.md mentions oslo.log + verify in requirements.txt -> full credit."""
+        repo = self._make_repo(tmp_path)
+        # oslo.log is in extended_libs, so direct scan finds it first.
+        # The agent_context path is reached when direct scan finds nothing.
+        # Use a requirements.txt that has oslo.log but not in the direct scan libs.
+        # Actually, oslo.log IS in extended_libs, so it will be found directly.
+        # The agent_context path only triggers when no lib found in deps.
+        # Let's test that oslo.log in deps gives 100% via direct scan.
+        (tmp_path / "requirements.txt").write_text("oslo.log>=5.0\npbr>=5.0\n")
+
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="We use oslo.log for structured logging.",
+            logging_info=LoggingInfo(
+                frameworks=["oslo.log"],
+                has_structured_logging=True,
+            ),
+        )
+
+        assessor = StructuredLoggingAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_agents_md_framework_not_in_deps_gets_60_cap(self, tmp_path):
+        """AGENTS.md mentions logging framework not in deps -> 60% cap."""
+        repo = self._make_repo(tmp_path)
+        # Create requirements.txt WITHOUT any logging framework
+        # Use a framework name that's NOT in extended_libs direct scan
+        (tmp_path / "requirements.txt").write_text("requests>=2.0\nflask>=3.0\n")
+
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="We use custom-logger for structured logging.",
+            logging_info=LoggingInfo(
+                frameworks=["custom-logger"],
+                has_structured_logging=True,
+            ),
+        )
+
+        assessor = StructuredLoggingAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        assert finding.status == "pass"
+        assert finding.score == 60.0
+        assert any("[AGENTS.md]" in e and "not verified" in e for e in finding.evidence)
+
+    def test_no_agent_context_existing_behavior_unchanged(self, tmp_path):
+        """No AgentContext -> existing behavior (fail with 0)."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "requirements.txt").write_text("requests>=2.0\n")
+
+        assessor = StructuredLoggingAssessor()
+        finding = assessor.assess(repo, agent_context=None)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0

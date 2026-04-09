@@ -2,6 +2,7 @@
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from .base import BaseAssessor
 
@@ -41,7 +42,7 @@ class ContainerSetupAssessor(BaseAssessor):
         container_files = ["Dockerfile", "Containerfile"]
         return any((repository.path / f).exists() for f in container_files)
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for container setup best practices."""
         if not self.is_applicable(repository):
             return Finding.not_applicable(

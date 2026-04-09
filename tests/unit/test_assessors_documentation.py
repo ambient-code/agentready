@@ -1,6 +1,12 @@
 """Tests for documentation assessors."""
 
-from agentready.assessors.documentation import CLAUDEmdAssessor
+from agentready.assessors.documentation import (
+    ArchitectureDecisionsAssessor,
+    CLAUDEmdAssessor,
+    ConciseDocumentationAssessor,
+    READMEAssessor,
+)
+from agentready.models.agent_context import ADRInfo, AgentContext
 from agentready.models.repository import Repository
 
 
@@ -439,3 +445,203 @@ class TestCLAUDEmdAssessor:
         assert finding.status == "fail"
         assert finding.score == 25.0
         assert finding.remediation is not None
+
+
+class TestArchitectureDecisionsAssessorWithAgentContext:
+    """Test ArchitectureDecisionsAssessor with AgentContext from AGENTS.md."""
+
+    def _make_repo(self, tmp_path):
+        (tmp_path / ".git").mkdir()
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+    def test_external_adr_repo_gets_60_percent_cap(self, tmp_path):
+        """AGENTS.md describes ADRs in external repo -> 60% partial credit."""
+        repo = self._make_repo(tmp_path)
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="ADRs in nova-specs",
+            adr_info=ADRInfo(
+                external_repos=["openstack/nova-specs"],
+            ),
+        )
+
+        assessor = ArchitectureDecisionsAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        assert finding.status == "pass"
+        assert finding.score == 60.0
+        assert any("[AGENTS.md]" in e for e in finding.evidence)
+        assert any("nova-specs" in e for e in finding.evidence)
+
+    def test_verified_local_adr_path_gets_full_credit(self, tmp_path):
+        """AGENTS.md describes local ADR path that exists -> full credit."""
+        repo = self._make_repo(tmp_path)
+        # Use a non-standard path so the normal scan doesn't find it first
+        adr_dir = tmp_path / "specs" / "decisions"
+        adr_dir.mkdir(parents=True)
+        (adr_dir / "0001-use-adrs.md").write_text("# Use ADRs\n## Status\nAccepted")
+
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="ADRs in specs/decisions/",
+            adr_info=ADRInfo(
+                local_paths=["specs/decisions"],
+            ),
+        )
+
+        assessor = ArchitectureDecisionsAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert any("[AGENTS.md]" in e and "verified" in e for e in finding.evidence)
+
+    def test_no_agent_context_existing_behavior_unchanged(self, tmp_path):
+        """No AgentContext -> existing behavior (fail with 0)."""
+        repo = self._make_repo(tmp_path)
+
+        assessor = ArchitectureDecisionsAssessor()
+        finding = assessor.assess(repo, agent_context=None)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_local_adr_path_not_found_on_filesystem(self, tmp_path):
+        """AGENTS.md describes local ADR path that doesn't exist -> low score."""
+        repo = self._make_repo(tmp_path)
+        agent_context = AgentContext(
+            source_file="AGENTS.md",
+            raw_content="ADRs in docs/adr/",
+            adr_info=ADRInfo(
+                local_paths=["docs/adr"],
+            ),
+        )
+
+        assessor = ArchitectureDecisionsAssessor()
+        finding = assessor.assess(repo, agent_context=agent_context)
+
+        assert finding.status == "fail"
+        assert finding.score == 30.0
+        assert any("not found on filesystem" in e for e in finding.evidence)
+
+
+class TestREADMEAssessorAlternativeFormats:
+    """Test READMEAssessor with README.rst and README.txt formats."""
+
+    def _make_repo(self, tmp_path):
+        (tmp_path / ".git").mkdir()
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+    def test_readme_rst_scored_like_md(self, tmp_path):
+        """README.rst only -> scored same as .md."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "README.rst").write_text(
+            "Project\n=======\n\nInstallation\n"
+            "------------\n\npip install foo\n\n"
+            "Usage\n-----\n\nfoo --help\n\n"
+            "Development\n-----------\n\npytest\n"
+        )
+
+        assessor = READMEAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert any("rst" in e.lower() for e in finding.evidence)
+
+    def test_readme_txt_scored(self, tmp_path):
+        """README.txt only -> scored."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "README.txt").write_text(
+            "Project\n\nInstallation: pip install foo\n"
+            "Usage: foo --help\nDevelopment: pytest\n"
+        )
+
+        assessor = READMEAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_md_preferred_over_rst(self, tmp_path):
+        """Both .md and .rst -> prefer .md, no rst note in evidence."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "README.md").write_text(
+            "# Project\n\n## Installation\npip install\n\n"
+            "## Usage\nfoo --help\n\n## Development\npytest\n"
+        )
+        (tmp_path / "README.rst").write_text("RST content")
+
+        assessor = READMEAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        # Should NOT mention rst format since .md was used
+        assert not any("rst" in e.lower() for e in finding.evidence)
+
+    def test_no_readme_at_all_fails(self, tmp_path):
+        """No README at all -> fail (existing behavior)."""
+        repo = self._make_repo(tmp_path)
+
+        assessor = READMEAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+
+class TestConciseDocumentationAssessorRSTFallback:
+    """Test ConciseDocumentationAssessor with README.rst fallback."""
+
+    def _make_repo(self, tmp_path):
+        (tmp_path / ".git").mkdir()
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+    def test_readme_rst_conciseness_scored(self, tmp_path):
+        """README.rst only -> conciseness scored."""
+        repo = self._make_repo(tmp_path)
+        (tmp_path / "README.rst").write_text(
+            "Project\n=======\n\n- Feature one\n- Feature two\n- Feature three\n"
+        )
+
+        assessor = ConciseDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        # Should not be not_applicable since README.rst exists
+        assert finding.status in ("pass", "fail")
+
+    def test_no_readme_not_applicable(self, tmp_path):
+        """No README -> not_applicable (existing behavior)."""
+        repo = self._make_repo(tmp_path)
+
+        assessor = ConciseDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "not_applicable"

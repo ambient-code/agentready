@@ -11,6 +11,7 @@ import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
@@ -43,7 +44,7 @@ class DependencyPinningAssessor(BaseAssessor):
             default_weight=0.10,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for dependency lock files and validate version pinning quality."""
         # Language-specific lock files (auto-managed, always have exact versions)
         strict_lock_files = [
@@ -238,7 +239,7 @@ class ConventionalCommitsAssessor(BaseAssessor):
             default_weight=0.03,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         commitlint_configs = [
             ".commitlintrc",
             ".commitlintrc.json",
@@ -458,7 +459,7 @@ class GitignoreAssessor(BaseAssessor):
 
         return list(set(expected))  # Remove duplicates
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         gitignore = repository.path / ".gitignore"
 
         if not gitignore.exists():
@@ -621,7 +622,7 @@ class FileSizeLimitsAssessor(BaseAssessor):
             default_weight=0.03,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for excessively large files that strain context windows.
 
         Scoring:
@@ -792,7 +793,7 @@ class StubAssessor(BaseAssessor):
             default_weight=self._weight,
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         return Finding.not_applicable(
             self.attribute,
             reason=f"{self._name} assessment not yet implemented",

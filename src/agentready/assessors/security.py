@@ -6,6 +6,7 @@ import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
+from ..models.agent_context import AgentContext
 from ..models.repository import Repository
 from .base import BaseAssessor
 
@@ -37,7 +38,7 @@ class DependencySecurityAssessor(BaseAssessor):
             default_weight=0.04,  # Combined weight
         )
 
-    def assess(self, repository: Repository) -> Finding:
+    def assess(self, repository: Repository, agent_context: AgentContext | None = None) -> Finding:
         """Check for security scanning tools and vulnerability detection."""
         score = 0
         evidence = []
