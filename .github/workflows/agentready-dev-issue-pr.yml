@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: Get issue context
         id: issue-context
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             let issueNumber;
@@ -110,7 +110,7 @@ jobs:
 
       - name: Read ACL configuration
         id: read-acl
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             // Read the ACL file from the repository
@@ -333,7 +333,7 @@ jobs:
 
       - name: Handle feedback (no PR creation)
         if: steps.issue-context.outputs.skip_pr_creation != 'true' && steps.check-review.outputs.review_passed == 'true' && steps.check-review.outputs.final_decision == 'provide_feedback'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           LOG_FILE: ${{ steps.init-log.outputs.log_file }}
           ISSUE_NUMBER: ${{ steps.issue-context.outputs.issue_number }}
@@ -426,7 +426,7 @@ jobs:
       - name: Create draft Pull Request
         if: steps.issue-context.outputs.skip_pr_creation != 'true' && steps.check-review.outputs.review_passed == 'true' && steps.check-review.outputs.final_decision == 'create_pr'
         id: create-pr
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ISSUE_NUMBER: ${{ steps.issue-context.outputs.issue_number }}
           ISSUE_TITLE: ${{ steps.issue-context.outputs.issue_title }}
@@ -581,7 +581,7 @@ jobs:
 
       - name: Post PR review and link to issue
         if: steps.issue-context.outputs.skip_pr_creation != 'true' && steps.check-review.outputs.review_passed == 'true' && steps.check-review.outputs.final_decision == 'create_pr' && steps.extract-pr-review.outputs.review_passed == 'true' && steps.self-review-pr-code.outputs.REVIEW_PASSED == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           LOG_FILE: ${{ steps.init-log.outputs.log_file }}
           ISSUE_NUMBER: ${{ steps.issue-context.outputs.issue_number }}
@@ -720,7 +720,7 @@ jobs:
 
       - name: Post ad-hoc analysis comment
         if: steps.issue-context.outputs.is_comment_trigger == 'true' && steps.extract-analysis.outputs.analysis_passed == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           LOG_FILE: ${{ steps.init-log.outputs.log_file }}
           ISSUE_NUMBER: ${{ steps.issue-context.outputs.issue_number }}
