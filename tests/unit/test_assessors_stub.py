@@ -18,12 +18,13 @@ class TestDependencyPinningAssessor:
     """Test DependencyPinningAssessor (formerly LockFilesAssessor)."""
 
     def test_no_lock_files(self, tmp_path):
-        """Test that assessor fails when no lock files present."""
-        # Initialize git repository
-        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        """Test that assessor fails when dep manifests exist but no lock files."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
 
-        # Initialize git repository
-        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        # Add a dependency manifest so the repo isn't "not_applicable"
+        (tmp_path / "pyproject.toml").write_text("[project]\nname = 'test'\n")
 
         repo = Repository(
             path=tmp_path,
@@ -230,6 +231,252 @@ numpy
         from agentready.assessors.stub_assessors import LockFilesAssessor
 
         assert LockFilesAssessor is DependencyPinningAssessor
+
+    def test_subdirectory_go_sum_multi_module(self, tmp_path):
+        """Test that go.sum in subdirectories is detected for multi-module repos."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        # Create sub-module with go.mod + go.sum (no root-level lock file)
+        sub = tmp_path / "tools" / "mytool"
+        sub.mkdir(parents=True)
+        (sub / "go.mod").write_text("module example.com/tools/mytool\n\ngo 1.21\n")
+        (sub / "go.sum").write_text("github.com/pkg/errors v0.9.1 h1:abc=\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Go": 10},
+            total_files=5,
+            total_lines=100,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "go.sum" in finding.measured_value
+
+    def test_subdirectory_lock_excludes_vendor(self, tmp_path):
+        """Test that lock files inside vendor/ are ignored."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        # go.mod at root so the repo is recognized as having deps
+        (tmp_path / "go.mod").write_text("module example.com/test\n\ngo 1.21\n")
+
+        # go.sum only inside vendor/ — should NOT count
+        vendor = tmp_path / "vendor" / "github.com" / "pkg"
+        vendor.mkdir(parents=True)
+        (vendor / "go.sum").write_text("hash\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Go": 10},
+            total_files=5,
+            total_lines=100,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        # Should fail — vendor lock files don't count
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_no_dependency_manifests_returns_not_applicable(self, tmp_path):
+        """Test that repos with no code/deps return not_applicable."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        # Only README + LICENSE — no package manager files at all
+        (tmp_path / "README.md").write_text("# My Project\n")
+        (tmp_path / "LICENSE").write_text("MIT\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={},
+            total_files=2,
+            total_lines=2,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "not_applicable"
+
+    def test_has_go_mod_but_no_lock_still_fails(self, tmp_path):
+        """Test that having go.mod without go.sum still fails."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        (tmp_path / "go.mod").write_text(
+            "module example.com/test\n\ngo 1.21\n\n"
+            "require github.com/pkg/errors v0.9.1\n"
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Go": 10},
+            total_files=5,
+            total_lines=100,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_terraform_versions_tf_range_constraints(self, tmp_path):
+        """Test Terraform repos with >= range constraints in versions.tf."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        tf_dir = tmp_path / "terraform" / "modules" / "vpc"
+        tf_dir.mkdir(parents=True)
+        (tf_dir / "versions.tf").write_text(
+            'terraform {\n'
+            '  required_providers {\n'
+            '    aws = {\n'
+            '      source  = "hashicorp/aws"\n'
+            '      version = ">= 6.0"\n'
+            '    }\n'
+            '  }\n'
+            '}\n'
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"HCL": 10},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        # Should score > 0 (partial credit for having constraints)
+        assert finding.score >= 35
+        assert "versions.tf" in finding.measured_value
+
+    def test_terraform_versions_tf_exact_pins(self, tmp_path):
+        """Test Terraform repos with exact version pins in versions.tf."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        tf_dir = tmp_path / "terraform"
+        tf_dir.mkdir()
+        (tf_dir / "versions.tf").write_text(
+            'terraform {\n'
+            '  required_providers {\n'
+            '    aws = {\n'
+            '      source  = "hashicorp/aws"\n'
+            '      version = "6.0.0"\n'
+            '    }\n'
+            '  }\n'
+            '}\n'
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"HCL": 10},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_terraform_lock_hcl_detected(self, tmp_path):
+        """Test that .terraform.lock.hcl is detected as a strict lock file."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        (tmp_path / ".terraform.lock.hcl").write_text(
+            'provider "registry.terraform.io/hashicorp/aws" {\n'
+            '  version = "6.0.0"\n'
+            '}\n'
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"HCL": 10},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert ".terraform.lock.hcl" in finding.measured_value
+
+    def test_subdirectory_requirements_txt(self, tmp_path):
+        """Test that requirements.txt in subdirectories is found."""
+        subprocess.run(
+            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        sub = tmp_path / "experiments" / "auth"
+        sub.mkdir(parents=True)
+        (sub / "requirements.txt").write_text("flask==3.1.1\nrequests==2.32.3\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 10},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
 
 
 class TestGitignoreAssessor:
