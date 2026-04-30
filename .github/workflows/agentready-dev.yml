@@ -216,7 +216,7 @@ jobs:
           echo "GitHub context issue (alt): ${{ github.event.issue.number || 'not set' }}"
 
       - name: Post @agentready-dev response
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ISSUE_NUMBER: ${{ steps.event-context.outputs.issue_number }}
           EVENT_NAME: ${{ github.event_name }}
