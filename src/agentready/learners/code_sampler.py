@@ -13,12 +13,14 @@ class CodeSampler:
 
     # Mapping of attribute IDs to file patterns to sample
     ATTRIBUTE_FILE_PATTERNS = {
-        "claude_md_file": ["CLAUDE.md"],
+        "claude_md_file": ["CLAUDE.md", ".claude/CLAUDE.md"],
         "readme_file": ["README.md"],
         "type_annotations": ["**/*.py"],  # Sample Python files
         "deterministic_enforcement": [
             ".pre-commit-config.yaml",
             ".github/workflows/*.yml",
+            ".claude/settings.json",
+            ".husky/*",
         ],
         "standard_project_layout": [
             "**/",
@@ -33,9 +35,39 @@ class CodeSampler:
             "go.sum",
             "Cargo.lock",
         ],
-        "test_execution": ["pytest.ini", "pyproject.toml", ".coveragerc"],
+        "test_execution": [
+            "pytest.ini",
+            "pyproject.toml",
+            ".coveragerc",
+            "tox.ini",
+            "setup.cfg",
+            "package.json",
+            "jest.config.*",
+            "vitest.config.*",
+        ],
         "conventional_commits": [".github/workflows/*.yml"],  # CI configs
         "gitignore": [".gitignore"],
+        "single_file_verification": [
+            "CLAUDE.md",
+            "AGENTS.md",
+            ".claude/CLAUDE.md",
+            "pyproject.toml",
+        ],
+        "pattern_references": [
+            "CLAUDE.md",
+            "AGENTS.md",
+            ".claude/skills/SKILL.md",
+        ],
+        "design_intent": [
+            "docs/design/*.md",
+            "docs/architecture/*.md",
+            "docs/adr/*.md",
+            "docs/decisions/*.md",
+        ],
+        "progressive_disclosure": [
+            ".claude/rules/*.md",
+            ".claude/skills/SKILL.md",
+        ],
     }
 
     def __init__(

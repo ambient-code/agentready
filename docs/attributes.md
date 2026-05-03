@@ -631,14 +631,10 @@ go mod tidy
 
 ---
 
-## Tier 2: Critical Attributes
-
-*Major quality improvements and safety nets — 27% of total score*
-
 ### 6. Test Execution & Coverage
 
 **ID**: `test_execution`
-**Weight**: 10% (Tier 1 — Essential)
+**Weight**: 10%
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
@@ -689,6 +685,10 @@ go tool cover -html=coverage.out
 - Salesforce Engineering: "How Cursor AI Cut Legacy Code Coverage Time by 85%"
 
 ---
+
+## Tier 2: Critical Attributes
+
+*Major quality improvements and safety nets — 27% of total score*
 
 ### 7. Deterministic Enforcement (Hooks & Lint Rules)
 

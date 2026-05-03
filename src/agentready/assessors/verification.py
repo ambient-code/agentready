@@ -148,9 +148,9 @@ class SingleFileVerificationAssessor(BaseAssessor):
             for path, name in linter_configs.items()
             if not path.startswith("pyproject") and (repository.path / path).exists()
         ]
-        if "pyproject.toml(ruff)" in linter_configs:
+        if "pyproject.toml(ruff)" in linter_configs and "Ruff" not in found_configs:
             found_configs.append("Ruff")
-        if "pyproject.toml(mypy)" in linter_configs:
+        if "pyproject.toml(mypy)" in linter_configs and "MyPy" not in found_configs:
             found_configs.append("MyPy")
 
         if found_configs and score < 50:
