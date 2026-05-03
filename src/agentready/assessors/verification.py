@@ -95,9 +95,7 @@ class SingleFileVerificationAssessor(BaseAssessor):
                             evidence.append(
                                 f"Single-file lint command found in {filename}"
                             )
-                    if any(
-                        kw in pattern for kw in ["mypy", "pyright", "tsc", "type"]
-                    ):
+                    if any(kw in pattern for kw in ["mypy", "pyright", "tsc", "type"]):
                         if not found_typecheck:
                             found_typecheck = True
                             score += 50.0
@@ -121,8 +119,7 @@ class SingleFileVerificationAssessor(BaseAssessor):
                             score += 30.0
                             evidence.append("Single-file lint command found in README")
                         if not found_typecheck and any(
-                            kw in pattern
-                            for kw in ["mypy", "pyright", "tsc", "type"]
+                            kw in pattern for kw in ["mypy", "pyright", "tsc", "type"]
                         ):
                             found_typecheck = True
                             score += 30.0

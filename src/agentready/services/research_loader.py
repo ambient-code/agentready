@@ -152,7 +152,9 @@ class ResearchLoader:
             )
 
         # Detect duplicate "Measurable Criteria" within same attribute
-        attribute_sections = re.split(r"(?=^### \d+\.\d+ )", content, flags=re.MULTILINE)
+        attribute_sections = re.split(
+            r"(?=^### \d+\.\d+ )", content, flags=re.MULTILINE
+        )
         for section in attribute_sections:
             mc_count = len(re.findall(measurable_criteria_pattern, section))
             if mc_count > 1:

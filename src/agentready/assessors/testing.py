@@ -9,10 +9,6 @@ from ..models.repository import Repository
 from .base import BaseAssessor
 
 
-
-
-
-
 class TestExecutionAssessor(BaseAssessor):
     """Assesses test execution capability and coverage.
 
@@ -225,10 +221,6 @@ fail_under = 80
         )
 
 
-
-
-
-
 class DeterministicEnforcementAssessor(BaseAssessor):
     """Assesses deterministic enforcement via hooks and lint rules.
 
@@ -281,9 +273,7 @@ class DeterministicEnforcementAssessor(BaseAssessor):
                     )
                 else:
                     score += 10.0
-                    evidence.append(
-                        ".claude/settings.json exists but no hooks defined"
-                    )
+                    evidence.append(".claude/settings.json exists but no hooks defined")
             except (json.JSONDecodeError, OSError):
                 score += 10.0
                 evidence.append(".claude/settings.json exists")
@@ -372,10 +362,6 @@ class DeterministicEnforcementAssessor(BaseAssessor):
                 ),
             ],
         )
-
-
-
-
 
 
 class CIQualityGatesAssessor(BaseAssessor):

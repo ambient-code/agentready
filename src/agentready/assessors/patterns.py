@@ -112,8 +112,7 @@ class PatternReferencesAssessor(BaseAssessor):
                 score=score,
                 measured_value="none found",
                 threshold="pattern references or skills documented",
-                evidence=evidence
-                or ["No pattern references or skills found"],
+                evidence=evidence or ["No pattern references or skills found"],
                 remediation=self._create_remediation(),
                 error_message=None,
             )
@@ -130,7 +129,7 @@ class PatternReferencesAssessor(BaseAssessor):
             tools=[],
             commands=["mkdir -p .claude/skills"],
             examples=[
-                '# In CLAUDE.md:\n## Pattern References\n- New API endpoint: follow the pattern in `src/api/handlers/users.ts`\n- New adapter: see `src/adapters/postgres.py` as reference',
+                "# In CLAUDE.md:\n## Pattern References\n- New API endpoint: follow the pattern in `src/api/handlers/users.ts`\n- New adapter: see `src/adapters/postgres.py` as reference",
             ],
             citations=[
                 Citation(
@@ -252,8 +251,7 @@ class DesignIntentAssessor(BaseAssessor):
                 score=score,
                 measured_value="not documented" if score == 0 else "minimal",
                 threshold="design docs with preconditions/invariants",
-                evidence=evidence
-                or ["No design intent documentation found"],
+                evidence=evidence or ["No design intent documentation found"],
                 remediation=self._create_remediation(),
                 error_message=None,
             )
@@ -270,7 +268,7 @@ class DesignIntentAssessor(BaseAssessor):
             tools=[],
             commands=["mkdir -p docs/design"],
             examples=[
-                '# docs/design/event-system.md\n## Invariants\n- Event log is append-only; never mutate or delete entries\n- Events are processed exactly-once via idempotency keys\n\n## Preconditions\n- Auth middleware must validate token before event handlers run\n\n## Rationale\n- Polling instead of webhooks: upstream API has 5s delivery SLA, too slow for our use case',
+                "# docs/design/event-system.md\n## Invariants\n- Event log is append-only; never mutate or delete entries\n- Events are processed exactly-once via idempotency keys\n\n## Preconditions\n- Auth middleware must validate token before event handlers run\n\n## Rationale\n- Polling instead of webhooks: upstream API has 5s delivery SLA, too slow for our use case",
             ],
             citations=[
                 Citation(
@@ -363,9 +361,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
 
         if sub_context_count > 0:
             score = min(score + 30.0, 100.0)
-            evidence.append(
-                f"{sub_context_count} subdirectory context file(s)"
-            )
+            evidence.append(f"{sub_context_count} subdirectory context file(s)")
 
         # Check for skills directory
         skills_dir = repository.path / ".claude" / "skills"
@@ -373,7 +369,9 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
             skill_count = len(list(skills_dir.rglob("SKILL.md")))
             if skill_count > 0:
                 score = min(score + 30.0, 100.0)
-                evidence.append(f"{skill_count} SKILL.md file(s) for on-demand knowledge")
+                evidence.append(
+                    f"{skill_count} SKILL.md file(s) for on-demand knowledge"
+                )
 
         # Check root context file size (should be <150 lines)
         for root_file in ["CLAUDE.md", "AGENTS.md"]:

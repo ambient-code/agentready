@@ -98,7 +98,9 @@ class ResearchUpdater:
                             "title": title.text.strip().replace("\n", " "),
                             "url": paper_url,
                             "snippet": (
-                                summary.text.strip()[:300] if summary is not None else ""
+                                summary.text.strip()[:300]
+                                if summary is not None
+                                else ""
                             ),
                             "date": (
                                 published.text[:10] if published is not None else ""
@@ -361,9 +363,7 @@ OUTPUT FORMAT (JSON):
 
         # Update YAML frontmatter if present
         if content.startswith("---"):
-            content = re.sub(
-                r'(date:\s*")[^"]*(")', rf"\g<1>{today}\g<2>", content
-            )
+            content = re.sub(r'(date:\s*")[^"]*(")', rf"\g<1>{today}\g<2>", content)
 
         # Update markdown body
         content = re.sub(
@@ -380,7 +380,7 @@ OUTPUT FORMAT (JSON):
 
             # Also update frontmatter version
             content = re.sub(
-                r'(version:\s*")[^"]*(")', rf'\g<1>{new_version}\g<2>', content
+                r'(version:\s*")[^"]*(")', rf"\g<1>{new_version}\g<2>", content
             )
 
         self.report_path.write_text(content)
