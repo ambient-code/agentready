@@ -567,7 +567,7 @@ OUTPUT FORMAT (JSON):
             else:
                 print(f"  Skipping citation with invalid URL: {url}")
 
-        if not valid_citations and not analysis_result["suggested_updates"]:
+        if not valid_citations:
             print("  Skipping: no valid citations after URL validation")
             return False
 

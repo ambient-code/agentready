@@ -204,12 +204,12 @@ class DesignIntentAssessor(BaseAssessor):
             r"assumes\s+that",
         ]
 
+        low_confidence_dir = None
         for dir_name in design_dirs:
             design_dir = repository.path / dir_name
             if design_dir.exists() and design_dir.is_dir():
                 md_files = list(design_dir.glob("*.md"))
                 if md_files:
-                    # Check if design docs contain intent language
                     has_intent_content = False
                     for md_file in md_files:
                         try:
@@ -228,12 +228,16 @@ class DesignIntentAssessor(BaseAssessor):
                         evidence.append(
                             f"{dir_name}/ directory with {len(md_files)} design document(s) containing intent language"
                         )
-                    else:
-                        score += 15.0
-                        evidence.append(
-                            f"{dir_name}/ directory exists ({len(md_files)} file(s)) but no intent language found"
-                        )
-                    break
+                        low_confidence_dir = None
+                        break
+                    elif low_confidence_dir is None:
+                        low_confidence_dir = (dir_name, len(md_files))
+
+        if low_confidence_dir:
+            score += 15.0
+            evidence.append(
+                f"{low_confidence_dir[0]}/ directory exists ({low_confidence_dir[1]} file(s)) but no intent language found"
+            )
 
         # Check for design intent keywords in context/doc files
         docs_to_check = ["CLAUDE.md", "AGENTS.md", "README.md"]
