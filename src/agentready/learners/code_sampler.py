@@ -19,6 +19,7 @@ class CodeSampler:
         "deterministic_enforcement": [
             ".pre-commit-config.yaml",
             ".github/workflows/*.yml",
+            ".github/workflows/*.yaml",
             ".claude/settings.json",
             ".husky/*",
         ],
@@ -100,8 +101,9 @@ class CodeSampler:
             logger.warning(f"No file patterns defined for {attribute_id}")
             return "No code samples available"
 
-        # Collect files matching patterns
+        # Collect files matching patterns with fair distribution across patterns
         files_to_sample = []
+        per_pattern_limit = max(1, self.max_files // len(patterns))
         for pattern in patterns:
             if pattern.endswith("/"):
                 # Directory listing
@@ -109,7 +111,7 @@ class CodeSampler:
             else:
                 # File pattern
                 matching_files = list(self.repository.path.glob(pattern))
-                files_to_sample.extend(matching_files[: self.max_files])
+                files_to_sample.extend(matching_files[:per_pattern_limit])
 
         # Format as string
         return self._format_code_samples(files_to_sample)

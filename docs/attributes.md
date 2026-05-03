@@ -31,7 +31,7 @@ AgentReady evaluates repositories against **25 evidence-based attributes** that 
 - **Research-backed**: Derived from 50+ authoritative sources (Anthropic, Microsoft, Google, academic research)
 - **Measurable**: Specific criteria with clear pass/fail thresholds
 - **Actionable**: Concrete tools, commands, and examples for remediation
-- **Weighted**: Importance reflected in tier-based scoring (50/30/15/5 distribution)
+- **Weighted**: Importance reflected in tier-based scoring (55/27/14/4 distribution)
 
 **Every attribute includes**:
 

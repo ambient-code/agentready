@@ -3,7 +3,7 @@
 import re
 
 from ..models.attribute import Attribute
-from ..models.finding import Citation, Finding, Remediation
+from ..models.finding import Finding, Remediation
 from ..models.repository import Repository
 from .base import BaseAssessor
 
@@ -39,20 +39,20 @@ class SingleFileVerificationAssessor(BaseAssessor):
     # Patterns that suggest single-file lint/type-check commands.
     # Each entry is (regex, category) where category is "lint" or "typecheck".
     SINGLE_FILE_PATTERNS = [
-        # Lint single file patterns ((?!-) prevents matching flags like --fix)
-        (r"eslint\s+(?!-)[\w./\-*]+", "lint"),
-        (r"ruff\s+check\s+(?!-)[\w./\-*]+", "lint"),
-        (r"pylint\s+(?!-)[\w./\-*]+", "lint"),
-        (r"flake8\s+(?!-)[\w./\-*]+", "lint"),
-        (r"rubocop\s+(?!-)[\w./\-*]+", "lint"),
-        (r"golangci-lint\s+run\s+(?!-)[\w./\-*]+", "lint"),
-        (r"black\s+(?!-)[\w./\-*]+", "lint"),
-        (r"prettier\s+--write\s+(?!-)[\w./\-*]+", "lint"),
-        (r"gofmt\s+(?!-)[\w./\-*]+", "lint"),
+        # Lint single file patterns — require file extension to avoid matching directories
+        (r"eslint\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"ruff\s+check\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"pylint\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"flake8\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"rubocop\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"golangci-lint\s+run\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"black\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"prettier\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        (r"gofmt\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
         # Type check single file patterns
-        (r"mypy\s+(?!-)[\w./\-*]+", "typecheck"),
-        (r"pyright\s+(?!-)[\w./\-*]+", "typecheck"),
-        (r"tsc\s+--noEmit\s+(?!-)[\w./\-*]+", "typecheck"),
+        (r"mypy\s+(?!-)[\w./\-]*\.\w{1,10}", "typecheck"),
+        (r"pyright\s+(?!-)[\w./\-]*\.\w{1,10}", "typecheck"),
+        (r"tsc\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}", "typecheck"),
         # Path placeholder patterns (require path-like token)
         (r"lint.*(?:path/to|<file)", "lint"),
         (r"type.?check.*(?:path/to|<file)", "typecheck"),
@@ -201,16 +201,9 @@ class SingleFileVerificationAssessor(BaseAssessor):
                 "mypy path/to/file.py",
                 "",
                 "# JavaScript/TypeScript",
-                "npx eslint --fix path/to/file.ts",
+                "npx eslint path/to/file.ts",
                 "npx tsc --noEmit path/to/file.ts",
             ],
             examples=[],
-            citations=[
-                Citation(
-                    source="Red Hat",
-                    title="Repository Scaffolding for AI Coding Agents, Section 1.3",
-                    url="",
-                    relevance="Fast feedback loops for agent self-correction",
-                ),
-            ],
+            citations=[],
         )
