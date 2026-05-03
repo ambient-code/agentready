@@ -30,7 +30,7 @@ class CodeSampler:
             "go.sum",
             "Cargo.lock",
         ],
-        "test_coverage": ["pytest.ini", "pyproject.toml", ".coveragerc"],
+        "test_execution": ["pytest.ini", "pyproject.toml", ".coveragerc"],
         "conventional_commits": [".github/workflows/*.yml"],  # CI configs
         "gitignore": [".gitignore"],
     }

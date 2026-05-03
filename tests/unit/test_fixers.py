@@ -346,7 +346,7 @@ class TestGitignoreFixer:
 def precommit_hooks_failing_finding():
     """Create a failing finding for pre-commit hooks."""
     attribute = Attribute(
-        id="precommit_hooks",
+        id="deterministic_enforcement",
         name="Pre-commit Hooks",
         description="Repository has pre-commit hooks configured",
         category="Testing",
@@ -380,7 +380,7 @@ def precommit_hooks_failing_finding():
 def precommit_hooks_passing_finding():
     """Create a passing finding for pre-commit hooks."""
     attribute = Attribute(
-        id="precommit_hooks",
+        id="deterministic_enforcement",
         name="Pre-commit Hooks",
         description="Repository has pre-commit hooks configured",
         category="Testing",
@@ -419,7 +419,7 @@ class TestPrecommitHooksFixer:
     def test_attribute_id(self):
         """Test attribute ID matches expected value."""
         fixer = PrecommitHooksFixer()
-        assert fixer.attribute_id == "precommit_hooks"
+        assert fixer.attribute_id == "deterministic_enforcement"
 
     def test_can_fix_failing_finding(self, precommit_hooks_failing_finding):
         """Test can fix a failing pre-commit hooks finding."""
@@ -447,7 +447,7 @@ class TestPrecommitHooksFixer:
 
         assert fix is not None
         assert isinstance(fix, MultiStepFix)
-        assert fix.attribute_id == "precommit_hooks"
+        assert fix.attribute_id == "deterministic_enforcement"
         assert len(fix.steps) == 2
 
     def test_generate_fix_first_step_is_file_creation(
@@ -508,7 +508,7 @@ class TestPrecommitHooksFixer:
         """Test fixer selects template based on primary language."""
         # Create finding for test
         attribute = Attribute(
-            id="precommit_hooks",
+            id="deterministic_enforcement",
             name="Pre-commit Hooks",
             description="Repository has pre-commit hooks",
             category="Testing",
@@ -543,7 +543,7 @@ class TestPrecommitHooksFixer:
     def test_generate_fix_fallback_to_python_for_unknown_language(self, temp_repo):
         """Test fixer falls back to Python template for unsupported languages."""
         attribute = Attribute(
-            id="precommit_hooks",
+            id="deterministic_enforcement",
             name="Pre-commit Hooks",
             description="Repository has pre-commit hooks",
             category="Testing",
@@ -578,7 +578,7 @@ class TestPrecommitHooksFixer:
     def test_generate_fix_empty_languages_defaults_to_python(self, temp_repo):
         """Test fixer defaults to Python when no languages detected."""
         attribute = Attribute(
-            id="precommit_hooks",
+            id="deterministic_enforcement",
             name="Pre-commit Hooks",
             description="Repository has pre-commit hooks",
             category="Testing",
@@ -698,7 +698,7 @@ class TestPrecommitHooksFixer:
     def test_generate_fix_javascript_template(self, temp_repo):
         """Test JavaScript template is used for JS repositories."""
         attribute = Attribute(
-            id="precommit_hooks",
+            id="deterministic_enforcement",
             name="Pre-commit Hooks",
             description="Repository has pre-commit hooks",
             category="Testing",

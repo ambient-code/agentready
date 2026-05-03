@@ -25,15 +25,15 @@ class TestAggregationLogic:
         results = [
             {"assessor_id": "claude_md", "delta_score": 0.12},
             {"assessor_id": "claude_md", "delta_score": 0.10},
-            {"assessor_id": "test_coverage", "delta_score": 0.08},
-            {"assessor_id": "test_coverage", "delta_score": 0.07},
+            {"assessor_id": "test_execution", "delta_score": 0.08},
+            {"assessor_id": "test_execution", "delta_score": 0.07},
         ]
 
         summary = aggregate_results(results)
 
         # Verify grouping by assessor_id
         assert "claude_md" in summary.index
-        assert "test_coverage" in summary.index
+        assert "test_execution" in summary.index
         assert len(summary) == 2
 
     def test_summarize_calculates_mean_median_std(self):
@@ -96,7 +96,7 @@ class TestAggregationLogic:
         """T058: Verify JSON file written with correct schema"""
         results = [
             {"assessor_id": "claude_md", "delta_score": 0.12},
-            {"assessor_id": "test_coverage", "delta_score": 0.08},
+            {"assessor_id": "test_execution", "delta_score": 0.08},
         ]
 
         summary = aggregate_results(results)

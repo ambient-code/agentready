@@ -10,7 +10,6 @@ from .base import BaseAssessor
 from .code_quality import (
     CodeSmellsAssessor,
     CyclomaticComplexityAssessor,
-    SemanticNamingAssessor,
     StructuredLoggingAssessor,
     TypeAnnotationsAssessor,
 )
@@ -108,7 +107,6 @@ def create_all_assessors() -> list[BaseAssessor]:
         CyclomaticComplexityAssessor(),  # 3%
         ArchitectureDecisionsAssessor(),  # 3%
         IssuePRTemplatesAssessor(),  # 3%
-        SemanticNamingAssessor(),  # 3%
         StructuredLoggingAssessor(),  # 3%
         OpenAPISpecsAssessor(),  # 3%
         # Tier 4 Advanced — 4% total (1% each)

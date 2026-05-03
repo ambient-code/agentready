@@ -635,9 +635,9 @@ go mod tidy
 
 *Major quality improvements and safety nets — 30% of total score*
 
-### 6. Test Coverage
+### 6. Test Execution & Coverage
 
-**ID**: `test_coverage`
+**ID**: `test_execution`
 **Weight**: 5%
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
@@ -690,9 +690,9 @@ go tool cover -html=coverage.out
 
 ---
 
-### 7. Pre-commit Hooks & CI/CD Linting
+### 7. Deterministic Enforcement (Hooks & Lint Rules)
 
-**ID**: `precommit_hooks`
+**ID**: `deterministic_enforcement`
 **Weight**: 5%
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented

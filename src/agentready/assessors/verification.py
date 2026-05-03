@@ -36,28 +36,30 @@ class SingleFileVerificationAssessor(BaseAssessor):
             default_weight=0.05,
         )
 
-    # Patterns that suggest single-file lint/type-check commands
+    # Patterns that suggest single-file lint/type-check commands.
+    # Each entry is (regex, category) where category is "lint" or "typecheck".
     SINGLE_FILE_PATTERNS = [
         # Lint single file patterns
-        r"eslint\s+[\w./\-*]+",
-        r"ruff\s+check\s+[\w./\-*]+",
-        r"pylint\s+[\w./\-*]+",
-        r"flake8\s+[\w./\-*]+",
-        r"rubocop\s+[\w./\-*]+",
-        r"golangci-lint\s+run\s+[\w./\-*]+",
+        (r"eslint\s+[\w./\-*]+", "lint"),
+        (r"ruff\s+check\s+[\w./\-*]+", "lint"),
+        (r"pylint\s+[\w./\-*]+", "lint"),
+        (r"flake8\s+[\w./\-*]+", "lint"),
+        (r"rubocop\s+[\w./\-*]+", "lint"),
+        (r"golangci-lint\s+run\s+[\w./\-*]+", "lint"),
+        (r"black\s+[\w./\-*]+", "lint"),
+        (r"prettier\s+--write\s+[\w./\-*]+", "lint"),
+        (r"gofmt\s+[\w./\-*]+", "lint"),
         # Type check single file patterns
-        r"mypy\s+[\w./\-*]+",
-        r"pyright\s+[\w./\-*]+",
-        r"tsc\s+--noEmit",
-        # Format single file patterns
-        r"prettier\s+--write\s+[\w./\-*]+",
-        r"black\s+[\w./\-*]+",
-        r"gofmt\s+[\w./\-*]+",
+        (r"mypy\s+[\w./\-*]+", "typecheck"),
+        (r"pyright\s+[\w./\-*]+", "typecheck"),
+        (r"tsc\s+--noEmit\s+[\w./\-*]+", "typecheck"),
         # Generic patterns with path placeholders
-        r"lint\s+single",
-        r"lint.*path/to",
-        r"lint.*<file",
-        r"check.*single.*file",
+        (r"lint\s+single", "lint"),
+        (r"lint.*path/to", "lint"),
+        (r"lint.*<file", "lint"),
+        (r"check.*single.*file", "lint"),
+        (r"type.?check.*path/to", "typecheck"),
+        (r"type.?check.*<file", "typecheck"),
     ]
 
     def assess(self, repository: Repository) -> Finding:
@@ -83,25 +85,20 @@ class SingleFileVerificationAssessor(BaseAssessor):
             except OSError:
                 continue
 
-            for pattern in self.SINGLE_FILE_PATTERNS:
-                if re.search(pattern, content, re.IGNORECASE):
-                    if any(
-                        kw in pattern
-                        for kw in ["eslint", "ruff", "pylint", "flake8", "lint"]
-                    ):
-                        if not found_lint:
-                            found_lint = True
-                            score += 50.0
-                            evidence.append(
-                                f"Single-file lint command found in {filename}"
-                            )
-                    if any(kw in pattern for kw in ["mypy", "pyright", "tsc", "type"]):
-                        if not found_typecheck:
-                            found_typecheck = True
-                            score += 50.0
-                            evidence.append(
-                                f"Single-file type-check command found in {filename}"
-                            )
+            for pattern, category in self.SINGLE_FILE_PATTERNS:
+                if not re.search(pattern, content, re.IGNORECASE):
+                    continue
+                if category == "lint" and not found_lint:
+                    found_lint = True
+                    score += 50.0
+                    evidence.append(f"Single-file lint command found in {filename}")
+                elif category == "typecheck" and not found_typecheck:
+                    found_typecheck = True
+                    score += 50.0
+                    evidence.append(
+                        f"Single-file type-check command found in {filename}"
+                    )
+                if found_lint and found_typecheck:
                     break
 
         # Also check README for documented commands
@@ -109,23 +106,21 @@ class SingleFileVerificationAssessor(BaseAssessor):
         if readme_path.exists() and not (found_lint and found_typecheck):
             try:
                 readme_content = readme_path.read_text(encoding="utf-8")
-                for pattern in self.SINGLE_FILE_PATTERNS:
-                    if re.search(pattern, readme_content, re.IGNORECASE):
-                        if not found_lint and any(
-                            kw in pattern
-                            for kw in ["eslint", "ruff", "pylint", "flake8", "lint"]
-                        ):
-                            found_lint = True
-                            score += 30.0
-                            evidence.append("Single-file lint command found in README")
-                        if not found_typecheck and any(
-                            kw in pattern for kw in ["mypy", "pyright", "tsc", "type"]
-                        ):
-                            found_typecheck = True
-                            score += 30.0
-                            evidence.append(
-                                "Single-file type-check command found in README"
-                            )
+                for pattern, category in self.SINGLE_FILE_PATTERNS:
+                    if not re.search(pattern, readme_content, re.IGNORECASE):
+                        continue
+                    if category == "lint" and not found_lint:
+                        found_lint = True
+                        score += 30.0
+                        evidence.append("Single-file lint command found in README")
+                    elif category == "typecheck" and not found_typecheck:
+                        found_typecheck = True
+                        score += 30.0
+                        evidence.append(
+                            "Single-file type-check command found in README"
+                        )
+                    if found_lint and found_typecheck:
+                        break
             except OSError:
                 pass
 
@@ -211,7 +206,7 @@ class SingleFileVerificationAssessor(BaseAssessor):
                 "",
                 "# JavaScript/TypeScript",
                 "npx eslint --fix path/to/file.ts",
-                "npx tsc --noEmit",
+                "npx tsc --noEmit path/to/file.ts",
             ],
             examples=[],
             citations=[

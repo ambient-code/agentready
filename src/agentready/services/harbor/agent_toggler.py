@@ -183,7 +183,7 @@ class AssessorStateToggler:
             if backup_dir.exists() and not tests_dir.exists():
                 shutil.move(str(backup_dir), str(tests_dir))
 
-        self.register_manipulation("test_coverage", fail_tests, restore_tests)
+        self.register_manipulation("test_execution", fail_tests, restore_tests)
 
     def force_fail(self, assessor_id: str) -> None:
         """Force assessor to fail by manipulating repository state.

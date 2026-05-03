@@ -284,7 +284,7 @@ class DesignIntentAssessor(BaseAssessor):
 class ProgressiveDisclosureAssessor(BaseAssessor):
     """Assesses use of progressive disclosure for large repos.
 
-    Tier 4 Advanced (1% weight) - For repos >100K lines, path-scoped rules
+    Tier 4 Advanced (1% weight) - For repos >50K lines, path-scoped rules
     and skills keep context lean while providing depth where needed.
     Only applicable for larger repositories.
     """
@@ -305,7 +305,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
             category="Agent Patterns & Knowledge",
             tier=self.tier,
             description="Path-scoped rules and skills for large repos",
-            criteria="Component-level context files for repos >100K lines",
+            criteria="Component-level context files for repos >50K lines",
             default_weight=0.01,
         )
 

@@ -107,7 +107,7 @@ class StandardLayoutAssessor(BaseAssessor):
             tier=self.tier,
             description="Follows standard project structure for language",
             criteria="Standard directories (src/ or project-named, tests/) present",
-            default_weight=0.10,
+            default_weight=0.05,
         )
 
     def assess(self, repository: Repository) -> Finding:

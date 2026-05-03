@@ -367,7 +367,7 @@ class READMEAssessor(BaseAssessor):
             tier=self.tier,
             description="Well-structured README with key sections",
             criteria="README.md with installation, usage, and development sections",
-            default_weight=0.10,
+            default_weight=0.05,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -514,7 +514,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             tier=self.tier,
             description="Lightweight documents capturing architectural decisions",
             criteria="ADR directory with documented decisions",
-            default_weight=0.015,
+            default_weight=0.03,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -1268,7 +1268,7 @@ class OpenAPISpecsAssessor(BaseAssessor):
             tier=self.tier,
             description="Machine-readable API documentation in OpenAPI format",
             criteria="OpenAPI 3.x spec with complete endpoint documentation",
-            default_weight=0.015,
+            default_weight=0.03,
         )
 
     def is_applicable(self, repository: Repository) -> bool:
