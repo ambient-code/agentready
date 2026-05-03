@@ -451,13 +451,18 @@ class TestSearchRecentResearch:
 
         results = updater.search_recent_research("1.1", "Test")
         # Prioritized domains (test.blog, arxiv.org) should come before random.example.com
+        from urllib.parse import urlparse
+
+        def _get_netloc(url):
+            return urlparse(url).netloc
+
         prioritized_urls = [
             r["url"]
             for r in results
-            if "test.blog" in r["url"] or "arxiv.org" in r["url"]
+            if _get_netloc(r["url"]) in ("test.blog", "arxiv.org")
         ]
         non_prioritized_urls = [
-            r["url"] for r in results if "random.example.com" in r["url"]
+            r["url"] for r in results if _get_netloc(r["url"]) == "random.example.com"
         ]
         if prioritized_urls and non_prioritized_urls:
             first_priority_idx = next(

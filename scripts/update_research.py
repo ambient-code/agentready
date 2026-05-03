@@ -83,7 +83,7 @@ class ResearchUpdater:
 
         def _is_priority(r: dict[str, str]) -> bool:
             netloc = urllib.parse.urlparse(r["url"]).netloc.replace("www.", "")
-            return any(p in netloc for p in prioritized)
+            return any(netloc == p or netloc.endswith("." + p) for p in prioritized)
 
         unique.sort(key=lambda r: r.get("date") or "0000", reverse=True)
         unique.sort(key=lambda r: 0 if _is_priority(r) else 1)
@@ -427,7 +427,9 @@ class ResearchUpdater:
                         continue
 
                     # Raw markdown (e.g. GitHub raw URLs)
-                    if "raw.githubusercontent.com" in url or url.endswith(".md"):
+                    url_netloc = urllib.parse.urlparse(url).netloc
+                    is_raw_gh = url_netloc == "raw.githubusercontent.com"
+                    if is_raw_gh or url.endswith(".md"):
                         heading = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
                         para = re.search(r"\n\n(.+?)(?:\n\n|\Z)", content, re.DOTALL)
                         title = heading.group(1).strip() if heading else src_name
@@ -660,7 +662,11 @@ OUTPUT FORMAT (JSON):
                     continue
 
                 blocked = self.config.get("search_domains", {}).get("blocked", [])
-                if any(domain in parsed.netloc for domain in blocked):
+                netloc = parsed.netloc.replace("www.", "")
+                if any(
+                    netloc == domain or netloc.endswith("." + domain)
+                    for domain in blocked
+                ):
                     continue
 
             authors = cite.get("authors", "Unknown")
