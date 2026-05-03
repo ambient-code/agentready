@@ -16,7 +16,10 @@ class CodeSampler:
         "claude_md_file": ["CLAUDE.md"],
         "readme_file": ["README.md"],
         "type_annotations": ["**/*.py"],  # Sample Python files
-        "pre_commit_hooks": [".pre-commit-config.yaml", ".github/workflows/*.yml"],
+        "deterministic_enforcement": [
+            ".pre-commit-config.yaml",
+            ".github/workflows/*.yml",
+        ],
         "standard_project_layout": [
             "**/",
             "src/",

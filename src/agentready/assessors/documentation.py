@@ -159,7 +159,31 @@ class CLAUDEmdAssessor(BaseAssessor):
             )
 
         except FileNotFoundError:
-            # CLAUDE.md not found - check for AGENTS.md as alternative
+            # CLAUDE.md not found at root - check .claude/CLAUDE.md
+            dotclaude_md_path = repository.path / ".claude" / "CLAUDE.md"
+            dotclaude_content, dotclaude_size = self._read_referenced_file(
+                dotclaude_md_path
+            )
+
+            if dotclaude_content and dotclaude_size >= 50:
+                evidence = [
+                    "CLAUDE.md not found at repository root",
+                    f".claude/CLAUDE.md found with {dotclaude_size} bytes",
+                ]
+                if self._check_agents_md_exists(agents_md_path):
+                    evidence.append("AGENTS.md also present (cross-tool compatibility)")
+                return Finding(
+                    attribute=self.attribute,
+                    status="pass",
+                    score=100.0,
+                    measured_value=".claude/CLAUDE.md present",
+                    threshold="CLAUDE.md or AGENTS.md",
+                    evidence=evidence,
+                    remediation=None,
+                    error_message=None,
+                )
+
+            # Check for AGENTS.md as alternative
             agents_content, agents_size = self._read_referenced_file(agents_md_path)
 
             if agents_content and agents_size >= 50:

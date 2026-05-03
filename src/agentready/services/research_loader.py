@@ -68,15 +68,18 @@ class ResearchLoader:
             ValueError: If metadata cannot be extracted
         """
         # Try to extract version and date from YAML frontmatter first
-        frontmatter_match = re.search(
-            r"^---\s*\n(.+?)\n---",
+        # Use re.match with \A to only match frontmatter at the file start
+        frontmatter_match = re.match(
+            r"\A---\s*\n(.*?)\n---(?:\n|$)",
             content,
-            re.MULTILINE | re.DOTALL,
+            re.DOTALL,
         )
 
         if frontmatter_match:
             try:
                 fm = yaml.safe_load(frontmatter_match.group(1))
+                if not isinstance(fm, dict):
+                    fm = {}
                 version = str(fm.get("version", "1.0.0")).strip()
                 date = str(fm.get("date", "unknown")).strip()
             except yaml.YAMLError:

@@ -197,10 +197,12 @@ class TestDesignIntentAssessor:
         assert finding.score >= 50.0
 
     def test_passes_with_architecture_directory(self, tmp_path):
-        """Test that docs/architecture/ also works."""
+        """Test that docs/architecture/ with intent language passes."""
         arch_dir = tmp_path / "docs" / "architecture"
         arch_dir.mkdir(parents=True)
-        (arch_dir / "overview.md").write_text("# Architecture\n")
+        (arch_dir / "overview.md").write_text(
+            "# Architecture\n## Invariants\n- Event log is append-only\n"
+        )
 
         repo = _make_repo(tmp_path)
         assessor = DesignIntentAssessor()
@@ -208,6 +210,21 @@ class TestDesignIntentAssessor:
 
         assert finding.status == "pass"
         assert finding.score >= 50.0
+
+    def test_stub_design_docs_score_lower(self, tmp_path):
+        """Test that design docs without intent language get lower score."""
+        arch_dir = tmp_path / "docs" / "architecture"
+        arch_dir.mkdir(parents=True)
+        (arch_dir / "overview.md").write_text("# Architecture\nTODO: fill in\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        # Structural-only credit (15 pts), below pass threshold (50)
+        assert finding.status == "fail"
+        assert finding.score == 15.0
+        assert any("no intent language" in e.lower() for e in finding.evidence)
 
     def test_intent_keywords_in_claude_md(self, tmp_path):
         """Test that design intent keywords in CLAUDE.md add score."""
@@ -226,10 +243,12 @@ class TestDesignIntentAssessor:
         assert finding.score >= 30.0
 
     def test_design_dir_plus_keywords_scores_higher(self, tmp_path):
-        """Test that design dir + keywords in context file gives higher score."""
+        """Test that design dir with intent + keywords in context file gives higher score."""
         design_dir = tmp_path / "docs" / "design"
         design_dir.mkdir(parents=True)
-        (design_dir / "overview.md").write_text("# Design Overview\n")
+        (design_dir / "overview.md").write_text(
+            "# Design Overview\n## Invariants\n- Data is append-only\n"
+        )
 
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("This assumes that the auth middleware is configured.\n")
@@ -239,7 +258,7 @@ class TestDesignIntentAssessor:
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
-        assert finding.score >= 80.0  # 50 from dir + 30 from keyword
+        assert finding.score >= 80.0  # 50 from dir with intent + 30 from keyword
 
     def test_remediation_on_fail(self, tmp_path):
         """Test that remediation is provided on failure."""

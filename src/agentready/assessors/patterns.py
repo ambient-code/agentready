@@ -69,7 +69,7 @@ class PatternReferencesAssessor(BaseAssessor):
 
             try:
                 content = filepath.read_text(encoding="utf-8")
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 continue
 
             for pattern in pattern_keywords:
@@ -191,18 +191,8 @@ class DesignIntentAssessor(BaseAssessor):
             "architecture",
         ]
 
-        for dir_name in design_dirs:
-            design_dir = repository.path / dir_name
-            if design_dir.exists() and design_dir.is_dir():
-                md_files = list(design_dir.glob("*.md"))
-                if md_files:
-                    score += 50.0
-                    evidence.append(
-                        f"{dir_name}/ directory with {len(md_files)} design document(s)"
-                    )
-                    break
-
-        # Check for design intent keywords in docs
+        # Intent keywords used for both design dir content validation
+        # and keyword search in context files
         intent_keywords = [
             r"precondition",
             r"invariant",
@@ -214,6 +204,38 @@ class DesignIntentAssessor(BaseAssessor):
             r"assumes\s+that",
         ]
 
+        for dir_name in design_dirs:
+            design_dir = repository.path / dir_name
+            if design_dir.exists() and design_dir.is_dir():
+                md_files = list(design_dir.glob("*.md"))
+                if md_files:
+                    # Check if design docs contain intent language
+                    has_intent_content = False
+                    for md_file in md_files:
+                        try:
+                            content = md_file.read_text(encoding="utf-8")
+                            if any(
+                                re.search(kw, content, re.IGNORECASE)
+                                for kw in intent_keywords
+                            ):
+                                has_intent_content = True
+                                break
+                        except (OSError, UnicodeDecodeError):
+                            continue
+
+                    if has_intent_content:
+                        score += 50.0
+                        evidence.append(
+                            f"{dir_name}/ directory with {len(md_files)} design document(s) containing intent language"
+                        )
+                    else:
+                        score += 15.0
+                        evidence.append(
+                            f"{dir_name}/ directory exists ({len(md_files)} file(s)) but no intent language found"
+                        )
+                    break
+
+        # Check for design intent keywords in context/doc files
         docs_to_check = ["CLAUDE.md", "AGENTS.md", "README.md"]
         for filename in docs_to_check:
             filepath = repository.path / filename
@@ -222,7 +244,7 @@ class DesignIntentAssessor(BaseAssessor):
 
             try:
                 content = filepath.read_text(encoding="utf-8")
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 continue
 
             for pattern in intent_keywords:
@@ -338,7 +360,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
                         content = rule_file.read_text(encoding="utf-8")
                         if "paths:" in content and "---" in content:
                             scoped_count += 1
-                    except OSError:
+                    except (OSError, UnicodeDecodeError):
                         pass
 
                 if scoped_count > 0:
@@ -388,7 +410,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
                         evidence.append(
                             f"Root {root_file} is {lines} lines (consider splitting into skills)"
                         )
-                except OSError:
+                except (OSError, UnicodeDecodeError):
                     pass
                 break
 

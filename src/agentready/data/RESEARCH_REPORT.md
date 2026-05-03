@@ -1762,8 +1762,8 @@ paths:
 17. **Separation of concerns** — Feature-based organization
 18. **Pattern references** — 3-5 reference implementations for common changes
 
-### Tier 3: Important (Nice-to-Have) — 15% of score
-**Significant improvements in specific areas (3% each):**
+### Tier 3: Important (Nice-to-Have) — 14% of score
+**Significant improvements in specific areas (2-3% each):**
 
 19. **Design intent documentation** — Preconditions, invariants, rationale
 20. **Cyclomatic complexity limits** — Better code comprehension
@@ -1771,7 +1771,7 @@ paths:
 22. **OpenAPI/GraphQL specs** — Machine-readable API surfaces
 23. **Architecture Decision Records** — Architectural context
 
-### Tier 4: Advanced (Optimization) — 3% of score
+### Tier 4: Advanced (Optimization) — 4% of score
 **Refinement for teams at scale (1% each):**
 
 24. **Code smell elimination** — Higher quality baseline

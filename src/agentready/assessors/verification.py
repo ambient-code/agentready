@@ -82,7 +82,7 @@ class SingleFileVerificationAssessor(BaseAssessor):
 
             try:
                 content = filepath.read_text(encoding="utf-8")
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 continue
 
             for pattern, category in self.SINGLE_FILE_PATTERNS:
@@ -121,7 +121,7 @@ class SingleFileVerificationAssessor(BaseAssessor):
                         )
                     if found_lint and found_typecheck:
                         break
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 pass
 
         # Check for linter configs that imply single-file capability
@@ -144,7 +144,7 @@ class SingleFileVerificationAssessor(BaseAssessor):
                     linter_configs["pyproject.toml(ruff)"] = "Ruff"
                 if "[tool.mypy]" in content:
                     linter_configs["pyproject.toml(mypy)"] = "MyPy"
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 pass
 
         found_configs = [

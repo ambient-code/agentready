@@ -60,60 +60,134 @@ class TestExecutionAssessor(BaseAssessor):
             )
 
     def _assess_python_coverage(self, repository: Repository) -> Finding:
-        """Assess Python test coverage configuration."""
-        # Check for coverage configuration files
+        """Assess Python test execution and coverage configuration.
+
+        Scoring (additive, 100 max):
+        - Test files exist (tests/test_*.py or test/*.py):  40 pts
+        - Runnable test command configured:                  20 pts
+        - Coverage config (.coveragerc, pyproject.toml):     20 pts
+        - Coverage enforcement (pytest-cov, fail_under):     20 pts
+        """
+        score = 0.0
+        evidence = []
+
+        # Signal 1: Test files exist (40 pts)
+        has_test_files = self._has_python_test_files(repository)
+        if has_test_files:
+            score += 40.0
+            evidence.append("Python test files found")
+        else:
+            evidence.append("No Python test files found (test_*.py / *_test.py)")
+
+        # Signal 2: Runnable test command configured (20 pts)
+        has_runner = self._has_python_test_runner(repository)
+        if has_runner:
+            score += 20.0
+            evidence.append("Test runner configured (pytest/tox)")
+        else:
+            evidence.append("No test runner configuration found")
+
+        # Signal 3: Coverage config (20 pts)
         coverage_configs = [
             repository.path / ".coveragerc",
-            repository.path / "pyproject.toml",
             repository.path / "setup.cfg",
         ]
-
         has_coverage_config = any(f.exists() for f in coverage_configs)
 
-        # Check for pytest-cov in dependencies
-        has_pytest_cov = False
+        # Also check pyproject.toml for coverage sections
         pyproject = repository.path / "pyproject.toml"
+        pyproject_content = ""
         if pyproject.exists():
             try:
                 with open(pyproject, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    has_pytest_cov = "pytest-cov" in content
-            except OSError:
+                    pyproject_content = f.read()
+                if "[tool.coverage" in pyproject_content:
+                    has_coverage_config = True
+            except (OSError, UnicodeDecodeError):
                 pass
 
-        # Score based on configuration presence
-        if has_coverage_config and has_pytest_cov:
-            score = 100.0
-            status = "pass"
-            evidence = [
-                "Coverage configuration found",
-                "pytest-cov dependency present",
-            ]
-        elif has_coverage_config or has_pytest_cov:
-            score = 50.0
-            status = "fail"
-            evidence = [
-                f"Coverage config: {'✓' if has_coverage_config else '✗'}",
-                f"pytest-cov: {'✓' if has_pytest_cov else '✗'}",
-            ]
-        else:
-            score = 0.0
-            status = "fail"
-            evidence = ["No coverage configuration found"]
+        if has_coverage_config:
+            score += 20.0
+            evidence.append("Coverage configuration found")
+
+        # Signal 4: Coverage enforcement (20 pts)
+        has_enforcement = False
+        if "pytest-cov" in pyproject_content:
+            has_enforcement = True
+        if "fail_under" in pyproject_content:
+            has_enforcement = True
+        # Check .coveragerc for fail_under
+        coveragerc = repository.path / ".coveragerc"
+        if coveragerc.exists():
+            try:
+                with open(coveragerc, "r", encoding="utf-8") as f:
+                    if "fail_under" in f.read():
+                        has_enforcement = True
+            except (OSError, UnicodeDecodeError):
+                pass
+
+        if has_enforcement:
+            score += 20.0
+            evidence.append("Coverage enforcement configured (pytest-cov/fail_under)")
+
+        score = min(score, 100.0)
+        status = "pass" if score > 50 else "fail"
 
         return Finding(
             attribute=self.attribute,
             status=status,
             score=score,
             measured_value="configured" if score > 50 else "not configured",
-            threshold="configured with >80% threshold",
+            threshold="runnable tests with coverage config",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
 
+    def _has_python_test_files(self, repository: Repository) -> bool:
+        """Check if Python test files exist."""
+        test_dirs = ["tests", "test"]
+        for d in test_dirs:
+            test_dir = repository.path / d
+            if test_dir.exists():
+                # Look for test_*.py or *_test.py files
+                test_files = list(test_dir.rglob("test_*.py")) + list(
+                    test_dir.rglob("*_test.py")
+                )
+                if test_files:
+                    return True
+        return False
+
+    def _has_python_test_runner(self, repository: Repository) -> bool:
+        """Check if a test runner is configured."""
+        # pytest.ini or tox.ini
+        if (repository.path / "pytest.ini").exists():
+            return True
+        if (repository.path / "tox.ini").exists():
+            return True
+
+        # pyproject.toml with pytest config
+        pyproject = repository.path / "pyproject.toml"
+        if pyproject.exists():
+            try:
+                with open(pyproject, "r", encoding="utf-8") as f:
+                    content = f.read()
+                if "[tool.pytest" in content:
+                    return True
+            except (OSError, UnicodeDecodeError):
+                pass
+
+        return False
+
     def _assess_javascript_coverage(self, repository: Repository) -> Finding:
-        """Assess JavaScript/TypeScript test coverage configuration."""
+        """Assess JavaScript/TypeScript test execution and coverage.
+
+        Scoring (additive, 100 max):
+        - scripts.test entry in package.json:                40 pts
+        - Test files exist (*.test.js, *.spec.js, etc.):     20 pts
+        - jest/vitest in devDependencies:                     20 pts
+        - Coverage threshold configured:                     20 pts
+        """
         package_json = repository.path / "package.json"
 
         if not package_json.exists():
@@ -122,7 +196,7 @@ class TestExecutionAssessor(BaseAssessor):
                 status="fail",
                 score=0.0,
                 measured_value="no package.json",
-                threshold="configured coverage",
+                threshold="runnable tests with coverage config",
                 evidence=["package.json not found"],
                 remediation=self._create_remediation(),
                 error_message=None,
@@ -134,38 +208,98 @@ class TestExecutionAssessor(BaseAssessor):
             with open(package_json, "r") as f:
                 pkg = json.load(f)
 
-            # Check for jest or vitest with coverage
-            has_jest = "jest" in pkg.get("devDependencies", {})
-            has_vitest = "vitest" in pkg.get("devDependencies", {})
-            has_coverage = has_jest or has_vitest
+            score = 0.0
+            evidence = []
 
-            if has_coverage:
-                return Finding(
-                    attribute=self.attribute,
-                    status="pass",
-                    score=100.0,
-                    measured_value="configured",
-                    threshold="configured",
-                    evidence=["Test coverage tool configured"],
-                    remediation=None,
-                    error_message=None,
-                )
+            # Signal 1: scripts.test exists (40 pts)
+            scripts = pkg.get("scripts", {})
+            has_test_script = bool(scripts.get("test"))
+            if has_test_script:
+                score += 40.0
+                evidence.append("scripts.test entry found in package.json")
             else:
-                return Finding(
-                    attribute=self.attribute,
-                    status="fail",
-                    score=0.0,
-                    measured_value="not configured",
-                    threshold="configured",
-                    evidence=["No test coverage tool found in devDependencies"],
-                    remediation=self._create_remediation(),
-                    error_message=None,
-                )
+                evidence.append("No scripts.test entry in package.json")
+
+            # Signal 2: Test files exist (20 pts)
+            has_test_files = self._has_js_test_files(repository)
+            if has_test_files:
+                score += 20.0
+                evidence.append("Test files found (*.test.* / *.spec.* / __tests__/)")
+            else:
+                evidence.append("No test files found")
+
+            # Signal 3: jest/vitest in devDependencies (20 pts)
+            dev_deps = pkg.get("devDependencies", {})
+            has_jest = "jest" in dev_deps
+            has_vitest = "vitest" in dev_deps
+            if has_jest or has_vitest:
+                tool = "jest" if has_jest else "vitest"
+                score += 20.0
+                evidence.append(f"{tool} found in devDependencies")
+            else:
+                evidence.append("No test framework in devDependencies")
+
+            # Signal 4: Coverage threshold configured (20 pts)
+            has_threshold = self._has_js_coverage_threshold(repository, pkg)
+            if has_threshold:
+                score += 20.0
+                evidence.append("Coverage threshold configured")
+
+            score = min(score, 100.0)
+            status = "pass" if score > 50 else "fail"
+
+            return Finding(
+                attribute=self.attribute,
+                status=status,
+                score=score,
+                measured_value="configured" if score > 50 else "not configured",
+                threshold="runnable tests with coverage config",
+                evidence=evidence,
+                remediation=self._create_remediation() if status == "fail" else None,
+                error_message=None,
+            )
 
         except (OSError, json.JSONDecodeError) as e:
             return Finding.error(
                 self.attribute, reason=f"Could not parse package.json: {str(e)}"
             )
+
+    def _has_js_test_files(self, repository: Repository) -> bool:
+        """Check if JavaScript/TypeScript test files exist."""
+        # Check for __tests__ directory
+        if (repository.path / "__tests__").exists():
+            return True
+        # Check for *.test.* or *.spec.* files in src/ or root
+        for pattern in ["**/*.test.*", "**/*.spec.*"]:
+            if list(repository.path.glob(pattern)):
+                return True
+        return False
+
+    def _has_js_coverage_threshold(self, repository: Repository, pkg: dict) -> bool:
+        """Check if JS coverage threshold is configured."""
+        # Check package.json jest.coverageThreshold
+        jest_config = pkg.get("jest", {})
+        if isinstance(jest_config, dict) and jest_config.get("coverageThreshold"):
+            return True
+
+        # Check for jest.config.* or vitest.config.* with coverage
+        config_files = [
+            "jest.config.js",
+            "jest.config.ts",
+            "vitest.config.js",
+            "vitest.config.ts",
+        ]
+        for config_name in config_files:
+            config_file = repository.path / config_name
+            if config_file.exists():
+                try:
+                    content = config_file.read_text(encoding="utf-8")
+                    if "coverageThreshold" in content or "coverage" in content:
+                        return True
+                except (OSError, UnicodeDecodeError):
+                    pass
+
+        return False
 
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for test coverage."""
@@ -438,16 +572,20 @@ class CIQualityGatesAssessor(BaseAssessor):
         score += best_quality
         evidence.extend(best_quality_evidence)
 
-        status = "pass" if score >= 75 else "fail"
+        # All three gates (lint, test, typecheck) are required for pass
+        has_all_gates = gate_score == 30
+        status = "pass" if has_all_gates and score >= 75 else "fail"
 
         return Finding(
             attribute=self.attribute,
             status=status,
             score=score,
             measured_value=(
-                "configured with quality gates" if score >= 75 else "basic config"
+                "configured with quality gates"
+                if has_all_gates
+                else "missing quality gates"
             ),
-            threshold="CI with lint + test gates",
+            threshold="CI with lint + test + type-check gates",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
@@ -515,7 +653,7 @@ class CIQualityGatesAssessor(BaseAssessor):
         for config in ci_configs:
             try:
                 content = config.read_text()
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 continue
             if not found_lint and any(
                 re.search(p, content, re.IGNORECASE) for p in lint_patterns

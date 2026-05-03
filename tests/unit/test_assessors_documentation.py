@@ -258,6 +258,37 @@ class TestCLAUDEmdAssessor:
         assert "AGENTS.md found" in finding.evidence[1]
         assert "cross-tool standard" in finding.evidence[2]
 
+    def test_passes_with_dotclaude_claude_md(self, tmp_path):
+        """Test that .claude/CLAUDE.md is detected when root CLAUDE.md is absent."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        dotclaude_dir = tmp_path / ".claude"
+        dotclaude_dir.mkdir()
+        (dotclaude_dir / "CLAUDE.md").write_text(
+            "# Project Config\n\nThis project uses pytest for testing.\n"
+            "Run `pytest` to execute all tests.\n"
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = CLAUDEmdAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert ".claude/CLAUDE.md" in finding.measured_value
+        assert any(".claude/CLAUDE.md" in e for e in finding.evidence)
+
     def test_fails_with_no_files(self, tmp_path):
         """Test that assessor fails when neither CLAUDE.md nor AGENTS.md exist."""
         # Create repository without any config files
