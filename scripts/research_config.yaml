@@ -11,6 +11,9 @@ update_settings:
   # Only include research from last N months
   search_recency_months: 12
 
+  # Maximum total results returned from all sources combined
+  max_total_results: 15
+
 # Priority attributes — processed first (use section numbers from report)
 # Updated in v2.0.0 to reflect evidence-based priorities
 priority_attributes:
@@ -23,7 +26,89 @@ priority_attributes:
 
 # Search domain preferences
 search_domains:
-  # Prioritized sources (high authority)
+
+  # RSS/Atom feed sources — structured, date-sorted, richest data
+  rss_feeds:
+    - name: "GitHub Blog"
+      domain: github.blog
+      feed_url: "https://github.blog/feed/"
+      format: rss
+      max_results: 5
+      relevance_keywords: ["copilot", "AI", "agent", "code", "LLM", "developer"]
+
+    - name: "Martin Fowler"
+      domain: martinfowler.com
+      feed_url: "https://martinfowler.com/feed.atom"
+      format: atom
+      max_results: 5
+      relevance_keywords: ["AI", "agent", "coding", "development", "testing", "refactoring"]
+
+    - name: "Microsoft Research"
+      domain: microsoft.com
+      feed_url: "https://microsoft.com/research/feed/"
+      format: rss
+      max_results: 5
+      relevance_keywords: ["AI", "agent", "code", "LLM", "software", "developer"]
+
+  # Sitemap-based sources — discover URLs, fetch metadata from HTML
+  sitemap_sources:
+    - name: "Anthropic Engineering"
+      domain: anthropic.com
+      sitemap_url: "https://www.anthropic.com/sitemap.xml"
+      path_filters: ["/engineering/", "/research/"]
+      max_results: 5
+      relevance_keywords: ["agent", "claude", "code", "tool", "context", "harness"]
+
+    - name: "OpenAI Research"
+      domain: openai.com
+      sitemap_url: "https://openai.com/sitemap.xml/research/"
+      path_filters: ["/index/"]
+      max_results: 5
+      relevance_keywords: ["agent", "code", "model", "developer"]
+
+    - name: "Cursor Blog"
+      domain: cursor.com
+      sitemap_url: "https://cursor.com/sitemap.xml"
+      path_filters: ["/blog/"]
+      max_results: 5
+      relevance_keywords: ["agent", "AI", "code", "editor", "model"]
+
+    - name: "Factory AI"
+      domain: factory.ai
+      sitemap_url: "https://factory.ai/sitemap.xml"
+      path_filters: ["/news/"]
+      max_results: 5
+      relevance_keywords: ["agent", "code", "droid", "benchmark", "review"]
+
+    - name: "Google Research"
+      domain: research.google
+      sitemap_url: "https://research.google/sitemap.xml"
+      path_filters: ["/pubs/"]
+      max_results: 5
+      relevance_keywords: ["AI", "agent", "code", "LLM", "software"]
+
+  # Curated static URLs — content rarely changes, checked periodically
+  curated_sources:
+    - name: "OpenSSF Best Practices"
+      domain: best.openssf.org
+      urls:
+        - "https://best.openssf.org/Concise-Guide-for-Developing-More-Secure-Software"
+        - "https://best.openssf.org/npm-best-practices"
+      source_label: "OpenSSF"
+
+    - name: "AGENTS.md Specification"
+      domain: agents.md
+      urls:
+        - "https://agents.md"
+      source_label: "AGENTS.md"
+
+    - name: "Claude Code Documentation"
+      domain: docs.anthropic.com
+      urls:
+        - "https://docs.anthropic.com/en/docs/claude-code/overview"
+      source_label: "Anthropic Docs"
+
+  # Prioritized domains — used for result ranking and citation filtering
   prioritized:
     - anthropic.com
     - code.claude.com

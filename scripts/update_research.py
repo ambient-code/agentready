@@ -9,9 +9,12 @@ validates citations, and proposes updates with verified sources.
 import json
 import os
 import re
+import time
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 from datetime import datetime
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
@@ -50,22 +53,43 @@ class ResearchUpdater:
     def search_recent_research(
         self, attribute_id: str, attribute_name: str
     ) -> list[dict[str, str]]:
-        """Search for recent research using real APIs.
+        """Search for recent research using academic APIs and industry sources.
 
-        Uses ArXiv API and Semantic Scholar API for academic papers.
-        Returns results with verified URLs.
+        Uses ArXiv, Semantic Scholar, RSS feeds, sitemaps, and curated URLs.
+        Returns deduplicated results sorted by domain priority and date.
         """
         results = []
 
-        # ArXiv search
-        arxiv_results = self._search_arxiv(attribute_name)
-        results.extend(arxiv_results)
+        # Academic sources
+        results.extend(self._search_arxiv(attribute_name))
+        results.extend(self._search_semantic_scholar(attribute_name))
 
-        # Semantic Scholar search
-        scholar_results = self._search_semantic_scholar(attribute_name)
-        results.extend(scholar_results)
+        # Industry sources
+        results.extend(self._search_rss_feeds(attribute_name))
+        results.extend(self._search_sitemaps(attribute_name))
+        results.extend(self._search_curated_sources(attribute_name))
 
-        return results[:10]
+        # Deduplicate by URL
+        seen_urls: set[str] = set()
+        unique: list[dict[str, str]] = []
+        for r in results:
+            if r["url"] not in seen_urls:
+                seen_urls.add(r["url"])
+                unique.append(r)
+
+        # Sort: prioritized domains first, then newest date first within each group.
+        # Two-pass stable sort: first by date desc, then by priority asc.
+        prioritized = set(self.config.get("search_domains", {}).get("prioritized", []))
+
+        def _is_priority(r: dict[str, str]) -> bool:
+            netloc = urllib.parse.urlparse(r["url"]).netloc.replace("www.", "")
+            return any(p in netloc for p in prioritized)
+
+        unique.sort(key=lambda r: r.get("date") or "0000", reverse=True)
+        unique.sort(key=lambda r: 0 if _is_priority(r) else 1)
+
+        max_total = self.config.get("update_settings", {}).get("max_total_results", 15)
+        return unique[:max_total]
 
     def _search_arxiv(self, query: str) -> list[dict[str, str]]:
         """Search ArXiv API for recent papers."""
@@ -78,9 +102,6 @@ class ResearchUpdater:
             req = urllib.request.Request(url, headers={"User-Agent": "agentready/2.0"})
             with urllib.request.urlopen(req, timeout=15) as response:
                 content = response.read().decode("utf-8")
-
-            # Parse Atom XML
-            import xml.etree.ElementTree as ET
 
             root = ET.fromstring(content)
             ns = {"atom": "http://www.w3.org/2005/Atom"}
@@ -138,6 +159,299 @@ class ResearchUpdater:
                     )
         except Exception as e:
             print(f"  Semantic Scholar search failed: {e}")
+
+        return results
+
+    def _extract_html_metadata(self, html_content: str) -> dict[str, str]:
+        """Extract title and description from HTML using stdlib parser."""
+        result = {"title": "", "description": ""}
+
+        class _MetadataParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self._in_title = False
+                self._title_parts: list[str] = []
+                self.title = ""
+                self.description = ""
+
+            def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
+                if tag == "title":
+                    self._in_title = True
+                if tag == "meta":
+                    attr_dict = dict(attrs)
+                    name = (attr_dict.get("name") or "").lower()
+                    prop = (attr_dict.get("property") or "").lower()
+                    content = attr_dict.get("content") or ""
+                    if name == "description" and content:
+                        self.description = content
+                    elif prop == "og:description" and content and not self.description:
+                        self.description = content
+
+            def handle_data(self, data: str):
+                if self._in_title:
+                    self._title_parts.append(data)
+
+            def handle_endtag(self, tag: str):
+                if tag == "title" and self._in_title:
+                    self._in_title = False
+                    self.title = "".join(self._title_parts).strip()
+
+        try:
+            parser = _MetadataParser()
+            parser.feed(html_content)
+            title = parser.title
+            # Strip common site-name suffixes
+            for sep in [" | ", " - ", " — ", " :: "]:
+                if sep in title:
+                    title = title.split(sep)[0].strip()
+            result["title"] = title
+            result["description"] = parser.description[:300]
+        except Exception:
+            pass
+
+        return result
+
+    def _keyword_match(self, text: str, query: str, keywords: list[str]) -> bool:
+        """Check if any query term or keyword appears in text (case-insensitive)."""
+        text_lower = text.lower()
+        for word in query.lower().split():
+            if len(word) > 2 and word in text_lower:
+                return True
+        for kw in keywords:
+            if kw.lower() in text_lower:
+                return True
+        return False
+
+    def _fetch_url(self, url: str, timeout: int = 15) -> str | None:
+        """Fetch a URL and return decoded content, or None on failure."""
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "agentready/2.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                return response.read().decode("utf-8", errors="replace")
+        except Exception:
+            return None
+
+    def _search_rss_feeds(self, query: str) -> list[dict[str, str]]:
+        """Search RSS/Atom feeds from configured industry sources."""
+        feeds = self.config.get("search_domains", {}).get("rss_feeds", [])
+        results = []
+
+        for feed_cfg in feeds:
+            feed_name = feed_cfg["name"]
+            feed_url = feed_cfg["feed_url"]
+            fmt = feed_cfg.get("format", "rss")
+            max_results = feed_cfg.get("max_results", 5)
+            keywords = feed_cfg.get("relevance_keywords", [])
+
+            try:
+                content = self._fetch_url(feed_url)
+                if not content:
+                    print(f"  {feed_name} feed: no response")
+                    continue
+
+                root = ET.fromstring(content)
+                feed_results = []
+
+                if fmt == "atom":
+                    ns = {"atom": "http://www.w3.org/2005/Atom"}
+                    for entry in root.findall("atom:entry", ns):
+                        title_el = entry.find("atom:title", ns)
+                        link_el = entry.find("atom:link", ns)
+                        summary_el = entry.find("atom:summary", ns)
+                        if summary_el is None:
+                            summary_el = entry.find("atom:content", ns)
+                        published_el = entry.find("atom:published", ns)
+                        if published_el is None:
+                            published_el = entry.find("atom:updated", ns)
+
+                        title = (
+                            title_el.text.strip()
+                            if title_el is not None and title_el.text
+                            else ""
+                        )
+                        href = link_el.get("href", "") if link_el is not None else ""
+                        snippet = (
+                            summary_el.text.strip()[:300]
+                            if summary_el is not None and summary_el.text
+                            else ""
+                        )
+                        date = (
+                            published_el.text[:10]
+                            if published_el is not None and published_el.text
+                            else ""
+                        )
+
+                        if title and href:
+                            combined = f"{title} {snippet}"
+                            if self._keyword_match(combined, query, keywords):
+                                feed_results.append(
+                                    {
+                                        "title": title.replace("\n", " "),
+                                        "url": href,
+                                        "snippet": snippet,
+                                        "date": date,
+                                        "source": feed_name,
+                                    }
+                                )
+                else:
+                    # RSS 2.0
+                    channel = root.find("channel")
+                    items = channel.findall("item") if channel is not None else []
+                    for item in items:
+                        title_el = item.find("title")
+                        link_el = item.find("link")
+                        desc_el = item.find("description")
+                        date_el = item.find("pubDate")
+
+                        title = (
+                            title_el.text.strip()
+                            if title_el is not None and title_el.text
+                            else ""
+                        )
+                        link = (
+                            link_el.text.strip()
+                            if link_el is not None and link_el.text
+                            else ""
+                        )
+                        snippet = (
+                            desc_el.text.strip()[:300]
+                            if desc_el is not None and desc_el.text
+                            else ""
+                        )
+                        date = (
+                            date_el.text.strip()[:16]
+                            if date_el is not None and date_el.text
+                            else ""
+                        )
+
+                        if title and link:
+                            combined = f"{title} {snippet}"
+                            if self._keyword_match(combined, query, keywords):
+                                feed_results.append(
+                                    {
+                                        "title": title.replace("\n", " "),
+                                        "url": link,
+                                        "snippet": re.sub(r"<[^>]+>", "", snippet),
+                                        "date": date,
+                                        "source": feed_name,
+                                    }
+                                )
+
+                results.extend(feed_results[:max_results])
+            except Exception as e:
+                print(f"  {feed_name} feed search failed: {e}")
+
+        return results
+
+    def _search_sitemaps(self, query: str) -> list[dict[str, str]]:
+        """Search sitemap-based industry sources for relevant pages."""
+        sources = self.config.get("search_domains", {}).get("sitemap_sources", [])
+        results = []
+
+        for src in sources:
+            src_name = src["name"]
+            sitemap_url = src["sitemap_url"]
+            path_filters = src.get("path_filters", [])
+            max_results = src.get("max_results", 5)
+            keywords = src.get("relevance_keywords", [])
+
+            try:
+                content = self._fetch_url(sitemap_url)
+                if not content:
+                    print(f"  {src_name} sitemap: no response")
+                    continue
+
+                root = ET.fromstring(content)
+                ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+
+                candidates = []
+                for url_el in root.findall("sm:url", ns):
+                    loc_el = url_el.find("sm:loc", ns)
+                    lastmod_el = url_el.find("sm:lastmod", ns)
+                    if loc_el is None or not loc_el.text:
+                        continue
+                    loc = loc_el.text.strip()
+                    lastmod = (
+                        lastmod_el.text.strip()[:10]
+                        if lastmod_el is not None and lastmod_el.text
+                        else ""
+                    )
+
+                    # Filter by path
+                    if path_filters and not any(pf in loc for pf in path_filters):
+                        continue
+
+                    # Keyword match on URL slug
+                    slug = loc.rstrip("/").split("/")[-1].replace("-", " ")
+                    if self._keyword_match(slug, query, keywords):
+                        candidates.append({"url": loc, "date": lastmod})
+
+                # Fetch HTML metadata for top candidates
+                src_results = []
+                for cand in candidates[:max_results]:
+                    html = self._fetch_url(cand["url"], timeout=10)
+                    if html:
+                        meta = self._extract_html_metadata(html)
+                        if meta["title"]:
+                            src_results.append(
+                                {
+                                    "title": meta["title"],
+                                    "url": cand["url"],
+                                    "snippet": meta["description"][:300],
+                                    "date": cand["date"],
+                                    "source": src_name,
+                                }
+                            )
+                    time.sleep(0.5)
+
+                results.extend(src_results)
+            except Exception as e:
+                print(f"  {src_name} sitemap search failed: {e}")
+
+        return results
+
+    def _search_curated_sources(self, query: str) -> list[dict[str, str]]:
+        """Fetch metadata from curated static URLs."""
+        sources = self.config.get("search_domains", {}).get("curated_sources", [])
+        results = []
+
+        for src in sources:
+            src_name = src["name"]
+            source_label = src.get("source_label", src_name)
+            urls = src.get("urls", [])
+
+            for url in urls:
+                try:
+                    content = self._fetch_url(url, timeout=10)
+                    if not content:
+                        continue
+
+                    # Raw markdown (e.g. GitHub raw URLs)
+                    if "raw.githubusercontent.com" in url or url.endswith(".md"):
+                        heading = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+                        para = re.search(r"\n\n(.+?)(?:\n\n|\Z)", content, re.DOTALL)
+                        title = heading.group(1).strip() if heading else src_name
+                        snippet = (
+                            para.group(1).strip()[:300].replace("\n", " ")
+                            if para
+                            else ""
+                        )
+                    else:
+                        meta = self._extract_html_metadata(content)
+                        title = meta["title"] or src_name
+                        snippet = meta["description"][:300]
+
+                    results.append(
+                        {
+                            "title": title,
+                            "url": url,
+                            "snippet": snippet,
+                            "date": "",
+                            "source": source_label,
+                        }
+                    )
+                except Exception as e:
+                    print(f"  {src_name} curated fetch failed ({url}): {e}")
 
         return results
 
