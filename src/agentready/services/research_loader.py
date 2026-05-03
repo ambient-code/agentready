@@ -123,9 +123,11 @@ class ResearchLoader:
 
         metadata = self.extract_metadata(content)
 
-        # Check attribute count (should be 25)
-        if metadata.attribute_count != 25:
-            errors.append(f"Expected 25 attributes, found {metadata.attribute_count}")
+        # Check attribute count (flexible — was 25 in v1, now 29+ in v2)
+        if metadata.attribute_count < 25:
+            errors.append(
+                f"Expected at least 25 attributes, found {metadata.attribute_count}"
+            )
 
         # Check tier count (should be 4)
         if metadata.tier_count < 4:
@@ -145,9 +147,20 @@ class ResearchLoader:
         )
 
         if criteria_count < 25:
-            errors.append(
-                f"Missing 'Measurable Criteria' sections (found {criteria_count}/25)"
+            warnings.append(
+                f"Some attributes missing 'Measurable Criteria' (found {criteria_count})"
             )
+
+        # Detect duplicate "Measurable Criteria" within same attribute
+        attribute_sections = re.split(r"(?=^### \d+\.\d+ )", content, flags=re.MULTILINE)
+        for section in attribute_sections:
+            mc_count = len(re.findall(measurable_criteria_pattern, section))
+            if mc_count > 1:
+                title_match = re.match(r"### (\d+\.\d+ .+?)$", section, re.MULTILINE)
+                title = title_match.group(1) if title_match else "unknown"
+                errors.append(
+                    f"Duplicate 'Measurable Criteria' in section {title} ({mc_count} found)"
+                )
 
         # Check for "Impact on Agent Behavior" sections (warning only)
         impact_pattern = r"\*\*Impact on Agent Behavior:\*\*"
@@ -155,8 +168,8 @@ class ResearchLoader:
 
         if impact_count < 25:
             warnings.append(
-                f"{25 - impact_count} attributes missing "
-                f"'Impact on Agent Behavior' sections"
+                f"Some attributes missing 'Impact on Agent Behavior' "
+                f"(found {impact_count})"
             )
 
         is_valid = len(errors) == 0

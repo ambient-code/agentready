@@ -704,7 +704,7 @@ class TestRunAssessment:
         config_file = tmp_path / "config.yaml"
         config_file.write_text("""
 excluded_attributes:
-  - test_coverage
+  - test_execution
   - openapi_specs
 """)
 
@@ -731,8 +731,8 @@ excluded_attributes:
             # Verify excluded attributes are NOT in the assessor list
             assessor_ids = {a.attribute_id for a in assessors}
             assert (
-                "test_coverage" not in assessor_ids
-            ), "test_coverage should be excluded by config"
+                "test_execution" not in assessor_ids
+            ), "test_execution should be excluded by config"
             assert (
                 "openapi_specs" not in assessor_ids
             ), "openapi_specs should be excluded by config"
@@ -749,7 +749,7 @@ excluded_attributes:
         config_file = tmp_path / "config.yaml"
         config_file.write_text("""
 excluded_attributes:
-  - test_coverage
+  - test_execution
 """)
 
         with patch("agentready.cli.main.Scanner") as mock_scanner_class:
@@ -773,8 +773,8 @@ excluded_attributes:
             # Verify BOTH exclusions are applied
             assessor_ids = {a.attribute_id for a in assessors}
             assert (
-                "test_coverage" not in assessor_ids
-            ), "test_coverage should be excluded by config"
+                "test_execution" not in assessor_ids
+            ), "test_execution should be excluded by config"
             assert (
                 "openapi_specs" not in assessor_ids
             ), "openapi_specs should be excluded by CLI"
@@ -795,7 +795,7 @@ excluded_attributes:
         config_file.write_text("""
 excluded_attributes:
   - nonexistent_attribute
-  - test_coverage
+  - test_execution
 """)
 
         with patch("agentready.cli.main.Scanner") as mock_scanner_class:
@@ -828,7 +828,7 @@ excluded_attributes:
         config_file = tmp_path / "config.yaml"
         config_file.write_text("""
 excluded_attributes:
-  - test_coverage
+  - test_execution
 """)
 
         with patch("agentready.cli.main.Scanner") as mock_scanner_class:
@@ -845,7 +845,7 @@ excluded_attributes:
             # Verify exclusion message in output
             assert result.exit_code == 0
             assert "Excluded 1 attribute(s)" in result.output
-            assert "test_coverage" in result.output
+            assert "test_execution" in result.output
 
     def test_run_assessment_validates_mixed_source_invalid_attrs_issue_302(
         self, test_repo, tmp_path
@@ -863,7 +863,7 @@ excluded_attributes:
         config_file.write_text("""
 excluded_attributes:
   - invalid_config_attr
-  - test_coverage
+  - test_execution
 """)
 
         with patch("agentready.cli.main.Scanner") as mock_scanner_class:

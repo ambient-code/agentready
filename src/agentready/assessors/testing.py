@@ -9,30 +9,36 @@ from ..models.repository import Repository
 from .base import BaseAssessor
 
 
-class TestCoverageAssessor(BaseAssessor):
-    """Assesses test coverage requirements.
 
-    Tier 2 Critical (3% weight) - Test coverage is important for AI-assisted refactoring.
+
+
+
+class TestExecutionAssessor(BaseAssessor):
+    """Assesses test execution capability and coverage.
+
+    Tier 1 Essential (10% weight) - Anthropic identifies test execution as
+    "the single highest-leverage thing you can do" for AI agent effectiveness.
+    Agents succeed through tight feedback loops: change code, run tests, iterate.
     """
 
     @property
     def attribute_id(self) -> str:
-        return "test_coverage"
+        return "test_execution"
 
     @property
     def tier(self) -> int:
-        return 2  # Critical
+        return 1  # Essential
 
     @property
     def attribute(self) -> Attribute:
         return Attribute(
             id=self.attribute_id,
-            name="Test Coverage Requirements",
+            name="Test Execution & Coverage",
             category="Testing & CI/CD",
             tier=self.tier,
-            description="Test coverage thresholds configured and enforced",
-            criteria=">80% code coverage",
-            default_weight=0.03,
+            description="Single-command test runner with adequate coverage configuration",
+            criteria="Runnable tests with coverage config",
+            default_weight=0.10,
         )
 
     def is_applicable(self, repository: Repository) -> bool:
@@ -219,12 +225,20 @@ fail_under = 80
         )
 
 
-class PreCommitHooksAssessor(BaseAssessor):
-    """Assesses pre-commit hooks configuration."""
+
+
+
+
+class DeterministicEnforcementAssessor(BaseAssessor):
+    """Assesses deterministic enforcement via hooks and lint rules.
+
+    Tier 2 Critical (3% weight) - Context file instructions are advisory;
+    hooks are deterministic. Factory.ai: "Agents write the code; linters write the law."
+    """
 
     @property
     def attribute_id(self) -> str:
-        return "precommit_hooks"
+        return "deterministic_enforcement"
 
     @property
     def tier(self) -> int:
@@ -234,27 +248,72 @@ class PreCommitHooksAssessor(BaseAssessor):
     def attribute(self) -> Attribute:
         return Attribute(
             id=self.attribute_id,
-            name="Pre-commit Hooks & CI/CD Linting",
+            name="Deterministic Enforcement (Hooks & Lint Rules)",
             category="Testing & CI/CD",
             tier=self.tier,
-            description="Pre-commit hooks configured for linting and formatting",
-            criteria=".pre-commit-config.yaml exists",
+            description="Hooks and lint rules for deterministic quality enforcement",
+            criteria="Pre-commit or agent hooks configured",
             default_weight=0.03,
         )
 
     def assess(self, repository: Repository) -> Finding:
-        """Check for pre-commit configuration."""
+        """Check for deterministic enforcement mechanisms."""
         precommit_config = repository.path / ".pre-commit-config.yaml"
+        claude_settings = repository.path / ".claude" / "settings.json"
+        husky_dir = repository.path / ".husky"
+
+        evidence = []
+        score = 0.0
 
         if precommit_config.exists():
+            score += 60.0
+            evidence.append(".pre-commit-config.yaml found (pre-commit hooks)")
+
+        if claude_settings.exists():
+            try:
+                import json
+
+                content = json.loads(claude_settings.read_text())
+                if "hooks" in content:
+                    score += 30.0
+                    evidence.append(
+                        ".claude/settings.json has hooks configured (agent hooks)"
+                    )
+                else:
+                    score += 10.0
+                    evidence.append(
+                        ".claude/settings.json exists but no hooks defined"
+                    )
+            except (json.JSONDecodeError, OSError):
+                score += 10.0
+                evidence.append(".claude/settings.json exists")
+
+        if husky_dir.exists():
+            score += 10.0
+            evidence.append(".husky directory found (git hooks)")
+
+        score = min(score, 100.0)
+
+        if score >= 60:
             return Finding(
                 attribute=self.attribute,
                 status="pass",
-                score=100.0,
+                score=score,
                 measured_value="configured",
                 threshold="configured",
-                evidence=[".pre-commit-config.yaml found"],
+                evidence=evidence,
                 remediation=None,
+                error_message=None,
+            )
+        elif score > 0:
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=score,
+                measured_value="partially configured",
+                threshold="configured",
+                evidence=evidence,
+                remediation=self._create_remediation(),
                 error_message=None,
             )
         else:
@@ -264,84 +323,86 @@ class PreCommitHooksAssessor(BaseAssessor):
                 score=0.0,
                 measured_value="not configured",
                 threshold="configured",
-                evidence=[".pre-commit-config.yaml not found"],
+                evidence=["No deterministic enforcement found"],
                 remediation=self._create_remediation(),
                 error_message=None,
             )
 
     def _create_remediation(self) -> Remediation:
-        """Create remediation guidance for pre-commit hooks."""
+        """Create remediation guidance for deterministic enforcement."""
         return Remediation(
-            summary="Configure pre-commit hooks for automated code quality checks",
+            summary="Set up deterministic enforcement with hooks and lint rules",
             steps=[
-                "Install pre-commit framework",
-                "Create .pre-commit-config.yaml",
-                "Add hooks for linting and formatting",
-                "Install hooks: pre-commit install",
-                "Run on all files: pre-commit run --all-files",
+                "Start with 2 hooks: auto-format on edit + block destructive operations",
+                "Install pre-commit framework for git hooks",
+                "Configure .claude/settings.json with agent hooks for team-wide sharing",
+                "Add lint rules for import restrictions and architectural boundaries",
             ],
             tools=["pre-commit"],
             commands=[
                 "pip install pre-commit",
                 "pre-commit install",
-                "pre-commit run --all-files",
+                "mkdir -p .claude",
             ],
-            examples=["""# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-"""],
+            examples=[
+                """# .claude/settings.json - Agent hooks
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "npx prettier --write $CLAUDE_FILE_PATH 2>/dev/null || true"
+      }
+    ]
+  }
+}""",
+            ],
             citations=[
                 Citation(
-                    source="pre-commit.com",
-                    title="Pre-commit Framework",
-                    url="https://pre-commit.com/",
-                    relevance="Official pre-commit documentation",
-                )
+                    source="Red Hat",
+                    title="Repository Scaffolding for AI Coding Agents, Section 2.2",
+                    url="",
+                    relevance="Recommended starter hooks for AI agent enforcement",
+                ),
+                Citation(
+                    source="Factory.ai",
+                    title="Using Linters to Direct Agents",
+                    url="https://factory.ai/news/using-linters-to-direct-agents",
+                    relevance="Agents write the code; linters write the law",
+                ),
             ],
         )
 
 
-class CICDPipelineVisibilityAssessor(BaseAssessor):
-    """Assesses CI/CD pipeline configuration visibility and quality.
 
-    Tier 3 Important (1.5% weight) - Clear CI/CD configs enable AI to understand
-    build/test/deploy processes and suggest improvements.
+
+
+
+class CIQualityGatesAssessor(BaseAssessor):
+    """Assesses CI quality gates — lint, type-check, and tests on every PR.
+
+    Tier 1 Essential (5% weight) - Quality gates provide definitive pass/fail
+    signals for agent-generated code and enable self-correction.
     """
 
     @property
     def attribute_id(self) -> str:
-        return "cicd_pipeline_visibility"
+        return "ci_quality_gates"
 
     @property
     def tier(self) -> int:
-        return 3  # Important
+        return 1  # Essential
 
     @property
     def attribute(self) -> Attribute:
         return Attribute(
             id=self.attribute_id,
-            name="CI/CD Pipeline Visibility",
+            name="CI Quality Gates",
             category="Testing & CI/CD",
             tier=self.tier,
-            description="Clear, well-documented CI/CD configuration files",
-            criteria="CI config with descriptive names, caching, parallelization",
-            default_weight=0.015,
+            description="CI runs lint, type-check, and tests on every PR",
+            criteria="CI gates with lint + type-check + tests",
+            default_weight=0.05,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -678,3 +739,9 @@ class BranchProtectionAssessor(BaseAssessor):
             "Future implementation will verify: required status checks, "
             "required reviews, force push prevention, and branch update requirements.",
         )
+
+
+# Backward-compatible aliases for renamed assessors
+TestCoverageAssessor = TestExecutionAssessor
+PreCommitHooksAssessor = DeterministicEnforcementAssessor
+CICDPipelineVisibilityAssessor = CIQualityGatesAssessor

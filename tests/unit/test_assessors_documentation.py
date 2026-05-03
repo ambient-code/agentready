@@ -252,11 +252,11 @@ class TestCLAUDEmdAssessor:
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
-        assert finding.score == 90.0  # Slightly lower for missing CLAUDE.md
+        assert finding.score == 100.0  # AGENTS.md is the cross-tool standard
         assert "AGENTS.md present" in finding.measured_value
         assert "CLAUDE.md not found" in finding.evidence[0]
         assert "AGENTS.md found" in finding.evidence[1]
-        assert "broader tool support" in finding.evidence[2]
+        assert "cross-tool standard" in finding.evidence[2]
 
     def test_fails_with_no_files(self, tmp_path):
         """Test that assessor fails when neither CLAUDE.md nor AGENTS.md exist."""

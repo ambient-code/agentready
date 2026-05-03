@@ -2,24 +2,25 @@
 """
 Automated research update script for RESEARCH_REPORT.md
 
-Searches for recent research, analyzes relevance using Claude API,
-and proposes updates with citations.
+Searches for recent research using real APIs (ArXiv, Semantic Scholar),
+validates citations, and proposes updates with verified sources.
 """
 
 import json
 import os
 import re
 import urllib.parse
+import urllib.request
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import anthropic
 import yaml
 
 
 class ResearchUpdater:
-    """Manages research report updates with LLM-powered analysis."""
+    """Manages research report updates with real search and LLM analysis."""
 
     def __init__(self, config_path: str = "scripts/research_config.yaml"):
         config_file = Path(config_path)
@@ -32,7 +33,11 @@ class ResearchUpdater:
             raise ValueError("ANTHROPIC_API_KEY environment variable is required")
         self.client = anthropic.Anthropic(api_key=api_key)
 
-        self.report_path = Path("RESEARCH_REPORT.md")
+        # Resolve report path relative to this script
+        script_dir = Path(__file__).parent
+        self.report_path = (
+            script_dir.parent / "src" / "agentready" / "data" / "RESEARCH_REPORT.md"
+        )
         if not self.report_path.exists():
             raise FileNotFoundError(f"Report file not found: {self.report_path}")
         self.changes_made = []
@@ -44,105 +49,147 @@ class ResearchUpdater:
 
     def search_recent_research(
         self, attribute_id: str, attribute_name: str
-    ) -> List[Dict[str, str]]:
-        """
-        Search for recent research on a specific attribute.
+    ) -> list[dict[str, str]]:
+        """Search for recent research using real APIs.
 
-        This is a placeholder that uses Claude's extended context
-        to simulate web search. In production, this would integrate
-        with actual search APIs (Google Custom Search, ArXiv API, etc.)
-
-        Returns:
-            List of search results with title, url, snippet, date
+        Uses ArXiv API and Semantic Scholar API for academic papers.
+        Returns results with verified URLs.
         """
-        # Placeholder: In production, execute actual web searches
-        # Example search queries would be:
-        # - f"{attribute_name} AI assisted development best practices 2025"
-        # - f"{attribute_name} Claude Code LLM agents"
-        # - f"{attribute_name} codebase optimization AI tools"
-        # For now, we'll use Claude to generate hypothetical recent research
         results = []
 
-        prompt = f"""Generate a list of 3-5 hypothetical but realistic research sources
-from the last 12 months related to: "{attribute_name}" in the context of
-AI-assisted development and codebase optimization.
+        # ArXiv search
+        arxiv_results = self._search_arxiv(attribute_name)
+        results.extend(arxiv_results)
 
-For each source, provide:
-- title: Realistic paper/article title
-- url: Plausible URL (arxiv.org, anthropic.com, microsoft.com/research, etc.)
-- snippet: 2-3 sentence summary of key findings
-- date: Date in YYYY-MM-DD format (within last 12 months)
-- authors: Realistic author names or organization
-
-Format as JSON array."""
-
-        try:
-            response = self.client.messages.create(
-                model="claude-sonnet-4-5-20250929",
-                max_tokens=2048,
-                messages=[{"role": "user", "content": prompt}],
-            )
-
-            content = response.content[0].text
-            json_match = re.search(r"```json\s*(\[.*?\])\s*```", content, re.DOTALL)
-            if json_match:
-                content = json_match.group(1)
-
-            results = json.loads(content)
-        except Exception as e:
-            print(f"  Warning: Search failed for {attribute_name}: {e}")
-            results = []
+        # Semantic Scholar search
+        scholar_results = self._search_semantic_scholar(attribute_name)
+        results.extend(scholar_results)
 
         return results[:10]
+
+    def _search_arxiv(self, query: str) -> list[dict[str, str]]:
+        """Search ArXiv API for recent papers."""
+        search_query = f"({query}) AND (AI OR LLM OR agent OR code)"
+        encoded_query = urllib.parse.quote(search_query)
+        url = f"http://export.arxiv.org/api/query?search_query=all:{encoded_query}&max_results=5&sortBy=submittedDate&sortOrder=descending"
+
+        results = []
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "agentready/2.0"})
+            with urllib.request.urlopen(req, timeout=15) as response:
+                content = response.read().decode("utf-8")
+
+            # Parse Atom XML
+            import xml.etree.ElementTree as ET
+
+            root = ET.fromstring(content)
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+
+            for entry in root.findall("atom:entry", ns):
+                title = entry.find("atom:title", ns)
+                summary = entry.find("atom:summary", ns)
+                published = entry.find("atom:published", ns)
+                arxiv_id = entry.find("atom:id", ns)
+
+                if title is not None and arxiv_id is not None:
+                    paper_url = arxiv_id.text.strip()
+                    results.append(
+                        {
+                            "title": title.text.strip().replace("\n", " "),
+                            "url": paper_url,
+                            "snippet": (
+                                summary.text.strip()[:300] if summary is not None else ""
+                            ),
+                            "date": (
+                                published.text[:10] if published is not None else ""
+                            ),
+                            "source": "ArXiv",
+                        }
+                    )
+        except Exception as e:
+            print(f"  ArXiv search failed: {e}")
+
+        return results
+
+    def _search_semantic_scholar(self, query: str) -> list[dict[str, str]]:
+        """Search Semantic Scholar API for recent papers."""
+        search_query = f"{query} AI coding agent"
+        encoded_query = urllib.parse.quote(search_query)
+        url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={encoded_query}&limit=5&fields=title,url,abstract,year&year=2024-2026"
+
+        results = []
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "agentready/2.0"})
+            with urllib.request.urlopen(req, timeout=15) as response:
+                data = json.loads(response.read().decode("utf-8"))
+
+            for paper in data.get("data", []):
+                if paper.get("title") and paper.get("url"):
+                    results.append(
+                        {
+                            "title": paper["title"],
+                            "url": paper["url"],
+                            "snippet": (paper.get("abstract") or "")[:300],
+                            "date": str(paper.get("year", "")),
+                            "source": "Semantic Scholar",
+                        }
+                    )
+        except Exception as e:
+            print(f"  Semantic Scholar search failed: {e}")
+
+        return results
+
+    def validate_url(self, url: str) -> bool:
+        """Validate that a URL actually resolves (HTTP HEAD check)."""
+        try:
+            parsed = urllib.parse.urlparse(url)
+            if not parsed.scheme or not parsed.netloc:
+                return False
+
+            req = urllib.request.Request(
+                url, method="HEAD", headers={"User-Agent": "agentready/2.0"}
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
+                return response.status < 400
+        except Exception:
+            return False
 
     def analyze_relevance(
         self,
         attribute_id: str,
-        search_results: List[Dict[str, str]],
+        search_results: list[dict[str, str]],
         current_content: str,
-    ) -> Dict[str, Any]:
-        """
-        Use Claude API to analyze search results and determine relevance.
-
-        Returns:
-            {
-                "relevance_score": float (0-1),
-                "suggested_updates": str,
-                "citations": List[Dict[str, str]],
-                "reasoning": str
-            }
-        """
-        prompt = f"""You are a research analyst maintaining a comprehensive guide on AI-assisted development best practices.
+    ) -> dict[str, Any]:
+        """Use Claude API to analyze search results and determine relevance."""
+        prompt = f"""You are a research analyst maintaining a guide on AI-assisted development best practices.
 
 CURRENT ATTRIBUTE CONTENT:
-{current_content[:2000]}  # Truncate to fit in context
+{current_content[:2000]}
 
 RECENT RESEARCH FINDINGS:
 {json.dumps(search_results, indent=2)}
 
 TASK:
 1. Analyze each research finding for relevance to the attribute
-2. Identify any new insights, contradictions, or updated recommendations
-3. Suggest specific updates to the attribute content (if relevant)
-4. Provide authoritative citations
+2. Identify genuinely new insights not already in the current content
+3. Suggest specific updates only if they add new, verified information
+4. Only cite papers with real URLs from the search results above
 
 REQUIREMENTS:
-- Only suggest updates that add genuinely new information
-- Prioritize authoritative sources (research papers, official documentation)
-- Include URL citations for all claims
-- Maintain technical accuracy and clarity
+- Only suggest updates with genuinely new information
+- Do NOT fabricate citations — only use URLs from the search results
 - Rate overall relevance (0-1 score)
 
 OUTPUT FORMAT (JSON):
 {{
     "relevance_score": 0.0-1.0,
-    "suggested_updates": "Specific text to add or modify (empty string if no updates needed)",
+    "suggested_updates": "Specific text to add (empty string if no updates needed)",
     "citations": [
         {{
-            "title": "Paper/Article Title",
-            "url": "https://...",
-            "authors": "Author names or organization",
-            "date": "YYYY-MM-DD",
+            "title": "Exact title from search results",
+            "url": "Exact URL from search results",
+            "authors": "Author names if available",
+            "date": "Date from search results",
             "key_finding": "1-2 sentence summary"
         }}
     ],
@@ -151,7 +198,7 @@ OUTPUT FORMAT (JSON):
 
         try:
             response = self.client.messages.create(
-                model="claude-sonnet-4-5-20250929",
+                model="claude-sonnet-4-6-20250514",
                 max_tokens=4096,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -172,13 +219,12 @@ OUTPUT FORMAT (JSON):
             }
 
     def update_attribute_section(
-        self, attribute_id: str, analysis_result: Dict[str, Any]
+        self, attribute_id: str, analysis_result: dict[str, Any]
     ) -> bool:
-        """
-        Update the attribute section in the research report.
+        """Update the attribute section in the research report.
 
-        Returns:
-            True if changes were made, False otherwise
+        Deduplicates: removes any existing "Recent Research Updates" block
+        before inserting the new one.
         """
         min_score = self.config["update_settings"]["min_citation_quality_score"]
         if analysis_result["relevance_score"] < min_score:
@@ -194,7 +240,21 @@ OUTPUT FORMAT (JSON):
             print("  Skipping: no updates or citations")
             return False
 
-        # Read current report
+        # Validate citation URLs before adding
+        valid_citations = []
+        for cite in analysis_result.get("citations", []):
+            url = cite.get("url", "")
+            if url and self.validate_url(url):
+                valid_citations.append(cite)
+            else:
+                print(f"  Skipping citation with invalid URL: {url}")
+
+        if not valid_citations and not analysis_result["suggested_updates"]:
+            print("  Skipping: no valid citations after URL validation")
+            return False
+
+        analysis_result["citations"] = valid_citations
+
         content = self.report_path.read_text()
 
         # Find attribute section
@@ -207,14 +267,21 @@ OUTPUT FORMAT (JSON):
 
         section_header = match.group(1)
         section_content = match.group(2)
+
+        # DEDUPLICATION: Remove any existing "Recent Research Updates" blocks
+        section_content = re.sub(
+            r"\n*\*\*Recent Research Updates \(\d{4}-\d{2}\):\*\*.*?(?=\n\*\*(?!Recent)|$)",
+            "",
+            section_content,
+            flags=re.DOTALL,
+        )
+
         updated_content = section_content
 
-        # Add suggested updates if present
         if analysis_result["suggested_updates"]:
             update_text = analysis_result["suggested_updates"]
             update_header = f"\n\n**Recent Research Updates ({datetime.now().strftime('%Y-%m')}):**\n{update_text}"
 
-            # Insert after "Impact on Agent Behavior:" if it exists
             impact_pattern = r"(\*\*Impact on Agent Behavior:\*\*.*?\n)(\n)"
             if re.search(impact_pattern, updated_content, re.DOTALL):
                 updated_content = re.sub(
@@ -225,15 +292,12 @@ OUTPUT FORMAT (JSON):
                     flags=re.DOTALL,
                 )
             else:
-                # Otherwise add at the beginning of the section
                 updated_content = update_header + "\n" + updated_content
 
-        # Add or update citations
-        if analysis_result["citations"]:
-            citations_text = self._format_citations(analysis_result["citations"])
+        if valid_citations:
+            citations_text = self._format_citations(valid_citations)
 
             if "**Citation" in updated_content:
-                # Append to existing citations
                 updated_content = re.sub(
                     r"(\*\*Citations?:\*\*\n)(.*?)(\n\n|\n---|\Z)",
                     rf"\1\2{citations_text}\n\3",
@@ -242,7 +306,6 @@ OUTPUT FORMAT (JSON):
                     flags=re.DOTALL,
                 )
             else:
-                # Add new Citations section before examples or at end
                 if "**Example" in updated_content:
                     updated_content = re.sub(
                         r"(\*\*Example)",
@@ -253,41 +316,35 @@ OUTPUT FORMAT (JSON):
                 else:
                     updated_content += f"\n\n**Citations:**\n{citations_text}\n"
 
-        # Replace section in full document
         new_section = section_header + updated_content
         new_content = re.sub(pattern, new_section, content, count=1, flags=re.DOTALL)
 
-        # Write updated content
         self.report_path.write_text(new_content)
 
         self.changes_made.append(
             {
                 "attribute_id": attribute_id,
                 "relevance_score": analysis_result["relevance_score"],
-                "num_citations": len(analysis_result["citations"]),
+                "num_citations": len(valid_citations),
             }
         )
 
         return True
 
-    def _format_citations(self, citations: List[Dict[str, str]]) -> str:
+    def _format_citations(self, citations: list[dict[str, str]]) -> str:
         """Format citations in markdown with URL validation."""
         lines = []
         for cite in citations:
             title = cite.get("title", "Untitled")
             url = cite.get("url", "")
 
-            # Validate URL
             if url:
                 parsed = urllib.parse.urlparse(url)
                 if not parsed.scheme or not parsed.netloc:
-                    print(f"  Warning: Skipping invalid URL: {url}")
                     continue
 
-                # Check against blocked domains
                 blocked = self.config.get("search_domains", {}).get("blocked", [])
                 if any(domain in parsed.netloc for domain in blocked):
-                    print(f"  Warning: Skipping blocked domain: {url}")
                     continue
 
             authors = cite.get("authors", "Unknown")
@@ -300,8 +357,15 @@ OUTPUT FORMAT (JSON):
         """Update version and date in report header."""
         content = self.report_path.read_text()
 
-        # Update date
         today = datetime.now().strftime("%Y-%m-%d")
+
+        # Update YAML frontmatter if present
+        if content.startswith("---"):
+            content = re.sub(
+                r'(date:\s*")[^"]*(")', rf"\g<1>{today}\g<2>", content
+            )
+
+        # Update markdown body
         content = re.sub(
             r"\*\*Date:\*\* \d{4}-\d{2}-\d{2}", f"**Date:** {today}", content
         )
@@ -314,25 +378,23 @@ OUTPUT FORMAT (JSON):
             new_version = f"{major}.{minor}.{patch + 1}"
             content = re.sub(version_pattern, f"**Version:** {new_version}", content)
 
+            # Also update frontmatter version
+            content = re.sub(
+                r'(version:\s*")[^"]*(")', rf'\g<1>{new_version}\g<2>', content
+            )
+
         self.report_path.write_text(content)
 
     def run_update(self) -> bool:
-        """
-        Main update orchestration.
+        """Main update orchestration."""
+        print("Starting research update...")
 
-        Returns:
-            True if changes were made, False otherwise
-        """
-        print("Starting weekly research update...")
-
-        # Extract all attribute IDs from current report
         content = self.report_path.read_text()
         attribute_pattern = r"### (\d+\.\d+) (.+?)\n"
         attributes = re.findall(attribute_pattern, content)
 
         print(f"Found {len(attributes)} attributes to check")
 
-        # Prioritize Tier 1 attributes
         priority_attrs = self.config.get("priority_attributes", [])
         sorted_attrs = sorted(
             attributes, key=lambda x: (x[0] not in priority_attrs, x[0])
@@ -348,7 +410,6 @@ OUTPUT FORMAT (JSON):
 
             print(f"\nProcessing attribute {attr_id}: {attr_name}")
 
-            # Extract current content
             section_pattern = rf"### {re.escape(attr_id)} {re.escape(attr_name)}(.*?)(?=\n###|\n---|\Z)"
             match = re.search(section_pattern, content, re.DOTALL)
             if not match:
@@ -356,7 +417,6 @@ OUTPUT FORMAT (JSON):
                 continue
             current_content = match.group(1)
 
-            # Search for recent research
             search_results = self.search_recent_research(attr_id, attr_name)
             if not search_results:
                 print("  No recent research found")
@@ -364,29 +424,25 @@ OUTPUT FORMAT (JSON):
 
             print(f"  Found {len(search_results)} search results")
 
-            # Analyze relevance
             analysis = self.analyze_relevance(attr_id, search_results, current_content)
             print(f"  Relevance score: {analysis['relevance_score']:.2f}")
 
-            # Update section if relevant
             if self.update_attribute_section(attr_id, analysis):
                 updates_made += 1
-                print(f"  ✓ Updated attribute {attr_id}")
+                print(f"  Updated attribute {attr_id}")
 
-        # Update metadata if any changes were made
         if self.changes_made:
             self.update_metadata()
-            print(f"\n✓ Made {len(self.changes_made)} updates")
-            print("✓ Updated version and date")
+            print(f"\nMade {len(self.changes_made)} updates")
+            print("Updated version and date")
 
-            # Print summary
             print("\nChanges summary:")
             for change in self.changes_made:
                 print(
                     f"  - {change['attribute_id']}: score={change['relevance_score']:.2f}, citations={change['num_citations']}"
                 )
         else:
-            print("\nNo updates needed this week")
+            print("\nNo updates needed")
 
         return len(self.changes_made) > 0
 
@@ -395,10 +451,6 @@ if __name__ == "__main__":
     try:
         updater = ResearchUpdater()
         changes_made = updater.run_update()
-
-        # Exit with appropriate code for GitHub Actions
-        # Exit 0 if changes were made (allows PR creation)
-        # Exit 1 if no changes (prevents empty PR)
         exit(0 if changes_made else 1)
     except Exception as e:
         print(f"\nError: {e}")

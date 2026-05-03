@@ -1,33 +1,48 @@
-# Agent-Ready Codebase Attributes: Comprehensive Research
-*Optimizing Codebases for Claude Code and AI-Assisted Development*
+---
+version: "2.0.0"
+date: "2026-05-03"
+focus: "AI coding agent optimization (Claude Code, Copilot, Cursor, Codex, and cross-tool)"
+attribute_count: 29
+tier_count: 4
+reference_count: 55
+---
 
-**Version:** 1.0.1
-**Date:** 2025-12-08
-**Focus:** Claude Code/Claude-specific optimization
-**Sources:** 50+ authoritative sources including Anthropic, Microsoft, Google, ArXiv, IEEE/ACM
+# Agent-Ready Codebase Attributes: Comprehensive Research
+*Optimizing Codebases for AI-Assisted Development*
+
+**Version:** 2.0.0
+**Date:** 2026-05-03
+**Focus:** AI coding agent optimization (cross-tool: Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI)
+**Sources:** 55+ authoritative sources including Anthropic, ETH Zurich, Red Hat, GitHub, Microsoft, Google, ArXiv
 
 ---
 
 ## Executive Summary
 
-This document catalogs 25 high-impact attributes that make codebases optimal for AI-assisted development, specifically Claude Code. Each attribute includes:
+This document catalogs 29 high-impact attributes that make codebases optimal for AI-assisted development across tools (Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI). Each attribute includes:
 - Definition and importance for AI agents
 - Impact on agent behavior (context window, comprehension, task success)
 - Measurable criteria and tooling
 - Authoritative citations
 - Good vs. bad examples
 
-**Top 10 Critical Attributes** (highest ROI):
-1. CLAUDE.md/AGENTS.md configuration files
-2. Conventional commit messages
-3. Type annotations (static typing)
-4. Test coverage >80%
-5. Standard project layouts
-6. Comprehensive README
+**Key Research Findings (2025-2026):**
+- Auto-generated context files **reduce** agent success by ~3% and increase cost by 20-23% (ETH Zurich, Feb 2026)
+- The same model scores 52.8% vs 66.5% depending on surrounding infrastructure — scaffolding matters more than the model (LangChain Terminal-Bench)
+- Anthropic identifies "giving agents a way to verify their work" as the single highest-leverage practice
+- Human-written context files help only marginally (+4%) — only include what agents can't discover on their own (ETH Zurich)
+
+**Top 10 Critical Attributes** (highest ROI, evidence-based):
+1. Single-command test execution (verification is #1 leverage)
+2. CI quality gates (lint + type-check + tests on every PR)
+3. Single-file verification (fast feedback loops for lint/type-check)
+4. CLAUDE.md/AGENTS.md configuration files (minimal, hand-written, <150 lines)
+5. Type annotations (structural signals for agent navigation)
+6. Standard project layouts
 7. Dependency lock files
-8. Pre-commit hooks + CI/CD enforcement
-9. Structured logging
-10. API specifications (OpenAPI/GraphQL)
+8. README with quick start commands
+9. Deterministic enforcement (hooks + lint rules > advisory instructions)
+10. Pattern references for common changes
 
 ---
 
@@ -45,49 +60,35 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
 - Reduced need for repeated context-setting
 - Frames entire session with project-specific guidance
 
+**Critical Research Finding:** The ETH Zurich study (Feb 2026) tested context files across 138 real tasks. Auto-generated files (e.g., from `/init`) **reduced** agent success by ~3% and increased costs by 20-23%. Human-written files helped only marginally (+4%). The takeaway: only include information agents can't discover by reading the code.
 
-**Recent Research Updates (2025-12):**
 **Measurable Criteria:**
-- File size: <1000 lines (concise, focused)
-- Essential sections:
-  - Tech stack with versions
-  - Repository map/structure
-  - Standard commands (build, test, lint, format)
-  - Testing strategy
-  - Style/lint rules
-  - Branch/PR workflow
-  - "Do not touch" zones
-  - Security/compliance notes
-  - Architectural patterns/constraints (explicit boundaries and design principles)
-- Maintenance: Update incrementally as project evolves
-- Structure: Follow standardized schema for team consistency
-
-**Quantified Benefits:**
-- 34% fewer AI-generated bugs in codebases with well-maintained context files
-- 28% faster feature implementation compared to projects without structured context
-- 41% improvement in code consistency across AI-assisted contributions
-- 23% reduction in security vulnerabilities when using LLM assistants
-- 73% AI suggestion acceptance rate (vs. 52% without context files)
-- 45% reduction in team onboarding time
-- 3.2x higher developer satisfaction with AI coding assistants
+- File size: <150 lines recommended, hard cap at 300 lines
+- Only include what agents **cannot infer** from the codebase
+- The 6 core areas (per GitHub analysis of 2,500+ repos):
+  1. Commands — executable build/test/lint commands with flags
+  2. Testing — framework specifics and test execution patterns
+  3. Project structure — only non-obvious file locations
+  4. Code style — real examples of good vs. poor output
+  5. Git workflow — commit format, branch naming, PR conventions
+  6. Boundaries — "always do," "ask first," "never do"
+- Cross-tool compatibility: AGENTS.md supported by 60,000+ repos across Claude Code, Copilot, Cursor, Codex, Gemini CLI
+- Maintenance: update when code review catches agent mistakes
 
 **Anti-patterns to Avoid:**
-- Outdated context that contradicts current project state
-- Overly verbose documentation that exceeds context window utility
-- Missing constraint specifications that lead to boundary violations
-**Measurable Criteria:**
-- File size: <1000 lines (concise, focused)
-- Essential sections:
-  - Tech stack with versions
-  - Repository map/structure
-  - Standard commands (build, test, lint, format)
-  - Testing strategy
-  - Style/lint rules
-  - Branch/PR workflow
-  - "Do not touch" zones
-  - Security/compliance notes
+- Auto-generated context shipped as-is (-3% success rate, +20% cost)
+- File-by-file descriptions (bloat context, go stale fast)
+- Standard language conventions the agent already knows
+- Context files >300 lines (adherence drops, context diluted)
 
-**Citation:** Anthropic Engineering Blog - "Claude Code Best Practices" (2025)
+**Litmus test for every line:** "Would removing this cause the agent to make a mistake it wouldn't otherwise make?" If not, delete it.
+
+**Citations:**
+- ETH Zurich: "Are Repository-Level Context Files Helpful for Coding Agents?" (Feb 2026) — arxiv.org/html/2602.11988v1
+- Anthropic: Claude Code Best Practices — code.claude.com/docs/en/best-practices
+- GitHub Blog: "How to write a great agents.md — lessons from over 2,500 repositories" (2026)
+- Addy Osmani: "Stop Using /init for AGENTS.md" (Feb 2026)
+- AGENTS.md Official Specification — agents.md
 
 **Example:**
 ```markdown
@@ -175,74 +176,24 @@ This document catalogs 25 high-impact attributes that make codebases optimal for
 - Better architectural understanding without exploring entire codebase
 - Consistent expectations across projects
 
-
-**Recent Research Updates (2025-12):**
-**Definition:** Standardized README with essential sections in predictable order, optimized for AI comprehension.
-
-**Why It Matters:** Repositories with well-structured READMEs receive more engagement (GitHub data). README serves as agent's entry point for understanding project purpose, setup, and usage. Well-structured READMEs improve AI code completion accuracy by 34% and reduce new contributor onboarding time by 62% when paired with AI assistants.
-
-**Impact on Agent Behavior:**
-- Faster project comprehension (45% faster task completion with explicit file structure maps)
-- Accurate answers to onboarding questions
-- Better architectural understanding without exploring entire codebase
-- Consistent expectations across projects
-- Reduced context window consumption (up to 58% reduction with progressive disclosure)
-- Improved zero-shot code generation (28% higher F1 scores)
-
-**Measurable Criteria:**
-Essential sections (in order):
-1. Project title and description (front-load critical information in first 500 tokens)
-2. Quick start/usage examples (prioritize for progressive disclosure)
-3. Installation/setup instructions
-4. Core features
-5. Architecture overview with explicit file structure map
-6. Dependencies and requirements (include dependency trees)
-7. API surface documentation
-8. Testing instructions
-9. Contributing guidelines
-10. License
-
-Additional optimization requirements:
-- Root-level placement (not in subdirectories)
-- Hierarchical organization with clear section headers
-- Machine-readable metadata headers for AI parsing
-- Semantic signposting aligned with transformer attention patterns
-- Clear delineation between conceptual and operational content
-- Concise, high information density writing
-
-**Performance Benchmarks:**
-- Code completion accuracy improvement: 34%
-- Context window efficiency gain: 58%
-- Task completion speed increase: 45%
-- New contributor onboarding time reduction: 62%
-- Zero-shot code generation F1 score improvement: 28%
-
-**Citations:**
-- Chen, M., Patel, R., & Zhang, L. (2024). "Optimizing Repository Documentation for Large Language Model Code Understanding" (Stanford University)
-- Kumar, A., Williams, S., Chen, X., & Horvitz, E. (2024). "Context Window Economics: Documentation Patterns for Efficient AI-Assisted Development" (Microsoft Research)
-- Thompson, J. & Kaplan, R. (2023). "README-First Development: How Documentation Structure Influences AI Codebase Navigation" (Anthropic)
-- GitHub Research Team (2024). "Automated README Generation and Optimization for AI-Enhanced Workflows"
-- Liu, Y., Nguyen, T., Allamanis, M., & Brockschmidt, M. (2023). "From Docs to Code: Measuring README Information Density" (Google DeepMind)
 **Measurable Criteria:**
 Essential sections (in order):
 1. Project title and description
-2. Installation/setup instructions
-3. Quick start/usage examples
+2. Quick start/usage examples (front-load actionable commands)
+3. Installation/setup instructions
 4. Core features
-5. Dependencies and requirements
-6. Testing instructions
+5. Testing instructions (how to run tests)
+6. Dependencies and requirements
 7. Contributing guidelines
-8. License- [Optimizing Repository Documentation for Large Language Model Code Understanding: An Empirical Study](https://arxiv.org/abs/2403.12847) - Chen, M., Patel, R., & Zhang, L. (Stanford University), 2024-03-15
-- [Context Window Economics: Documentation Patterns for Efficient AI-Assisted Development](https://www.microsoft.com/en-us/research/publication/context-window-economics-documentation-patterns) - Kumar, A., Williams, S., Chen, X., & Horvitz, E. (Microsoft Research), 2024-01-22
-- [README-First Development: How Documentation Structure Influences AI Codebase Navigation](https://anthropic.com/research/readme-codebase-navigation) - Thompson, J. & Kaplan, R. (Anthropic), 2023-11-08
-- Automated README Generation and Optimization for AI-Enhanced Workflows: A Practitioner's Guide - GitHub Research Team (Rodriguez, M. et al.), 2024-02-14
-- [From Docs to Code: Measuring README Information Density in AI Training and Inference](https://arxiv.org/abs/2312.09334) - Liu, Y., Nguyen, T., Allamanis, M., & Brockschmidt, M. (Google DeepMind), 2023-12-18
-
+8. License
+- Root-level placement
+- Hierarchical organization with clear section headers
+- README <500 lines; use wiki/docs for extensive content
 
 **Citations:**
-- GitHub Blog: "How to write a great agents.md"
+- GitHub Blog: "How to write a great agents.md — lessons from over 2,500 repositories" (2026)
 - Make a README project documentation
-- Welcome to the Jungle: "Essential Sections for Better Documentation"
+- Augment Code: "How to Build Your AGENTS.md" (2025)
 
 ---
 
@@ -415,55 +366,26 @@ Negative:
 **Why It Matters:** Type hints significantly improve LLM code understanding. Higher-quality codebases have type annotations, directing LLMs toward higher-quality latent space regions. Creates synergistic improvement: LLMs generate better typed code, which helps future LLM interactions.
 
 **Impact on Agent Behavior:**
-- Better input validation
-- Type error detection before execution
+- Better input validation and type error detection before execution
 - Structured output generation
 - Improved autocomplete suggestions
 - Enhanced refactoring safety
-
-
-**Recent Research Updates (2025-12):**
-**Why It Matters:** Type hints significantly improve LLM code understanding and performance. Research shows type annotations improve LLM-based code completion accuracy by 34% and maintenance task performance by 41% compared to untyped code. Higher-quality codebases have type annotations, directing LLMs toward higher-quality latent space regions. Type signatures serve as semantic anchors that improve model reasoning about code dependencies and data flow. Creates synergistic improvement: LLMs generate better typed code, which helps future LLM interactions.
-
-**Impact on Agent Behavior:**
-- Better input validation
-- Type error detection before execution
-- Structured output generation
-- Improved autocomplete suggestions (34% more accurate with type context)
-- Enhanced refactoring safety
-- Faster task completion (28% improvement in AI-augmented workflows)
-- Fewer bugs in AI-generated code (45% reduction)
-- Better understanding of developer intent
+- Type signatures serve as semantic anchors for agent reasoning about code dependencies
 
 **Measurable Criteria:**
 - Python: All public functions have parameter and return type hints
 - TypeScript: `strict` mode enabled in tsconfig.json
-- Go: Inherently typed
-- Coverage: >80% of functions typed
-- Target correctness: >87% for AI-assisted type annotations
-- Tools: mypy (Python), pyright (Python), tsc --strict (TypeScript)
-- Advanced: Consider TypeGPT or similar tools for type prediction and verification
-
-**Additional Context:**
-- AI tools can assist with type annotation migration, reducing manual effort by 63%
-- Complex generic types remain challenging for current AI models
-- Gradually-typed codebases significantly outperform dynamically-typed equivalents in AI maintenance tasks
-- Type annotations improve both AI code generation quality and subsequent AI interactions with that code
-**Measurable Criteria:**
-- Python: All public functions have parameter and return type hints
-- TypeScript: `strict` mode enabled in tsconfig.json
+- JavaScript: JSDoc type annotations at minimum
 - Go: Inherently typed
 - Coverage: >80% of functions typed
 - Tools: mypy (Python), pyright (Python), tsc --strict (TypeScript)
 
 **Citations:**
+- Cursor: "Use typed languages, configure linters, and write tests. Give the agent clear signals for whether changes are correct." — cursor.com/blog/agent-best-practices
+- Red Hat: Repository Scaffolding for AI Coding Agents, Section 2.4 (April 2026)
 - Medium: "LLM Coding Concepts: Static Typing, Structured Output"
-- ArXiv: "Automated Type Annotation in Python Using LLMs"
-- Dropbox Tech Blog: "Our journey to type checking 4 million lines of Python"- [Type Inference Meets Large Language Models: Enhancing Code Completion with Static Type Context](https://arxiv.org/abs/2404.12847) - Chen, M., Rodriguez, A., Patel, S., and Zhang, L., 2024-04-15
-- [Automated Type Annotation Migration: A Large-Scale Analysis of AI-Assisted Refactoring in Python Codebases](https://www.microsoft.com/en-us/research/publication/automated-type-annotation-migration/) - Microsoft Research - Software Analysis Group, 2024-02-08
-- [The Impact of Gradual Typing on AI Code Understanding: A Comparative Study](https://research.google/pubs/pub53241/) - Kumar, R., Thompson, J., and Lee, Y., 2023-11-22
-- [TypeGPT: Teaching Language Models to Predict and Verify Type Annotations](https://arxiv.org/abs/2312.09573) - Wang, X., Nguyen, T., Alvarez, M., and Schmidt, D., 2023-12-18
-- [Static Types as Documentation: Measuring Developer Productivity in AI-Augmented Workflows](https://www.anthropic.com/research/static-types-developer-productivity) - Anthropic Research Team - Chen, S., Morrison, K., and Das, A., 2024-03-30
+- Dropbox Tech Blog: "Our journey to type checking 4 million lines of Python"
+- ArXiv: "TypyBench: Evaluating LLM Type Inference for Untyped Python Repositories"
 
 
 **Example:**
@@ -609,55 +531,36 @@ project/
 
 ## 5. TESTING & CI/CD
 
-### 5.1 Test Coverage Requirements
+### 5.1 Test Execution & Coverage
 
-**Definition:** Percentage of code executed by automated tests.
+**Definition:** Ability to run tests with a single command, with adequate code coverage.
 
-**Why It Matters:** High test coverage enables confident AI modifications. Research shows AI tools (Cursor AI) can cut test coverage time by 85% while maintaining quality—but only when good tests exist as foundation.
+**Why It Matters:** Anthropic identifies test execution as "the single highest-leverage thing you can do" for AI agent effectiveness. Agents succeed through tight feedback loops: change code, run tests, see failures, iterate. Without runnable tests, agents fly blind. The DORA 2025 report confirms AI amplifies existing good testing practices — TDD is more critical than ever.
 
 **Impact on Agent Behavior:**
+- Enables self-correction through test-driven iteration
 - Safety net enabling aggressive refactoring
 - Tests document expected behavior
 - Immediate feedback on breaking changes
 - Higher confidence in suggested modifications
 
-
-**Recent Research Updates (2025-12):**
 **Measurable Criteria:**
-- Minimum: 70% line coverage (human-written code)
-- AI-generated/refactored code: 85% line coverage + 70% mutation coverage for critical paths
-- Target: 80-90% line coverage (adjust +5% for AI-heavy codebases)
-- Branch coverage: Increase threshold by 23% for AI-generated code sections
-- Critical paths: 100% coverage
-- Track: Statement coverage, branch coverage, function coverage, mutation coverage
-- Tools: pytest-cov (Python), Jest/Istanbul (JavaScript), go test -cover (Go), mutation testing frameworks (Stryker, PITest)
-- Coverage reports in CI/CD with failure threshold
-- Implement coverage-aware prompting for AI test generation (achieves 92% branch coverage vs 67% standard)
-- Quarterly coverage audits recommended for AI-assisted projects to detect coverage drift
-
-**AI-Specific Considerations:**
-- AI-generated code exhibits subtle edge cases requiring higher branch coverage for equivalent defect detection
-- Track code provenance (human vs. AI-generated) and apply adaptive thresholds
-- Monitor for coverage drift: AI tools may optimize for passing existing tests rather than comprehensive edge case handling (avg. 12% decline in effective coverage over 18 months)
-- Pay particular attention to API boundary conditions that AI tools frequently mishandle
-- Consider dynamic coverage thresholds based on component criticality and code provenance
-**Measurable Criteria:**
+- Single-command test runner that works without external dependencies (no cluster access, no cloud credentials)
+- Single-file/module test execution supported (e.g., `make test-unit PACKAGE=./pkg/...`)
+- Clear separation of unit tests (agent can run) from integration tests (need infrastructure)
 - Minimum: 70% line coverage
 - Target: 80-90% line coverage
 - Critical paths: 100% coverage
-- Track: Statement coverage, branch coverage, function coverage
 - Tools: pytest-cov (Python), Jest/Istanbul (JavaScript), go test -cover (Go)
 - Coverage reports in CI/CD with failure threshold
+- One real test per major code path is infinitely more valuable than zero tests
 
 **Citations:**
+- Anthropic: Claude Code Best Practices — "giving agents a way to verify their work" — code.claude.com/docs/en/best-practices
+- Red Hat: Repository Scaffolding for AI Coding Agents, Section 1.1 (April 2026)
+- DORA 2025 (Google Cloud): "AI amplifies existing good practices. TDD is more critical than ever."
+- LangChain Terminal-Bench: same model scored 52.8% vs 66.5% depending on scaffolding (+26%)
 - Salesforce Engineering: "How Cursor AI Cut Legacy Code Coverage Time by 85%"
-- Qodo AI Blog: "Harnessing AI to Revolutionize Test Coverage Analysis"
-- Medium: "How to Improve Code Coverage using Generative AI tools"
-- [Rethinking Test Coverage Metrics in the Era of AI-Powered Code Generation](https://arxiv.org/abs/2404.12847) - Chen, M., Patel, R., and Nakamura, K., 2024-04-15
-- [Adaptive Test Coverage Strategies for LLM-Assisted Development Workflows](https://www.microsoft.com/en-us/research/publication/adaptive-test-coverage-strategies-llm-workflows/) - Microsoft Research AI & Systems Group, 2024-01-22
-- [Test Adequacy Criteria for AI-Refactored Legacy Systems: A Comparative Analysis](https://ieeexplore.ieee.org/document/10389457) - Andersson, L., Wu, J., and Kowalski, P., 2023-12-08
-- [Coverage-Guided Prompting: Optimizing Test Generation in AI Development Assistants](https://www.anthropic.com/research/coverage-guided-prompting) - Anthropic Safety & Alignment Team, 2024-03-10
-- [Empirical Study: Test Coverage Drift in Continuously AI-Optimized Codebases](https://dl.acm.org/doi/10.1145/3691824.3691856) - Rodriguez, S., Kim, H., Okonkwo, C., and Zhang, Y., 2024-02-28
 
 ---
 
@@ -816,72 +719,6 @@ def test_user2():
 - Better git history comprehension
 - Automated changelog contribution
 
-
-**Recent Research Updates (2025-12):**
-**Definition:** Structured commit messages following format: `<type>(<scope>): <description>`.
-
-**Why It Matters:** Conventional commits enable automated semantic versioning, changelog generation, and commit intent understanding. AI models trained on structured commit histories demonstrate 89% acceptance rates for generated messages and 76% accuracy in predicting developer intent. Research shows that conventional commit formats improve AI code review accuracy by 34% and enable 3.5x better contextual code suggestions from AI assistants.
-
-**Impact on Agent Behavior:**
-- Generates properly formatted commit messages with high developer acceptance (89% vs 67% for unstructured)
-- Understands which changes are breaking with 94% accuracy in semantic version prediction
-- Appropriate version bump suggestions through automated analysis
-- Better git history comprehension and repository evolution understanding
-- Automated changelog contribution
-- Enhanced contextual awareness for code suggestions (3.5x improvement)
-- Improved breaking change and security vulnerability detection (34% more accurate)
-
-**Measurable Criteria:**
-- Format: `type(scope): description`
-- **Types:** feat, fix, docs, style, refactor, perf, test, chore, build, ci
-- **Breaking changes:** `BREAKING CHANGE:` footer or `!` after type
-- **Tools:** commitlint, commitizen, semantic-release
-- **Enforcement:** Pre-commit hook or CI check
-- All commits follow convention (enforce in CI)
-- **AI Impact Metrics:** Track LLM-generated commit acceptance rates (target: >85%), version prediction accuracy, and onboarding time reduction
-
-**Developer Benefits:**
-- 42% faster onboarding times for new team members
-- 28% fewer merge conflicts in collaborative workflows
-- 67% reduction in version numbering errors with automated release management
-- Improved AI assistant context understanding across development lifecycle
-
-**Citations:**
-- Conventional Commits specification v1.0.0
-- Medium: "GIT — Semantic versioning and conventional commits"
-- CMU SEI Blog: "Versioning with Git Tags and Conventional Commits"
-- Chen et al. (2024): "Automated Commit Message Generation" - arxiv.org/abs/2404.12847
-- Zhang et al. (2024): "Semantic Commit Analysis" - Microsoft Research
-- GitHub Research (2024): "Optimizing Git History for AI"
-- Foster et al. (2023): "Breaking Changes and Beyond" - ACM Digital Library
-- Anthropic Research (2023): "LLM-Assisted Development Impact"- [Automated Commit Message Generation: A Large-Scale Study of GPT-4 and Claude in Production Codebases](https://arxiv.org/abs/2404.12847) - Chen, L., Rodriguez, M., Patel, S., & Kim, J., 2024-04-15
-- [Semantic Commit Analysis: How Conventional Commits Enable Better AI Code Review](https://www.microsoft.com/en-us/research/publication/semantic-commit-analysis-ai-code-review/) - Zhang, A., Williams, K., & Thompson, D. (Microsoft Research), 2024-01-22
-- [LLM-Assisted Development: The Impact of Commit Message Standards on Codebase Maintainability](https://www.anthropic.com/research/commit-standards-codebase-health) - Anthropic Research Team (Liu, H., Sharma, R., & Anderson, E.), 2023-11-08
-- Optimizing Git History for AI: A Quantitative Analysis of Commit Message Patterns - GitHub Research Team (Martinez, C. & O'Brien, P.), 2024-02-14
-- [Breaking Changes and Beyond: Machine Learning Models for Semantic Version Prediction from Conventional Commits](https://dl.acm.org/doi/10.1145/3633785.3633892) - Foster, J., Nakamura, T., Schmidt, A., & Brown, V., 2023-12-03
-
-
-**Example:**
-```
-# Good commits
-feat(auth): add OAuth2 login support
-fix(api): handle null values in user response
-docs(readme): update installation instructions
-perf(database): add index on user_email column
-
-# Breaking change
-feat(api)!: change user endpoint from /user to /users
-
-BREAKING CHANGE: User endpoint URL has changed from /user to /users.
-Update all API clients accordingly.
-
-# Bad commits
-update stuff
-fixed bug
-changes
-wip
-asdf
-```
 **Measurable Criteria:**
 - Format: `type(scope): description`
 - **Types:** feat, fix, docs, style, refactor, perf, test, chore, build, ci
@@ -1737,128 +1574,295 @@ response = api.start_job()
 
 ---
 
+## 16. VERIFICATION & FEEDBACK LOOPS
+
+### 16.1 Single-File Verification
+
+**Definition:** Ability to lint and type-check individual files quickly without a full build step.
+
+**Why It Matters:** Fast feedback loops separate agents that self-correct from agents that spiral. If linting the whole project takes 2 minutes, the agent won't lint after each change. If linting a single file takes 2 seconds, it will. This is the foundation of agent self-correction.
+
+**Impact on Agent Behavior:**
+- Enables rapid iteration after each code change
+- Agent can verify its own work in real-time
+- Catches errors before they compound
+- Reduces wasted compute on broken intermediate states
+
+**Measurable Criteria:**
+- Single-file lint command documented (e.g., `npx eslint --fix path/to/file.tsx`)
+- Single-file type-check command available (e.g., `npx tsc --noEmit`)
+- Commands work without a full build step first
+- Commands execute in <5 seconds per file
+- Documented in CLAUDE.md/AGENTS.md or README
+
+**Citations:**
+- Red Hat: Repository Scaffolding for AI Coding Agents, Section 1.3 (April 2026)
+- Anthropic: Claude Code Best Practices — code.claude.com/docs/en/best-practices
+- Factory.ai: "Using Linters to Direct Agents"
+
+---
+
+### 16.2 CI Quality Gates
+
+**Definition:** CI/CD pipelines that run lint, type-check, and tests on every PR as mandatory quality gates.
+
+**Why It Matters:** "Lint passing" becomes a machine-verifiable proxy for "conforms to architecture and best practices." Agents read CI output and iterate on failures. Without enforceable gates, advisory instructions in context files may be ignored.
+
+**Impact on Agent Behavior:**
+- Provides definitive pass/fail signal for agent-generated code
+- CI failure messages guide agent self-correction
+- Prevents low-quality code from entering repository
+- Creates a feedback loop that improves agent output over time
+
+**Measurable Criteria:**
+- CI runs lint, type-check, and tests on every PR
+- CI output is readable (not buried in noise)
+- Failure messages point directly to the problem
+- Fast feedback: tests complete in <10 minutes
+- Fail fast: stop on first failure to save compute
+- Quality gates are mandatory (not optional/advisory)
+
+**Citations:**
+- Red Hat: Repository Scaffolding for AI Coding Agents, Section 1.4 (April 2026)
+- Factory.ai: "Agents write the code; linters write the law."
+- Stack Overflow: "Coding Guidelines for AI Agents" (March 2026)
+
+---
+
+## 17. AGENT PATTERNS & KNOWLEDGE
+
+### 17.1 Pattern References for Common Changes
+
+**Definition:** Documented reference implementations and examples for the most common types of changes in a codebase.
+
+**Why It Matters:** Pattern references turn novel changes into copy-modify changes, which agents handle far more reliably. The Stack Overflow team found that explicit examples (both correct and incorrect) dramatically improved agent output quality.
+
+**Impact on Agent Behavior:**
+- Reduces agent from "creating from scratch" to "adapting a known pattern"
+- Higher consistency across agent-generated changes
+- Fewer architectural violations
+- Faster task completion
+
+**Measurable Criteria:**
+- 3-5 pattern references for most common change types (e.g., new API endpoint, new UI component, new adapter)
+- Each pattern points to a real example in the codebase
+- Patterns documented as SKILL.md files in `.claude/skills/` or equivalent
+- Each pattern includes: reference file path, step-by-step instructions, key invariants
+
+**Example:**
+```
+.claude/skills/
+  add-api-endpoint/
+    SKILL.md        # Points to src/api/handlers/users.ts as reference
+  add-adapter/
+    SKILL.md
+  add-migration/
+    SKILL.md
+```
+
+**Citations:**
+- Red Hat: Repository Scaffolding for AI Coding Agents, Section 2.1 (April 2026)
+- Stack Overflow: "Coding Guidelines for AI Agents" (March 2026)
+- Anthropic: Claude Code Skills Documentation — code.claude.com/docs/en/skills
+
+---
+
+### 17.2 Design Intent Documentation
+
+**Definition:** Documentation of architectural intent, preconditions, invariants, and design rationale that cannot be inferred from code alone.
+
+**Why It Matters:** Agents can discover *what* code does by reading it, but not *why* it was designed that way, what invariants must hold, or what preconditions are assumed. Without this, agents make changes that pass tests but violate design contracts — subtle breakage that surfaces later.
+
+**Impact on Agent Behavior:**
+- Prevents changes that pass tests but violate design contracts
+- Understanding of constraints and limitations
+- Avoidance of "obvious" refactorings that break assumptions
+- Preservation of architectural intent during modifications
+
+**Measurable Criteria:**
+- `docs/design/` or `docs/architecture/` directory exists
+- Design docs include:
+  - Preconditions ("assumes auth middleware has validated token")
+  - Invariants ("event log is append-only; never mutate or delete")
+  - Design rationale ("polling instead of webhooks because upstream SLA is 5s")
+- Design docs are referenced from context file
+- Design docs updated when architectural changes are made
+
+**Citations:**
+- Red Hat: Repository Scaffolding for AI Coding Agents, Section 2.3 (April 2026)
+- Martin Fowler: "Context Engineering for Coding Agents" (Feb 2026)
+
+---
+
+### 17.3 Progressive Disclosure
+
+**Definition:** Hierarchical context organization where root-level files provide orientation and component-level files provide detail, loading only when relevant.
+
+**Why It Matters:** For repos exceeding ~100K lines, a single root context file cannot provide module-level orientation without becoming too long. Progressive disclosure keeps context lean while providing depth where needed. Once context files exceed ~150 lines, you pay a context tax on every session for rarely-needed information.
+
+**Impact on Agent Behavior:**
+- Reduces context pollution from irrelevant information
+- Module-specific guidance loads only when working in that area
+- Enables large repos to provide rich agent context without bloat
+- Skills load on-demand rather than consuming context every session
+
+**Measurable Criteria:**
+- Root CLAUDE.md/AGENTS.md <150 lines, acting as routing layer
+- `.claude/rules/` directory with path-scoped frontmatter for module-specific rules
+- Subdirectory context files for frequently-changed modules
+- `.claude/skills/` directory for on-demand knowledge (loads only when relevant)
+- Skills have YAML frontmatter (~100 tokens) for relevance scanning
+
+**Example:**
+```markdown
+# .claude/rules/api-module.md
+---
+paths:
+  - "src/api/**/*.ts"
+---
+
+# API Module Rules
+- All endpoints use middleware chain in src/api/middleware/
+- Request validation uses zod schemas in src/api/schemas/
+- Response types generated from OpenAPI spec — don't edit types.generated.ts
+```
+
+**Citations:**
+- Red Hat: Repository Scaffolding for AI Coding Agents, Sections 3.1 and 4.1 (April 2026)
+- Anthropic: Claude Code Skills Documentation — code.claude.com/docs/en/skills
+- ETH Zurich: "Are Repository-Level Context Files Helpful for Coding Agents?" (Feb 2026) — context efficiency findings
+
+---
+
 ## IMPLEMENTATION PRIORITIES
 
-### Tier 1: Essential (Must-Have)
-**Highest impact, enables basic agent functionality:**
+### Tier 1: Essential (Must-Have) — 55% of score
+**Highest impact. Verification and fast feedback loops first, then context and structure:**
 
-1. **CLAUDE.md** - 40% time savings, immediate context framing
-2. **README with quick start** - Entry point understanding
-3. **Type annotations** - Higher quality latent space, better comprehension
-4. **Standard project layout** - Faster navigation
-5. **Dependency lock files** - Reproducible builds
+1. **Test execution** (10%) — Single-command test runner. "The single highest-leverage thing." (Anthropic)
+2. **Type annotations** (8%) — Structural signals for agent navigation and correctness
+3. **CLAUDE.md/AGENTS.md** (7%) — Minimal, hand-written, <150 lines, 6 core areas
+4. **CI quality gates** (5%) — Lint + type-check + tests on every PR
+5. **Single-file verification** (5%) — Fast lint/type-check per file for tight feedback loops
+6. **README with quick start** (5%) — Entry point with actionable commands
+7. **Standard project layout** (5%) — Language-specific directory conventions
+8. **Dependency lock files** (5%) — Reproducible builds
+9. **Dependency security** (5%) — Vulnerability scanning and updates
 
-### Tier 2: Critical (Should-Have)
-**Major quality improvements, safety nets:**
+### Tier 2: Critical (Should-Have) — 27% of score
+**Quality improvements, enforcement, and patterns (3% each):**
 
-6. **Test coverage >70%** - Safety for refactoring
-7. **Pre-commit hooks + CI/CD** - Automated quality enforcement
-8. **Conventional commits** - Semantic versioning, history understanding
-9. **Complete .gitignore** - Reduced context pollution
-10. **One-command setup** - Easy environment reproduction
+10. **Deterministic enforcement** — Hooks + lint rules > advisory instructions
+11. **Conventional commits** — Semantic versioning, history understanding
+12. **Complete .gitignore** — Reduced context pollution
+13. **One-command setup** — Single command for build, test, lint
+14. **Concise documentation** — Information-dense, structured docs
+15. **Inline documentation** — Docstrings >80% public API
+16. **File size limits** — <200-300 lines per file
+17. **Separation of concerns** — Feature-based organization
+18. **Pattern references** — 3-5 reference implementations for common changes
 
-### Tier 3: Important (Nice-to-Have)
-**Significant improvements in specific areas:**
+### Tier 3: Important (Nice-to-Have) — 15% of score
+**Significant improvements in specific areas (3% each):**
 
-11. **Cyclomatic complexity limits** - Better code comprehension
-12. **Structured logging** - Machine-parseable debugging
-13. **OpenAPI/GraphQL specs** - Auto-generated clients
-14. **ADRs** - Architectural context
-15. **Semantic naming** - Faster code location
+19. **Design intent documentation** — Preconditions, invariants, rationale
+20. **Cyclomatic complexity limits** — Better code comprehension
+21. **Structured logging** — Machine-parseable debugging
+22. **OpenAPI/GraphQL specs** — Machine-readable API surfaces
+23. **Architecture Decision Records** — Architectural context
 
-### Tier 4: Advanced (Optimization)
-**Refinement and optimization:**
+### Tier 4: Advanced (Optimization) — 3% of score
+**Refinement for teams at scale (1% each):**
 
-16. **Security scanning** - Vulnerability prevention
-17. **Performance benchmarks** - Regression detection
-18. **Code smell elimination** - Higher quality baseline
-19. **PR/Issue templates** - Consistent contributions
-20. **Container setup** - Reproducible environments
+24. **Code smell elimination** — Higher quality baseline
+25. **Issue & PR templates** — Consistent contributions
+26. **Container setup** — Reproducible environments
+27. **Progressive disclosure** — Path-scoped rules and skills for large repos
 
 ---
 
 ## QUICKSTART: Making Your Codebase Agent-Ready
 
-### Week 1: Foundation Documentation
+**The meta-lesson:** Teams shipping reliable AI-generated code invest in fast verification loops, minimal context files, and deterministic enforcement. Not clever prompts.
+
+### Week 1: Verification First (Highest Impact)
 ```bash
-# Create CLAUDE.md
+# 1. Ensure tests run with a single command (no external deps)
+pytest tests/               # Python
+npm test                    # JavaScript
+go test ./...               # Go
+
+# 2. Ensure single-file lint commands work
+npx eslint --fix path/to/file.ts   # JavaScript/TypeScript
+ruff check path/to/file.py         # Python
+golangci-lint run path/to/file.go  # Go
+
+# 3. Ensure CI runs lint + type-check + tests on every PR
+# Check .github/workflows/ or equivalent
+
+# 4. Write minimal CLAUDE.md (hand-written, <150 lines)
 cat > CLAUDE.md << 'EOF'
-# Tech Stack
-- [Your language/framework with versions]
+# Project Name
 
-# Standard Commands
-- Setup: [command]
-- Test: [command]
-- Lint: [command]
-- Build: [command]
+## Build & Test Commands
+- Test all: `pytest tests/`
+- Test single: `pytest tests/path/to/test.py`
+- Lint: `ruff check .`
+- Type check: `mypy src/`
 
-# Repository Structure
-- src/ - [description]
-- tests/ - [description]
+## Key Conventions
+- [3-5 rules the agent can't infer from code]
 
-# Boundaries
-- [Any off-limits areas]
+## Boundaries
+- Never modify files in legacy/
 EOF
-
-# Update README
-# Add: Installation, Quick Start, Testing sections
-
-# Create .env.example
-cp .env .env.example
-# Remove sensitive values, keep variable names
 ```
 
-### Week 2: Quality Automation
+### Week 2: Enforcement & Types
 ```bash
-# Install pre-commit
-pip install pre-commit
-
-# Create .pre-commit-config.yaml
-pre-commit sample-config > .pre-commit-config.yaml
-
-# Add formatters, linters for your language
-# Install hooks
-pre-commit install
-
-# Add commitlint (optional but recommended)
-npm install -g @commitlint/cli @commitlint/config-conventional
-```
-
-### Week 3: Testing & Dependencies
-```bash
-# Measure test coverage
-pytest --cov  # Python
-jest --coverage  # JavaScript
-go test -cover  # Go
-
-# Generate lock file
-pip freeze > requirements.txt  # Python
-npm install  # Generates package-lock.json
-go mod tidy  # Updates go.sum
-
-# Add Dependabot
-# Create .github/dependabot.yml
-```
-
-### Week 4: Structure & Types
-```bash
-# Refactor to standard layout (if needed)
 # Add type annotations to public APIs
 mypy --install-types  # Python
-tsc --init  # TypeScript
+tsc --init            # TypeScript
 
-# Create PR/Issue templates
-mkdir -p .github/ISSUE_TEMPLATE
-# Add bug_report.md, feature_request.md
-# Add PULL_REQUEST_TEMPLATE.md
+# Set up hooks for deterministic enforcement
+# Auto-format on edit, block destructive operations
+# Configure in .claude/settings.json for team-wide sharing
+
+# Set up pre-commit
+pip install pre-commit
+pre-commit install
 ```
 
-### Ongoing Maintenance
-- Update CLAUDE.md as project evolves
-- Create ADRs for architectural decisions
-- Monitor code quality metrics (SonarQube, CodeClimate)
-- Keep dependencies updated
-- Review and improve test coverage
+### Week 3: Dependencies & Patterns
+```bash
+# Generate lock file
+pip freeze > requirements.txt  # Python
+npm install                    # Generates package-lock.json
+go mod tidy                    # Updates go.sum
+
+# Add Dependabot or Renovate
+# Create .github/dependabot.yml
+
+# Add 3-5 pattern references for common changes
+mkdir -p .claude/skills
+# Point to real reference implementations in the codebase
+```
+
+### Week 4: Documentation & Structure
+```bash
+# Update README with testing instructions
+# Create PR/Issue templates
+mkdir -p .github/ISSUE_TEMPLATE
+
+# Audit design docs against codebase
+# Reverse-engineer missing design docs for critical modules
+mkdir -p docs/design
+```
+
+### Ongoing
+- When a code review catches an agent mistake, add a rule to CLAUDE.md or a lint rule
+- Periodically audit context file: is every line still preventing a real failure?
+- Addy Osmani: "Treat AGENTS.md as a living list of codebase smells you haven't fixed yet"
 
 ---
 
@@ -1889,99 +1893,94 @@ Where each category is 0.0-1.0 based on attribute completion.
 
 ### Validation Checklist
 
-**Documentation (25%):**
-- [ ] CLAUDE.md exists and comprehensive
-- [ ] README with quick start
-- [ ] Inline documentation (docstrings) >80%
-- [ ] ADRs for major decisions
-- [ ] API specs (OpenAPI/GraphQL)
+**Verification & Feedback Loops (Tier 1 priorities):**
+- [ ] Tests run with a single command (no external dependencies)
+- [ ] Single-file lint command available and documented
+- [ ] CI runs lint + type-check + tests on every PR
+- [ ] CI failure messages point to the problem
 
-**Code Quality (20%):**
+**Context & Documentation:**
+- [ ] CLAUDE.md/AGENTS.md exists, hand-written, <150 lines
+- [ ] Covers 6 core areas: commands, testing, structure, style, git, boundaries
+- [ ] README with quick start and testing instructions
+- [ ] Inline documentation (docstrings) >80%
+
+**Code Quality:**
 - [ ] Type annotations >80%
 - [ ] Cyclomatic complexity <10
-- [ ] Function length <50 lines
-- [ ] Code smells <5 per 1000 LOC
-- [ ] DRY violations minimal
+- [ ] File size <300 lines
+- [ ] Separation of concerns (feature-based organization)
 
-**Testing (20%):**
-- [ ] Test coverage >70%
-- [ ] Descriptive test names
-- [ ] Fast test execution (<10 min)
-- [ ] Tests in CI/CD
-
-**Structure (15%):**
+**Structure & Dependencies:**
 - [ ] Standard project layout
-- [ ] Semantic file/directory names
-- [ ] Separation of concerns
-- [ ] .gitignore complete
+- [ ] Dependency lock files committed
+- [ ] Dependency security scanning configured
+- [ ] Complete .gitignore
 
-**CI/CD (10%):**
-- [ ] Pre-commit hooks
-- [ ] CI linting/testing
-- [ ] Branch protection
-- [ ] Automated dependency updates
-
-**Security (10%):**
-- [ ] Dependency scanning
-- [ ] Secret scanning
-- [ ] No hardcoded secrets
-- [ ] Security scans in CI
+**Enforcement & Patterns:**
+- [ ] Hooks for auto-format and safety (deterministic enforcement)
+- [ ] 3-5 pattern references for common changes
+- [ ] Conventional commit enforcement
+- [ ] Design intent documented for critical modules
 
 ---
 
 ## ANTI-PATTERNS TO AVOID
 
-### Documentation Anti-Patterns
-- ❌ No README or minimal README
-- ❌ Outdated documentation
-- ❌ No inline documentation
-- ❌ Documentation in external wiki only
+| Anti-Pattern | Why It Fails | Do This Instead |
+|---|---|---|
+| Auto-generate context file and ship it | -3% success rate, +20% cost (ETH Zurich) | Hand-write, keep minimal |
+| Exhaustive architecture narratives in context file | Agents discover structure on their own | Document only non-obvious decisions |
+| Context file > 300 lines | Adherence drops, context diluted | Split into skills and path-scoped rules |
+| No way to verify changes | Agent flies blind, can't self-correct | Provide runnable tests and lint commands |
+| Advisory-only conventions | Agent may not follow them | Enforce with lint rules and hooks |
+| Static context file, never updated | Context rot as codebase evolves | Treat review comments as update signals |
+| No tests or minimal coverage (<30%) | No safety net for agent changes | One real test per code path minimum |
+| Slow test suite (>30 min) | Agent can't iterate | Provide single-module test command |
 
-### Code Anti-Patterns
+### Additional Anti-Patterns
 - ❌ God objects/functions (>500 lines)
 - ❌ No type hints
 - ❌ Magic numbers without explanation
 - ❌ Unclear variable names (x, tmp, data)
-
-### Testing Anti-Patterns
-- ❌ No tests or minimal coverage (<30%)
 - ❌ Test names like test1, test2
-- ❌ Slow tests (>30 min)
-- ❌ Flaky tests
-
-### Structure Anti-Patterns
-- ❌ Flat file structure
-- ❌ Mixed concerns in single file
-- ❌ Inconsistent naming
+- ❌ Flat file structure with mixed concerns
+- ❌ Inconsistent naming conventions
 - ❌ Incomplete .gitignore
-
-### Process Anti-Patterns
-- ❌ No CI/CD
-- ❌ Manual quality checks
-- ❌ No branch protection
-- ❌ Direct commits to main
+- ❌ No CI/CD or manual-only quality checks
+- ❌ Direct commits to main without branch protection
 
 ---
 
 ## REFERENCES & CITATIONS
 
-### Anthropic
-- Anthropic Engineering Blog: "Claude Code Best Practices" (2025)
-- [Claude.ai Documentation](https://docs.anthropic.com/en/docs/welcome)
+### Key Research (2025-2026)
+- [ETH Zurich: "Are Repository-Level Context Files Helpful for Coding Agents?"](https://arxiv.org/html/2602.11988v1) (Feb 2026) — the landmark study on context file effectiveness
+- [Anthropic: Claude Code Best Practices](https://code.claude.com/docs/en/best-practices)
+- [Anthropic: 2026 Agentic Coding Trends Report](https://resources.anthropic.com/2026-agentic-coding-trends-report)
+- Red Hat: Repository Scaffolding for AI Coding Agents (April 2026) — internal guide, evidence-based
+- LangChain: Terminal-Bench — scaffolding impact measurement (+26% accuracy from infrastructure alone)
+- [DORA 2025 (Google Cloud): TDD and AI Quality](https://cloud.google.com/discover/how-test-driven-development-amplifies-ai-success)
+- [AGENTS.md Empirical Study: Agent READMEs](https://arxiv.org/html/2511.12884v1) — analysis of 2,303 context files
+- [Configuring Agentic AI Coding Tools](https://arxiv.org/html/2602.14690v3) — systematic study across 2,923 repos
 
-### Research Papers (ArXiv)
-- ["LongCodeBench: Evaluating Coding LLMs at 1M Context Windows"](https://arxiv.org/abs/2501.00343) (2025)
-- ["TypyBench: Evaluating LLM Type Inference for Untyped Python Repositories"](https://arxiv.org/abs/2501.00000)
-- ["Automated Type Annotation in Python Using LLMs"](https://arxiv.org/search/?query=type+annotation+llm&searchtype=all)
-- ["Security and Quality in LLM-Generated Code"](https://arxiv.org/search/?query=security+llm+generated+code&searchtype=all)
-- ["Security Degradation in Iterative AI Code Generation"](https://arxiv.org/search/?query=security+degradation+ai+code&searchtype=all)
-
-### Industry (Microsoft, Google, GitHub)
+### Industry Guidance
+- [GitHub Blog: "How to write a great agents.md — lessons from over 2,500 repositories"](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)
+- [Addy Osmani: "Stop Using /init for AGENTS.md"](https://addyosmani.com/blog/agents-md/) (Feb 2026)
+- [Martin Fowler: Context Engineering for Coding Agents](https://martinfowler.com/articles/exploring-gen-ai/context-engineering-coding-agents.html) (Feb 2026)
+- [Factory.ai: Using Linters to Direct Agents](https://factory.ai/news/using-linters-to-direct-agents)
+- [Stack Overflow: Coding Guidelines for AI Agents](https://stackoverflow.blog/2026/03/26/coding-guidelines-for-ai-agents-and-people-too/) (Mar 2026)
+- [Cursor: Agent Best Practices](https://cursor.com/blog/agent-best-practices)
+- [OpenAI Codex: AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md)
+- [Augment Code: How to Build Your AGENTS.md](https://www.augmentcode.com/guides/how-to-build-agents-md)
+- [AGENTS.md Official Site](https://agents.md/)
 - [Microsoft Learn: "Code metrics - Cyclomatic complexity"](https://learn.microsoft.com/en-us/visualstudio/code-quality/code-metrics-cyclomatic-complexity)
-- [GitHub Blog: "How to write a great agents.md"](https://github.blog/)
 - [GitHub: github/gitignore template collection](https://github.com/github/gitignore)
 - [Google SRE Book: Logging and monitoring best practices](https://sre.google/sre-book/monitoring-distributed-systems/)
-- IBM Research: "Why larger LLM context windows are all the rage"
+
+### Security
+- [OpenSSF: Security-Focused Guide for AI Code Assistant Instructions](https://best.openssf.org/Security-Focused-Guide-for-AI-Code-Assistant-Instructions.html) (Sep 2025)
+- OWASP: Top 10 for Agentic Applications (Dec 2025)
 
 ### Engineering Blogs
 - [Dropbox Tech Blog: "Our journey to type checking 4 million lines of Python"](https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python)
@@ -1993,14 +1992,16 @@ Where each category is 0.0-1.0 based on attribute completion.
 - [OpenAPI Specification 3.0+](https://spec.openapis.org/oas/v3.0.0)
 - [PEP 8 - Style Guide for Python Code](https://peps.python.org/pep-0008/)
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
+- [MCP Specification v2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 
 ### Community Resources
 - [Real Python: "Python Application Layouts"](https://realpython.com/python-application-layouts/)
 - [GitHub: golang-standards/project-layout](https://github.com/golang-standards/project-layout)
 - [GitHub: joelparkerhenderson/architecture-decision-record](https://github.com/joelparkerhenderson/architecture-decision-record)
 - [GitHub: pre-commit/pre-commit](https://github.com/pre-commit/pre-commit)
+- [GitHub: agentsmd/agents.md](https://github.com/agentsmd/agents.md)
 
-### Documentation
+### Tool Documentation
 - Python: [pytest](https://docs.pytest.org/), [mypy](https://mypy.readthedocs.io/), [black](https://black.readthedocs.io/), [isort](https://pycqa.github.io/isort/) documentation
 - JavaScript/TypeScript: [ESLint](https://eslint.org/docs/), [Prettier](https://prettier.io/docs/), [TSDoc](https://tsdoc.org/) documentation
 - Go: [Official style guide](https://go.dev/doc/effective_go), [testing documentation](https://go.dev/doc/tutorial/add-a-test)
@@ -2009,6 +2010,18 @@ Where each category is 0.0-1.0 based on attribute completion.
 ---
 
 ## VERSION HISTORY
+
+- **v2.0.0 (2026-05-03):** Major research update based on 2025-2026 evidence
+  - Rebalanced priorities: verification/testing elevated to #1 (was #6)
+  - Added 4 new attributes: single-file verification, CI quality gates, pattern references, design intent, progressive disclosure
+  - Updated all citations — removed fabricated LLM-generated citations, added verified sources
+  - Removed duplicated content from 5 attribute sections
+  - Added YAML frontmatter for structured metadata parsing
+  - Incorporated ETH Zurich study findings (context file effectiveness)
+  - Incorporated Red Hat best practices guide (April 2026)
+  - Incorporated AGENTS.md cross-tool standard (60,000+ repos)
+  - Updated Implementation Priorities and Quickstart Guide
+  - Total: 29 attributes, 55+ verified sources
 
 - **v1.0.0 (2025-01-20):** Initial comprehensive research compilation
   - 25 attributes identified and documented
@@ -2020,5 +2033,5 @@ Where each category is 0.0-1.0 based on attribute completion.
 
 **Document prepared for:** agentready tool development
 **Primary use case:** Scanning repositories for AI agent optimization
-**Target agents:** Claude Code, Claude-based development assistants
+**Target agents:** Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI, and cross-tool
 **Methodology:** Evidence-based, cited research from authoritative sources
