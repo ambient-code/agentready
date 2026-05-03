@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 25 agent-ready attributes assessed by AgentReady.
+Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -26,7 +26,7 @@ Complete reference for all 25 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against **25 evidence-based attributes** that improve AI agent effectiveness. Each attribute is:
+AgentReady evaluates repositories against **27 evidence-based attributes** that improve AI agent effectiveness. Each attribute is:
 
 - **Research-backed**: Derived from 50+ authoritative sources (Anthropic, Microsoft, Google, academic research)
 - **Measurable**: Specific criteria with clear pass/fail thresholds
@@ -971,7 +971,7 @@ ENABLE_FEATURE_X=false
 
 ## Tier 3: Important Attributes
 
-*Significant improvements in specific areas — 15% of total score*
+*Significant improvements in specific areas — 14% of total score*
 
 ### 12. Cyclomatic Complexity Limits
 
@@ -1024,16 +1024,12 @@ cr src/**/*.js
 
 ---
 
-### 13-20. Additional Tier 3 Attributes
+### Additional Tier 3 Attributes
 
-**13. Function/Method Length Limits** (`function_length`) — Target: <50 lines per function
-**14. Code Smell Elimination** (`code_smells`) — DRY violations, long methods, magic numbers
-**15. Separation of Concerns** (`separation_of_concerns`) — SOLID principles adherence
-**16. Inline Documentation** (`inline_documentation`) — Docstrings >80% coverage
-**17. Architecture Decision Records** (`adrs`) — Document major decisions in `docs/adr/`
-**18. Structured Logging** (`structured_logging`) — JSON logs with consistent fields
-**19. OpenAPI/Swagger Specs** (`api_documentation`) — Machine-readable API docs
-**20. DRY Principle** (`dry_principle`) — <5% duplicate code
+**Design Intent Documentation** (`design_intent`, 2%) — Preconditions, invariants, and rationale in design docs
+**Structured Logging** (`structured_logging`, 3%) — JSON logs with consistent fields
+**OpenAPI/Swagger Specs** (`openapi_specs`, 3%) — Machine-readable API docs
+**Architecture Decision Records** (`architecture_decisions`, 3%) — Document major decisions in `docs/adr/`
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
@@ -1041,15 +1037,14 @@ cr src/**/*.js
 
 ## Tier 4: Advanced Attributes
 
-*Refinement and optimization — 5% of total score*
+*Refinement and optimization — 4% of total score*
 
-### 21-25. Tier 4 Attributes
+### Tier 4 Attributes
 
-**21. Issue & PR Templates** (`pr_issue_templates`) — `.github/` templates
-**22. Container/Virtualization Setup** (`container_setup`) — Dockerfile, docker-compose.yml
-**23. Dependency Security Scanning** (`dependency_security`) — Snyk, Dependabot, npm audit
-**24. Secrets Management** (`secrets_management`) — No hardcoded secrets, use env vars
-**25. Performance Benchmarks** (`performance_benchmarks`) — Automated perf tests in CI
+**Code Smell Elimination** (`code_smells`, 1%) — DRY violations, long methods, magic numbers
+**Issue & PR Templates** (`issue_pr_templates`, 1%) — `.github/` templates
+**Container/Virtualization Setup** (`container_setup`, 1%) — Dockerfile, docker-compose.yml
+**Progressive Disclosure** (`progressive_disclosure`, 1%) — Path-scoped rules, skills for focused context
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
