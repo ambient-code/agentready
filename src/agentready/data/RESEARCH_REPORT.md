@@ -2,7 +2,7 @@
 version: "2.0.0"
 date: "2026-05-03"
 focus: "AI coding agent optimization (Claude Code, Copilot, Cursor, Codex, and cross-tool)"
-attribute_count: 29
+attribute_count: 41
 tier_count: 4
 reference_count: 55
 ---

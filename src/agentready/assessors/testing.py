@@ -395,11 +395,11 @@ class CIQualityGatesAssessor(BaseAssessor):
         """Check for CI/CD configuration and assess quality.
 
         Scoring:
-        - CI config exists (50%)
-        - Config quality (30%): descriptive names, caching, parallelization
-        - Best practices (20%): comments, artifacts
+        - CI config exists (50 pts)
+        - Quality gates — lint + test + typecheck (30 pts)
+        - Config quality (15 pts): descriptive names, caching, parallelization
+        - Best practices (5 pts): comments, artifacts
         """
-        # Check for CI config files
         ci_configs = self._detect_ci_configs(repository)
 
         if not ci_configs:
@@ -417,17 +417,26 @@ class CIQualityGatesAssessor(BaseAssessor):
                 error_message=None,
             )
 
-        # Score: CI exists (50%)
         score = 50
         evidence = [
             f"CI config found: {', '.join(str(c.relative_to(repository.path)) for c in ci_configs)}"
         ]
 
-        # Analyze first CI config for quality
-        primary_config = ci_configs[0]
-        quality_score, quality_evidence = self._assess_config_quality(primary_config)
-        score += quality_score
-        evidence.extend(quality_evidence)
+        # Check quality gates across ALL configs (30 pts)
+        gate_score, gate_evidence = self._assess_quality_gates(ci_configs)
+        score += gate_score
+        evidence.extend(gate_evidence)
+
+        # Check config quality across all configs — take best score (15 pts)
+        best_quality = 0
+        best_quality_evidence = []
+        for config in ci_configs:
+            q_score, q_evidence = self._assess_config_quality(config)
+            if q_score > best_quality:
+                best_quality = q_score
+                best_quality_evidence = q_evidence
+        score += best_quality
+        evidence.extend(best_quality_evidence)
 
         status = "pass" if score >= 75 else "fail"
 
@@ -436,9 +445,9 @@ class CIQualityGatesAssessor(BaseAssessor):
             status=status,
             score=score,
             measured_value=(
-                "configured with best practices" if score >= 75 else "basic config"
+                "configured with quality gates" if score >= 75 else "basic config"
             ),
-            threshold="CI with best practices",
+            threshold="CI with lint + test gates",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
@@ -469,12 +478,87 @@ class CIQualityGatesAssessor(BaseAssessor):
 
         return configs
 
+    def _assess_quality_gates(self, ci_configs: list) -> tuple:
+        """Check whether lint, test, and type-check gates exist across CI configs.
+
+        Returns:
+            Tuple of (gate_score, evidence_list)
+            gate_score: 0-30
+        """
+        lint_patterns = [
+            r"(?:eslint|ruff|pylint|flake8|rubocop|golangci-lint|black|isort|prettier|stylelint)\b",
+            r"\blint\b",
+            r"\bformatting?\b",
+        ]
+        test_patterns = [
+            r"\bpytest\b",
+            r"\bjest\b",
+            r"\bvitest\b",
+            r"\bmocha\b",
+            r"\bnpm\s+test\b",
+            r"\byarn\s+test\b",
+            r"\bgo\s+test\b",
+            r"\bcargo\s+test\b",
+            r"\brspec\b",
+        ]
+        typecheck_patterns = [
+            r"\bmypy\b",
+            r"\bpyright\b",
+            r"\btsc\b",
+            r"\btype[_-]?check\b",
+        ]
+
+        found_lint = False
+        found_test = False
+        found_typecheck = False
+
+        for config in ci_configs:
+            try:
+                content = config.read_text()
+            except OSError:
+                continue
+            if not found_lint and any(
+                re.search(p, content, re.IGNORECASE) for p in lint_patterns
+            ):
+                found_lint = True
+            if not found_test and any(
+                re.search(p, content, re.IGNORECASE) for p in test_patterns
+            ):
+                found_test = True
+            if not found_typecheck and any(
+                re.search(p, content, re.IGNORECASE) for p in typecheck_patterns
+            ):
+                found_typecheck = True
+
+        gate_score = 0
+        evidence = []
+
+        if found_lint:
+            gate_score += 10
+            evidence.append("Lint gate detected in CI")
+        else:
+            evidence.append("No lint gate found in CI")
+
+        if found_test:
+            gate_score += 10
+            evidence.append("Test gate detected in CI")
+        else:
+            evidence.append("No test gate found in CI")
+
+        if found_typecheck:
+            gate_score += 10
+            evidence.append("Type-check gate detected in CI")
+        else:
+            evidence.append("No type-check gate found in CI")
+
+        return (gate_score, evidence)
+
     def _assess_config_quality(self, config_file: Path) -> tuple:
         """Assess quality of CI config file.
 
         Returns:
             Tuple of (quality_score, evidence_list)
-            quality_score: 0-50 (30 for quality checks + 20 for best practices)
+            quality_score: 0-20 (15 for quality checks + 5 for best practices)
         """
         try:
             content = config_file.read_text()
@@ -484,37 +568,26 @@ class CIQualityGatesAssessor(BaseAssessor):
         quality_score = 0
         evidence = []
 
-        # Quality checks (30 points total)
-        # Descriptive job/step names (10 points)
+        # Quality checks (15 points total)
         if self._has_descriptive_names(content):
-            quality_score += 10
+            quality_score += 5
             evidence.append("Descriptive job/step names found")
-        else:
-            evidence.append("Generic job names (consider more descriptive names)")
 
-        # Caching configured (10 points)
         if self._has_caching(content):
-            quality_score += 10
+            quality_score += 5
             evidence.append("Caching configured")
-        else:
-            evidence.append("No caching detected")
 
-        # Parallelization (10 points)
         if self._has_parallelization(content):
-            quality_score += 10
+            quality_score += 5
             evidence.append("Parallel job execution detected")
-        else:
-            evidence.append("No parallelization detected")
 
-        # Best practices (20 points total)
-        # Comments in config (10 points)
+        # Best practices (5 points total)
         if self._has_comments(content):
-            quality_score += 10
+            quality_score += 3
             evidence.append("Config includes comments")
 
-        # Artifact uploading (10 points)
         if self._has_artifacts(content):
-            quality_score += 10
+            quality_score += 2
             evidence.append("Artifacts uploaded")
 
         return (quality_score, evidence)

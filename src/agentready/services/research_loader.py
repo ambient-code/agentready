@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 
 @dataclass
 class ResearchMetadata:
@@ -67,14 +69,19 @@ class ResearchLoader:
         """
         # Try to extract version and date from YAML frontmatter first
         frontmatter_match = re.search(
-            r"^---\s*\nversion:\s*([^\n]+)\s*\ndate:\s*([^\n]+)\s*\n---",
+            r"^---\s*\n(.+?)\n---",
             content,
-            re.MULTILINE,
+            re.MULTILINE | re.DOTALL,
         )
 
         if frontmatter_match:
-            version = frontmatter_match.group(1).strip()
-            date = frontmatter_match.group(2).strip()
+            try:
+                fm = yaml.safe_load(frontmatter_match.group(1))
+                version = str(fm.get("version", "1.0.0")).strip()
+                date = str(fm.get("date", "unknown")).strip()
+            except yaml.YAMLError:
+                version = "1.0.0"
+                date = "unknown"
         else:
             # Fallback: Try Markdown bold format (**Version:** 1.0.1)
             version_match = re.search(r"\*\*Version:\*\*\s+([^\n]+)", content)
@@ -91,8 +98,8 @@ class ResearchLoader:
         tier_pattern = r"^###\s+Tier\s+\d+:"
         tier_count = len(re.findall(tier_pattern, content, re.MULTILINE))
 
-        # Count references (look for citation patterns)
-        reference_pattern = r"^\d+\.\s+\[.+?\]\(.+?\)"
+        # Count references (numbered or bulleted markdown links)
+        reference_pattern = r"^(?:\d+\.|-|\*)\s+\[.+?\]\(.+?\)"
         reference_count = len(re.findall(reference_pattern, content, re.MULTILINE))
 
         return ResearchMetadata(
