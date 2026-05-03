@@ -38,9 +38,15 @@ class TestExecutionAssessor(BaseAssessor):
         )
 
     def is_applicable(self, repository: Repository) -> bool:
-        """Applicable if tests directory exists."""
+        """Applicable if tests directory or test config exists."""
         test_dirs = ["tests", "test", "spec", "__tests__"]
-        return any((repository.path / d).exists() for d in test_dirs)
+        if any((repository.path / d).exists() for d in test_dirs):
+            return True
+        if self._has_python_test_runner(repository):
+            return True
+        if (repository.path / "package.json").exists():
+            return True
+        return False
 
     def assess(self, repository: Repository) -> Finding:
         """Check for test coverage configuration and actual coverage.
@@ -131,13 +137,15 @@ class TestExecutionAssessor(BaseAssessor):
             evidence.append("Coverage enforcement configured (pytest-cov/fail_under)")
 
         score = min(score, 100.0)
-        status = "pass" if score > 50 else "fail"
+        status = "pass" if has_test_files and score > 50 else "fail"
 
         return Finding(
             attribute=self.attribute,
             status=status,
             score=score,
-            measured_value="configured" if score > 50 else "not configured",
+            measured_value=(
+                "configured" if has_test_files and score > 50 else "not configured"
+            ),
             threshold="runnable tests with coverage config",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
@@ -246,13 +254,15 @@ class TestExecutionAssessor(BaseAssessor):
                 evidence.append("Coverage threshold configured")
 
             score = min(score, 100.0)
-            status = "pass" if score > 50 else "fail"
+            status = "pass" if has_test_script and score > 50 else "fail"
 
             return Finding(
                 attribute=self.attribute,
                 status=status,
                 score=score,
-                measured_value="configured" if score > 50 else "not configured",
+                measured_value=(
+                    "configured" if has_test_script and score > 50 else "not configured"
+                ),
                 threshold="runnable tests with coverage config",
                 evidence=evidence,
                 remediation=self._create_remediation() if status == "fail" else None,

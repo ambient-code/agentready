@@ -618,7 +618,7 @@ OUTPUT FORMAT (JSON):
             if "**Citation" in updated_content:
                 updated_content = re.sub(
                     r"(\*\*Citations?:\*\*\n)(.*?)(\n\n|\n---|\Z)",
-                    rf"\1\2{citations_text}\n\3",
+                    rf"\1{citations_text}\n\3",
                     updated_content,
                     count=1,
                     flags=re.DOTALL,

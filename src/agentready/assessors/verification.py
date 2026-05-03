@@ -39,27 +39,23 @@ class SingleFileVerificationAssessor(BaseAssessor):
     # Patterns that suggest single-file lint/type-check commands.
     # Each entry is (regex, category) where category is "lint" or "typecheck".
     SINGLE_FILE_PATTERNS = [
-        # Lint single file patterns
-        (r"eslint\s+[\w./\-*]+", "lint"),
-        (r"ruff\s+check\s+[\w./\-*]+", "lint"),
-        (r"pylint\s+[\w./\-*]+", "lint"),
-        (r"flake8\s+[\w./\-*]+", "lint"),
-        (r"rubocop\s+[\w./\-*]+", "lint"),
-        (r"golangci-lint\s+run\s+[\w./\-*]+", "lint"),
-        (r"black\s+[\w./\-*]+", "lint"),
-        (r"prettier\s+--write\s+[\w./\-*]+", "lint"),
-        (r"gofmt\s+[\w./\-*]+", "lint"),
+        # Lint single file patterns ((?!-) prevents matching flags like --fix)
+        (r"eslint\s+(?!-)[\w./\-*]+", "lint"),
+        (r"ruff\s+check\s+(?!-)[\w./\-*]+", "lint"),
+        (r"pylint\s+(?!-)[\w./\-*]+", "lint"),
+        (r"flake8\s+(?!-)[\w./\-*]+", "lint"),
+        (r"rubocop\s+(?!-)[\w./\-*]+", "lint"),
+        (r"golangci-lint\s+run\s+(?!-)[\w./\-*]+", "lint"),
+        (r"black\s+(?!-)[\w./\-*]+", "lint"),
+        (r"prettier\s+--write\s+(?!-)[\w./\-*]+", "lint"),
+        (r"gofmt\s+(?!-)[\w./\-*]+", "lint"),
         # Type check single file patterns
-        (r"mypy\s+[\w./\-*]+", "typecheck"),
-        (r"pyright\s+[\w./\-*]+", "typecheck"),
-        (r"tsc\s+--noEmit\s+[\w./\-*]+", "typecheck"),
-        # Generic patterns with path placeholders
-        (r"lint\s+single", "lint"),
-        (r"lint.*path/to", "lint"),
-        (r"lint.*<file", "lint"),
-        (r"check.*single.*file", "lint"),
-        (r"type.?check.*path/to", "typecheck"),
-        (r"type.?check.*<file", "typecheck"),
+        (r"mypy\s+(?!-)[\w./\-*]+", "typecheck"),
+        (r"pyright\s+(?!-)[\w./\-*]+", "typecheck"),
+        (r"tsc\s+--noEmit\s+(?!-)[\w./\-*]+", "typecheck"),
+        # Path placeholder patterns (require path-like token)
+        (r"lint.*(?:path/to|<file)", "lint"),
+        (r"type.?check.*(?:path/to|<file)", "typecheck"),
     ]
 
     def assess(self, repository: Repository) -> Finding:

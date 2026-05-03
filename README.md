@@ -172,12 +172,12 @@ Evaluated across 13 categories:
 
 Attributes are weighted by importance:
 
-- **Tier 1 (Essential)**: 50% of total score - CLAUDE.md, README, types, layouts, lock files
-- **Tier 2 (Critical)**: 30% of total score - Tests, commits, build setup
-- **Tier 3 (Important)**: 15% of total score - Complexity, logging, API docs
-- **Tier 4 (Advanced)**: 5% of total score - Security scanning, performance benchmarks
+- **Tier 1 (Essential)**: 55% of total score - Test execution, types, CLAUDE.md, CI gates, verification, README, layout, lock files, dependency security
+- **Tier 2 (Critical)**: 27% of total score - Enforcement, commits, build setup, patterns
+- **Tier 3 (Important)**: 14% of total score - Design intent, complexity, logging, API docs
+- **Tier 4 (Advanced)**: 4% of total score - Code smells, templates, containers, progressive disclosure
 
-Missing essential attributes (especially CLAUDE.md at 10% weight) has 10x the impact of missing advanced features.
+Missing essential attributes (especially test execution at 10% weight) has 10x the impact of missing advanced features.
 
 ### Interactive HTML Reports
 

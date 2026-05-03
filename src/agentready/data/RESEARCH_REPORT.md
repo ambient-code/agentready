@@ -19,7 +19,7 @@ reference_count: 55
 
 ## Executive Summary
 
-This document catalogs 29 high-impact attributes that make codebases optimal for AI-assisted development across tools (Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI). Each attribute includes:
+This document catalogs 27 assessed attributes (across 41 sub-topics) that make codebases optimal for AI-assisted development across tools (Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI). Each attribute includes:
 - Definition and importance for AI agents
 - Impact on agent behavior (context window, comprehension, task success)
 - Measurable criteria and tooling
@@ -1364,6 +1364,8 @@ src/
 ## 12. CI/CD INTEGRATION
 
 ### 12.1 CI/CD Pipeline Visibility
+
+> **Note:** This section provides background research context. The assessed attribute is **16.2 CI Quality Gates** (`ci_quality_gates`), which elevated CI enforcement to Tier 1 at 5% weight.
 
 **Definition:** Clear, well-documented CI/CD configuration files committed to repository.
 

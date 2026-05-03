@@ -50,10 +50,10 @@ Attributes are organized into four weighted tiers:
 
 | Tier | Weight | Focus | Attribute Count |
 |------|--------|-------|-----------------|
-| **Tier 1: Essential** | 50% | Fundamentals enabling basic AI functionality | 5 attributes |
-| **Tier 2: Critical** | 30% | Major quality improvements and safety nets | 6 attributes |
-| **Tier 3: Important** | 15% | Significant improvements in specific areas | 9 attributes |
-| **Tier 4: Advanced** | 5% | Refinement and optimization | 5 attributes |
+| **Tier 1: Essential** | 55% | Fundamentals enabling basic AI functionality | 9 attributes |
+| **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 9 attributes |
+| **Tier 3: Important** | 14% | Significant improvements in specific areas | 5 attributes |
+| **Tier 4: Advanced** | 4% | Refinement and optimization | 4 attributes |
 
 **Impact**: Missing a Tier 1 attribute (10% weight) has **10x the impact** of missing a Tier 4 attribute (1% weight).
 
@@ -61,12 +61,12 @@ Attributes are organized into four weighted tiers:
 
 ## Tier 1: Essential Attributes
 
-*Fundamentals that enable basic AI agent functionality — 50% of total score*
+*Fundamentals that enable basic AI agent functionality — 55% of total score*
 
 ### 1. CLAUDE.md Configuration File
 
 **ID**: `claude_md_file`
-**Weight**: 10%
+**Weight**: 7%
 **Category**: Context Window Optimization
 **Status**: ✅ Implemented
 
@@ -633,12 +633,12 @@ go mod tidy
 
 ## Tier 2: Critical Attributes
 
-*Major quality improvements and safety nets — 30% of total score*
+*Major quality improvements and safety nets — 27% of total score*
 
 ### 6. Test Execution & Coverage
 
 **ID**: `test_execution`
-**Weight**: 5%
+**Weight**: 10% (Tier 1 — Essential)
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
@@ -693,7 +693,7 @@ go tool cover -html=coverage.out
 ### 7. Deterministic Enforcement (Hooks & Lint Rules)
 
 **ID**: `deterministic_enforcement`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
