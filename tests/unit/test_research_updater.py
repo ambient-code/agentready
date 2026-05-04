@@ -462,9 +462,7 @@ class TestSearchRecentResearch:
             if _get_hostname(r["url"]) in ("test.blog", "arxiv.org")
         ]
         non_prioritized_urls = [
-            r["url"]
-            for r in results
-            if _get_hostname(r["url"]) == "random.example.com"
+            r["url"] for r in results if _get_hostname(r["url"]) == "random.example.com"
         ]
         if prioritized_urls and non_prioritized_urls:
             first_priority_idx = next(
