@@ -82,8 +82,17 @@ class ResearchUpdater:
         prioritized = set(self.config.get("search_domains", {}).get("prioritized", []))
 
         def _is_priority(r: dict[str, str]) -> bool:
-            netloc = urllib.parse.urlparse(r["url"]).netloc.replace("www.", "")
-            return any(netloc == p or netloc.endswith("." + p) for p in prioritized)
+            parsed = urllib.parse.urlparse(r["url"])
+            netloc = parsed.netloc.replace("www.", "")
+            domain_path = netloc + parsed.path.rstrip("/")
+            for p in prioritized:
+                if "/" in p:
+                    if domain_path.startswith(p.rstrip("/")):
+                        return True
+                else:
+                    if netloc == p or netloc.endswith("." + p):
+                        return True
+            return False
 
         unique.sort(key=lambda r: r.get("date") or "0000", reverse=True)
         unique.sort(key=lambda r: 0 if _is_priority(r) else 1)
@@ -468,7 +477,7 @@ class ResearchUpdater:
         return results
 
     def validate_url(self, url: str) -> bool:
-        """Validate that a URL actually resolves (HTTP HEAD check)."""
+        """Validate that a URL actually resolves (HEAD with GET fallback)."""
         try:
             parsed = urllib.parse.urlparse(url)
             if not parsed.scheme or not parsed.netloc:
@@ -477,8 +486,20 @@ class ResearchUpdater:
             req = urllib.request.Request(
                 url, method="HEAD", headers={"User-Agent": "agentready/2.0"}
             )
-            with urllib.request.urlopen(req, timeout=10) as response:
-                return response.status < 400
+            try:
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    return response.status < 400
+            except urllib.error.HTTPError as e:
+                if e.code == 405:
+                    req = urllib.request.Request(
+                        url,
+                        method="GET",
+                        headers={"User-Agent": "agentready/2.0"},
+                    )
+                    with urllib.request.urlopen(req, timeout=10) as response:
+                        response.read(1024)
+                        return response.status < 400
+                return False
         except Exception:
             return False
 

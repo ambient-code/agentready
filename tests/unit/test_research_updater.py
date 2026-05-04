@@ -473,6 +473,42 @@ class TestSearchRecentResearch:
             )
             assert first_priority_idx < first_non_priority_idx
 
+    def test_prioritized_domains_with_paths(self):
+        """Path-bearing entries like microsoft.com/research match URLs under that path."""
+        config = {
+            **SAMPLE_CONFIG,
+            "search_domains": {
+                **SAMPLE_CONFIG["search_domains"],
+                "prioritized": ["microsoft.com/research", "arxiv.org"],
+            },
+        }
+        updater = _make_updater(config)
+        updater._search_arxiv = MagicMock(return_value=[])
+        updater._search_semantic_scholar = MagicMock(
+            return_value=[
+                {
+                    "title": "MS Research Paper",
+                    "url": "https://microsoft.com/research/paper-x",
+                    "snippet": "...",
+                    "date": "2025-01-01",
+                    "source": "Semantic Scholar",
+                },
+                {
+                    "title": "MS Blog Post",
+                    "url": "https://microsoft.com/blog/post-y",
+                    "snippet": "...",
+                    "date": "2025-02-01",
+                    "source": "Semantic Scholar",
+                },
+            ]
+        )
+        updater._search_rss_feeds = MagicMock(return_value=[])
+        updater._search_sitemaps = MagicMock(return_value=[])
+        updater._search_curated_sources = MagicMock(return_value=[])
+
+        results = updater.search_recent_research("1.1", "Test")
+        assert results[0]["url"] == "https://microsoft.com/research/paper-x"
+
     def test_max_total_results_limit(self):
         updater = _make_updater()
         many_results = [
@@ -493,6 +529,37 @@ class TestSearchRecentResearch:
 
         results = updater.search_recent_research("1.1", "Test")
         assert len(results) <= 15
+
+    def test_validate_url_falls_back_to_get_on_405(self):
+        """validate_url retries with GET when HEAD returns 405."""
+        import urllib.error
+
+        updater = _make_updater()
+
+        def mock_urlopen(req, timeout=10):
+            if req.get_method() == "HEAD":
+                raise urllib.error.HTTPError(
+                    req.full_url, 405, "Method Not Allowed", {}, None
+                )
+            ctx = MagicMock()
+            ctx.__enter__ = lambda s: MagicMock(status=200, read=lambda n: b"ok")
+            ctx.__exit__ = MagicMock(return_value=False)
+            return ctx
+
+        with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+            assert updater.validate_url("https://example.com/page") is True
+
+    def test_validate_url_fails_on_non_405_error(self):
+        """validate_url returns False for non-405 HTTP errors."""
+        import urllib.error
+
+        updater = _make_updater()
+
+        def mock_urlopen(req, timeout=10):
+            raise urllib.error.HTTPError(req.full_url, 404, "Not Found", {}, None)
+
+        with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+            assert updater.validate_url("https://example.com/missing") is False
 
     def test_all_sources_called(self):
         updater = _make_updater()

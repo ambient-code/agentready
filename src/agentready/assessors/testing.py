@@ -568,8 +568,15 @@ class CIQualityGatesAssessor(BaseAssessor):
             f"CI config found: {', '.join(str(c.relative_to(repository.path)) for c in ci_configs)}"
         ]
 
-        # Check quality gates across ALL configs (30 pts)
-        gate_score, gate_evidence = self._assess_quality_gates(ci_configs)
+        # Only count quality gates from PR-triggered workflows
+        pr_configs = [c for c in ci_configs if self._has_pr_trigger(c)]
+        has_pr_trigger = len(pr_configs) > 0
+
+        # Check quality gates in PR-triggered configs (30 pts)
+        # Fall back to all configs when none have PR triggers (for evidence)
+        gate_score, gate_evidence = self._assess_quality_gates(
+            pr_configs if pr_configs else ci_configs
+        )
         score += gate_score
         evidence.extend(gate_evidence)
 
@@ -584,8 +591,6 @@ class CIQualityGatesAssessor(BaseAssessor):
         score += best_quality
         evidence.extend(best_quality_evidence)
 
-        # Check that at least one CI config triggers on pull requests
-        has_pr_trigger = any(self._has_pr_trigger(c) for c in ci_configs)
         if not has_pr_trigger:
             evidence.append("No CI workflow triggers on pull requests")
 

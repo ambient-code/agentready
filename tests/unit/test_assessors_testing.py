@@ -403,6 +403,43 @@ class TestCIQualityGatesAssessor:
         assert finding.status == "fail"
         assert any("pull request" in e.lower() for e in finding.evidence)
 
+    def test_split_workflows_pr_metadata_only_fails(self, tmp_path):
+        """Test that gates in push-only workflow + PR trigger in metadata-only workflow fails."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "pr-meta.yml").write_text(
+            "name: PR Metadata\n"
+            "on: [pull_request]\n"
+            "jobs:\n"
+            "  label:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: echo 'labeling PR'\n"
+        )
+        (workflows_dir / "push-gates.yml").write_text(
+            "name: Push Gates\n"
+            "on: [push]\n"
+            "jobs:\n"
+            "  lint:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: ruff check .\n"
+            "  test:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: pytest\n"
+            "  typecheck:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: mypy src/\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+
     def test_missing_typecheck_gate_fails(self, tmp_path):
         """Test that missing typecheck gate causes failure even with high config quality."""
         workflows_dir = tmp_path / ".github" / "workflows"
