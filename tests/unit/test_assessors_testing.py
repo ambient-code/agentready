@@ -171,7 +171,7 @@ class TestTestExecutionAssessor:
         assert finding.score == 60.0
 
     def test_python_coveragerc_fail_under(self, tmp_path):
-        """Test that .coveragerc with fail_under is detected as enforcement."""
+        """Test that .coveragerc with fail_under is detected but no runner means fail."""
         tests_dir = tmp_path / "tests"
         tests_dir.mkdir()
         (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
@@ -184,7 +184,8 @@ class TestTestExecutionAssessor:
         finding = assessor.assess(repo)
 
         # test files (40) + coverage config via .coveragerc (20) + enforcement (20) = 80
-        assert finding.status == "pass"
+        # but no runner configured, so status is fail despite high score
+        assert finding.status == "fail"
         assert finding.score == 80.0
 
     def test_python_remediation_on_fail(self, tmp_path):
@@ -345,7 +346,36 @@ class TestCIQualityGatesAssessor:
         assert finding.remediation is not None
 
     def test_all_three_gates_passes(self, tmp_path):
-        """Test pass when all three gates are present."""
+        """Test pass when all three gates are present and workflow triggers on PRs."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  lint:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: ruff check .\n"
+            "  test:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: pytest\n"
+            "  typecheck:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: mypy src/\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 75
+
+    def test_push_only_workflow_fails(self, tmp_path):
+        """Test that push-only workflows fail even with all three gates."""
         workflows_dir = tmp_path / ".github" / "workflows"
         workflows_dir.mkdir(parents=True)
         (workflows_dir / "ci.yml").write_text(
@@ -370,8 +400,8 @@ class TestCIQualityGatesAssessor:
         assessor = CIQualityGatesAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.status == "pass"
-        assert finding.score >= 75
+        assert finding.status == "fail"
+        assert any("pull request" in e.lower() for e in finding.evidence)
 
     def test_missing_typecheck_gate_fails(self, tmp_path):
         """Test that missing typecheck gate causes failure even with high config quality."""

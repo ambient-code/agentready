@@ -92,7 +92,7 @@ CODE_SAMPLING_GUIDANCE = """When selecting code samples to analyze:
 
 1. For `claude_md_file`: Include the CLAUDE.md file itself
 2. For `type_annotations`: Sample 3-5 .py files with type hints
-3. For `pre_commit_hooks`: Include .pre-commit-config.yaml
+3. For `deterministic_enforcement`: Include .pre-commit-config.yaml and .claude/settings.json
 4. For `standard_project_layout`: Show directory tree + key files
 5. For `lock_files`: Include requirements.txt, poetry.lock, or go.sum
 

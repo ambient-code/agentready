@@ -137,14 +137,16 @@ class TestExecutionAssessor(BaseAssessor):
             evidence.append("Coverage enforcement configured (pytest-cov/fail_under)")
 
         score = min(score, 100.0)
-        status = "pass" if has_test_files and score > 50 else "fail"
+        status = "pass" if has_test_files and has_runner and score > 50 else "fail"
 
         return Finding(
             attribute=self.attribute,
             status=status,
             score=score,
             measured_value=(
-                "configured" if has_test_files and score > 50 else "not configured"
+                "configured"
+                if has_test_files and has_runner and score > 50
+                else "not configured"
             ),
             threshold="runnable tests with coverage config",
             evidence=evidence,
@@ -582,9 +584,15 @@ class CIQualityGatesAssessor(BaseAssessor):
         score += best_quality
         evidence.extend(best_quality_evidence)
 
-        # All three gates (lint, test, typecheck) are required for pass
+        # Check that at least one CI config triggers on pull requests
+        has_pr_trigger = any(self._has_pr_trigger(c) for c in ci_configs)
+        if not has_pr_trigger:
+            evidence.append("No CI workflow triggers on pull requests")
+
+        # All three gates (lint, test, typecheck) are required for pass,
+        # and at least one workflow must trigger on PRs
         has_all_gates = gate_score == 30
-        status = "pass" if has_all_gates and score >= 75 else "fail"
+        status = "pass" if has_all_gates and has_pr_trigger and score >= 75 else "fail"
 
         return Finding(
             attribute=self.attribute,
@@ -592,10 +600,10 @@ class CIQualityGatesAssessor(BaseAssessor):
             score=score,
             measured_value=(
                 "configured with quality gates"
-                if has_all_gates
+                if has_all_gates and has_pr_trigger
                 else "missing quality gates"
             ),
-            threshold="CI with lint + test + type-check gates",
+            threshold="CI with lint + test + type-check gates on PRs",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
@@ -625,6 +633,20 @@ class CIQualityGatesAssessor(BaseAssessor):
                     configs.append(config_path)
 
         return configs
+
+    def _has_pr_trigger(self, config: Path) -> bool:
+        """Check if a CI config file triggers on pull requests.
+
+        For GitHub Actions, requires explicit pull_request trigger.
+        Other CI systems (GitLab CI, CircleCI, Travis) run on MRs by default.
+        """
+        if ".github" in str(config) and "workflows" in str(config):
+            try:
+                content = config.read_text()
+                return bool(re.search(r"\bpull_request", content))
+            except (OSError, UnicodeDecodeError):
+                return False
+        return True
 
     def _assess_quality_gates(self, ci_configs: list) -> tuple:
         """Check whether lint, test, and type-check gates exist across CI configs.

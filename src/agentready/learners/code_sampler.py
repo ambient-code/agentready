@@ -46,6 +46,13 @@ class CodeSampler:
             "jest.config.*",
             "vitest.config.*",
         ],
+        "ci_quality_gates": [
+            ".github/workflows/*.yml",
+            ".github/workflows/*.yaml",
+            ".gitlab-ci.yml",
+            ".circleci/config.yml",
+            ".travis.yml",
+        ],
         "conventional_commits": [".github/workflows/*.yml"],  # CI configs
         "gitignore": [".gitignore"],
         "single_file_verification": [
