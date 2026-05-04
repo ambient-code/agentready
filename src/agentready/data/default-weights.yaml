@@ -1,50 +1,64 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 25 attributes.
-# Weights are based on tier priority from research report:
+# This file defines the default weights for all 27 attributes.
+# Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
+# Red Hat best practices (April 2026), and LangChain Terminal-Bench.
 #
-# Tier 1 (Essential):  55% total (5×10% + 1×5%, 6 attributes)
+# Key finding: Verification (tests, lint, CI) has highest impact on
+# agent effectiveness. Documentation helps only marginally (+4%).
+#
+# Tier 1 (Essential):  55% total (9 attributes)
 # Tier 2 (Critical):   27% total (3% each, 9 attributes)
-# Tier 3 (Important):  15% total (3% each, 5 attributes)
-# Tier 4 (Advanced):    3% total (1% each, 3 attributes)
+# Tier 3 (Important):  14% total (varies, 5 attributes)
+# Tier 4 (Advanced):    4% total (1% each, 4 attributes)
 # TOTAL:              100% (sum to 1.0)
 #
-# Missing essentials (especially CLAUDE.md at 10%) has 10x impact vs advanced features (1%)
-#
-# Changes in v2.10.0:
-# - Added dependency_security (Tier 1, 5%) - merged dependency_freshness + security_scanning
-# - Removed dependency_freshness (merged into dependency_security)
-# - Removed security_scanning (merged into dependency_security)
-# - Removed performance_benchmarks (low ROI)
-# - Fixed weight sum to 1.0 (was 0.99)
+# Changes in v2.0.0:
+# - Elevated test_execution to Tier 1 at 10% (was test_coverage at Tier 2, 3%)
+# - Elevated ci_quality_gates to Tier 1 at 5% (was cicd_pipeline_visibility at Tier 3)
+# - Added single_file_verification (Tier 1, 5%) - NEW
+# - Added pattern_references (Tier 2, 3%) - NEW
+# - Added design_intent (Tier 3, 2%) - NEW
+# - Added progressive_disclosure (Tier 4, 1%) - NEW
+# - Reduced claude_md_file from 10% to 7% (ETH Zurich: marginal impact)
+# - Reduced readme_structure from 10% to 5%
+# - Reduced standard_layout from 10% to 5%
+# - Reduced lock_files from 10% to 5%
+# - Renamed precommit_hooks to deterministic_enforcement
+# - Renamed test_coverage to test_execution (broader scope)
+# - Type annotations kept high at 8% (validated by Cursor, Red Hat)
 
 # Tier 1 (Essential) - 55% total weight
-claude_md_file: 0.10              # 1.1 - CLAUDE.md Configuration Files ⚠️ CRITICAL
-readme_structure: 0.10            # 2.1 - README Structure
-type_annotations: 0.10            # 3.3 - Type Annotations
-standard_layout: 0.10             # 4.1 - Standard Project Layouts
-lock_files: 0.10                  # 6.1 - Dependency Pinning for Reproducibility
-dependency_security: 0.05         # 6.2 - Dependency Security & Vulnerability Scanning (NEW)
+test_execution: 0.10                # 5.1 - Test Execution & Coverage ⚠️ HIGHEST PRIORITY
+type_annotations: 0.08              # 3.3 - Type Annotations (structural signals for agents)
+claude_md_file: 0.07                # 1.1 - CLAUDE.md/AGENTS.md Configuration Files
+ci_quality_gates: 0.05              # 16.2 - CI Quality Gates (lint + type-check + tests on PR)
+single_file_verification: 0.05      # 16.1 - Single-File Verification (fast feedback loops) NEW
+readme_structure: 0.05              # 2.1 - README Structure
+standard_layout: 0.05               # 4.1 - Standard Project Layouts
+lock_files: 0.05                    # 6.1 - Dependency Pinning for Reproducibility
+dependency_security: 0.05           # 6.2 - Dependency Security & Vulnerability Scanning
 
 # Tier 2 (Critical) - 27% total weight
-test_coverage: 0.03               # 5.1 - Test Coverage Requirements
-precommit_hooks: 0.03             # 5.3 - Pre-commit Hooks & CI/CD Linting
-conventional_commits: 0.03        # 7.1 - Conventional Commit Messages
-gitignore_completeness: 0.03      # 7.2 - .gitignore Completeness
-one_command_setup: 0.03           # 8.1 - One-Command Build/Setup
-concise_documentation: 0.03       # 1.2 - Concise Structured Documentation
-inline_documentation: 0.03        # 2.2 - Inline Documentation
-file_size_limits: 0.03            # 1.3 - File Size Limits
-separation_concerns: 0.03         # 4.2 - Separation of Concerns
+deterministic_enforcement: 0.03     # 5.3 - Hooks & Lint Rules (deterministic > advisory)
+conventional_commits: 0.03          # 7.1 - Conventional Commit Messages
+gitignore_completeness: 0.03        # 7.2 - .gitignore Completeness
+one_command_setup: 0.03             # 8.1 - One-Command Build/Setup
+concise_documentation: 0.03         # 1.2 - Concise Structured Documentation
+inline_documentation: 0.03          # 2.2 - Inline Documentation
+file_size_limits: 0.03              # 1.3 - File Size Limits
+separation_concerns: 0.03           # 4.2 - Separation of Concerns
+pattern_references: 0.03            # 17.1 - Pattern References for Common Changes NEW
 
-# Tier 3 (Important) - 15% total weight
-cyclomatic_complexity: 0.03       # 3.1 - Cyclomatic Complexity Thresholds
-structured_logging: 0.03          # 9.2 - Structured Logging
-openapi_specs: 0.03               # 10.1 - OpenAPI/Swagger Specifications
-architecture_decisions: 0.03      # 2.3 - Architecture Decision Records
-semantic_naming: 0.03             # 11.3 - Semantic File & Directory Naming
+# Tier 3 (Important) - 14% total weight
+design_intent: 0.02                 # 17.2 - Design Intent Documentation NEW
+cyclomatic_complexity: 0.03         # 3.1 - Cyclomatic Complexity Thresholds
+structured_logging: 0.03            # 9.2 - Structured Logging
+openapi_specs: 0.03                 # 10.1 - OpenAPI/Swagger Specifications
+architecture_decisions: 0.03        # 2.3 - Architecture Decision Records
 
-# Tier 4 (Advanced) - 3% total weight
-code_smells: 0.01                 # 3.4 - Code Smell Elimination (Enhanced: multi-language linters)
-issue_pr_templates: 0.01          # 7.3 - Issue & Pull Request Templates
-container_setup: 0.01             # 8.3 - Container/Virtualization Setup (conditional applicability)
+# Tier 4 (Advanced) - 4% total weight
+code_smells: 0.01                   # 3.4 - Code Smell Elimination
+issue_pr_templates: 0.01            # 7.3 - Issue & Pull Request Templates
+container_setup: 0.01               # 8.3 - Container/Virtualization Setup (conditional)
+progressive_disclosure: 0.01        # 17.3 - Progressive Disclosure (path-scoped rules, skills) NEW

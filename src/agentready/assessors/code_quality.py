@@ -37,7 +37,7 @@ class TypeAnnotationsAssessor(BaseAssessor):
             tier=self.tier,
             description="Type hints in function signatures",
             criteria=">80% of functions have type annotations",
-            default_weight=0.10,
+            default_weight=0.08,
         )
 
     def is_applicable(self, repository: Repository) -> bool:

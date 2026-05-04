@@ -432,7 +432,7 @@ class TestValidateAssessorCommand:
         mock_toggler.list_supported_assessors.return_value = [
             "claude_md_file",
             "readme_structure",
-            "test_coverage",
+            "test_execution",
         ]
         mock_toggler_class.return_value = mock_toggler
 
@@ -442,7 +442,7 @@ class TestValidateAssessorCommand:
         assert result.exit_code == 0
         assert "claude_md_file" in result.output
         assert "readme_structure" in result.output
-        assert "test_coverage" in result.output
+        assert "test_execution" in result.output
 
     def test_validate_missing_assessor_flag(self, runner):
         """Test validate-assessor without --assessor flag."""
@@ -516,13 +516,13 @@ class TestValidateAssessorCommand:
 
         with runner.isolated_filesystem():
             # Create output directory structure
-            Path(".agentready/validations/test_coverage").mkdir(
+            Path(".agentready/validations/test_execution").mkdir(
                 parents=True, exist_ok=True
             )
 
             result = runner.invoke(
                 validate_assessor,
-                ["--assessor", "test_coverage", "--runs", "5", "--smoketest"],
+                ["--assessor", "test_execution", "--runs", "5", "--smoketest"],
             )
 
             assert result.exit_code == 0

@@ -13,10 +13,16 @@ class CodeSampler:
 
     # Mapping of attribute IDs to file patterns to sample
     ATTRIBUTE_FILE_PATTERNS = {
-        "claude_md_file": ["CLAUDE.md"],
+        "claude_md_file": ["CLAUDE.md", ".claude/CLAUDE.md"],
         "readme_file": ["README.md"],
         "type_annotations": ["**/*.py"],  # Sample Python files
-        "pre_commit_hooks": [".pre-commit-config.yaml", ".github/workflows/*.yml"],
+        "deterministic_enforcement": [
+            ".pre-commit-config.yaml",
+            ".github/workflows/*.yml",
+            ".github/workflows/*.yaml",
+            ".claude/settings.json",
+            ".husky/*",
+        ],
         "standard_project_layout": [
             "**/",
             "src/",
@@ -30,9 +36,39 @@ class CodeSampler:
             "go.sum",
             "Cargo.lock",
         ],
-        "test_coverage": ["pytest.ini", "pyproject.toml", ".coveragerc"],
+        "test_execution": [
+            "pytest.ini",
+            "pyproject.toml",
+            ".coveragerc",
+            "tox.ini",
+            "setup.cfg",
+            "package.json",
+            "jest.config.*",
+            "vitest.config.*",
+        ],
         "conventional_commits": [".github/workflows/*.yml"],  # CI configs
         "gitignore": [".gitignore"],
+        "single_file_verification": [
+            "CLAUDE.md",
+            "AGENTS.md",
+            ".claude/CLAUDE.md",
+            "pyproject.toml",
+        ],
+        "pattern_references": [
+            "CLAUDE.md",
+            "AGENTS.md",
+            ".claude/skills/SKILL.md",
+        ],
+        "design_intent": [
+            "docs/design/*.md",
+            "docs/architecture/*.md",
+            "docs/adr/*.md",
+            "docs/decisions/*.md",
+        ],
+        "progressive_disclosure": [
+            ".claude/rules/*.md",
+            ".claude/skills/SKILL.md",
+        ],
     }
 
     def __init__(
@@ -65,16 +101,21 @@ class CodeSampler:
             logger.warning(f"No file patterns defined for {attribute_id}")
             return "No code samples available"
 
-        # Collect files matching patterns
+        # Collect files matching patterns with fair distribution across patterns
         files_to_sample = []
-        for pattern in patterns:
+        base = self.max_files // len(patterns)
+        remainder = self.max_files % len(patterns)
+        for i, pattern in enumerate(patterns):
+            limit = base + (1 if i < remainder else 0)
+            if limit == 0:
+                continue
             if pattern.endswith("/"):
                 # Directory listing
                 files_to_sample.append(self._get_directory_tree(pattern))
             else:
                 # File pattern
                 matching_files = list(self.repository.path.glob(pattern))
-                files_to_sample.extend(matching_files[: self.max_files])
+                files_to_sample.extend(matching_files[:limit])
 
         # Format as string
         return self._format_code_samples(files_to_sample)

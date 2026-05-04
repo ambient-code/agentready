@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 
 @dataclass
 class ResearchMetadata:
@@ -66,15 +68,23 @@ class ResearchLoader:
             ValueError: If metadata cannot be extracted
         """
         # Try to extract version and date from YAML frontmatter first
-        frontmatter_match = re.search(
-            r"^---\s*\nversion:\s*([^\n]+)\s*\ndate:\s*([^\n]+)\s*\n---",
+        # Use re.match with \A to only match frontmatter at the file start
+        frontmatter_match = re.match(
+            r"\A---\s*\n(.*?)\n---(?:\n|$)",
             content,
-            re.MULTILINE,
+            re.DOTALL,
         )
 
         if frontmatter_match:
-            version = frontmatter_match.group(1).strip()
-            date = frontmatter_match.group(2).strip()
+            try:
+                fm = yaml.safe_load(frontmatter_match.group(1))
+                if not isinstance(fm, dict):
+                    fm = {}
+                version = str(fm.get("version", "1.0.0")).strip()
+                date = str(fm.get("date", "unknown")).strip()
+            except yaml.YAMLError:
+                version = "1.0.0"
+                date = "unknown"
         else:
             # Fallback: Try Markdown bold format (**Version:** 1.0.1)
             version_match = re.search(r"\*\*Version:\*\*\s+([^\n]+)", content)
@@ -91,8 +101,8 @@ class ResearchLoader:
         tier_pattern = r"^###\s+Tier\s+\d+:"
         tier_count = len(re.findall(tier_pattern, content, re.MULTILINE))
 
-        # Count references (look for citation patterns)
-        reference_pattern = r"^\d+\.\s+\[.+?\]\(.+?\)"
+        # Count references (numbered or bulleted markdown links)
+        reference_pattern = r"^(?:\d+\.|-|\*)\s+\[.+?\]\(.+?\)"
         reference_count = len(re.findall(reference_pattern, content, re.MULTILINE))
 
         return ResearchMetadata(
@@ -123,9 +133,11 @@ class ResearchLoader:
 
         metadata = self.extract_metadata(content)
 
-        # Check attribute count (should be 25)
-        if metadata.attribute_count != 25:
-            errors.append(f"Expected 25 attributes, found {metadata.attribute_count}")
+        # Check attribute count (flexible — was 25 in v1, now 29+ in v2)
+        if metadata.attribute_count < 25:
+            errors.append(
+                f"Expected at least 25 attributes, found {metadata.attribute_count}"
+            )
 
         # Check tier count (should be 4)
         if metadata.tier_count < 4:
@@ -145,9 +157,22 @@ class ResearchLoader:
         )
 
         if criteria_count < 25:
-            errors.append(
-                f"Missing 'Measurable Criteria' sections (found {criteria_count}/25)"
+            warnings.append(
+                f"Some attributes missing 'Measurable Criteria' (found {criteria_count})"
             )
+
+        # Detect duplicate "Measurable Criteria" within same attribute
+        attribute_sections = re.split(
+            r"(?=^### \d+\.\d+ )", content, flags=re.MULTILINE
+        )
+        for section in attribute_sections:
+            mc_count = len(re.findall(measurable_criteria_pattern, section))
+            if mc_count > 1:
+                title_match = re.match(r"### (\d+\.\d+ .+?)$", section, re.MULTILINE)
+                title = title_match.group(1) if title_match else "unknown"
+                errors.append(
+                    f"Duplicate 'Measurable Criteria' in section {title} ({mc_count} found)"
+                )
 
         # Check for "Impact on Agent Behavior" sections (warning only)
         impact_pattern = r"\*\*Impact on Agent Behavior:\*\*"
@@ -155,8 +180,8 @@ class ResearchLoader:
 
         if impact_count < 25:
             warnings.append(
-                f"{25 - impact_count} attributes missing "
-                f"'Impact on Agent Behavior' sections"
+                f"Some attributes missing 'Impact on Agent Behavior' "
+                f"(found {impact_count})"
             )
 
         is_valid = len(errors) == 0

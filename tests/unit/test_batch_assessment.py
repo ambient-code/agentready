@@ -153,7 +153,7 @@ class TestBatchSummary:
             },
             language_breakdown={"Python": 45, "JavaScript": 20},
             top_failing_attributes=[
-                {"attribute_id": "test_coverage", "failure_count": 3},
+                {"attribute_id": "test_execution", "failure_count": 3},
                 {"attribute_id": "type_annotations", "failure_count": 2},
             ],
         )

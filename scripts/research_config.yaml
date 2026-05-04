@@ -1,32 +1,117 @@
 # Research Update Configuration
-# Controls weekly automated updates to agent-ready-codebase-attributes.md
+# Controls automated updates to RESEARCH_REPORT.md
 
 update_settings:
-  # Maximum number of attribute updates per weekly run
-  # Keeps PRs reviewable and focused
+  # Maximum number of attribute updates per run
   max_updates_per_run: 5
 
   # Minimum Claude-rated relevance score (0.0-1.0)
-  # Higher = more selective about what gets included
   min_citation_quality_score: 0.7
 
   # Only include research from last N months
   search_recency_months: 12
 
-# Tier 1 attributes get priority in updates
-# These are processed first before other attributes
+  # Maximum total results returned from all sources combined
+  max_total_results: 15
+
+# Priority attributes — processed first (use section numbers from report)
+# Updated in v2.0.0 to reflect evidence-based priorities
 priority_attributes:
-  - "1.1"  # CLAUDE.md Configuration Files
-  - "2.1"  # README Structure
-  - "3.3"  # Type Annotations (Static Typing)
-  - "5.1"  # Test Coverage Requirements
-  - "7.1"  # Conventional Commit Messages
+  - "5.1"   # Test Execution & Coverage (highest priority)
+  - "16.1"  # Single-File Verification
+  - "16.2"  # CI Quality Gates
+  - "1.1"   # CLAUDE.md/AGENTS.md Configuration Files
+  - "3.3"   # Type Annotations
+  - "17.1"  # Pattern References
 
 # Search domain preferences
 search_domains:
-  # Prioritized sources (high authority)
+
+  # RSS/Atom feed sources — structured, date-sorted, richest data
+  rss_feeds:
+    - name: "GitHub Blog"
+      domain: github.blog
+      feed_url: "https://github.blog/feed/"
+      format: rss
+      max_results: 5
+      relevance_keywords: ["copilot", "AI", "agent", "code", "LLM", "developer"]
+
+    - name: "Martin Fowler"
+      domain: martinfowler.com
+      feed_url: "https://martinfowler.com/feed.atom"
+      format: atom
+      max_results: 5
+      relevance_keywords: ["AI", "agent", "coding", "development", "testing", "refactoring"]
+
+    - name: "Microsoft Research"
+      domain: microsoft.com
+      feed_url: "https://microsoft.com/research/feed/"
+      format: rss
+      max_results: 5
+      relevance_keywords: ["AI", "agent", "code", "LLM", "software", "developer"]
+
+  # Sitemap-based sources — discover URLs, fetch metadata from HTML
+  sitemap_sources:
+    - name: "Anthropic Engineering"
+      domain: anthropic.com
+      sitemap_url: "https://www.anthropic.com/sitemap.xml"
+      path_filters: ["/engineering/", "/research/"]
+      max_results: 5
+      relevance_keywords: ["agent", "claude", "code", "tool", "context", "harness"]
+
+    - name: "OpenAI Research"
+      domain: openai.com
+      sitemap_url: "https://openai.com/sitemap.xml/research/"
+      path_filters: ["/index/"]
+      max_results: 5
+      relevance_keywords: ["agent", "code", "model", "developer"]
+
+    - name: "Cursor Blog"
+      domain: cursor.com
+      sitemap_url: "https://cursor.com/sitemap.xml"
+      path_filters: ["/blog/"]
+      max_results: 5
+      relevance_keywords: ["agent", "AI", "code", "editor", "model"]
+
+    - name: "Factory AI"
+      domain: factory.ai
+      sitemap_url: "https://factory.ai/sitemap.xml"
+      path_filters: ["/news/"]
+      max_results: 5
+      relevance_keywords: ["agent", "code", "droid", "benchmark", "review"]
+
+    - name: "Google Research"
+      domain: research.google
+      sitemap_url: "https://research.google/sitemap.xml"
+      path_filters: ["/pubs/"]
+      max_results: 5
+      relevance_keywords: ["AI", "agent", "code", "LLM", "software"]
+
+  # Curated static URLs — content rarely changes, checked periodically
+  curated_sources:
+    - name: "OpenSSF Best Practices"
+      domain: best.openssf.org
+      urls:
+        - "https://best.openssf.org/Concise-Guide-for-Developing-More-Secure-Software"
+        - "https://best.openssf.org/npm-best-practices"
+      source_label: "OpenSSF"
+
+    - name: "AGENTS.md Specification"
+      domain: agents.md
+      urls:
+        - "https://agents.md"
+      source_label: "AGENTS.md"
+
+    - name: "Claude Code Documentation"
+      domain: docs.anthropic.com
+      urls:
+        - "https://docs.anthropic.com/en/docs/claude-code/overview"
+      source_label: "Anthropic Docs"
+
+  # Prioritized domains — used for result ranking and citation filtering
   prioritized:
     - anthropic.com
+    - code.claude.com
     - microsoft.com/research
     - research.google
     - arxiv.org
@@ -34,7 +119,10 @@ search_domains:
     - openai.com/research
     - github.blog
     - martinfowler.com
-    - thoughtworks.com
+    - agents.md
+    - cursor.com
+    - factory.ai
+    - best.openssf.org
 
   # Blocked domains (low quality, spam)
   blocked:
