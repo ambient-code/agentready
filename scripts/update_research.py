@@ -95,7 +95,7 @@ class ResearchUpdater:
         """Search ArXiv API for recent papers."""
         search_query = f"({query}) AND (AI OR LLM OR agent OR code)"
         encoded_query = urllib.parse.quote(search_query)
-        url = f"http://export.arxiv.org/api/query?search_query=all:{encoded_query}&max_results=5&sortBy=submittedDate&sortOrder=descending"
+        url = f"https://export.arxiv.org/api/query?search_query=all:{encoded_query}&max_results=5&sortBy=submittedDate&sortOrder=descending"
 
         results = []
         try:
@@ -351,6 +351,7 @@ class ResearchUpdater:
         for src in sources:
             src_name = src["name"]
             sitemap_url = src["sitemap_url"]
+            sitemap_host = urllib.parse.urlparse(sitemap_url).hostname or ""
             path_filters = src.get("path_filters", [])
             max_results = src.get("max_results", 5)
             keywords = src.get("relevance_keywords", [])
@@ -371,6 +372,15 @@ class ResearchUpdater:
                     if loc_el is None or not loc_el.text:
                         continue
                     loc = loc_el.text.strip()
+                    parsed_loc = urllib.parse.urlparse(loc)
+                    loc_host = parsed_loc.hostname or ""
+                    if parsed_loc.scheme not in {"http", "https"}:
+                        continue
+                    if not (
+                        loc_host == sitemap_host
+                        or loc_host.endswith("." + sitemap_host)
+                    ):
+                        continue
                     lastmod = (
                         lastmod_el.text.strip()[:10]
                         if lastmod_el is not None and lastmod_el.text

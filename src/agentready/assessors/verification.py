@@ -56,9 +56,6 @@ class SingleFileVerificationAssessor(BaseAssessor):
         (r"mypy\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"pyright\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"tsc\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
-        # Path placeholder patterns (require path-like token)
-        (r"lint.*(?:path/to|<file)", "lint"),
-        (r"type.?check.*(?:path/to|<file)", "typecheck"),
     ]
 
     def assess(self, repository: Repository) -> Finding:
