@@ -103,15 +103,19 @@ class CodeSampler:
 
         # Collect files matching patterns with fair distribution across patterns
         files_to_sample = []
-        per_pattern_limit = max(1, self.max_files // len(patterns))
-        for pattern in patterns:
+        base = self.max_files // len(patterns)
+        remainder = self.max_files % len(patterns)
+        for i, pattern in enumerate(patterns):
+            limit = base + (1 if i < remainder else 0)
+            if limit == 0:
+                continue
             if pattern.endswith("/"):
                 # Directory listing
                 files_to_sample.append(self._get_directory_tree(pattern))
             else:
                 # File pattern
                 matching_files = list(self.repository.path.glob(pattern))
-                files_to_sample.extend(matching_files[:per_pattern_limit])
+                files_to_sample.extend(matching_files[:limit])
 
         # Format as string
         return self._format_code_samples(files_to_sample)

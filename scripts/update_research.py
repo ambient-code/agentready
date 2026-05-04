@@ -427,8 +427,8 @@ class ResearchUpdater:
                         continue
 
                     # Raw markdown (e.g. GitHub raw URLs)
-                    url_netloc = urllib.parse.urlparse(url).netloc
-                    is_raw_gh = url_netloc == "raw.githubusercontent.com"
+                    url_hostname = urllib.parse.urlparse(url).hostname
+                    is_raw_gh = url_hostname == "raw.githubusercontent.com"
                     if is_raw_gh or url.endswith(".md"):
                         heading = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
                         para = re.search(r"\n\n(.+?)(?:\n\n|\Z)", content, re.DOTALL)

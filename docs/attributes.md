@@ -686,6 +686,16 @@ go tool cover -html=coverage.out
 
 ---
 
+### Additional Tier 1 Attributes
+
+**CI Quality Gates** (`ci_quality_gates`, 5%) — Lint + type-check + tests enforced on every PR via CI
+**Single-File Verification** (`single_file_verification`, 5%) — Fast single-file lint and type-check commands for agent feedback loops
+**Dependency Security** (`dependency_security`, 5%) — Vulnerability scanning and security auditing of dependencies
+
+*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
+
+---
+
 ## Tier 2: Critical Attributes
 
 *Major quality improvements and safety nets — 27% of total score*
@@ -926,46 +936,15 @@ setup:
 
 ---
 
-### 11. Development Environment Documentation
+### Additional Tier 2 Attributes
 
-**ID**: `dev_environment_docs`
-**Weight**: 5%
-**Category**: Build & Development
-**Status**: 🔶 Partially Implemented
+**Concise Structured Documentation** (`concise_documentation`, 3%) — Focused, scannable docs optimized for AI context windows
+**Inline Documentation** (`inline_documentation`, 3%) — Comments and docstrings for functions, classes, modules
+**File Size Limits** (`file_size_limits`, 3%) — Files under threshold to keep context manageable
+**Separation of Concerns** (`separation_concerns`, 3%) — Clean module boundaries and single-responsibility
+**Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes (NEW)
 
-#### Definition
-
-Clear documentation of prerequisites, environment variables, and configuration requirements.
-
-#### Measurable Criteria
-
-**Must document**:
-
-- Language/runtime version (Python 3.12+, Node.js 18+)
-- System dependencies (PostgreSQL, Redis, etc.)
-- Environment variables (`.env.example` with all variables)
-- Optional: IDE setup, debugging config
-
-#### Example: .env.example
-
-```bash
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/myapp
-
-# Redis (optional, for caching)
-REDIS_URL=redis://localhost:6379
-
-# API Keys (get from https://example.com/api)
-API_KEY=your-key-here
-API_SECRET=your-secret-here
-
-# Feature Flags
-ENABLE_FEATURE_X=false
-```
-
-**Citations**:
-
-- Medium: "Creating Reproducible Development Environments"
+*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
 

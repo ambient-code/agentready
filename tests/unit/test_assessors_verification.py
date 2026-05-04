@@ -47,8 +47,8 @@ class TestSingleFileVerificationAssessor:
         assert finding.status == "fail"
         assert finding.score == 0.0
 
-    def test_passes_with_lint_in_claude_md(self, tmp_path):
-        """Test that a lint command in CLAUDE.md scores as lint found."""
+    def test_lint_only_in_claude_md_is_fail(self, tmp_path):
+        """Test that lint-only (no typecheck) in CLAUDE.md is a partial fail."""
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Commands\n- Lint: `ruff check path/to/file.py`\n")
 
@@ -56,12 +56,13 @@ class TestSingleFileVerificationAssessor:
         assessor = SingleFileVerificationAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.status == "pass"
+        assert finding.status == "fail"
         assert finding.score == 50.0
         assert any("lint" in e.lower() for e in finding.evidence)
+        assert finding.remediation is not None
 
-    def test_passes_with_typecheck_in_claude_md(self, tmp_path):
-        """Test that a type-check command in CLAUDE.md scores as typecheck found."""
+    def test_typecheck_only_in_claude_md_is_fail(self, tmp_path):
+        """Test that typecheck-only (no lint) in CLAUDE.md is a partial fail."""
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Commands\n- Type check: `mypy src/module.py`\n")
 
@@ -69,9 +70,10 @@ class TestSingleFileVerificationAssessor:
         assessor = SingleFileVerificationAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.status == "pass"
+        assert finding.status == "fail"
         assert finding.score == 50.0
         assert any("type-check" in e.lower() for e in finding.evidence)
+        assert finding.remediation is not None
 
     def test_full_score_with_both_lint_and_typecheck(self, tmp_path):
         """Test that both lint + typecheck commands give full score."""
@@ -115,7 +117,7 @@ class TestSingleFileVerificationAssessor:
     def test_recognizes_black(self, tmp_path):
         """Test that black pattern is recognized as lint."""
         claude_md = tmp_path / "CLAUDE.md"
-        claude_md.write_text("Format: `black src/module.py`\n")
+        claude_md.write_text("Check: `black --check src/module.py`\n")
 
         repo = self._make_repo(tmp_path)
         assessor = SingleFileVerificationAssessor()

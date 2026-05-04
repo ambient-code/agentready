@@ -38,21 +38,24 @@ class SingleFileVerificationAssessor(BaseAssessor):
 
     # Patterns that suggest single-file lint/type-check commands.
     # Each entry is (regex, category) where category is "lint" or "typecheck".
+    # The lookahead (?=\s*(?:[`\n]|$)) anchors the file path as the final
+    # token — only backtick (end of inline code), newline, or end-of-string
+    # may follow, preventing multi-file invocations from matching.
     SINGLE_FILE_PATTERNS = [
-        # Lint single file patterns — require file extension to avoid matching directories
-        (r"eslint\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"ruff\s+check\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"pylint\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"flake8\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"rubocop\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"golangci-lint\s+run\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"black\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"prettier\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
-        (r"gofmt\s+(?!-)[\w./\-]*\.\w{1,10}", "lint"),
+        # Lint single file patterns
+        (r"eslint\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"ruff\s+check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"pylint\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"flake8\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"rubocop\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"golangci-lint\s+run\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"black\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"prettier\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"gofmt\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         # Type check single file patterns
-        (r"mypy\s+(?!-)[\w./\-]*\.\w{1,10}", "typecheck"),
-        (r"pyright\s+(?!-)[\w./\-]*\.\w{1,10}", "typecheck"),
-        (r"tsc\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}", "typecheck"),
+        (r"mypy\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
+        (r"pyright\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
+        (r"tsc\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         # Path placeholder patterns (require path-like token)
         (r"lint.*(?:path/to|<file)", "lint"),
         (r"type.?check.*(?:path/to|<file)", "typecheck"),
@@ -161,15 +164,26 @@ class SingleFileVerificationAssessor(BaseAssessor):
 
         score = min(score, 100.0)
 
-        if score >= 50:
+        if found_lint and found_typecheck:
             return Finding(
                 attribute=self.attribute,
                 status="pass",
                 score=score,
-                measured_value="documented" if score >= 80 else "partially documented",
+                measured_value="documented",
                 threshold="single-file lint + type-check commands documented",
                 evidence=evidence,
-                remediation=None if score >= 80 else self._create_remediation(),
+                remediation=None,
+                error_message=None,
+            )
+        elif score > 0:
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=score,
+                measured_value="partially documented",
+                threshold="single-file lint + type-check commands documented",
+                evidence=evidence,
+                remediation=self._create_remediation(),
                 error_message=None,
             )
         else:
