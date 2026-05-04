@@ -64,7 +64,7 @@ class CodeSampler:
         "pattern_references": [
             "CLAUDE.md",
             "AGENTS.md",
-            ".claude/skills/SKILL.md",
+            ".claude/skills/**/SKILL.md",
         ],
         "design_intent": [
             "docs/design/*.md",
@@ -74,7 +74,7 @@ class CodeSampler:
         ],
         "progressive_disclosure": [
             ".claude/rules/*.md",
-            ".claude/skills/SKILL.md",
+            ".claude/skills/**/SKILL.md",
         ],
     }
 
@@ -110,12 +110,10 @@ class CodeSampler:
 
         # Collect files matching patterns with fair distribution across patterns
         files_to_sample = []
-        base = self.max_files // len(patterns)
-        remainder = self.max_files % len(patterns)
+        base = max(1, self.max_files // len(patterns))
+        remainder = self.max_files % len(patterns) if base > 1 else 0
         for i, pattern in enumerate(patterns):
             limit = base + (1 if i < remainder else 0)
-            if limit == 0:
-                continue
             if pattern.endswith("/"):
                 # Directory listing
                 files_to_sample.append(self._get_directory_tree(pattern))
