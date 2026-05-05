@@ -198,6 +198,81 @@ node_modules
         assert finding.score == 60  # Dockerfile (40) + .dockerignore (20)
         assert any(".dockerignore present" in e for e in finding.evidence)
 
+    def test_containerignore_file(self, tmp_path):
+        """Test that .containerignore is accepted as an alias for .dockerignore."""
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "Dockerfile").write_text("FROM python:3.12\n")
+
+        (tmp_path / ".containerignore").write_text(
+            ".git\n.venv\n__pycache__\n*.pyc\n.env\n"
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ContainerSetupAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 60  # Dockerfile (40) + .containerignore (20)
+        assert any(".containerignore present" in e for e in finding.evidence)
+
+    def test_empty_containerignore(self, tmp_path):
+        """Test that an empty .containerignore doesn't get points."""
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "Dockerfile").write_text("FROM python:3.12\n")
+        (tmp_path / ".containerignore").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ContainerSetupAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 40  # Only Dockerfile
+        assert any(".containerignore is empty" in e for e in finding.evidence)
+
+    def test_both_ignore_files_no_double_count(self, tmp_path):
+        """Test that having both .dockerignore and .containerignore awards 20 pts once."""
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "Dockerfile").write_text("FROM python:3.12\n")
+        (tmp_path / ".dockerignore").write_text(".git\n.venv\n")
+        (tmp_path / ".containerignore").write_text(".git\n.venv\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = ContainerSetupAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 60  # Dockerfile (40) + ignore file (20), not 80
+
     def test_empty_dockerignore(self, tmp_path):
         """Test that empty .dockerignore doesn't get points."""
         # Initialize git repository

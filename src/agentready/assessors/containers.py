@@ -29,7 +29,7 @@ class ContainerSetupAssessor(BaseAssessor):
             category="Build & Development",
             tier=self.tier,
             description="Container configuration for consistent development environments",
-            criteria="Dockerfile/Containerfile, docker-compose.yml, .dockerignore, multi-stage builds",
+            criteria="Dockerfile/Containerfile, docker-compose.yml, .dockerignore/.containerignore, multi-stage builds",
             default_weight=0.01,
         )
 
@@ -94,23 +94,27 @@ class ContainerSetupAssessor(BaseAssessor):
             score += 30
             evidence.append(f"✓ Docker Compose configured ({', '.join(found_compose)})")
 
-        # 4. .dockerignore file (20 points)
-        dockerignore = repository.path / ".dockerignore"
-        if dockerignore.exists():
+        # 4. .dockerignore / .containerignore file (20 points)
+        ignore_candidates = [
+            repository.path / ".dockerignore",
+            repository.path / ".containerignore",
+        ]
+        found_ignore = next((p for p in ignore_candidates if p.exists()), None)
+        if found_ignore is not None:
             try:
-                size = dockerignore.stat().st_size
+                size = found_ignore.stat().st_size
                 if size > 0:
                     score += 20
                     evidence.append(
-                        "✓ .dockerignore present (excludes unnecessary files)"
+                        f"✓ {found_ignore.name} present (excludes unnecessary files)"
                     )
                 else:
-                    evidence.append("⚠️ .dockerignore is empty")
+                    evidence.append(f"⚠️ {found_ignore.name} is empty")
             except OSError:
                 pass
         else:
             evidence.append(
-                "ℹ️ No .dockerignore file (consider adding to reduce image size)"
+                "ℹ️ No .dockerignore / .containerignore file (consider adding to reduce image size)"
             )
 
         # Determine status
@@ -123,7 +127,7 @@ class ContainerSetupAssessor(BaseAssessor):
                 summary="Improve container configuration",
                 steps=[
                     "Add docker-compose.yml for multi-service development",
-                    "Create .dockerignore to exclude build artifacts and secrets",
+                    "Create .dockerignore (or .containerignore) to exclude build artifacts and secrets",
                     "Consider multi-stage builds to reduce image size",
                 ],
                 tools=["docker", "podman", "docker-compose"],
@@ -150,13 +154,13 @@ class ContainerSetupAssessor(BaseAssessor):
                 summary="Complete container setup with best practices",
                 steps=[
                     "Add docker-compose.yml for local development",
-                    "Create .dockerignore to exclude unnecessary files",
+                    "Create .dockerignore (or .containerignore) to exclude unnecessary files",
                     "Use multi-stage builds for production images",
                     "Document container usage in README",
                 ],
                 tools=["docker", "podman", "docker-compose"],
                 commands=[
-                    "touch .dockerignore",
+                    "touch .dockerignore  # or .containerignore for Podman",
                     "touch docker-compose.yml",
                 ],
                 examples=[
@@ -177,7 +181,7 @@ class ContainerSetupAssessor(BaseAssessor):
             status=status,
             score=min(score, 100),  # Cap at 100
             measured_value=f"{score} points",
-            threshold="≥70 points (Dockerfile + compose + .dockerignore)",
+            threshold="≥70 points (Dockerfile + compose + .dockerignore/.containerignore)",
             evidence=evidence,
             remediation=remediation,
             error_message=None,
