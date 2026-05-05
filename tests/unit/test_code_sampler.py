@@ -433,6 +433,95 @@ class TestCodeSamplerEdgeCases:
         # Should return tree structure
         assert isinstance(tree, dict)
 
+    def test_all_patterns_get_at_least_one_slot(self):
+        """Test that trailing patterns are not starved when len(patterns) > max_files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+            (repo_path / "package.json").write_text('{"scripts":{"test":"jest"}}')
+            (repo_path / "jest.config.js").write_text("module.exports = {}")
+
+            repo = Repository(
+                path=repo_path,
+                name="js-repo",
+                url=None,
+                branch="main",
+                commit_hash="abc",
+                languages={"JavaScript": 100},
+                total_files=2,
+                total_lines=10,
+            )
+
+            attr = Attribute(
+                id="test_execution",
+                name="Test Execution",
+                category="Testing",
+                tier=1,
+                description="Test setup",
+                criteria="Test config",
+                default_weight=1.0,
+            )
+            finding = Finding(
+                attribute=attr,
+                status="pass",
+                score=80.0,
+                measured_value="configured",
+                threshold="configured",
+                evidence=[],
+                remediation=None,
+                error_message=None,
+            )
+
+            sampler = CodeSampler(repo, max_files=5)
+            code = sampler.get_relevant_code(finding)
+
+            assert "package.json" in code or "jest.config" in code
+
+    def test_nested_skill_files_found(self):
+        """Test that .claude/skills/<name>/SKILL.md is found by recursive glob."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            (repo_path / ".git").mkdir()
+            skills_dir = repo_path / ".claude" / "skills" / "add-endpoint"
+            skills_dir.mkdir(parents=True)
+            (skills_dir / "SKILL.md").write_text("# Add Endpoint")
+
+            repo = Repository(
+                path=repo_path,
+                name="skill-repo",
+                url=None,
+                branch="main",
+                commit_hash="abc",
+                languages={"Python": 100},
+                total_files=1,
+                total_lines=5,
+            )
+
+            attr = Attribute(
+                id="pattern_references",
+                name="Pattern References",
+                category="Patterns",
+                tier=3,
+                description="Pattern refs",
+                criteria="Skills exist",
+                default_weight=1.0,
+            )
+            finding = Finding(
+                attribute=attr,
+                status="pass",
+                score=60.0,
+                measured_value="present",
+                threshold="present",
+                evidence=[],
+                remediation=None,
+                error_message=None,
+            )
+
+            sampler = CodeSampler(repo)
+            code = sampler.get_relevant_code(finding)
+
+            assert "SKILL.md" in code
+
     def test_hidden_files_excluded_from_tree(self, temp_repo):
         """Test that hidden files/directories are excluded from tree."""
         # Create hidden directory

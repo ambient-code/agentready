@@ -1,4 +1,4 @@
-"""Attribute model defining one of the 25 agent-ready quality attributes."""
+"""Attribute model defining agent-ready quality attributes."""
 
 from dataclasses import dataclass
 
@@ -8,7 +8,7 @@ class Attribute:
     """Defines an agent-ready quality attribute from the research report.
 
     Attributes:
-        id: Unique identifier (e.g., "claude_md_file", "test_coverage")
+        id: Unique identifier (e.g., "claude_md_file", "test_execution")
         name: Human-readable name (e.g., "CLAUDE.md Configuration Files")
         category: Research report section (e.g., "Context Window Optimization")
         tier: Priority tier 1-4 (1=Essential, 4=Advanced)

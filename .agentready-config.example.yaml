@@ -12,37 +12,39 @@
 # Tier 4 (Advanced) attributes default to 1% each
 weights:
   # Tier 1 (Essential) - 50% total
-  claude_md_file: 0.10              # CLAUDE.md configuration files
-  readme_structure: 0.10            # README structure and content
-  type_annotations: 0.10            # Type hints in code
-  standard_layout: 0.10             # Standard project layout
-  lock_files: 0.10                  # Dependency lock files
+  test_execution: 0.10               # Test execution & coverage (highest priority)
+  type_annotations: 0.08            # Type hints in code
+  claude_md_file: 0.07              # CLAUDE.md/AGENTS.md configuration files
+  ci_quality_gates: 0.05            # CI quality gates (lint + type-check + tests)
+  single_file_verification: 0.05    # Single-file lint/type-check commands
+  readme_structure: 0.05            # README structure and content
+  standard_layout: 0.05             # Standard project layout
+  lock_files: 0.05                  # Dependency lock files
+  dependency_security: 0.05         # Dependency security & vulnerability scanning
 
-  # Tier 2 (Critical) - 30% total
-  test_coverage: 0.03               # Test coverage requirements
-  precommit_hooks: 0.03             # Pre-commit hooks & linting
+  # Tier 2 (Critical) - 27% total
+  deterministic_enforcement: 0.03   # Hooks & lint rules (deterministic > advisory)
   conventional_commits: 0.03        # Conventional commit messages
   gitignore_completeness: 0.03      # Comprehensive .gitignore
   one_command_setup: 0.03           # One-command build/setup
   concise_documentation: 0.03       # Concise structured docs
   inline_documentation: 0.03        # Inline code documentation
   file_size_limits: 0.03            # File size constraints
-  dependency_freshness: 0.03        # Dependency updates & security
   separation_concerns: 0.03         # Separation of concerns
+  pattern_references: 0.03          # Pattern references for common changes
 
-  # Tier 3 (Important) - 15% total
+  # Tier 3 (Important) - 14% total
+  design_intent: 0.02               # Design intent documentation
   cyclomatic_complexity: 0.03       # Complexity thresholds
   structured_logging: 0.03          # Structured logging
   openapi_specs: 0.03               # OpenAPI/Swagger specs
   architecture_decisions: 0.03      # Architecture Decision Records
-  semantic_naming: 0.03             # Semantic file naming
 
-  # Tier 4 (Advanced) - 5% total
-  security_scanning: 0.01           # Security scanning automation
-  performance_benchmarks: 0.01      # Performance benchmarks
+  # Tier 4 (Advanced) - 4% total
   code_smells: 0.01                 # Code smell elimination
   issue_pr_templates: 0.01          # GitHub templates
   container_setup: 0.01             # Container/virtualization
+  progressive_disclosure: 0.01      # Progressive disclosure (path-scoped rules)
 
 # Exclude specific attributes from assessment
 excluded_attributes: []
@@ -81,9 +83,9 @@ report_theme: default
 #   shadow: "rgba(0, 0, 0, 0.5)"
 
 # Example: Increase weight for CLAUDE.md and tests
-# This increases CLAUDE.md from 10% to 15% and test_coverage from 3% to 5%
+# This increases CLAUDE.md from 7% to 15% and test_execution from 10% to 15%
 # Other attributes are automatically rescaled to maintain sum of 1.0
 #
 # weights:
 #   claude_md_file: 0.15
-#   test_coverage: 0.05
+#   test_execution: 0.15

@@ -69,7 +69,7 @@ podman run --rm \
   -v $(pwd):/repo:ro \
   -v $(pwd)/agentready-reports:/reports \
   ghcr.io/ambient-code/agentready:latest \
-  assess /repo --output-dir /reports -e type_annotations -e test_coverage
+  assess /repo --output-dir /reports -e type_annotations -e test_execution
 ```
 
 ### Save Output Files

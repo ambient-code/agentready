@@ -15,10 +15,12 @@ from .base import BaseAssessor
 
 
 class CLAUDEmdAssessor(BaseAssessor):
-    """Assesses presence and quality of CLAUDE.md configuration file.
+    """Assesses presence and quality of CLAUDE.md/AGENTS.md configuration file.
 
-    CLAUDE.md is the MOST IMPORTANT attribute (10% weight - Tier 1 Essential).
-    Missing this file has 10x the impact of missing advanced features.
+    Tier 1 Essential (7% weight). Context files help agents understand project
+    conventions, but ETH Zurich (Feb 2026) found: auto-generated files hurt
+    performance (-3%), human-written files help only marginally (+4%).
+    Only include what agents can't discover by reading the code.
     """
 
     @property
@@ -36,9 +38,9 @@ class CLAUDEmdAssessor(BaseAssessor):
             name="CLAUDE.md Configuration Files",
             category="Context Window Optimization",
             tier=self.tier,
-            description="Project-specific configuration for Claude Code",
-            criteria="CLAUDE.md file exists in repository root",
-            default_weight=0.10,
+            description="Project-specific configuration for AI coding agents",
+            criteria="CLAUDE.md or AGENTS.md file exists in repository root",
+            default_weight=0.07,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -157,20 +159,44 @@ class CLAUDEmdAssessor(BaseAssessor):
             )
 
         except FileNotFoundError:
-            # CLAUDE.md not found - check for AGENTS.md as alternative
+            # CLAUDE.md not found at root - check .claude/CLAUDE.md
+            dotclaude_md_path = repository.path / ".claude" / "CLAUDE.md"
+            dotclaude_content, dotclaude_size = self._read_referenced_file(
+                dotclaude_md_path
+            )
+
+            if dotclaude_content and dotclaude_size >= 50:
+                evidence = [
+                    "CLAUDE.md not found at repository root",
+                    f".claude/CLAUDE.md found with {dotclaude_size} bytes",
+                ]
+                if self._check_agents_md_exists(agents_md_path):
+                    evidence.append("AGENTS.md also present (cross-tool compatibility)")
+                return Finding(
+                    attribute=self.attribute,
+                    status="pass",
+                    score=100.0,
+                    measured_value=".claude/CLAUDE.md present",
+                    threshold="CLAUDE.md or AGENTS.md",
+                    evidence=evidence,
+                    remediation=None,
+                    error_message=None,
+                )
+
+            # Check for AGENTS.md as alternative
             agents_content, agents_size = self._read_referenced_file(agents_md_path)
 
             if agents_content and agents_size >= 50:
                 return Finding(
                     attribute=self.attribute,
                     status="pass",
-                    score=90.0,  # Slightly lower score for missing CLAUDE.md
+                    score=100.0,  # AGENTS.md is the cross-tool standard (60k+ repos)
                     measured_value="AGENTS.md present",
                     threshold="CLAUDE.md or AGENTS.md",
                     evidence=[
                         "CLAUDE.md not found",
-                        f"AGENTS.md found with {agents_size} bytes (alternative)",
-                        "Consider adding CLAUDE.md as symlink or @ reference for broader tool support",
+                        f"AGENTS.md found with {agents_size} bytes",
+                        "AGENTS.md is the cross-tool standard supported by Claude Code, Copilot, Cursor, Codex, and Gemini CLI",
                     ],
                     remediation=None,
                     error_message=None,
@@ -365,7 +391,7 @@ class READMEAssessor(BaseAssessor):
             tier=self.tier,
             description="Well-structured README with key sections",
             criteria="README.md with installation, usage, and development sections",
-            default_weight=0.10,
+            default_weight=0.05,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -512,7 +538,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             tier=self.tier,
             description="Lightweight documents capturing architectural decisions",
             criteria="ADR directory with documented decisions",
-            default_weight=0.015,
+            default_weight=0.03,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -1266,7 +1292,7 @@ class OpenAPISpecsAssessor(BaseAssessor):
             tier=self.tier,
             description="Machine-readable API documentation in OpenAPI format",
             criteria="OpenAPI 3.x spec with complete endpoint documentation",
-            default_weight=0.015,
+            default_weight=0.03,
         )
 
     def is_applicable(self, repository: Repository) -> bool:

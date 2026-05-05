@@ -76,13 +76,13 @@ def test_map_finding_to_attribute_by_keyword():
             default_weight=0.0375,
         ),
         Attribute(
-            id="test_coverage",
-            name="Test Coverage",
-            tier=2,
+            id="test_execution",
+            name="Test Execution",
+            tier=1,
             category="Testing",
-            description="High test coverage",
-            criteria=">80% coverage",
-            default_weight=0.0375,
+            description="Test execution and coverage",
+            criteria="Single-command test runner",
+            default_weight=0.10,
         ),
     ]
 
@@ -103,8 +103,8 @@ def test_map_finding_to_attribute_by_keyword():
         attributes=attributes,
     )
     assert attr is not None
-    assert attr.id == "test_coverage"
-    assert attr.name == "Test Coverage"
+    assert attr.id == "test_execution"
+    assert attr.name == "Test Execution"
 
 
 def test_map_finding_to_attribute_no_match():

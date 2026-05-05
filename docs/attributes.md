@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 25 agent-ready attributes assessed by AgentReady.
+Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -26,12 +26,12 @@ Complete reference for all 25 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against **25 evidence-based attributes** that improve AI agent effectiveness. Each attribute is:
+AgentReady evaluates repositories against **27 evidence-based attributes** that improve AI agent effectiveness. Each attribute is:
 
 - **Research-backed**: Derived from 50+ authoritative sources (Anthropic, Microsoft, Google, academic research)
 - **Measurable**: Specific criteria with clear pass/fail thresholds
 - **Actionable**: Concrete tools, commands, and examples for remediation
-- **Weighted**: Importance reflected in tier-based scoring (50/30/15/5 distribution)
+- **Weighted**: Importance reflected in tier-based scoring (55/27/14/4 distribution)
 
 **Every attribute includes**:
 
@@ -50,10 +50,10 @@ Attributes are organized into four weighted tiers:
 
 | Tier | Weight | Focus | Attribute Count |
 |------|--------|-------|-----------------|
-| **Tier 1: Essential** | 50% | Fundamentals enabling basic AI functionality | 5 attributes |
-| **Tier 2: Critical** | 30% | Major quality improvements and safety nets | 6 attributes |
-| **Tier 3: Important** | 15% | Significant improvements in specific areas | 9 attributes |
-| **Tier 4: Advanced** | 5% | Refinement and optimization | 5 attributes |
+| **Tier 1: Essential** | 55% | Fundamentals enabling basic AI functionality | 9 attributes |
+| **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 9 attributes |
+| **Tier 3: Important** | 14% | Significant improvements in specific areas | 5 attributes |
+| **Tier 4: Advanced** | 4% | Refinement and optimization | 4 attributes |
 
 **Impact**: Missing a Tier 1 attribute (10% weight) has **10x the impact** of missing a Tier 4 attribute (1% weight).
 
@@ -61,12 +61,12 @@ Attributes are organized into four weighted tiers:
 
 ## Tier 1: Essential Attributes
 
-*Fundamentals that enable basic AI agent functionality — 50% of total score*
+*Fundamentals that enable basic AI agent functionality — 55% of total score*
 
 ### 1. CLAUDE.md Configuration File
 
 **ID**: `claude_md_file`
-**Weight**: 10%
+**Weight**: 7%
 **Category**: Context Window Optimization
 **Status**: ✅ Implemented
 
@@ -631,14 +631,10 @@ go mod tidy
 
 ---
 
-## Tier 2: Critical Attributes
+### 6. Test Execution & Coverage
 
-*Major quality improvements and safety nets — 30% of total score*
-
-### 6. Test Coverage
-
-**ID**: `test_coverage`
-**Weight**: 5%
+**ID**: `test_execution`
+**Weight**: 10%
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
@@ -690,10 +686,24 @@ go tool cover -html=coverage.out
 
 ---
 
-### 7. Pre-commit Hooks & CI/CD Linting
+### Additional Tier 1 Attributes
 
-**ID**: `precommit_hooks`
-**Weight**: 5%
+**CI Quality Gates** (`ci_quality_gates`, 5%) — Lint + type-check + tests enforced on every PR via CI
+**Single-File Verification** (`single_file_verification`, 5%) — Fast single-file lint and type-check commands for agent feedback loops
+**Dependency Security** (`dependency_security`, 5%) — Vulnerability scanning and security auditing of dependencies
+
+*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
+
+---
+
+## Tier 2: Critical Attributes
+
+*Major quality improvements and safety nets — 27% of total score*
+
+### 7. Deterministic Enforcement (Hooks & Lint Rules)
+
+**ID**: `deterministic_enforcement`
+**Weight**: 3%
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
@@ -926,52 +936,21 @@ setup:
 
 ---
 
-### 11. Development Environment Documentation
+### Additional Tier 2 Attributes
 
-**ID**: `dev_environment_docs`
-**Weight**: 5%
-**Category**: Build & Development
-**Status**: 🔶 Partially Implemented
+**Concise Structured Documentation** (`concise_documentation`, 3%) — Focused, scannable docs optimized for AI context windows
+**Inline Documentation** (`inline_documentation`, 3%) — Comments and docstrings for functions, classes, modules
+**File Size Limits** (`file_size_limits`, 3%) — Files under threshold to keep context manageable
+**Separation of Concerns** (`separation_concerns`, 3%) — Clean module boundaries and single-responsibility
+**Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes (NEW)
 
-#### Definition
-
-Clear documentation of prerequisites, environment variables, and configuration requirements.
-
-#### Measurable Criteria
-
-**Must document**:
-
-- Language/runtime version (Python 3.12+, Node.js 18+)
-- System dependencies (PostgreSQL, Redis, etc.)
-- Environment variables (`.env.example` with all variables)
-- Optional: IDE setup, debugging config
-
-#### Example: .env.example
-
-```bash
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/myapp
-
-# Redis (optional, for caching)
-REDIS_URL=redis://localhost:6379
-
-# API Keys (get from https://example.com/api)
-API_KEY=your-key-here
-API_SECRET=your-secret-here
-
-# Feature Flags
-ENABLE_FEATURE_X=false
-```
-
-**Citations**:
-
-- Medium: "Creating Reproducible Development Environments"
+*Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
 
 ## Tier 3: Important Attributes
 
-*Significant improvements in specific areas — 15% of total score*
+*Significant improvements in specific areas — 14% of total score*
 
 ### 12. Cyclomatic Complexity Limits
 
@@ -1024,16 +1003,12 @@ cr src/**/*.js
 
 ---
 
-### 13-20. Additional Tier 3 Attributes
+### Additional Tier 3 Attributes
 
-**13. Function/Method Length Limits** (`function_length`) — Target: <50 lines per function
-**14. Code Smell Elimination** (`code_smells`) — DRY violations, long methods, magic numbers
-**15. Separation of Concerns** (`separation_of_concerns`) — SOLID principles adherence
-**16. Inline Documentation** (`inline_documentation`) — Docstrings >80% coverage
-**17. Architecture Decision Records** (`adrs`) — Document major decisions in `docs/adr/`
-**18. Structured Logging** (`structured_logging`) — JSON logs with consistent fields
-**19. OpenAPI/Swagger Specs** (`api_documentation`) — Machine-readable API docs
-**20. DRY Principle** (`dry_principle`) — <5% duplicate code
+**Design Intent Documentation** (`design_intent`, 2%) — Preconditions, invariants, and rationale in design docs
+**Structured Logging** (`structured_logging`, 3%) — JSON logs with consistent fields
+**OpenAPI/Swagger Specs** (`openapi_specs`, 3%) — Machine-readable API docs
+**Architecture Decision Records** (`architecture_decisions`, 3%) — Document major decisions in `docs/adr/`
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
@@ -1041,15 +1016,14 @@ cr src/**/*.js
 
 ## Tier 4: Advanced Attributes
 
-*Refinement and optimization — 5% of total score*
+*Refinement and optimization — 4% of total score*
 
-### 21-25. Tier 4 Attributes
+### Tier 4 Attributes
 
-**21. Issue & PR Templates** (`pr_issue_templates`) — `.github/` templates
-**22. Container/Virtualization Setup** (`container_setup`) — Dockerfile, docker-compose.yml
-**23. Dependency Security Scanning** (`dependency_security`) — Snyk, Dependabot, npm audit
-**24. Secrets Management** (`secrets_management`) — No hardcoded secrets, use env vars
-**25. Performance Benchmarks** (`performance_benchmarks`) — Automated perf tests in CI
+**Code Smell Elimination** (`code_smells`, 1%) — DRY violations, long methods, magic numbers
+**Issue & PR Templates** (`issue_pr_templates`, 1%) — `.github/` templates
+**Container/Virtualization Setup** (`container_setup`, 1%) — Dockerfile, docker-compose.yml
+**Progressive Disclosure** (`progressive_disclosure`, 1%) — Path-scoped rules, skills for focused context
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 

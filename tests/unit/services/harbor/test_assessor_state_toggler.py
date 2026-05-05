@@ -45,7 +45,7 @@ class TestAssessorStateToggler:
 
         assert "claude_md_file" in supported
         assert "readme_structure" in supported
-        assert "test_coverage" in supported
+        assert "test_execution" in supported
         assert len(supported) == 3
 
     def test_force_fail_claude_md(self, temp_repo):
@@ -119,14 +119,14 @@ class TestAssessorStateToggler:
         assert not backup.exists()
 
     def test_force_fail_tests(self, temp_repo):
-        """Test forcing test coverage assessor to fail."""
+        """Test forcing test execution assessor to fail."""
         toggler = AssessorStateToggler(repo_root=temp_repo)
 
         tests_dir = temp_repo / "tests"
         backup_dir = temp_repo / "tests.assessor_backup"
 
         # Force fail
-        toggler.force_fail("test_coverage")
+        toggler.force_fail("test_execution")
 
         # Verify
         assert not tests_dir.exists()
@@ -137,10 +137,10 @@ class TestAssessorStateToggler:
         toggler = AssessorStateToggler(repo_root=temp_repo)
 
         # Force fail first
-        toggler.force_fail("test_coverage")
+        toggler.force_fail("test_execution")
 
         # Restore
-        toggler.restore("test_coverage")
+        toggler.restore("test_execution")
 
         tests_dir = temp_repo / "tests"
         backup_dir = temp_repo / "tests.assessor_backup"

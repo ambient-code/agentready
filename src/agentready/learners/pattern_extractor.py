@@ -33,10 +33,10 @@ class PatternExtractor:
             "name": "Implement Type Annotations",
             "description": "Add comprehensive type hints to Python/TypeScript code to improve IDE support, catch errors early, and enable better AI code understanding",
         },
-        "pre_commit_hooks": {
-            "skill_id": "setup-pre-commit-hooks",
-            "name": "Setup Pre-commit Hooks",
-            "description": "Configure pre-commit hooks with formatters and linters to automatically enforce code quality standards before each commit",
+        "deterministic_enforcement": {
+            "skill_id": "setup-deterministic-enforcement",
+            "name": "Setup Deterministic Enforcement",
+            "description": "Configure pre-commit hooks, agent hooks, and lint rules for deterministic quality enforcement before each commit",
         },
         "standard_project_layout": {
             "skill_id": "structure-repository-layout",

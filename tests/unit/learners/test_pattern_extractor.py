@@ -441,7 +441,7 @@ class TestPatternExtractor:
             elif tier == 2:
                 attr_id = "type_annotations"
             elif tier == 3:
-                attr_id = "pre_commit_hooks"
+                attr_id = "deterministic_enforcement"
             else:
                 continue  # Only test tiers with known attributes
 

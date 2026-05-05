@@ -239,7 +239,7 @@ DEFAULT_PHASE1_TASKS = [
     "--assessor",
     "-a",
     required=False,
-    help="Assessor ID to validate (e.g., claude_md_file, readme_structure, test_coverage)",
+    help="Assessor ID to validate (e.g., claude_md_file, readme_structure, test_execution)",
 )
 @click.option(
     "--tasks",

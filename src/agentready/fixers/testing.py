@@ -25,7 +25,7 @@ class PrecommitHooksFixer(BaseFixer):
     @property
     def attribute_id(self) -> str:
         """Return attribute ID."""
-        return "precommit_hooks"
+        return "deterministic_enforcement"
 
     def can_fix(self, finding: Finding) -> bool:
         """Check if pre-commit hooks are missing."""
