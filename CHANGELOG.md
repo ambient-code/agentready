@@ -1,3 +1,32 @@
+# [2.32.0](https://github.com/ambient-code/agentready/compare/v2.31.2...v2.32.0) (2026-05-05)
+
+
+### Bug Fixes
+
+* address CodeRabbit review findings on PR [#382](https://github.com/ambient-code/agentready/issues/382) ([5d78cd8](https://github.com/ambient-code/agentready/commit/5d78cd844a2d77487e9de45e2f7e517ccc184508))
+* address final open PR [#382](https://github.com/ambient-code/agentready/issues/382) review comments ([0ea562b](https://github.com/ambient-code/agentready/commit/0ea562b14abb8dd458d27d565e28e2c4f8cd1b93))
+* address final PR [#382](https://github.com/ambient-code/agentready/issues/382) review findings — scoring gates, pattern strictness, doc consistency ([ee3b0a6](https://github.com/ambient-code/agentready/commit/ee3b0a62f3276b5e968ea4d3aecba1c4d8f19f92))
+* address PR [#382](https://github.com/ambient-code/agentready/issues/382) review findings — harden assessors and add missing tests ([4da6982](https://github.com/ambient-code/agentready/commit/4da69826a60b7f15faabc3eea34f357762213295))
+* address remaining open PR [#382](https://github.com/ambient-code/agentready/issues/382) review comments ([3bb1622](https://github.com/ambient-code/agentready/commit/3bb162285dc2fae62d79d3c95772ca3c1ceac7dc))
+* address remaining PR [#382](https://github.com/ambient-code/agentready/issues/382) review findings ([56f7689](https://github.com/ambient-code/agentready/commit/56f768927fd7d9399dae20e4c50720df6e0d8c9a))
+* align docs/attributes.md tier model with default-weights.yaml ([2400911](https://github.com/ambient-code/agentready/commit/2400911cf1025219968f4eb28e0da58b35627786))
+* black formatting for test_research_updater.py ([ae7f693](https://github.com/ambient-code/agentready/commit/ae7f693b847bee4d6e66baedc09b7c48f6cf51ea))
+* broaden design_intent keywords, remove orphaned SemanticNamingAssessor ([e007586](https://github.com/ambient-code/agentready/commit/e00758684998e0c60b9812f61307044e063eaa72))
+* complete backward-compat migration for renamed attribute IDs and add missing tests ([0d5f6cd](https://github.com/ambient-code/agentready/commit/0d5f6cd2433ffc01523fe85c69afee9f73ea00a2))
+* couple gate detection to PR-triggered workflows, add GET fallback for URL validation, fix path-bearing priority matching ([c316c9b](https://github.com/ambient-code/agentready/commit/c316c9bf377b5b974cf503574e4f7ea6336c895e))
+* guarantee all sampler patterns get slots, use recursive glob for skill paths ([9be9fec](https://github.com/ambient-code/agentready/commit/9be9fece2d4f4f901821a3bb14e8c95844a4c353))
+* require PR triggers for ci_quality_gates, runner for test_execution, wire deterministic_enforcement ([978a4a8](https://github.com/ambient-code/agentready/commit/978a4a80e42d4f89355a97c9d0cc324c3fc514ef)), closes [hi#scoring](https://github.com/hi/issues/scoring)
+* resolve CodeQL incomplete URL substring sanitization alerts ([8a6cba7](https://github.com/ambient-code/agentready/commit/8a6cba7e43e1f175311c0aa03bfc4fa9cf16e5bb))
+* tighten single-file verification, fix CodeQL findings, align docs ([dcde1ab](https://github.com/ambient-code/agentready/commit/dcde1ab2d2c80dadd6d12bb0a3039d3a6e9c5442))
+* use HTTPS for ArXiv API, validate sitemap origins, remove placeholder regex ([9a9e9a6](https://github.com/ambient-code/agentready/commit/9a9e9a6784267fa6b66e9fcd32f71dc5af562d47))
+
+
+### Features
+
+* add industry source fetching to research updater (RSS, sitemaps, curated) ([a7b00a4](https://github.com/ambient-code/agentready/commit/a7b00a4005498ef11de82a80966a0c7a47af8007))
+* add python-wheel-build/fromager to leaderboard ([083ef28](https://github.com/ambient-code/agentready/commit/083ef288046a210223cbd74e7b61fe7a5e9adb7f))
+* update recommendations with evidence-based priorities from 2025-2026 research ([d2baec6](https://github.com/ambient-code/agentready/commit/d2baec6395611e87adbbac96707c2f3b9d48256a)), closes [#1](https://github.com/ambient-code/agentready/issues/1) [#6](https://github.com/ambient-code/agentready/issues/6)
+
 ## [2.31.2](https://github.com/ambient-code/agentready/compare/v2.31.1...v2.31.2) (2026-03-30)
 
 
