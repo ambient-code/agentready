@@ -1,3 +1,10 @@
+# [2.33.0](https://github.com/ambient-code/agentready/compare/v2.32.0...v2.33.0) (2026-05-05)
+
+
+### Features
+
+* accept .containerignore as alias for .dockerignore in container assessor ([6b35fae](https://github.com/ambient-code/agentready/commit/6b35fae369f8393e3315261a9c368713342ff54e))
+
 # [2.32.0](https://github.com/ambient-code/agentready/compare/v2.31.2...v2.32.0) (2026-05-05)
 
 
