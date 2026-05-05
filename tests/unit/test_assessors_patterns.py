@@ -270,6 +270,77 @@ class TestDesignIntentAssessor:
         assert finding.remediation is not None
         assert "docs/design" in finding.remediation.commands[0]
 
+    def test_tradeoff_language_in_design_dir(self, tmp_path):
+        """Test that tradeoff language triggers intent detection."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "api.md").write_text(
+            "# API Design\nThe main trade-off here is latency vs consistency.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 50.0
+
+    def test_decision_language_in_design_dir(self, tmp_path):
+        """Test that 'we decided to' triggers intent detection."""
+        design_dir = tmp_path / "docs" / "architecture"
+        design_dir.mkdir(parents=True)
+        (design_dir / "auth.md").write_text(
+            "# Auth\nWe decided to use JWT over session tokens for statelessness.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 50.0
+
+    def test_adr_status_in_design_dir(self, tmp_path):
+        """Test that ADR status metadata triggers intent detection."""
+        adr_dir = tmp_path / "docs" / "adr"
+        adr_dir.mkdir(parents=True)
+        (adr_dir / "001-use-postgres.md").write_text(
+            "# ADR-001: Use PostgreSQL\nStatus: Accepted\nWe need a relational DB.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 50.0
+
+    def test_rationale_language_in_context_file(self, tmp_path):
+        """Test that 'reason for' language in CLAUDE.md adds score."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text(
+            "The reason for using a monorepo is to simplify dependency management.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30.0
+
+    def test_alternative_language_in_context_file(self, tmp_path):
+        """Test that 'instead of' language in README adds score."""
+        readme = tmp_path / "README.md"
+        readme.write_text(
+            "We use polling instead of webhooks due to upstream latency.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 30.0
+
 
 class TestProgressiveDisclosureAssessor:
     """Test ProgressiveDisclosureAssessor."""

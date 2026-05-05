@@ -202,6 +202,14 @@ class DesignIntentAssessor(BaseAssessor):
             r"architectural\s+constraint",
             r"must\s+hold",
             r"assumes\s+that",
+            r"trade-?off",
+            r"(?:chose|decided|selected)\s+(?:to|because|for|over)",
+            r"(?:pro|con)s?\s*(?:and|:|\n)",
+            r"instead\s+of|rather\s+than|alternative",
+            r"status:\s*(?:accepted|proposed|deprecated|superseded)",
+            r"(?:decision|context|consequences)\s*:",
+            r"(?:designed|built|implemented)\s+(?:to|for|because)",
+            r"(?:the\s+)?reason\s+(?:for|is|was|being)",
         ]
 
         low_confidence_dir = None
