@@ -1,6 +1,5 @@
 """Utility modules for AgentReady."""
 
-from .preflight import PreflightError, check_harbor_cli, ensure_terminal_bench_dataset
 from .privacy import (
     sanitize_command_args,
     sanitize_error_message,
@@ -27,7 +26,4 @@ __all__ = [
     "sanitize_error_message",
     "sanitize_metadata",
     "shorten_commit_hash",
-    "PreflightError",
-    "check_harbor_cli",
-    "ensure_terminal_bench_dataset",
 ]
