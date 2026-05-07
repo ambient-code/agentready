@@ -36,7 +36,7 @@ from .research import research
 from .schema import migrate_report, validate_report
 
 # Heavy commands - lazy loaded via LazyGroup
-# (assess_batch, experiment, extract_skills, harbor, learn, submit)
+# (assess_batch, experiment, submit)
 
 
 def get_agentready_version() -> str:
@@ -54,8 +54,8 @@ def get_agentready_version() -> str:
 class LazyGroup(click.Group):
     """Click group that lazily loads heavy commands to improve startup time.
 
-    Commands like 'experiment', 'extract-skills', and 'assess-batch' import heavy
-    dependencies (scipy, pandas, anthropic) that add ~1 second to startup time.
+    Commands like 'experiment' and 'assess-batch' import heavy
+    dependencies (scipy, pandas) that add ~1 second to startup time.
     This class defers those imports until the command is actually invoked.
     """
 
@@ -95,9 +95,7 @@ class LazyGroup(click.Group):
     lazy_subcommands={
         "assess-batch": ("assess_batch", "assess_batch"),
         "experiment": ("experiment", "experiment"),
-        "extract-skills": ("extract_skills", "extract_skills"),
-        "learn": ("learn", "learn"),
-        "submit": ("submit", "submit"),
+"submit": ("submit", "submit"),
     },
 )
 @click.option("--version", is_flag=True, help="Show version information")
@@ -580,8 +578,6 @@ cli.add_command(validate_report)
 # Lazy-loaded commands (not registered here):
 #   - assess-batch (imports pandas)
 #   - experiment (imports scipy, pandas)
-#   - extract-skills (imports anthropic)
-#   - learn (imports anthropic)
 #   - submit (imports github)
 
 
