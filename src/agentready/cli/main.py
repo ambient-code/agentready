@@ -29,7 +29,6 @@ from ..utils.subprocess_utils import safe_subprocess_run
 
 # Lightweight commands - imported immediately
 from .align import align
-from .benchmark import benchmark, validate_assessor
 from .bootstrap import bootstrap
 from .demo import demo
 from .repomix import repomix_generate
@@ -97,7 +96,6 @@ class LazyGroup(click.Group):
         "assess-batch": ("assess_batch", "assess_batch"),
         "experiment": ("experiment", "experiment"),
         "extract-skills": ("extract_skills", "extract_skills"),
-        "harbor": ("harbor", "harbor_cli"),
         "learn": ("learn", "learn"),
         "submit": ("submit", "submit"),
     },
@@ -573,8 +571,6 @@ def generate_config():
 
 # Register lightweight commands (heavy commands loaded lazily via LazyGroup)
 cli.add_command(align)
-cli.add_command(benchmark)
-cli.add_command(validate_assessor)
 cli.add_command(bootstrap)
 cli.add_command(demo)
 cli.add_command(migrate_report)
