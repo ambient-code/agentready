@@ -95,7 +95,7 @@ class LazyGroup(click.Group):
     lazy_subcommands={
         "assess-batch": ("assess_batch", "assess_batch"),
         "experiment": ("experiment", "experiment"),
-"submit": ("submit", "submit"),
+        "submit": ("submit", "submit"),
     },
 )
 @click.option("--version", is_flag=True, help="Show version information")
