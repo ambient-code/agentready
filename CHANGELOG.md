@@ -1,3 +1,10 @@
+# [2.34.0](https://github.com/ambient-code/agentready/compare/v2.33.0...v2.34.0) (2026-05-07)
+
+
+### Features
+
+* remove benchmark and harbor commands ([1300c82](https://github.com/ambient-code/agentready/commit/1300c82dfa8b33b891a6fa2ca78afefcc4228625)), closes [#394](https://github.com/ambient-code/agentready/issues/394)
+
 # [2.33.0](https://github.com/ambient-code/agentready/compare/v2.32.0...v2.33.0) (2026-05-05)
 
 
