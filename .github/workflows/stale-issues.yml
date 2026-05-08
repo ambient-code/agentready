@@ -18,10 +18,10 @@ jobs:
         uses: actions/stale@v9
         with:
           # Days before marking as stale
-          days-before-stale: 21  # 7 days before 28-day close
+          days-before-stale: 60  # 30 days before 90-day close
           # Days before closing after marked stale
-          days-before-close: 7
-          # Total: 21 + 7 = 28 days until close
+          days-before-close: 30
+          # Total: 60 + 30 = 90 days until close
 
           # Issue labels
           stale-issue-label: 'stale'
@@ -33,7 +33,7 @@ jobs:
 
           # Messages
           stale-issue-message: |
-            👋 This issue has been inactive for 21 days and will be closed in 7 days if there is no further activity.
+            👋 This issue has been inactive for 60 days and will be closed in 30 days if there is no further activity.
 
             If this issue is still relevant, please:
             - Add a comment with updates
@@ -43,12 +43,12 @@ jobs:
             Thank you for your contributions to AgentReady!
 
           close-issue-message: |
-            🔒 This issue has been automatically closed due to 28 days of inactivity.
+            🔒 This issue has been automatically closed due to 90 days of inactivity.
 
             If you believe this issue should remain open, please reopen it and provide an update.
 
           stale-pr-message: |
-            👋 This pull request has been inactive for 21 days and will be closed in 7 days if there is no further activity.
+            👋 This pull request has been inactive for 60 days and will be closed in 30 days if there is no further activity.
 
             If you plan to continue work on this PR, please:
             - Push new commits or add a comment
@@ -58,7 +58,7 @@ jobs:
             Thank you for your contributions to AgentReady!
 
           close-pr-message: |
-            🔒 This pull request has been automatically closed due to 28 days of inactivity.
+            🔒 This pull request has been automatically closed due to 90 days of inactivity.
 
             If you'd like to continue this work, please reopen the PR or create a new one.
 
