@@ -279,7 +279,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
             tier=self.tier,
             description="Cyclomatic complexity thresholds enforced",
             criteria="Average complexity <10, no functions >15",
-            default_weight=0.03,
+            default_weight=0.02,
         )
 
     def is_applicable(self, repository: Repository) -> bool:
@@ -423,7 +423,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
 class StructuredLoggingAssessor(BaseAssessor):
     """Assesses use of structured logging libraries.
 
-    Tier 3 Important (1.5% weight) - Structured logs are machine-parseable
+    Tier 3 Important (2% weight) - Structured logs are machine-parseable
     and enable AI to analyze logs for debugging and optimization.
     """
 
@@ -444,7 +444,7 @@ class StructuredLoggingAssessor(BaseAssessor):
             tier=self.tier,
             description="Logging in structured format (JSON) with consistent fields",
             criteria="Structured logging library configured (structlog, winston, zap)",
-            default_weight=0.015,
+            default_weight=0.02,
         )
 
     def is_applicable(self, repository: Repository) -> bool:
