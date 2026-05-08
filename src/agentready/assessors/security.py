@@ -34,7 +34,7 @@ class DependencySecurityAssessor(BaseAssessor):
             tier=self.tier,
             description="Security scanning tools configured for dependencies and code",
             criteria="Dependabot, Renovate, CodeQL, or SAST tools configured; secret detection enabled",
-            default_weight=0.05,  # Combined weight
+            default_weight=0.04,  # Combined weight
         )
 
     def assess(self, repository: Repository) -> Finding:

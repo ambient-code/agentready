@@ -1271,7 +1271,7 @@ function calculateDiscount(price, discountPercent) {
 class OpenAPISpecsAssessor(BaseAssessor):
     """Assesses presence and quality of OpenAPI specification.
 
-    Tier 3 Important (3% weight) - Machine-readable API documentation
+    Tier 3 Important (1.5% weight) - Machine-readable API documentation
     enables AI to generate client code, tests, and integration code.
     """
 

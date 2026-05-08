@@ -40,7 +40,7 @@ class DependencyPinningAssessor(BaseAssessor):
             tier=self.tier,
             description="Dependencies pinned to exact versions in lock files",
             criteria="Lock file with pinned versions, updated within 6 months",
-            default_weight=0.05,
+            default_weight=0.10,
         )
 
     def assess(self, repository: Repository) -> Finding:
