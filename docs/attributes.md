@@ -562,6 +562,8 @@ go mod tidy
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates a language-specific `tests.yml` GitHub Actions workflow with test runner, coverage, and reporting configured.
+
 #### Definition
 
 Test infrastructure configured and present: test files, a test runner, coverage tooling, and enforcement thresholds.
@@ -610,6 +612,8 @@ go tool cover -html=coverage.out
 **Weight**: 5%
 **Category**: Testing & CI/CD
 **Status**: Implemented
+
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates `.github/workflows/tests.yml` and a `security.yml` workflow, covering test and security gate enforcement on every PR.
 
 #### Definition
 
@@ -705,6 +709,8 @@ mypy src/mypackage/module.py
 **Weight**: 5%
 **Category**: Security
 **Status**: Implemented
+
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates `.github/dependabot.yml` for automated dependency updates and a `security.yml` workflow for vulnerability scanning.
 
 #### Definition
 
@@ -1083,6 +1089,8 @@ cr src/**/*.js
 **Weight**: 1.5%
 **Category**: Collaboration & Process
 **Status**: Implemented
+
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates `PULL_REQUEST_TEMPLATE.md`, `bug_report.md`, and `feature_request.md` issue templates under `.github/`.
 
 #### Definition
 
