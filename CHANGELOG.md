@@ -1,3 +1,10 @@
+## [2.35.1](https://github.com/ambient-code/agentready/compare/v2.35.0...v2.35.1) (2026-05-08)
+
+
+### Bug Fixes
+
+* register RepomixConfigAssessor in create_all_assessors ([82b22aa](https://github.com/ambient-code/agentready/commit/82b22aa0a5fe887974a83405f5f9a5e8df48257c)), closes [#400](https://github.com/ambient-code/agentready/issues/400)
+
 # [2.35.0](https://github.com/ambient-code/agentready/compare/v2.34.0...v2.35.0) (2026-05-08)
 
 
