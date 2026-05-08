@@ -1,6 +1,6 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 27 attributes.
+# This file defines the default weights for all 28 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
 # Red Hat best practices (April 2026), and LangChain Terminal-Bench.
 #
@@ -9,7 +9,7 @@
 #
 # Tier 1 (Essential):  55% total (9 attributes)
 # Tier 2 (Critical):   27% total (3% each, 9 attributes)
-# Tier 3 (Important):  14% total (varies, 5 attributes)
+# Tier 3 (Important):  14% total (varies, 6 attributes)
 # Tier 4 (Advanced):    4% total (1% each, 4 attributes)
 # TOTAL:              100% (sum to 1.0)
 #
