@@ -47,18 +47,21 @@ one_command_setup: 0.03             # 8.1 - One-Command Build/Setup
 concise_documentation: 0.03         # 1.2 - Concise Structured Documentation
 inline_documentation: 0.03          # 2.2 - Inline Documentation
 file_size_limits: 0.03              # 1.3 - File Size Limits
-separation_concerns: 0.03           # 4.2 - Separation of Concerns
+separation_of_concerns: 0.03        # 4.2 - Separation of Concerns
 pattern_references: 0.03            # 17.1 - Pattern References for Common Changes NEW
 
-# Tier 3 (Important) - 14% total weight
+# Tier 3 (Important) - 14% total weight (6 attributes)
 design_intent: 0.02                 # 17.2 - Design Intent Documentation NEW
-cyclomatic_complexity: 0.03         # 3.1 - Cyclomatic Complexity Thresholds
-structured_logging: 0.03            # 9.2 - Structured Logging
+cyclomatic_complexity: 0.02         # 3.1 - Cyclomatic Complexity Thresholds
+structured_logging: 0.02            # 9.2 - Structured Logging
 openapi_specs: 0.03                 # 10.1 - OpenAPI/Swagger Specifications
 architecture_decisions: 0.03        # 2.3 - Architecture Decision Records
+repomix_config: 0.02                # AI context generation (Repomix)
 
 # Tier 4 (Advanced) - 4% total weight
 code_smells: 0.01                   # 3.4 - Code Smell Elimination
 issue_pr_templates: 0.01            # 7.3 - Issue & Pull Request Templates
 container_setup: 0.01               # 8.3 - Container/Virtualization Setup (conditional)
 progressive_disclosure: 0.01        # 17.3 - Progressive Disclosure (path-scoped rules, skills) NEW
+# branch_protection intentionally omitted: always not_applicable until GitHub API
+# integration is implemented (see issue #405). Uses default_weight=0.005 as fallback.
