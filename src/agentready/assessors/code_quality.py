@@ -668,8 +668,8 @@ class CodeSmellsAssessor(BaseAssessor):
         workflows_dir = repository.path / ".github" / "workflows"
         if workflows_dir.exists():
             try:
-                for workflow_file in workflows_dir.glob("*.yml") + workflows_dir.glob(
-                    "*.yaml"
+                for workflow_file in list(workflows_dir.glob("*.yml")) + list(
+                    workflows_dir.glob("*.yaml")
                 ):
                     content = workflow_file.read_text()
                     if "actionlint" in content:
