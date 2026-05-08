@@ -26,21 +26,9 @@ Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against **27 evidence-based attributes** that improve AI agent effectiveness. Each attribute is:
+AgentReady evaluates repositories against 27 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
-- **Research-backed**: Derived from 50+ authoritative sources (Anthropic, Microsoft, Google, academic research)
-- **Measurable**: Specific criteria with clear pass/fail thresholds
-- **Actionable**: Concrete tools, commands, and examples for remediation
-- **Weighted**: Importance reflected in tier-based scoring (55/27/14/4 distribution)
-
-**Every attribute includes**:
-
-- Definition and importance for AI agents
-- Impact on agent behavior
-- Measurable criteria
-- Authoritative citations
-- Good vs. bad examples
-- Remediation guidance
+Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 
 ---
 
@@ -55,7 +43,7 @@ Attributes are organized into four weighted tiers:
 | **Tier 3: Important** | 14% | Significant improvements in specific areas | 6 attributes |
 | **Tier 4: Advanced** | 4% | Refinement and optimization | 4 attributes |
 
-**Impact**: Missing a Tier 1 attribute can have up to **10x the impact** of missing a Tier 4 attribute (1% weight).
+Missing a Tier 1 attribute (up to 10% weight) has up to 10x the score impact of missing a Tier 4 attribute (1% weight).
 
 ---
 
@@ -76,14 +64,7 @@ Markdown file at repository root (`CLAUDE.md` or `.claude/CLAUDE.md`) automatica
 
 #### Why It Matters
 
-CLAUDE.md files provide **immediate project context** without repeated explanations. Research shows they reduce prompt engineering time by ~40% and frame entire sessions with project-specific guidance.
-
-#### Impact on AI Agents
-
-- Immediate understanding of tech stack, repository structure, standard commands
-- Consistent adherence to project conventions
-- Reduced need for repeated context-setting
-- Proper framing for all AI suggestions
+Claude Code reads `CLAUDE.md` at the start of every session. Without it, agents ask for context that is already in the repo — or guess wrong. A well-written file cuts repeated explanations and keeps the agent from violating conventions it wasn't told about.
 
 #### Measurable Criteria
 
@@ -159,14 +140,7 @@ Standardized README.md with essential sections in predictable order, serving as 
 
 #### Why It Matters
 
-Repositories with well-structured READMEs receive more engagement (GitHub data). README serves as AI agent's entry point for understanding project purpose, setup, and usage.
-
-#### Impact on AI Agents
-
-- Faster project comprehension
-- Accurate answers to onboarding questions
-- Better architectural understanding without exploring entire codebase
-- Consistent expectations across projects
+The README is the first file an agent reads when dropped into an unfamiliar repo. Missing an installation section means the agent has to hunt through CI config or pyproject.toml to figure out how to run the code. Missing a development/contributing section means it may not know where tests live or how builds work.
 
 #### Measurable Criteria
 
@@ -274,16 +248,7 @@ Explicit type declarations for variables, function parameters, and return values
 
 #### Why It Matters
 
-Type hints **significantly improve LLM code understanding**. Research shows higher-quality codebases have type annotations, directing LLMs toward higher-quality latent space regions—similar to how LaTeX-formatted math gets better results.
-
-#### Impact on AI Agents
-
-- Better input validation suggestions
-- Type error detection before execution
-- Structured output generation
-- Improved autocomplete accuracy
-- Enhanced refactoring safety
-- More confident code modifications
+Type annotations give agents reliable information about what a function expects and returns, without reading the implementation. An untyped function that accepts "a user" and returns "something" forces the agent to infer types from usage — which it will sometimes get wrong. Annotated code is also easier to refactor safely, since type errors surface before execution.
 
 #### Measurable Criteria
 
@@ -428,14 +393,7 @@ Using community-recognized directory structures for each language/framework (e.g
 
 #### Why It Matters
 
-Standard layouts reduce cognitive overhead. AI models trained on open-source code recognize patterns and navigate predictably.
-
-#### Impact on AI Agents
-
-- Faster file location
-- Accurate placement suggestions for new files
-- Automatic adherence to established conventions
-- Reduced confusion about file organization
+Models trained on open-source code have seen the standard layouts thousands of times. When a repo uses the Python `src/` layout or Go's `cmd/internal/pkg` structure, the agent knows where to look for things and where to put new ones. Non-standard layouts force it to explore, and it may still place files in the wrong location.
 
 #### Measurable Criteria
 
@@ -531,14 +489,7 @@ Pinning exact dependency versions including transitive dependencies (e.g., `pack
 
 #### Why It Matters
 
-Lock files ensure **reproducible builds** across environments. Without them, "works on my machine" problems plague AI-generated code. Different dependency versions can break builds, fail tests, or introduce bugs.
-
-#### Impact on AI Agents
-
-- Confident dependency-related suggestions
-- Accurate compatibility issue diagnosis
-- Reproducible environment recommendations
-- Version-specific API usage
+Without a lock file, two installs of the same repo can get different dependency versions. An agent suggesting a fix against one version may generate broken code for someone on another. Lock files make the environment deterministic, which makes agent-generated dependency changes testable.
 
 #### Measurable Criteria
 
@@ -613,11 +564,11 @@ go mod tidy
 
 #### Definition
 
-Percentage of code executed by automated tests, measured by line coverage, branch coverage, or function coverage.
+Test infrastructure configured and present: test files, a test runner, coverage tooling, and enforcement thresholds.
 
 #### Why It Matters
 
-High test coverage enables **confident AI modifications**. Research shows AI tools can cut test coverage time by 85% while maintaining quality—but only when good tests exist as foundation.
+Agents modifying code need a way to verify their changes didn't break anything. Without a configured test suite, the only signal is "it still runs" — which catches very little. The assessor checks whether the infrastructure is in place, not whether tests are well-written.
 
 #### Measurable Criteria
 
@@ -666,7 +617,7 @@ Continuous integration enforces lint, type-check, and test steps on every pull r
 
 #### Why It Matters
 
-CI quality gates provide automated, authoritative feedback that prevents regressions. Agents working in repositories with strong CI gates get immediate, reliable signal about whether their changes are correct.
+CI is the one check that can't be skipped. Pre-commit hooks can be bypassed; CI cannot. When lint, type-check, and tests all run on every PR, an agent's changes get validated by the same standard as a human's.
 
 #### Measurable Criteria
 
@@ -716,7 +667,7 @@ Documentation of commands that lint and type-check a single file quickly, withou
 
 #### Why It Matters
 
-Agents iterating on a single file need fast feedback loops. Running the full test suite for every edit is slow; a single-file lint and type-check command (e.g., `ruff check path/to/file.py`, `mypy path/to/file.py`) gives immediate signal in seconds.
+Running the full test suite after every edit is slow. A documented single-file check (`ruff check path/to/file.py`, `mypy path/to/file.py`) gives an agent signal in seconds instead of minutes, which matters when it's iterating on a specific function.
 
 #### Measurable Criteria
 
@@ -761,7 +712,7 @@ Vulnerability scanning tools configured for dependencies and code, including aut
 
 #### Why It Matters
 
-Vulnerable dependencies are a leading attack vector. Automated scanning catches known CVEs before they reach production. Agents working in secure repositories can suggest dependency updates with confidence.
+Dependency vulnerabilities are reliably caught by automated scanners and reliably missed by manual review. Dependabot and pip-audit check against known CVE databases on every update — something no agent or developer is going to do by hand.
 
 #### Measurable Criteria
 
@@ -825,7 +776,7 @@ Automated code quality checks before commits (pre-commit hooks) and in CI/CD pip
 
 #### Why It Matters
 
-Pre-commit hooks provide immediate feedback. Running same checks in CI/CD ensures enforcement (hooks can be bypassed). Prevents low-quality code from entering repository.
+Pre-commit hooks give immediate local feedback. They can be bypassed with `--no-verify`, which is why CI matters too — but for agent-generated commits that go through a normal PR flow, hooks are the first line of defense. Catching a lint error before a commit beats catching it in CI review.
 
 #### Measurable Criteria
 
@@ -898,7 +849,7 @@ Structured commit messages following format: `<type>(<scope>): <description>`.
 
 #### Why It Matters
 
-Conventional commits enable **automated semantic versioning**, changelog generation, and commit intent understanding. AI can parse history to understand feature evolution.
+Structured commit messages make history parseable. Tools like `semantic-release` use them for automated versioning and changelog generation. For agents, a consistent format also makes git history a reliable source of truth about what changed and why.
 
 #### Measurable Criteria
 
@@ -955,7 +906,7 @@ Comprehensive `.gitignore` preventing build artifacts, dependencies, IDE files, 
 
 #### Why It Matters
 
-Incomplete `.gitignore` pollutes repository with irrelevant files, consuming context window space and creating security risks (accidentally committing `.env`, credentials).
+A missing `.gitignore` entry for `__pycache__/` or `node_modules/` means those directories show up in `git status` and context scans. The more serious risk is accidentally committing `.env` files or credentials, which a complete `.gitignore` prevents by default.
 
 #### Measurable Criteria
 
@@ -1007,7 +958,7 @@ Single command to set up development environment from fresh clone (`make setup`,
 
 #### Why It Matters
 
-One-command setup enables AI to quickly reproduce environments and test changes. Reduces "works on my machine" problems.
+Without a setup command, getting a fresh clone to a working state requires reading through README, installing dependencies manually, copying config files, and hoping nothing was missed. One documented command eliminates that ambiguity for both humans and agents.
 
 #### Measurable Criteria
 
@@ -1078,7 +1029,7 @@ Measurement of linearly independent paths through code (decision point density).
 
 #### Why It Matters
 
-High complexity confuses both humans and AI. Functions with complexity >25 are error-prone and hard to test.
+A function with 20 branches is hard to reason about whether you're human or an agent. High-complexity functions are also harder to test exhaustively, which means bugs hide in untested paths. Keeping complexity under 10 makes functions easier to understand, test, and modify safely.
 
 #### Measurable Criteria
 
@@ -1139,7 +1090,7 @@ GitHub issue and pull request templates that guide contributors to provide struc
 
 #### Why It Matters
 
-Templates ensure agents and contributors supply consistent, complete context when filing issues or opening PRs. Structured reports are easier for AI to parse and act on.
+Without a PR template, contributors omit test plans, related issues, and context that reviewers need. With one, the structure is enforced by the GitHub UI — the author fills in the blanks or they don't submit.
 
 #### Measurable Criteria
 
@@ -1201,7 +1152,7 @@ EOF
 
 #### Why It Matters
 
-A fresh Repomix output lets AI agents ingest the entire repo in a single context window without filesystem access. This enables faster, more accurate analysis and reduces the number of tool calls needed to understand a codebase.
+A fresh Repomix output lets an agent understand the full repo in a single context window, without making dozens of file-read tool calls. Stale output (older than 7 days) may not reflect recent changes, which is why freshness is scored.
 
 #### Measurable Criteria
 
