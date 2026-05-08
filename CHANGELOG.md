@@ -1,3 +1,15 @@
+# [2.35.0](https://github.com/ambient-code/agentready/compare/v2.34.0...v2.35.0) (2026-05-08)
+
+
+### Bug Fixes
+
+* correct indentation of submit entry in lazy_subcommands ([eb8bd32](https://github.com/ambient-code/agentready/commit/eb8bd321e6e3f7a7237047fa5699495e0da18ac8))
+
+
+### Features
+
+* remove learn and extract-skills commands ([3350fab](https://github.com/ambient-code/agentready/commit/3350fab0a8faa180953a28e6bf5615ee796db359)), closes [#395](https://github.com/ambient-code/agentready/issues/395)
+
 # [2.34.0](https://github.com/ambient-code/agentready/compare/v2.33.0...v2.34.0) (2026-05-07)
 
 
