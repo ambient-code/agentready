@@ -100,8 +100,10 @@ class TestRepomixService:
 
     def test_get_output_files_found(self, tmp_path):
         """Test getting output files when they exist."""
-        (tmp_path / "repomix-output.md").write_text("content")
-        (tmp_path / "repomix-output.xml").write_text("<xml/>")
+        repomix_dir = tmp_path / "repomix"
+        repomix_dir.mkdir()
+        (repomix_dir / "repomix-output.md").write_text("content")
+        (repomix_dir / "repomix-output.xml").write_text("<xml/>")
 
         service = RepomixService(tmp_path)
         files = service.get_output_files()
@@ -116,7 +118,9 @@ class TestRepomixService:
 
     def test_check_freshness_fresh_file(self, tmp_path):
         """Test freshness check with recent file."""
-        output = tmp_path / "repomix-output.md"
+        repomix_dir = tmp_path / "repomix"
+        repomix_dir.mkdir()
+        output = repomix_dir / "repomix-output.md"
         output.write_text("fresh content")
 
         service = RepomixService(tmp_path)
@@ -223,7 +227,9 @@ class TestRepomixConfigAssessor:
         # Create .git directory, config and output
         (tmp_path / ".git").mkdir()
         (tmp_path / "repomix.config.json").write_text("{}")
-        (tmp_path / "repomix-output.md").write_text("content")
+        repomix_dir = tmp_path / "repomix"
+        repomix_dir.mkdir()
+        (repomix_dir / "repomix-output.md").write_text("content")
 
         repo = Repository(
             path=tmp_path,

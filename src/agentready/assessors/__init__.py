@@ -33,6 +33,7 @@ from .patterns import (
     PatternReferencesAssessor,
     ProgressiveDisclosureAssessor,
 )
+from .repomix import RepomixConfigAssessor
 from .security import DependencySecurityAssessor
 from .structure import (
     IssuePRTemplatesAssessor,
@@ -104,6 +105,7 @@ def create_all_assessors() -> list[BaseAssessor]:
         DbtProjectStructureAssessor(),  # dbt conditional
         # Tier 3 Important — 14% total
         DesignIntentAssessor(),  # NEW (2%)
+        RepomixConfigAssessor(),  # 2%
         CyclomaticComplexityAssessor(),  # 3%
         ArchitectureDecisionsAssessor(),  # 3%
         IssuePRTemplatesAssessor(),  # 3%
