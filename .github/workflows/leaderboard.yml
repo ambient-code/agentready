@@ -205,7 +205,7 @@ jobs:
 
       - name: Post validation results
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           CLAIMED_SCORE: ${{ steps.extract.outputs.claimed_score }}
           ACTUAL_SCORE: ${{ env.ACTUAL_SCORE }}
