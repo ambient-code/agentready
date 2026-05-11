@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 27 agent-ready attributes assessed by AgentReady.
+Complete reference for all 28 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -26,7 +26,7 @@ Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against 27 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
+AgentReady evaluates repositories against 28 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
 Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 
@@ -1082,70 +1082,6 @@ cr src/**/*.js
 
 ---
 
-### Issue & PR Templates
-
-**ID**: `issue_pr_templates`
-**Tier**: Tier 3
-**Weight**: 1.5%
-**Category**: Collaboration & Process
-**Status**: Implemented
-
-**✅ Bootstrap Addresses This**: `agentready bootstrap` generates `PULL_REQUEST_TEMPLATE.md`, `bug_report.md`, and `feature_request.md` issue templates under `.github/`.
-
-#### Definition
-
-GitHub issue and pull request templates that guide contributors to provide structured information.
-
-#### Why It Matters
-
-Without a PR template, contributors omit test plans, related issues, and context that reviewers need. With one, the structure is enforced by the GitHub UI — the author fills in the blanks or they don't submit.
-
-#### Measurable Criteria
-
-Scoring (100-point scale):
-
-- **PR template** (`PULL_REQUEST_TEMPLATE.md` or `.github/PULL_REQUEST_TEMPLATE.md`) — 50 pts
-- **Issue templates directory** (`.github/ISSUE_TEMPLATE/`) with templates:
-  - 2 or more templates — 50 pts
-  - 1 template — 25 pts
-
-**Pass threshold**: 75 points (PR template plus at least one issue template).
-
-#### Remediation
-
-```bash
-mkdir -p .github/ISSUE_TEMPLATE
-
-# PR template
-cat > .github/PULL_REQUEST_TEMPLATE.md << 'EOF'
-## Summary
-
-## Changes
-
-## Test plan
-
-## Related issues
-EOF
-
-# Bug report template
-cat > .github/ISSUE_TEMPLATE/bug_report.md << 'EOF'
----
-name: Bug report
-about: Report a bug
----
-
-## Description
-
-## Steps to reproduce
-
-## Expected behavior
-
-## Actual behavior
-EOF
-```
-
----
-
 ### Repomix Configuration
 
 **ID**: `repomix_config`
@@ -1198,6 +1134,7 @@ agentready repomix-generate
 ### Tier 4 Attributes
 
 **Code Smell Elimination** (`code_smells`, 1%) — DRY violations, long methods, magic numbers
+**Issue & PR Templates** (`issue_pr_templates`, 1%) — PR template (50 pts) + issue templates in `.github/ISSUE_TEMPLATE/` (25 pts for 1, 50 pts for 2+); pass threshold 75. ✅ Bootstrap generates these automatically.
 **Container/Virtualization Setup** (`container_setup`, 1%) — Dockerfile or Containerfile (40 pts), multi-stage build bonus (10 pts), docker-compose (30 pts), .dockerignore/.containerignore (20 pts); pass threshold 40. Returns not_applicable if no Dockerfile/Containerfile found.
 **Progressive Disclosure** (`progressive_disclosure`, 1%) — Path-scoped rules, skills for focused context
 
@@ -1207,7 +1144,7 @@ agentready repomix-generate
 
 ## Implementation Status
 
-All 27 assessors are fully implemented across all four tiers.
+All 28 assessors are fully implemented across all four tiers.
 
 **Current State**:
 - ✅ **Tier 1 (Essential)**: Fully implemented (9 attributes)
