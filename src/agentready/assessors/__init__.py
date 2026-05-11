@@ -106,9 +106,9 @@ def create_all_assessors() -> list[BaseAssessor]:
         # Tier 3 Important — 14% total
         DesignIntentAssessor(),  # NEW (2%)
         RepomixConfigAssessor(),  # 2%
-        CyclomaticComplexityAssessor(),  # 3%
+        CyclomaticComplexityAssessor(),  # 2%
         ArchitectureDecisionsAssessor(),  # 3%
-        StructuredLoggingAssessor(),  # 3%
+        StructuredLoggingAssessor(),  # 2%
         OpenAPISpecsAssessor(),  # 3%
         # Tier 4 Advanced — 4% total (1% each)
         BranchProtectionAssessor(),
