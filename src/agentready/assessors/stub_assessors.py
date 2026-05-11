@@ -66,9 +66,10 @@ class DependencyPinningAssessor(BaseAssessor):
 
         # Check subdirectories for Go monorepos (go.sum in module dirs)
         if "go.sum" not in found_strict:
-            for gosum in repository.path.glob("*/go.sum"):
+            for gosum in repository.path.rglob("go.sum"):
+                if "vendor" in gosum.parts:
+                    continue
                 found_strict.append(str(gosum.relative_to(repository.path)))
-                break
 
         if not found_strict and not found_manual:
             return Finding(

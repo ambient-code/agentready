@@ -107,18 +107,20 @@ class BaseAssessor(ABC):
             return None
 
         # Check if any other candidate is close enough to contest
-        for lang, count in lang_counts.items():
-            if lang == top_lang:
-                continue
-            if count < top_count * 0.7:
-                continue
-            # Counts are close — check root manifests as tiebreaker
-            for manifest in self._LANG_ROOT_MANIFESTS.get(lang, []):
-                if (repository.path / manifest).exists():
-                    return lang
-            for manifest in self._LANG_ROOT_MANIFESTS.get(top_lang, []):
-                if (repository.path / manifest).exists():
-                    return top_lang
+        close_langs = {
+            lang for lang, count in lang_counts.items() if count >= top_count * 0.7
+        }
+        if len(close_langs) > 1:
+            manifest_winners = [
+                lang
+                for lang in sorted(close_langs)
+                if any(
+                    (repository.path / m).exists()
+                    for m in self._LANG_ROOT_MANIFESTS.get(lang, [])
+                )
+            ]
+            if len(manifest_winners) == 1:
+                return manifest_winners[0]
 
         return top_lang
 
@@ -126,15 +128,19 @@ class BaseAssessor(ABC):
         """Find directories containing go.mod (Go module roots).
 
         Supports both single-module repos (go.mod at root) and monorepos
-        (go.mod in subdirectories like maas-api/, services/auth/, etc.).
-        Excludes vendor directories.
+        (go.mod in subdirectories at any depth). Excludes vendor and
+        testdata directories.
         """
-        roots = []
+        roots: list[Path] = []
         if (repository.path / "go.mod").exists():
             roots.append(repository.path)
-        for gomod in repository.path.glob("*/go.mod"):
+        for gomod in repository.path.rglob("go.mod"):
+            if "vendor" in gomod.parts or "testdata" in gomod.parts:
+                continue
+            if gomod.parent == repository.path:
+                continue
             roots.append(gomod.parent)
-        return roots
+        return sorted(set(roots))
 
     def calculate_proportional_score(
         self,

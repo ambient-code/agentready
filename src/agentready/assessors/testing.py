@@ -366,10 +366,12 @@ class TestExecutionAssessor(BaseAssessor):
         else:
             evidence.append("No 'go test' command found in Makefile/CI/README")
 
-        has_coverage = bool(re.search(r"-cover(?:profile|mode)\b", text_sources))
+        has_coverage = bool(
+            re.search(r"(?<!\S)-cover(?:\b|profile\b|mode\b)", text_sources)
+        )
         if has_coverage:
             score += 20.0
-            evidence.append("Coverage configuration found (-coverprofile/-covermode)")
+            evidence.append("Coverage configuration found")
         else:
             evidence.append("No coverage configuration found")
 
@@ -411,9 +413,17 @@ class TestExecutionAssessor(BaseAssessor):
             repository.path / "README.md",
         ]
 
-        # Include subdirectory Makefiles (Go monorepos)
-        for makefile in repository.path.glob("*/Makefile"):
-            files_to_check.append(makefile)
+        # Include module-local build files (Go monorepos)
+        for module_root in self._find_go_module_roots(repository):
+            if module_root == repository.path:
+                continue
+            files_to_check.extend(
+                [
+                    module_root / "Makefile",
+                    module_root / "Taskfile.yml",
+                    module_root / "README.md",
+                ]
+            )
 
         ci_dir = repository.path / ".github" / "workflows"
         if ci_dir.exists():

@@ -551,29 +551,6 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     except (OSError, UnicodeDecodeError):
                         continue
 
-        # Also check if golangci-lint is present at all (even without
-        # explicit complexity linters — it enables several by default)
-        for search_dir in search_dirs:
-            for config_name in [
-                ".golangci.yml",
-                ".golangci.yaml",
-                ".golangci.toml",
-            ]:
-                if (search_dir / config_name).exists():
-                    rel = (search_dir / config_name).relative_to(repository.path)
-                    return Finding(
-                        attribute=self.attribute,
-                        status="pass",
-                        score=70.0,
-                        measured_value="golangci-lint configured",
-                        threshold="complexity linter enabled",
-                        evidence=[
-                            f"golangci-lint configured in {rel} (default linters include basic complexity checks)"
-                        ],
-                        remediation=None,
-                        error_message=None,
-                    )
-
         raise MissingToolError(
             "gocyclo",
             install_command="go install github.com/fzipp/gocyclo/cmd/gocyclo@latest",

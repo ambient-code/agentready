@@ -1227,7 +1227,11 @@ class InlineDocumentationAssessor(BaseAssessor):
         documented_exported = 0
         has_doc_go = False
 
-        exported_pattern = re.compile(r"^(?:func|type|var|const)\s+([A-Z]\w*)")
+        # Match exported functions (including methods with receivers), types,
+        # vars, and consts. Group 1 captures the exported symbol name.
+        exported_pattern = re.compile(
+            r"^(?:func\s+(?:\([^)]+\)\s+)?|type\s+|var\s+|const\s+)([A-Z]\w*)"
+        )
 
         for file_path in go_files:
             full_path = repository.path / file_path
@@ -1247,16 +1251,14 @@ class InlineDocumentationAssessor(BaseAssessor):
                 total_exported += 1
                 symbol_name = match.group(1)
 
-                # Check if previous non-empty line is a comment starting with symbol name
+                # Go convention: doc comment must start with "// SymbolName"
                 if i > 0:
                     prev_idx = i - 1
                     while prev_idx >= 0 and not lines[prev_idx].strip():
                         prev_idx -= 1
                     if prev_idx >= 0:
                         prev_line = lines[prev_idx].strip()
-                        if prev_line.startswith(
-                            f"// {symbol_name}"
-                        ) or prev_line.startswith("//"):
+                        if prev_line.startswith(f"// {symbol_name}"):
                             documented_exported += 1
 
         if total_exported == 0:
