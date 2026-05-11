@@ -64,6 +64,12 @@ class DependencyPinningAssessor(BaseAssessor):
         found_strict = [f for f in strict_lock_files if (repository.path / f).exists()]
         found_manual = [f for f in manual_lock_files if (repository.path / f).exists()]
 
+        # Check subdirectories for Go monorepos (go.sum in module dirs)
+        if "go.sum" not in found_strict:
+            for gosum in repository.path.glob("*/go.sum"):
+                found_strict.append(str(gosum.relative_to(repository.path)))
+                break
+
         if not found_strict and not found_manual:
             return Finding(
                 attribute=self.attribute,
@@ -426,6 +432,9 @@ class GitignoreAssessor(BaseAssessor):
                 "*.test",
                 "vendor/",
                 "*.out",
+                "bin/",
+                "cover.out",
+                "coverage.txt",
             ],
             "Ruby": [
                 "*.gem",

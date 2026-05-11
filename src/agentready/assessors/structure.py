@@ -117,9 +117,13 @@ class StandardLayoutAssessor(BaseAssessor):
         - Python: src/ or project-named directory, plus tests/
         - JavaScript: src/, test/, docs/
         - Java: src/main/java, src/test/java
+        - Go: cmd/, internal/, pkg/ with go.mod, tests in *_test.go
 
         Fix for #246, #305: Support multiple valid Python layouts
         """
+        if "Go" in repository.languages:
+            return self._assess_go_layout(repository)
+
         # Check for tests directory (either tests/ or test/)
         tests_path = repository.path / "tests"
         has_tests = tests_path.exists()
@@ -326,6 +330,166 @@ class StandardLayoutAssessor(BaseAssessor):
         has_test_config = any(f.exists() for f in test_config_files)
 
         return has_test_config
+
+    def _assess_go_layout(self, repository: Repository) -> Finding:
+        """Assess Go project layout.
+
+        Supports both single-module repos (go.mod at root) and monorepos
+        (go.mod in subdirectories). Checks for standard Go directories
+        across all module roots.
+        """
+        score = 0.0
+        evidence = []
+
+        module_roots = self._find_go_module_roots(repository)
+        has_go_mod = len(module_roots) > 0
+
+        if has_go_mod:
+            score += 30.0
+            if len(module_roots) == 1 and module_roots[0] == repository.path:
+                evidence.append("go.mod: ✓")
+            else:
+                names = [r.name for r in module_roots]
+                evidence.append(f"go.mod: ✓ (monorepo: {', '.join(names)})")
+        else:
+            evidence.append("go.mod: ✗ (required for Go modules)")
+
+        # Check for standard Go directories across all module roots
+        has_cmd = any((r / "cmd").is_dir() for r in module_roots)
+        has_internal = any((r / "internal").is_dir() for r in module_roots)
+        has_pkg = any((r / "pkg").is_dir() for r in module_roots) or any(
+            # api/ directories with Go types are also valid source layout
+            (r / "api").is_dir()
+            for r in module_roots
+        )
+        has_root_main = any((r / "main.go").exists() for r in module_roots)
+
+        if has_cmd:
+            score += 25.0
+            evidence.append("cmd/: ✓ (executable entry points)")
+        elif has_root_main:
+            score += 20.0
+            evidence.append("main.go: ✓ (simple single-binary project)")
+        else:
+            evidence.append("cmd/ or main.go: ✗")
+
+        if has_internal:
+            score += 25.0
+            evidence.append("internal/: ✓ (compiler-enforced encapsulation)")
+        elif has_pkg:
+            score += 20.0
+            evidence.append("pkg/ or api/: ✓ (package structure)")
+        else:
+            evidence.append("internal/ or pkg/: ✗ (no package encapsulation)")
+
+        from ..utils.subprocess_utils import safe_subprocess_run
+
+        has_tests = False
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files", "*_test.go", "**/*_test.go"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                test_files = [f for f in result.stdout.strip().split("\n") if f]
+                has_tests = len(test_files) > 0
+        except Exception:
+            has_tests = bool(list(repository.path.rglob("*_test.go")))
+
+        if has_tests:
+            score += 20.0
+            evidence.append("*_test.go files: ✓ (tests alongside source)")
+        else:
+            evidence.append("*_test.go files: ✗ (no test files found)")
+
+        score = min(score, 100.0)
+        status = "pass" if score >= 75 else "fail"
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{score:.0f}/100",
+            threshold="go.mod + structured source + tests",
+            evidence=evidence,
+            remediation=(
+                self._create_go_remediation(
+                    has_go_mod, has_cmd, has_internal, has_tests
+                )
+                if status == "fail"
+                else None
+            ),
+            error_message=None,
+        )
+
+    def _create_go_remediation(
+        self,
+        has_go_mod: bool,
+        has_cmd: bool,
+        has_internal: bool,
+        has_tests: bool,
+    ) -> Remediation:
+        """Create remediation guidance for Go project layout."""
+        steps = []
+        commands = []
+
+        if not has_go_mod:
+            steps.append("Initialize Go modules with go mod init")
+            commands.append("go mod init github.com/yourorg/yourproject")
+
+        if not has_cmd:
+            steps.append("Create cmd/ directory for executable entry points")
+            commands.extend(
+                ["mkdir -p cmd/yourapp", "# Move main.go into cmd/yourapp/"]
+            )
+
+        if not has_internal:
+            steps.append(
+                "Create internal/ for private packages (compiler-enforced encapsulation)"
+            )
+            commands.append("mkdir -p internal/")
+
+        if not has_tests:
+            steps.append("Add test files alongside source code (*_test.go)")
+            commands.append("# Create test files: yourpackage/handler_test.go")
+
+        return Remediation(
+            summary="Organize Go project into standard layout",
+            steps=steps,
+            tools=[],
+            commands=commands,
+            examples=[
+                """# Standard Go project layout
+project/
+├── cmd/
+│   └── myapp/
+│       └── main.go
+├── internal/
+│   ├── handler/
+│   │   ├── handler.go
+│   │   └── handler_test.go
+│   └── service/
+│       ├── service.go
+│       └── service_test.go
+├── pkg/              (optional, for public library code)
+│   └── client/
+│       └── client.go
+├── go.mod
+└── go.sum
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Go Documentation",
+                    title="Organizing a Go module",
+                    url="https://go.dev/doc/modules/layout",
+                    relevance="Official Go project layout guidance",
+                )
+            ],
+        )
 
     def _create_remediation(self, has_source: bool, has_tests: bool) -> Remediation:
         """Create context-aware remediation guidance for standard layout.

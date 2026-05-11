@@ -1,6 +1,7 @@
 """Base assessor interface for attribute evaluation."""
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from ..models.finding import Finding
 from ..models.repository import Repository
@@ -66,6 +67,39 @@ class BaseAssessor(ABC):
             - API check: return any openapi/swagger files exist
         """
         return True
+
+    def _primary_language(
+        self,
+        repository: Repository,
+        candidates: set[str],
+    ) -> str | None:
+        """Return the candidate language with the most files in the repo.
+
+        Solves the dispatch problem for multi-language repos: if a repo has
+        102 Go files and 11 Python files, Go-specific assessment should run.
+        """
+        best_lang = None
+        best_count = -1
+        for lang in candidates:
+            count = repository.languages.get(lang, 0)
+            if count > best_count:
+                best_count = count
+                best_lang = lang
+        return best_lang if best_count > 0 else None
+
+    def _find_go_module_roots(self, repository: Repository) -> list[Path]:
+        """Find directories containing go.mod (Go module roots).
+
+        Supports both single-module repos (go.mod at root) and monorepos
+        (go.mod in subdirectories like maas-api/, services/auth/, etc.).
+        Excludes vendor directories.
+        """
+        roots = []
+        if (repository.path / "go.mod").exists():
+            roots.append(repository.path)
+        for gomod in repository.path.glob("*/go.mod"):
+            roots.append(gomod.parent)
+        return roots
 
     def calculate_proportional_score(
         self,
