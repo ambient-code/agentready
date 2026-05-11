@@ -845,9 +845,9 @@ pre-commit run --all-files
 ### 11. Conventional Commit Messages
 
 **ID**: `conventional_commits`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Git & Version Control
-**Status**: 🔶 Partially Implemented
+**Status**: ✅ Implemented
 
 #### Definition
 
@@ -859,11 +859,18 @@ Structured commit messages make history parseable. Tools like `semantic-release`
 
 #### Measurable Criteria
 
-**Format**: `type(scope): description`
+**Passes if** conventional commit enforcement tooling is configured:
+
+- commitlint config file (`.commitlintrc*`, `commitlint.config.*`)
+- commitlint key in `package.json`
+- `.husky` directory with commit-msg hook
+- conventional commits hook in `.pre-commit-config.yaml`
+
+The assessor checks for tooling presence, not actual commit history. Pass is binary: configured or not.
+
+**Format enforced**: `type(scope): description`
 
 **Types**: feat, fix, docs, style, refactor, perf, test, chore, build, ci
-
-**Enforcement**: commitlint in pre-commit hooks or CI
 
 **Examples**:
 
@@ -902,7 +909,7 @@ EOF
 ### 12. .gitignore Completeness
 
 **ID**: `gitignore_completeness`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Git & Version Control
 **Status**: ✅ Implemented
 
@@ -954,9 +961,9 @@ echo "*.log" >> .gitignore
 ### 13. One-Command Build/Setup
 
 **ID**: `one_command_setup`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Build & Development
-**Status**: 🔶 Partially Implemented
+**Status**: ✅ Implemented
 
 #### Definition
 
@@ -1039,32 +1046,27 @@ A function with 20 branches is hard to reason about whether you're human or an a
 
 #### Measurable Criteria
 
-- Target: <10 per function
-- Warning: 15
-- Error: 25
+**Python** (via radon): runs `radon cc` and measures average cyclomatic complexity across all functions. Pass threshold: average < 10.
 
-**Tools**:
+**Other languages**: returns `not_applicable` (lizard integration not yet implemented).
 
-- radon (Python)
-- complexity-report (JavaScript)
-- gocyclo (Go)
-- clang-tidy (C++)
+**Pass threshold**: proportional score >= 75 (average complexity well below 10).
 
 #### Remediation
 
 ```bash
-# Python
+# Install radon
 pip install radon
-radon cc src/ -a -nb
 
-# JavaScript
-npm install -g complexity-report
-cr src/**/*.js
+# Check complexity
+radon cc src/ -s -a
 
-# Refactor complex functions
-# Break into smaller helper functions
-# Extract conditional logic
-# Use polymorphism instead of switch statements
+# Identify high-complexity functions (>10)
+radon cc src/ -s -nb
+
+# Refactor: break complex functions into smaller ones
+# Use early returns to reduce nesting
+# Extract conditional logic into separate functions
 ```
 
 **Citations**:
