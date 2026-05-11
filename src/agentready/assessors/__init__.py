@@ -108,12 +108,12 @@ def create_all_assessors() -> list[BaseAssessor]:
         RepomixConfigAssessor(),  # 2%
         CyclomaticComplexityAssessor(),  # 3%
         ArchitectureDecisionsAssessor(),  # 3%
-        IssuePRTemplatesAssessor(),  # 3%
         StructuredLoggingAssessor(),  # 3%
         OpenAPISpecsAssessor(),  # 3%
         # Tier 4 Advanced — 4% total (1% each)
         BranchProtectionAssessor(),
         CodeSmellsAssessor(),
+        IssuePRTemplatesAssessor(),  # 1%
         ContainerSetupAssessor(),
         ProgressiveDisclosureAssessor(),  # NEW
     ]

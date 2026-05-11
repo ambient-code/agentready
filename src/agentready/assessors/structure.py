@@ -611,8 +611,8 @@ make test   # Run tests to verify setup
 class IssuePRTemplatesAssessor(BaseAssessor):
     """Assesses presence of GitHub issue and PR templates.
 
-    Tier 3 Important (1.5% weight) - Templates provide structure for AI
-    when creating issues/PRs and ensure consistent formatting.
+    Tier 4 Advanced (1% weight) - Templates are a nice-to-have process
+    improvement but not fundamental to agent code comprehension.
     """
 
     @property
@@ -621,7 +621,7 @@ class IssuePRTemplatesAssessor(BaseAssessor):
 
     @property
     def tier(self) -> int:
-        return 3  # Important
+        return 4  # Advanced
 
     @property
     def attribute(self) -> Attribute:
@@ -632,7 +632,7 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             tier=self.tier,
             description="Standardized templates for issues and PRs",
             criteria="PR template and issue templates in .github/",
-            default_weight=0.015,
+            default_weight=0.01,
         )
 
     def assess(self, repository: Repository) -> Finding:
