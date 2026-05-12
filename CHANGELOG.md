@@ -1,3 +1,11 @@
+## [2.35.3](https://github.com/ambient-code/agentready/compare/v2.35.2...v2.35.3) (2026-05-12)
+
+
+### Bug Fixes
+
+* add additional directory paths to ADR assessor ([#414](https://github.com/ambient-code/agentready/issues/414)) ([#416](https://github.com/ambient-code/agentready/issues/416)) ([ad551a8](https://github.com/ambient-code/agentready/commit/ad551a887273739fbdac5a851c2d105bde2344d3))
+* replace .coderabbit.yaml with platform-aligned config ([#418](https://github.com/ambient-code/agentready/issues/418)) ([3538a91](https://github.com/ambient-code/agentready/commit/3538a91e22ff67486d2b33c1ef448c84076cad35))
+
 ## [2.35.2](https://github.com/ambient-code/agentready/compare/v2.35.1...v2.35.2) (2026-05-12)
 
 
