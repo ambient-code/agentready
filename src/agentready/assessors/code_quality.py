@@ -204,6 +204,72 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 self.attribute, reason=f"Could not parse tsconfig.json: {str(e)}"
             )
 
+    @staticmethod
+    def _strip_go_non_code(content: str) -> str:
+        """Strip comments and string literal contents from Go source.
+
+        Preserves line structure so line-anchored regexes still work.
+        """
+        out = []
+        i = 0
+        n = len(content)
+        while i < n:
+            c = content[i]
+
+            # Block comment
+            if c == "/" and i + 1 < n and content[i + 1] == "*":
+                i += 2
+                while i + 1 < n and not (content[i] == "*" and content[i + 1] == "/"):
+                    out.append("\n" if content[i] == "\n" else " ")
+                    i += 1
+                out.append(" ")  # *
+                i += 1
+                if i < n:
+                    out.append(" ")  # /
+                    i += 1
+                continue
+
+            # Line comment
+            if c == "/" and i + 1 < n and content[i + 1] == "/":
+                i += 2
+                while i < n and content[i] != "\n":
+                    i += 1
+                continue
+
+            # Double-quoted string
+            if c == '"':
+                out.append(c)
+                i += 1
+                while i < n and content[i] != '"':
+                    if content[i] == "\\" and i + 1 < n:
+                        out.append(" ")
+                        out.append(" ")
+                        i += 2
+                    else:
+                        out.append(" ")
+                        i += 1
+                if i < n:
+                    out.append(c)
+                    i += 1
+                continue
+
+            # Raw string (backtick)
+            if c == "`":
+                out.append(c)
+                i += 1
+                while i < n and content[i] != "`":
+                    out.append("\n" if content[i] == "\n" else " ")
+                    i += 1
+                if i < n:
+                    out.append(c)
+                    i += 1
+                continue
+
+            out.append(c)
+            i += 1
+
+        return "".join(out)
+
     def _assess_go_types(self, repository: Repository) -> Finding:
         """Assess Go type safety.
 
@@ -245,9 +311,10 @@ class TypeAnnotationsAssessor(BaseAssessor):
             full_path = repository.path / file_path
             try:
                 content = full_path.read_text(encoding="utf-8")
-                total_funcs += len(re.findall(r"^func\s+", content, re.MULTILINE))
+                code_content = self._strip_go_non_code(content)
+                total_funcs += len(re.findall(r"^func\s+", code_content, re.MULTILINE))
                 any_usage_count += len(
-                    re.findall(r"\binterface\s*\{\s*\}|\bany\b", content)
+                    re.findall(r"\binterface\s*\{\s*\}|\bany\b", code_content)
                 )
             except (OSError, UnicodeDecodeError):
                 continue

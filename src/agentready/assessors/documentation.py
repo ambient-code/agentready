@@ -479,8 +479,7 @@ class READMEAssessor(BaseAssessor):
             ],
             tools=[],
             commands=[],
-            examples=[
-                """# Project Name
+            examples=["""# Project Name
 
 ## Overview
 What this project does and why it exists.
@@ -503,8 +502,7 @@ pytest
 # Format code
 black .
 ```
-"""
-            ],
+"""],
             citations=[
                 Citation(
                     source="GitHub",
@@ -1194,6 +1192,31 @@ class InlineDocumentationAssessor(BaseAssessor):
             error_message=None,
         )
 
+    @staticmethod
+    def _has_go_doc_comment(
+        lines: list[str], symbol_idx: int, symbol_name: str
+    ) -> bool:
+        """Check if an exported Go symbol has a doc comment above it.
+
+        Matches go doc behavior: any comment immediately preceding a
+        declaration (no blank line between) is a doc comment.
+        """
+        prev_idx = symbol_idx - 1
+        while prev_idx >= 0 and not lines[prev_idx].strip():
+            prev_idx -= 1
+        if prev_idx < 0:
+            return False
+
+        prev_line = lines[prev_idx].strip()
+
+        if prev_line.startswith("//"):
+            return True
+
+        if prev_line.endswith("*/"):
+            return True
+
+        return False
+
     def _assess_go_godoc(self, repository: Repository) -> Finding:
         """Assess Go godoc comment coverage on exported symbols.
 
@@ -1251,15 +1274,8 @@ class InlineDocumentationAssessor(BaseAssessor):
                 total_exported += 1
                 symbol_name = match.group(1)
 
-                # Go convention: doc comment must start with "// SymbolName"
-                if i > 0:
-                    prev_idx = i - 1
-                    while prev_idx >= 0 and not lines[prev_idx].strip():
-                        prev_idx -= 1
-                    if prev_idx >= 0:
-                        prev_line = lines[prev_idx].strip()
-                        if prev_line.startswith(f"// {symbol_name}"):
-                            documented_exported += 1
+                if i > 0 and self._has_go_doc_comment(lines, i, symbol_name):
+                    documented_exported += 1
 
         if total_exported == 0:
             return Finding.not_applicable(

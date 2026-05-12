@@ -100,7 +100,7 @@ class BaseAssessor(ABC):
         if not lang_counts:
             return None
 
-        top_lang = max(lang_counts, key=lang_counts.get)
+        top_lang = max(lang_counts, key=lambda k: (lang_counts[k], k))
         top_count = lang_counts[top_lang]
 
         if top_count == 0:

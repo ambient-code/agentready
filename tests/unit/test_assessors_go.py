@@ -807,3 +807,225 @@ class TestCIQualityGatesAssessorGo:
         assert any("Test gate" in e for e in finding.evidence)
         assert any("Lint gate" in e for e in finding.evidence)
         assert any("Type-check gate" in e for e in finding.evidence)
+
+
+# =============================================================================
+# Regression tests for PR #412 review findings
+# =============================================================================
+
+
+class TestGoMultiLineGodoc:
+    """Tests for multi-line godoc comment detection."""
+
+    def test_go_multiline_doc_comment(self, tmp_path):
+        """Multi-line // doc comments should be detected."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "handler.go"
+        go_file.write_text(
+            "package handler\n\n"
+            "// Handler processes incoming HTTP requests.\n"
+            "// It routes them to the appropriate service method.\n"
+            "func Handler() {}\n\n"
+            "// Config holds the application configuration.\n"
+            "// It is loaded from environment variables.\n"
+            "type Config struct {}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 90.0
+
+    def test_go_block_comment_doc(self, tmp_path):
+        """/* */ block-style doc comments should be detected."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "handler.go"
+        go_file.write_text(
+            "package handler\n\n"
+            "/* Handler processes incoming HTTP requests. */\n"
+            "func Handler() {}\n\n"
+            "/* Config holds the application configuration.\n"
+            "It supports multiple environments. */\n"
+            "type Config struct {}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 90.0
+
+    def test_go_method_with_receiver_documented(self, tmp_path):
+        """Exported methods with receivers should be detected and docs counted."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "server.go"
+        go_file.write_text(
+            "package server\n\n"
+            "// Start begins listening for connections.\n"
+            "func (s *Server) Start() {}\n\n"
+            "// Stop gracefully shuts down the server.\n"
+            "func (s *Server) Stop() {}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 90.0
+
+
+class TestGoMakeVariableTest:
+    """Tests for $(GO) test Makefile convention."""
+
+    def test_go_make_variable_test_command(self, tmp_path):
+        """$(GO) test should be recognized as a test command."""
+        repo = _make_go_repo(tmp_path)
+
+        test_file = tmp_path / "handler_test.go"
+        test_file.write_text('package main\nimport "testing"\n')
+        _git_add(tmp_path, test_file)
+
+        makefile = tmp_path / "Makefile"
+        makefile.write_text(
+            "GO ?= go\n\n"
+            ".PHONY: test\n"
+            "test:\n"
+            "\t$(GO) test -v -race -coverprofile=coverage.txt ./...\n"
+        )
+
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("test command found" in e.lower() for e in finding.evidence)
+
+
+class TestGoAnyInComments:
+    """Tests for any/interface{} matching excluding comments."""
+
+    def test_go_any_in_comments_not_counted(self, tmp_path):
+        """'any' in comments should not inflate the type-weakness count."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "handler.go"
+        go_file.write_text(
+            "package main\n\n"
+            "// Process handles any incoming request.\n"
+            "// It can accept any valid payload.\n"
+            "func Process(data string) string {\n"
+            '\treturn "ok"\n'
+            "}\n\n"
+            "func Transform(input int) int {\n"
+            "\treturn input * 2\n"
+            "}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = TypeAnnotationsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 95.0
+        assert finding.status == "pass"
+
+    def test_go_any_in_code_still_counted(self, tmp_path):
+        """'any' in actual code should still be counted."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "handler.go"
+        go_file.write_text(
+            "package main\n\n"
+            "func Process(data any) any {\n"
+            "\treturn data\n"
+            "}\n\n"
+            "func Other(x any, y any) any {\n"
+            "\treturn x\n"
+            "}\n\n"
+            "func More(a any) any {\n"
+            "\treturn a\n"
+            "}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = TypeAnnotationsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score < 95.0
+
+    def test_go_any_in_string_literals_not_counted(self, tmp_path):
+        """'any' in string literals should not inflate the type-weakness count."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "handler.go"
+        go_file.write_text(
+            "package main\n\n"
+            'import "fmt"\n\n'
+            "func Process(data string) string {\n"
+            '\tfmt.Println("can accept any value")\n'
+            '\treturn "any"\n'
+            "}\n\n"
+            "func Transform(input int) int {\n"
+            "\treturn input * 2\n"
+            "}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = TypeAnnotationsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 95.0
+        assert finding.status == "pass"
+
+
+class TestGoNonSymbolNameDocs:
+    """Tests for doc comments that don't start with the symbol name."""
+
+    def test_go_descriptive_comment_accepted(self, tmp_path):
+        """Comments describing the function without symbol name prefix are valid."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "remote.go"
+        go_file.write_text(
+            "package context\n\n"
+            "// Filter remotes by given hostnames, maintains original order\n"
+            "func FilterByHosts(hosts []string) []string {\n"
+            "\treturn hosts\n"
+            "}\n\n"
+            "// Returns the first remote matching the given name\n"
+            "func FindByName(name string) string {\n"
+            "\treturn name\n"
+            "}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 90.0
+
+    def test_go_blank_line_separates_comment(self, tmp_path):
+        """A blank line between comment and symbol means no doc comment."""
+        repo = _make_go_repo(tmp_path)
+
+        go_file = tmp_path / "handler.go"
+        go_file.write_text(
+            "package handler\n\n"
+            "// This is not a doc comment because of the blank line.\n"
+            "\n"
+            "func Handler() {}\n\n"
+            "func Process() {}\n"
+        )
+        _git_add(tmp_path, go_file)
+
+        assessor = InlineDocumentationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score < 75.0

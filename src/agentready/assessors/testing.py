@@ -359,7 +359,7 @@ class TestExecutionAssessor(BaseAssessor):
 
         text_sources = self._read_go_build_files(repository)
 
-        has_test_cmd = bool(re.search(r"\bgo\s+test\b", text_sources))
+        has_test_cmd = bool(re.search(r"(?:\bgo|\$\(GO\))\s+test\b", text_sources))
         if has_test_cmd:
             score += 20.0
             evidence.append("Go test command found in project files")
@@ -836,9 +836,10 @@ class CIQualityGatesAssessor(BaseAssessor):
             r"\bmocha\b",
             r"\bnpm\s+test\b",
             r"\byarn\s+test\b",
-            r"\bgo\s+test\b",
+            r"(?:\bgo|\$\(GO\))\s+test\b",
             r"\bcargo\s+test\b",
             r"\brspec\b",
+            r"\bmake\s+test\b",
         ]
         typecheck_patterns = [
             r"\bmypy\b",
