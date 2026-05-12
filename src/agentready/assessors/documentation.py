@@ -401,15 +401,23 @@ class READMEAssessor(BaseAssessor):
         Scoring: Proportional based on section count
         """
         # Case-insensitive README lookup — handles readme.md, README.md, Readme.rst, etc.
+        # sorted() ensures deterministic selection when multiple variants exist.
         readme_names = {"readme.md", "readme.rst", "readme.txt", "readme"}
-        readme_path = next(
-            (
-                f
-                for f in repository.path.iterdir()
-                if f.is_file() and f.name.lower() in readme_names
-            ),
-            None,
-        )
+        try:
+            readme_path = next(
+                (
+                    f
+                    for f in sorted(
+                        repository.path.iterdir(), key=lambda f: f.name.lower()
+                    )
+                    if f.is_file() and f.name.lower() in readme_names
+                ),
+                None,
+            )
+        except OSError as e:
+            return Finding.error(
+                self.attribute, reason=f"Could not scan repository root: {e}"
+            )
 
         if readme_path is None:
             return Finding(
@@ -573,23 +581,32 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
         # Search docs/ first (most common location)
         docs_dir = repository.path / "docs"
         if docs_dir.is_dir():
-            for candidate in sorted(docs_dir.iterdir()):
-                if candidate.is_dir() and candidate.name.lower() in adr_target_names:
-                    adr_dir = candidate
-                    break
-
-        # Fall back to repo root and hidden .adr
-        if not adr_dir:
-            if (repository.path / ".adr").is_dir():
-                adr_dir = repository.path / ".adr"
-            else:
-                for candidate in sorted(repository.path.iterdir()):
+            try:
+                for candidate in sorted(docs_dir.iterdir()):
                     if (
                         candidate.is_dir()
                         and candidate.name.lower() in adr_target_names
                     ):
                         adr_dir = candidate
                         break
+            except OSError:
+                pass  # docs/ unreadable — fall through to root scan
+
+        # Fall back to repo root and hidden .adr
+        if not adr_dir:
+            if (repository.path / ".adr").is_dir():
+                adr_dir = repository.path / ".adr"
+            else:
+                try:
+                    for candidate in sorted(repository.path.iterdir()):
+                        if (
+                            candidate.is_dir()
+                            and candidate.name.lower() in adr_target_names
+                        ):
+                            adr_dir = candidate
+                            break
+                except OSError:
+                    pass  # root unreadable — adr_dir stays None, fail finding follows
 
         if not adr_dir:
             return Finding(
