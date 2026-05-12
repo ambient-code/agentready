@@ -163,9 +163,7 @@ class TestClaudeMdPartialCredit:
         assert finding.score == 60.0
 
     def test_claude_md_without_adr_content_scores_zero(self, assessor, tmp_path):
-        (tmp_path / "CLAUDE.md").write_text(
-            "# Project\n\nRun tests with pytest.\n"
-        )
+        (tmp_path / "CLAUDE.md").write_text("# Project\n\nRun tests with pytest.\n")
         repo = _make_repo(tmp_path)
         finding = assessor.assess(repo)
         assert finding.score == 0.0

@@ -748,7 +748,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
 
             if has_section or (adr_keywords.search(content) and has_link):
                 evidence = [
-                    f"No inline ADR directory found",
+                    "No inline ADR directory found",
                     f"{filename} contains architectural decision documentation (partial credit: 60/100)",
                     "Add a docs/adr/ directory with inline ADRs for full credit",
                 ]
