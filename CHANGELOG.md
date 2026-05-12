@@ -1,3 +1,17 @@
+# [2.36.0](https://github.com/ambient-code/agentready/compare/v2.35.3...v2.36.0) (2026-05-12)
+
+
+### Bug Fixes
+
+* address PR review findings for Go assessor accuracy ([72d8e81](https://github.com/ambient-code/agentready/commit/72d8e8134aa24715e2af3da8a7095b053e2e00cd))
+* address PR review findings for Go support ([168ac29](https://github.com/ambient-code/agentready/commit/168ac293df9fe1f4a725b8e4504361374e49a4ea)), closes [#10](https://github.com/ambient-code/agentready/issues/10)
+* use root manifest tiebreaker for primary language detection ([fbe01fb](https://github.com/ambient-code/agentready/commit/fbe01fb57319a65c44798c4bc96bdbae3ed902c3))
+
+
+### Features
+
+* add comprehensive Go repository support with monorepo detection ([5900184](https://github.com/ambient-code/agentready/commit/59001844a95ed0eb59d0fc37714302de1fd48f81))
+
 ## [2.35.3](https://github.com/ambient-code/agentready/compare/v2.35.2...v2.35.3) (2026-05-12)
 
 
