@@ -117,6 +117,7 @@ Finding.create_fail(self.attribute, evidence="...", remediation="...")
 3. **Test thoroughly** - Unit tests required for all assessors
 4. **Backwards compatibility** - Schema version bump for model changes
 5. **Rich remediation** - Actionable steps with tools, commands, examples
+6. **Self-assign issues** - Before starting work on a GitHub issue, check if it is already assigned. If it is, warn the user and ask for confirmation before continuing. If unassigned (or the user confirms), self-assign it immediately to prevent duplicate effort from other contributors
 
 ## Related Docs
 
