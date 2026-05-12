@@ -517,7 +517,7 @@ black .
 class ArchitectureDecisionsAssessor(BaseAssessor):
     """Assesses presence and quality of Architecture Decision Records (ADRs).
 
-    Tier 3 Important (1.5% weight) - ADRs provide historical context for
+    Tier 3 Important (3% weight) - ADRs provide historical context for
     architectural decisions, helping AI understand "why" choices were made.
     """
 
@@ -1271,7 +1271,7 @@ function calculateDiscount(price, discountPercent) {
 class OpenAPISpecsAssessor(BaseAssessor):
     """Assesses presence and quality of OpenAPI specification.
 
-    Tier 3 Important (1.5% weight) - Machine-readable API documentation
+    Tier 3 Important (3% weight) - Machine-readable API documentation
     enables AI to generate client code, tests, and integration code.
     """
 
