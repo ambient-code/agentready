@@ -1103,7 +1103,7 @@ Scoring is based on directory presence, ADR count, and template compliance:
 | State | Score | Status |
 |-------|-------|--------|
 | No ADR directory, no agent context file reference | 0 | fail |
-| Architecture section or external link in CLAUDE.md/AGENTS.md | 60 | fail |
+| Architecture section AND external link in CLAUDE.md/AGENTS.md | 60 | fail |
 | ADR directory found, empty | 40 | fail |
 | ADR directory + 1-4 ADRs | 40-72 | fail/pass |
 | ADR directory + 5+ ADRs + template compliance | up to 100 | pass |
@@ -1114,7 +1114,7 @@ Scoring is based on directory presence, ADR count, and template compliance:
 - `docs/architecture/`, `docs/design/`, `docs/specs/`
 - `adr/`, `specs/`, `.adr/`
 
-**Partial credit (60/100)** is awarded when no inline ADR directory exists but `CLAUDE.md` or `AGENTS.md` contains an architecture/decisions section heading or a link to an external ADR/RFC repository. Inline ADRs are more agent-ready because agents cannot follow external links.
+**Partial credit (60/100)** is awarded when no inline ADR directory exists but `CLAUDE.md` or `AGENTS.md` contains both an architecture/decisions section heading and a link to an external ADR/RFC repository. Both conditions are required — a heading alone is too common a false positive, and a link alone provides insufficient signal. Inline ADRs are more agent-ready because agents cannot follow external links.
 
 **Template compliance** checks for the four Michael Nygard sections: Status, Context, Decision, Consequences.
 
