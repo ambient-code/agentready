@@ -1,3 +1,20 @@
+## [2.35.2](https://github.com/ambient-code/agentready/compare/v2.35.1...v2.35.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* convert Path.glob() generators to lists before concatenation ([8c3b1cd](https://github.com/ambient-code/agentready/commit/8c3b1cd6522ff6d1710ac89aff85a1e6fb621f3e))
+* correct default-weights.yaml dead key, add repomix_config, document branch_protection ([3c818d3](https://github.com/ambient-code/agentready/commit/3c818d3a72b06628172cc4954e0f0e0719442c3e)), closes [#405](https://github.com/ambient-code/agentready/issues/405) [#403](https://github.com/ambient-code/agentready/issues/403)
+* correct IssuePRTemplatesAssessor to Tier 4 / 1% weight ([6084c28](https://github.com/ambient-code/agentready/commit/6084c28563d62a81a60d8cbbdb9f5a3eb8f935ce)), closes [#382](https://github.com/ambient-code/agentready/issues/382)
+* sync assessor default_weight values with default-weights.yaml ([82b08c3](https://github.com/ambient-code/agentready/commit/82b08c3377edfb60681fe6b63e5b0d8be6d6c03b)), closes [#407](https://github.com/ambient-code/agentready/issues/407) [#407](https://github.com/ambient-code/agentready/issues/407)
+* update stale attribute counts in default-weights.yaml header ([49c3340](https://github.com/ambient-code/agentready/commit/49c3340230d2e42b3fb3cd3c7cef0da7be7314a6))
+* update stale weight comments for Cyclomatic and StructuredLogging assessors ([8ac286a](https://github.com/ambient-code/agentready/commit/8ac286a0af68abf7a09a4c4fe15915483ae89d8a))
+
+
+### Reverts
+
+* remove assessor default_weight fixes (moving to separate PR) ([08fb431](https://github.com/ambient-code/agentready/commit/08fb431b6d521c14607a40774f27c3ce4ae68a21))
+
 ## [2.35.1](https://github.com/ambient-code/agentready/compare/v2.35.0...v2.35.1) (2026-05-08)
 
 
