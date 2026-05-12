@@ -479,7 +479,8 @@ class READMEAssessor(BaseAssessor):
             ],
             tools=[],
             commands=[],
-            examples=["""# Project Name
+            examples=[
+                """# Project Name
 
 ## Overview
 What this project does and why it exists.
@@ -502,7 +503,8 @@ pytest
 # Format code
 black .
 ```
-"""],
+"""
+            ],
             citations=[
                 Citation(
                     source="GitHub",
@@ -555,6 +557,10 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             repository.path / ".adr",
             repository.path / "adr",
             repository.path / "docs" / "decisions",
+            repository.path / "specs",
+            repository.path / "docs" / "specs",
+            repository.path / "docs" / "architecture",
+            repository.path / "docs" / "design",
         ]
 
         adr_dir = None
@@ -571,7 +577,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                 measured_value="no ADR directory",
                 threshold="ADR directory with decisions",
                 evidence=[
-                    "No ADR directory found (checked docs/adr/, .adr/, adr/, docs/decisions/)"
+                    "No ADR directory found (checked docs/adr/, .adr/, adr/, docs/decisions/, specs/, docs/specs/, docs/architecture/, docs/design/)"
                 ],
                 remediation=self._create_remediation(),
                 error_message=None,
