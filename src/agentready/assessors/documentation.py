@@ -400,9 +400,29 @@ class READMEAssessor(BaseAssessor):
         Pass criteria: README.md exists with essential sections
         Scoring: Proportional based on section count
         """
-        readme_path = repository.path / "README.md"
+        # Case-insensitive README lookup — handles readme.md, README.md, Readme.rst, etc.
+        readme_names = {"readme.md", "readme.rst", "readme.txt", "readme"}
+        readme_path = next(
+            (
+                f
+                for f in repository.path.iterdir()
+                if f.is_file() and f.name.lower() in readme_names
+            ),
+            None,
+        )
 
-        # Fix TOCTOU: Use try-except around file read instead of existence check
+        if readme_path is None:
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=0.0,
+                measured_value="missing",
+                threshold="present with sections",
+                evidence=["README not found"],
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
+
         try:
             with open(readme_path, "r", encoding="utf-8") as f:
                 content = f.read().lower()
@@ -450,20 +470,9 @@ class READMEAssessor(BaseAssessor):
                 error_message=None,
             )
 
-        except FileNotFoundError:
-            return Finding(
-                attribute=self.attribute,
-                status="fail",
-                score=0.0,
-                measured_value="missing",
-                threshold="present with sections",
-                evidence=["README.md not found"],
-                remediation=self._create_remediation(),
-                error_message=None,
-            )
         except OSError as e:
             return Finding.error(
-                self.attribute, reason=f"Could not read README.md: {str(e)}"
+                self.attribute, reason=f"Could not read {readme_path.name}: {str(e)}"
             )
 
     def _create_remediation(self) -> Remediation:
@@ -549,23 +558,38 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
         - ADR count (40%, up to 5 ADRs)
         - Template compliance (20%)
         """
-        # Check for ADR directory in common locations
-        adr_paths = [
-            repository.path / "docs" / "adr",
-            repository.path / ".adr",
-            repository.path / "adr",
-            repository.path / "docs" / "decisions",
-            repository.path / "specs",
-            repository.path / "docs" / "specs",
-            repository.path / "docs" / "architecture",
-            repository.path / "docs" / "design",
-        ]
-
+        # Case-insensitive ADR directory scan — handles docs/adr, docs/ADRs, docs/Adr, adr/, etc.
+        adr_target_names = {
+            "adr",
+            "adrs",
+            "decisions",
+            "architecture-decisions",
+            "architecture",
+            "design",
+            "specs",
+        }
         adr_dir = None
-        for path in adr_paths:
-            if path.exists() and path.is_dir():
-                adr_dir = path
-                break
+
+        # Search docs/ first (most common location)
+        docs_dir = repository.path / "docs"
+        if docs_dir.is_dir():
+            for candidate in sorted(docs_dir.iterdir()):
+                if candidate.is_dir() and candidate.name.lower() in adr_target_names:
+                    adr_dir = candidate
+                    break
+
+        # Fall back to repo root and hidden .adr
+        if not adr_dir:
+            if (repository.path / ".adr").is_dir():
+                adr_dir = repository.path / ".adr"
+            else:
+                for candidate in sorted(repository.path.iterdir()):
+                    if (
+                        candidate.is_dir()
+                        and candidate.name.lower() in adr_target_names
+                    ):
+                        adr_dir = candidate
+                        break
 
         if not adr_dir:
             return Finding(
@@ -575,7 +599,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                 measured_value="no ADR directory",
                 threshold="ADR directory with decisions",
                 evidence=[
-                    "No ADR directory found (checked docs/adr/, .adr/, adr/, docs/decisions/, specs/, docs/specs/, docs/architecture/, docs/design/)"
+                    "No ADR directory found (checked docs/adr/, docs/architecture/, docs/specs/, specs/, adr/, and variants — all case-insensitive)"
                 ],
                 remediation=self._create_remediation(),
                 error_message=None,

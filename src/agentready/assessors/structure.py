@@ -531,6 +531,8 @@ class OneCommandSetupAssessor(BaseAssessor):
         # Check for common setup files
         files_to_check = {
             "Makefile": "Makefile",
+            "GNUmakefile": "GNUmakefile",
+            "makefile": "Makefile",
             "setup.sh": "shell script",
             "bootstrap.sh": "bootstrap script",
             "package.json": "npm/yarn",
