@@ -5,13 +5,13 @@
     "research_version": "2.0.0",
     "assessment_timestamp": "2026-05-12T13:32:35.450143",
     "assessment_timestamp_human": "May 12, 2026 at 1:32 PM",
-    "executed_by": "dhshah@dhshah-mac",
-    "command": "/Users/dhshah/.cache/uv/archive-v0/3Xns5vvut0sXkL7qwXT68/bin/agentready -- assess .",
-    "working_directory": "/Users/dhshah/fullsend/repo"
+    "executed_by": "redacted",
+    "command": "agentready assess .",
+    "working_directory": "."
   },
   "repository": {
-    "path": "/Users/dhshah/fullsend/repo",
-    "name": "repo",
+    "path": ".",
+    "name": "fullsend",
     "url": "https://github.com/fullsend-ai/fullsend.git",
     "branch": "docs/686-forge-landscape",
     "commit_hash": "04646f66ba11494864c341773a60697f72b1b884",
@@ -95,7 +95,7 @@
       "measured_value": "present",
       "threshold": "present",
       "evidence": [
-        "CLAUDE.md found at /Users/dhshah/fullsend/repo/CLAUDE.md",
+        "CLAUDE.md found at CLAUDE.md",
         "AGENTS.md also present (cross-tool compatibility)"
       ],
       "remediation": null,
