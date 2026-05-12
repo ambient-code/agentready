@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 27 agent-ready attributes assessed by AgentReady.
+Complete reference for all 28 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -26,21 +26,9 @@ Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against **27 evidence-based attributes** that improve AI agent effectiveness. Each attribute is:
+AgentReady evaluates repositories against 28 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
-- **Research-backed**: Derived from 50+ authoritative sources (Anthropic, Microsoft, Google, academic research)
-- **Measurable**: Specific criteria with clear pass/fail thresholds
-- **Actionable**: Concrete tools, commands, and examples for remediation
-- **Weighted**: Importance reflected in tier-based scoring (55/27/14/4 distribution)
-
-**Every attribute includes**:
-
-- Definition and importance for AI agents
-- Impact on agent behavior
-- Measurable criteria
-- Authoritative citations
-- Good vs. bad examples
-- Remediation guidance
+Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 
 ---
 
@@ -52,10 +40,10 @@ Attributes are organized into four weighted tiers:
 |------|--------|-------|-----------------|
 | **Tier 1: Essential** | 55% | Fundamentals enabling basic AI functionality | 9 attributes |
 | **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 9 attributes |
-| **Tier 3: Important** | 14% | Significant improvements in specific areas | 5 attributes |
+| **Tier 3: Important** | 14% | Significant improvements in specific areas | 6 attributes |
 | **Tier 4: Advanced** | 4% | Refinement and optimization | 4 attributes |
 
-**Impact**: Missing a Tier 1 attribute (10% weight) has **10x the impact** of missing a Tier 4 attribute (1% weight).
+Missing a Tier 1 attribute (up to 10% weight) has up to 10x the score impact of missing a Tier 4 attribute (1% weight).
 
 ---
 
@@ -76,34 +64,16 @@ Markdown file at repository root (`CLAUDE.md` or `.claude/CLAUDE.md`) automatica
 
 #### Why It Matters
 
-CLAUDE.md files provide **immediate project context** without repeated explanations. Research shows they reduce prompt engineering time by ~40% and frame entire sessions with project-specific guidance.
-
-#### Impact on AI Agents
-
-- Immediate understanding of tech stack, repository structure, standard commands
-- Consistent adherence to project conventions
-- Reduced need for repeated context-setting
-- Proper framing for all AI suggestions
+Claude Code reads `CLAUDE.md` at the start of every session. Without it, agents ask for context that is already in the repo — or guess wrong. A well-written file cuts repeated explanations and keeps the agent from violating conventions it wasn't told about.
 
 #### Measurable Criteria
 
 **Passes if**:
 
-- File exists at `CLAUDE.md` or `.claude/CLAUDE.md`
-- File size: <1000 lines (concise, focused)
-- Contains essential sections:
-  - Tech stack with versions
-  - Repository map/structure
-  - Standard commands (build, test, lint, format)
-  - Testing strategy
-  - Style/lint rules
-  - Branch/PR workflow
+- File exists at `CLAUDE.md`, `.claude/CLAUDE.md`, or `AGENTS.md` (all treated as fully equivalent)
+- File is at least 50 bytes, OR is a valid symlink, OR contains an `@` file reference
 
-**Bonus points** (not required for pass):
-
-- "Do not touch" zones documented
-- Security/compliance notes included
-- Common gotchas and edge cases
+`AGENTS.md` is a fully equivalent alternative and scores identically to `CLAUDE.md`.
 
 #### Example: Good CLAUDE.md
 
@@ -160,7 +130,7 @@ CLAUDE.md files provide **immediate project context** without repeated explanati
 ### 2. README Structure
 
 **ID**: `readme_structure`
-**Weight**: 10%
+**Weight**: 5%
 **Category**: Documentation Standards
 **Status**: ✅ Implemented
 
@@ -170,35 +140,17 @@ Standardized README.md with essential sections in predictable order, serving as 
 
 #### Why It Matters
 
-Repositories with well-structured READMEs receive more engagement (GitHub data). README serves as AI agent's entry point for understanding project purpose, setup, and usage.
-
-#### Impact on AI Agents
-
-- Faster project comprehension
-- Accurate answers to onboarding questions
-- Better architectural understanding without exploring entire codebase
-- Consistent expectations across projects
+The README is the first file an agent reads when dropped into an unfamiliar repo. Missing an installation section means the agent has to hunt through CI config or pyproject.toml to figure out how to run the code. Missing a development/contributing section means it may not know where tests live or how builds work.
 
 #### Measurable Criteria
 
-**Passes if README.md contains (in order)**:
+The assessor checks for three key sections using keyword matching:
 
-1. Project title and description
-2. Installation/setup instructions
-3. Quick start/usage examples
-4. Core features
-5. Dependencies and requirements
-6. Testing instructions
-7. Contributing guidelines
-8. License
+1. **Installation** (keywords: install, setup, getting started)
+2. **Usage** (keywords: usage, quickstart, example)
+3. **Development** (keywords: development, contributing, build)
 
-**Bonus sections**:
-
-- Table of contents (for longer READMEs)
-- Badges (build status, coverage, version)
-- Screenshots or demos
-- FAQ section
-- Changelog link
+**Pass threshold**: Score of 75 or higher (at least 2 of 3 sections present).
 
 #### Example: Well-Structured README
 
@@ -286,7 +238,7 @@ npx markdown-link-check README.md
 ### 3. Type Annotations (Static Typing)
 
 **ID**: `type_annotations`
-**Weight**: 10%
+**Weight**: 8%
 **Category**: Code Quality
 **Status**: ✅ Implemented
 
@@ -296,16 +248,7 @@ Explicit type declarations for variables, function parameters, and return values
 
 #### Why It Matters
 
-Type hints **significantly improve LLM code understanding**. Research shows higher-quality codebases have type annotations, directing LLMs toward higher-quality latent space regions—similar to how LaTeX-formatted math gets better results.
-
-#### Impact on AI Agents
-
-- Better input validation suggestions
-- Type error detection before execution
-- Structured output generation
-- Improved autocomplete accuracy
-- Enhanced refactoring safety
-- More confident code modifications
+Type annotations give agents reliable information about what a function expects and returns, without reading the implementation. An untyped function that accepts "a user" and returns "something" forces the agent to infer types from usage — which it will sometimes get wrong. Annotated code is also easier to refactor safely, since type errors surface before execution.
 
 #### Measurable Criteria
 
@@ -440,7 +383,7 @@ def create_user(email, role):
 ### 4. Standard Project Layout
 
 **ID**: `standard_layout`
-**Weight**: 10%
+**Weight**: 5%
 **Category**: Repository Structure
 **Status**: ✅ Implemented
 
@@ -450,14 +393,7 @@ Using community-recognized directory structures for each language/framework (e.g
 
 #### Why It Matters
 
-Standard layouts reduce cognitive overhead. AI models trained on open-source code recognize patterns and navigate predictably.
-
-#### Impact on AI Agents
-
-- Faster file location
-- Accurate placement suggestions for new files
-- Automatic adherence to established conventions
-- Reduced confusion about file organization
+Models trained on open-source code have seen the standard layouts thousands of times. When a repo uses the Python `src/` layout or Go's `cmd/internal/pkg` structure, the agent knows where to look for things and where to put new ones. Non-standard layouts force it to explore, and it may still place files in the wrong location.
 
 #### Measurable Criteria
 
@@ -543,7 +479,7 @@ project/
 ### 5. Dependency Lock Files
 
 **ID**: `lock_files`
-**Weight**: 10%
+**Weight**: 5%
 **Category**: Dependency Management
 **Status**: ✅ Implemented
 
@@ -553,32 +489,20 @@ Pinning exact dependency versions including transitive dependencies (e.g., `pack
 
 #### Why It Matters
 
-Lock files ensure **reproducible builds** across environments. Without them, "works on my machine" problems plague AI-generated code. Different dependency versions can break builds, fail tests, or introduce bugs.
-
-#### Impact on AI Agents
-
-- Confident dependency-related suggestions
-- Accurate compatibility issue diagnosis
-- Reproducible environment recommendations
-- Version-specific API usage
+Without a lock file, two installs of the same repo can get different dependency versions. An agent suggesting a fix against one version may generate broken code for someone on another. Lock files make the environment deterministic, which makes agent-generated dependency changes testable.
 
 #### Measurable Criteria
 
-**Passes if lock file exists and committed**:
+**Passes if** a recognized lock file is present (score >= 75):
 
-- **npm**: `package-lock.json` or `yarn.lock`
-- **Python**: `poetry.lock`, `Pipfile.lock`, or `requirements.txt` from `pip freeze` (or `uv.lock`)
-- **Go**: `go.sum` (automatically managed)
-- **Ruby**: `Gemfile.lock`
-- **Rust**: `Cargo.lock`
+- **Auto-managed lock files** (always fully pinned): `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Pipfile.lock`, `uv.lock`, `Cargo.lock`, `Gemfile.lock`, `go.sum`
+- **Manual lock files** (`requirements.txt`): validated for version pinning quality; counts `==` (pinned) vs `>=`/unpinned usage and scores proportionally
 
-**Additional requirements**:
+**Freshness check**: Lock files older than 6 months incur a 15-point deduction.
 
-- Lock file updated with every dependency change
-- CI/CD uses lock file for installation
-- Lock file not in `.gitignore`
+**For `requirements.txt`**: The assessor validates version pinning quality by counting lines with `==` (exact pins) versus `>=`, `~=`, or no specifier (unpinned). Score reflects the ratio of pinned to total dependencies.
 
-**Note**: Library projects may intentionally exclude lock files. AgentReady recognizes this pattern and adjusts scoring.
+**Pass threshold**: 75 points or higher.
 
 #### Remediation
 
@@ -638,30 +562,26 @@ go mod tidy
 **Category**: Testing & CI/CD
 **Status**: ✅ Implemented
 
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates a language-specific `tests.yml` GitHub Actions workflow with test runner, coverage, and reporting configured.
+
 #### Definition
 
-Percentage of code executed by automated tests, measured by line coverage, branch coverage, or function coverage.
+Test infrastructure configured and present: test files, a test runner, coverage tooling, and enforcement thresholds.
 
 #### Why It Matters
 
-High test coverage enables **confident AI modifications**. Research shows AI tools can cut test coverage time by 85% while maintaining quality—but only when good tests exist as foundation.
+Agents modifying code need a way to verify their changes didn't break anything. Without a configured test suite, the only signal is "it still runs" — which catches very little. The assessor checks whether the infrastructure is in place, not whether tests are well-written.
 
 #### Measurable Criteria
 
-**Minimum thresholds**:
+The assessor scores a repository on a 100-point scale based on test infrastructure:
 
-- 70% line coverage (Bronze)
-- 80% line coverage (Silver/Gold)
-- 90% line coverage (Platinum)
+- **Test files exist** (40 pts): `tests/` or `test/` directory with test files present
+- **Test runner configured** (20 pts): pytest, unittest, or similar configured in `pyproject.toml`, `setup.cfg`, `tox.ini`, or `Makefile`
+- **Coverage config present** (20 pts): coverage settings in config files (e.g., `[tool.coverage]`)
+- **Coverage enforcement configured** (20 pts): coverage thresholds or fail-under settings present
 
-**Critical paths**: 100% coverage for core business logic
-
-**Measured via**:
-
-- pytest-cov (Python)
-- Jest/Istanbul (JavaScript/TypeScript)
-- go test -cover (Go)
-- JaCoCo (Java)
+**Pass threshold**: Score of 60 or higher.
 
 #### Remediation
 
@@ -686,11 +606,158 @@ go tool cover -html=coverage.out
 
 ---
 
-### Additional Tier 1 Attributes
+### 7. CI Quality Gates
 
-**CI Quality Gates** (`ci_quality_gates`, 5%) — Lint + type-check + tests enforced on every PR via CI
-**Single-File Verification** (`single_file_verification`, 5%) — Fast single-file lint and type-check commands for agent feedback loops
-**Dependency Security** (`dependency_security`, 5%) — Vulnerability scanning and security auditing of dependencies
+**ID**: `ci_quality_gates`
+**Weight**: 5%
+**Category**: Testing & CI/CD
+**Status**: Implemented
+
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates `.github/workflows/tests.yml` and a `security.yml` workflow, covering test and security gate enforcement on every PR.
+
+#### Definition
+
+Continuous integration enforces lint, type-check, and test steps on every pull request, blocking merges that fail any gate.
+
+#### Why It Matters
+
+CI is the one check that can't be skipped. Pre-commit hooks can be bypassed; CI cannot. When lint, type-check, and tests all run on every PR, an agent's changes get validated by the same standard as a human's.
+
+#### Measurable Criteria
+
+The assessor scores on a 100-point scale:
+
+- **CI config exists** (50 pts): A workflow file in `.github/workflows/`, `.gitlab-ci.yml`, or similar
+- **Quality gates present** (30 pts): lint, type-check, and test steps detected in CI config
+- **Config quality** (15 pts): PR trigger configured, fail-fast enabled
+- **Best practices** (5 pts): matrix testing, caching, or other optimizations
+
+**Pass threshold**: 60 points or higher.
+
+#### Remediation
+
+```bash
+# Create a basic GitHub Actions CI workflow
+mkdir -p .github/workflows
+cat > .github/workflows/ci.yml << 'EOF'
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: mypy src/
+      - run: pytest
+EOF
+```
+
+---
+
+### 8. Single-File Verification
+
+**ID**: `single_file_verification`
+**Weight**: 5%
+**Category**: Context Window Optimization
+**Status**: Implemented
+
+#### Definition
+
+Documentation of commands that lint and type-check a single file quickly, without running the full test suite. These commands are documented in `CLAUDE.md`, `AGENTS.md`, `.claude/CLAUDE.md`, or `README.md`.
+
+#### Why It Matters
+
+Running the full test suite after every edit is slow. A documented single-file check (`ruff check path/to/file.py`, `mypy path/to/file.py`) gives an agent signal in seconds instead of minutes, which matters when it's iterating on a specific function.
+
+#### Measurable Criteria
+
+**Passes if**: At least one of `CLAUDE.md`, `AGENTS.md`, `.claude/CLAUDE.md`, or `README.md` documents single-file lint or type-check commands.
+
+The assessor looks for patterns like:
+- `ruff check <file>`
+- `mypy <file>`
+- `eslint <file>`
+- `tsc --noEmit <file>`
+
+#### Remediation
+
+Add a section to your `CLAUDE.md`:
+
+```markdown
+# Single-File Verification
+
+To quickly check a single file without running the full test suite:
+
+\```bash
+# Lint a single file
+ruff check src/mypackage/module.py
+
+# Type-check a single file
+mypy src/mypackage/module.py
+\```
+```
+
+---
+
+### 9. Dependency Security
+
+**ID**: `dependency_security`
+**Weight**: 5%
+**Category**: Security
+**Status**: Implemented
+
+**✅ Bootstrap Addresses This**: `agentready bootstrap` generates `.github/dependabot.yml` for automated dependency updates and a `security.yml` workflow for vulnerability scanning.
+
+#### Definition
+
+Vulnerability scanning tools configured for dependencies and code, including automated dependency updates and static analysis security testing (SAST).
+
+#### Why It Matters
+
+Dependency vulnerabilities are reliably caught by automated scanners and reliably missed by manual review. Dependabot and pip-audit check against known CVE databases on every update — something no agent or developer is going to do by hand.
+
+#### Measurable Criteria
+
+The assessor checks for recognized security tools:
+
+- **Dependency update tools** (Dependabot or Renovate) — 30 pts + 5 pts bonus for meaningful config
+- **CodeQL / GitHub Security Scanning** — 25 pts
+- **Python scanners** (pip-audit, safety) — 10 pts; Bandit SAST — 10 pts
+- **JavaScript scanners** (npm/yarn audit in scripts) — 10 pts; Snyk — 10 pts
+- **Secret detection in pre-commit** (detect-secrets, gitleaks, truffleHog) — 20 pts
+- **Semgrep** (multi-language SAST) — 15 pts
+- **SECURITY.md** present — 5 pts bonus
+
+**Pass threshold**: 60 points.
+
+**Tools checked**: pip-audit, safety, dependabot, snyk, trivy, grype, osvscanner, bandit (Python); npm audit, yarn audit (JavaScript/TypeScript); CodeQL, Semgrep, gitleaks, detect-secrets (multi-language).
+
+#### Remediation
+
+```bash
+# Enable Dependabot (create .github/dependabot.yml)
+cat > .github/dependabot.yml << 'EOF'
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+EOF
+
+# Add secret detection to pre-commit
+pip install detect-secrets
+detect-secrets scan > .secrets.baseline
+```
+
+**Citations**:
+
+- OWASP: "Dependency-Check Project"
+- GitHub: "Dependabot Documentation"
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
@@ -700,7 +767,7 @@ go tool cover -html=coverage.out
 
 *Major quality improvements and safety nets — 27% of total score*
 
-### 7. Deterministic Enforcement (Hooks & Lint Rules)
+### 10. Deterministic Enforcement (Hooks & Lint Rules)
 
 **ID**: `deterministic_enforcement`
 **Weight**: 3%
@@ -715,16 +782,17 @@ Automated code quality checks before commits (pre-commit hooks) and in CI/CD pip
 
 #### Why It Matters
 
-Pre-commit hooks provide immediate feedback. Running same checks in CI/CD ensures enforcement (hooks can be bypassed). Prevents low-quality code from entering repository.
+Pre-commit hooks give immediate local feedback. They can be bypassed with `--no-verify`, which is why CI matters too — but for agent-generated commits that go through a normal PR flow, hooks are the first line of defense. Catching a lint error before a commit beats catching it in CI review.
 
 #### Measurable Criteria
 
-**Passes if**:
+The assessor scores on a 100-point scale:
 
-- `.pre-commit-config.yaml` exists
-- Hooks include formatters (black, prettier) and linters (flake8, eslint)
-- Same checks run in CI/CD (GitHub Actions, GitLab CI, etc.)
-- CI fails on linting errors
+- **`.pre-commit-config.yaml` present** (60 pts): pre-commit hooks configured
+- **`.claude/settings.json` with hooks** (30 pts): Claude Code hook configuration present
+- **`.husky` directory** (10 pts): Husky git hooks configured
+
+**Pass threshold**: 60 points or higher. A `.pre-commit-config.yaml` alone is sufficient to pass.
 
 #### Remediation
 
@@ -774,12 +842,12 @@ pre-commit run --all-files
 
 ---
 
-### 8. Conventional Commit Messages
+### 11. Conventional Commit Messages
 
 **ID**: `conventional_commits`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Git & Version Control
-**Status**: 🔶 Partially Implemented
+**Status**: ✅ Implemented
 
 #### Definition
 
@@ -787,15 +855,22 @@ Structured commit messages following format: `<type>(<scope>): <description>`.
 
 #### Why It Matters
 
-Conventional commits enable **automated semantic versioning**, changelog generation, and commit intent understanding. AI can parse history to understand feature evolution.
+Structured commit messages make history parseable. Tools like `semantic-release` use them for automated versioning and changelog generation. For agents, a consistent format also makes git history a reliable source of truth about what changed and why.
 
 #### Measurable Criteria
 
-**Format**: `type(scope): description`
+**Passes if** conventional commit enforcement tooling is configured:
+
+- commitlint config file (`.commitlintrc*`, `commitlint.config.*`)
+- commitlint key in `package.json`
+- `.husky` directory with commit-msg hook
+- conventional commits hook in `.pre-commit-config.yaml`
+
+The assessor checks for tooling presence, not actual commit history. Pass is binary: configured or not.
+
+**Format enforced**: `type(scope): description`
 
 **Types**: feat, fix, docs, style, refactor, perf, test, chore, build, ci
-
-**Enforcement**: commitlint in pre-commit hooks or CI
 
 **Examples**:
 
@@ -831,10 +906,10 @@ EOF
 
 ---
 
-### 9. .gitignore Completeness
+### 12. .gitignore Completeness
 
 **ID**: `gitignore_completeness`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Git & Version Control
 **Status**: ✅ Implemented
 
@@ -844,21 +919,23 @@ Comprehensive `.gitignore` preventing build artifacts, dependencies, IDE files, 
 
 #### Why It Matters
 
-Incomplete `.gitignore` pollutes repository with irrelevant files, consuming context window space and creating security risks (accidentally committing `.env`, credentials).
+A missing `.gitignore` entry for `__pycache__/` or `node_modules/` means those directories show up in `git status` and context scans. The more serious risk is accidentally committing `.env` files or credentials, which a complete `.gitignore` prevents by default.
 
 #### Measurable Criteria
 
-**Must exclude**:
+The assessor checks for specific language-specific patterns from a hardcoded list based on the repository's detected languages:
 
-- Build artifacts (`dist/`, `build/`, `*.pyc`, `*.class`)
-- Dependencies (`node_modules/`, `venv/`, `vendor/`)
-- IDE files (`.vscode/`, `.idea/`, `*.swp`)
-- OS files (`.DS_Store`, `Thumbs.db`)
-- Environment variables (`.env`, `.env.local`)
-- Credentials (`*.pem`, `*.key`, `credentials.json`)
-- Logs (`*.log`, `logs/`)
+- **Python**: `__pycache__/`, `*.py[cod]`, `*.egg-info/`, `.pytest_cache/`, `venv/`, `.venv/`, `.env`
+- **JavaScript**: `node_modules/`, `dist/`, `build/`, `.npm/`, `*.log`
+- **TypeScript**: `node_modules/`, `dist/`, `*.tsbuildinfo`, `.npm/`
+- **Go**: `*.exe`, `*.test`, `vendor/`, `*.out`
+- **Ruby**: `*.gem`, `.bundle/`, `vendor/bundle/`, `.ruby-version`
+- **Rust**: `target/`, `Cargo.lock`, `**/*.rs.bk`
+- **General** (always checked): `.DS_Store`, `.vscode/`, `.idea/`, `*.swp`, `*.swo`
 
-**Best practice**: Use templates from [github/gitignore](https://github.com/github/gitignore)
+**Pass threshold**: 70% or more of the expected patterns for detected languages must be present.
+
+**Reference**: [github/gitignore](https://github.com/github/gitignore)
 
 #### Remediation
 
@@ -881,12 +958,12 @@ echo "*.log" >> .gitignore
 
 ---
 
-### 10. One-Command Build/Setup
+### 13. One-Command Build/Setup
 
 **ID**: `one_command_setup`
-**Weight**: 5%
+**Weight**: 3%
 **Category**: Build & Development
-**Status**: 🔶 Partially Implemented
+**Status**: ✅ Implemented
 
 #### Definition
 
@@ -894,7 +971,7 @@ Single command to set up development environment from fresh clone (`make setup`,
 
 #### Why It Matters
 
-One-command setup enables AI to quickly reproduce environments and test changes. Reduces "works on my machine" problems.
+Without a setup command, getting a fresh clone to a working state requires reading through README, installing dependencies manually, copying config files, and hoping nothing was missed. One documented command eliminates that ambiguity for both humans and agents.
 
 #### Measurable Criteria
 
@@ -941,7 +1018,7 @@ setup:
 **Concise Structured Documentation** (`concise_documentation`, 3%) — Focused, scannable docs optimized for AI context windows
 **Inline Documentation** (`inline_documentation`, 3%) — Comments and docstrings for functions, classes, modules
 **File Size Limits** (`file_size_limits`, 3%) — Files under threshold to keep context manageable
-**Separation of Concerns** (`separation_concerns`, 3%) — Clean module boundaries and single-responsibility
+**Separation of Concerns** (`separation_of_concerns`, 3%) — Clean module boundaries and single-responsibility
 **Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes (NEW)
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
@@ -952,10 +1029,10 @@ setup:
 
 *Significant improvements in specific areas — 14% of total score*
 
-### 12. Cyclomatic Complexity Limits
+### 14. Cyclomatic Complexity Limits
 
 **ID**: `cyclomatic_complexity`
-**Weight**: 3%
+**Weight**: 2%
 **Category**: Code Quality
 **Status**: ✅ Implemented
 
@@ -965,36 +1042,31 @@ Measurement of linearly independent paths through code (decision point density).
 
 #### Why It Matters
 
-High complexity confuses both humans and AI. Functions with complexity >25 are error-prone and hard to test.
+A function with 20 branches is hard to reason about whether you're human or an agent. High-complexity functions are also harder to test exhaustively, which means bugs hide in untested paths. Keeping complexity under 10 makes functions easier to understand, test, and modify safely.
 
 #### Measurable Criteria
 
-- Target: <10 per function
-- Warning: 15
-- Error: 25
+**Python** (via radon): runs `radon cc` and measures average cyclomatic complexity across all functions. Pass threshold: average < 10.
 
-**Tools**:
+**Other languages**: returns `not_applicable` (lizard integration not yet implemented).
 
-- radon (Python)
-- complexity-report (JavaScript)
-- gocyclo (Go)
-- clang-tidy (C++)
+**Pass threshold**: proportional score >= 75 (average complexity well below 10).
 
 #### Remediation
 
 ```bash
-# Python
+# Install radon
 pip install radon
-radon cc src/ -a -nb
 
-# JavaScript
-npm install -g complexity-report
-cr src/**/*.js
+# Check complexity
+radon cc src/ -s -a
 
-# Refactor complex functions
-# Break into smaller helper functions
-# Extract conditional logic
-# Use polymorphism instead of switch statements
+# Identify high-complexity functions (>10)
+radon cc src/ -s -nb
+
+# Refactor: break complex functions into smaller ones
+# Use early returns to reduce nesting
+# Extract conditional logic into separate functions
 ```
 
 **Citations**:
@@ -1006,9 +1078,52 @@ cr src/**/*.js
 ### Additional Tier 3 Attributes
 
 **Design Intent Documentation** (`design_intent`, 2%) — Preconditions, invariants, and rationale in design docs
-**Structured Logging** (`structured_logging`, 3%) — JSON logs with consistent fields
+**Structured Logging** (`structured_logging`, 2%) — JSON logs with consistent fields
 **OpenAPI/Swagger Specs** (`openapi_specs`, 3%) — Machine-readable API docs
 **Architecture Decision Records** (`architecture_decisions`, 3%) — Document major decisions in `docs/adr/`
+
+---
+
+### Repomix Configuration
+
+**ID**: `repomix_config`
+**Tier**: Tier 3
+**Weight**: 2%
+**Category**: Context Window Optimization
+**Status**: Implemented
+
+#### Definition
+
+[Repomix](https://github.com/yamadashy/repomix) is a tool that generates an AI-friendly single-file snapshot of a repository, making it easy to feed the entire codebase into an LLM as context.
+
+#### Why It Matters
+
+A fresh Repomix output lets an agent understand the full repo in a single context window, without making dozens of file-read tool calls. Stale output (older than 7 days) may not reflect recent changes, which is why freshness is scored.
+
+#### Measurable Criteria
+
+Scoring is based on configuration and output freshness:
+
+| State | Score | Status |
+|-------|-------|--------|
+| No `repomix.config.json` | 0 | fail |
+| Config present, no output file | 50 | fail |
+| Config + output + output <7 days old | 100 | pass |
+| Config + output + output >=7 days old | 75 | fail |
+
+Output file is expected in the `repomix/` directory.
+
+#### Remediation
+
+```bash
+# Initialize Repomix configuration
+agentready repomix-generate --init
+
+# Generate snapshot
+agentready repomix-generate
+
+# Re-run weekly or on a schedule to keep output fresh
+```
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
@@ -1021,8 +1136,8 @@ cr src/**/*.js
 ### Tier 4 Attributes
 
 **Code Smell Elimination** (`code_smells`, 1%) — DRY violations, long methods, magic numbers
-**Issue & PR Templates** (`issue_pr_templates`, 1%) — `.github/` templates
-**Container/Virtualization Setup** (`container_setup`, 1%) — Dockerfile, docker-compose.yml
+**Issue & PR Templates** (`issue_pr_templates`, 1%) — PR template (50 pts) + issue templates in `.github/ISSUE_TEMPLATE/` (25 pts for 1, 50 pts for 2+); pass threshold 75. ✅ Bootstrap generates these automatically.
+**Container/Virtualization Setup** (`container_setup`, 1%) — Dockerfile or Containerfile (40 pts), multi-stage build bonus (10 pts), docker-compose (30 pts), .dockerignore/.containerignore (20 pts); pass threshold 40. Returns not_applicable if no Dockerfile/Containerfile found.
 **Progressive Disclosure** (`progressive_disclosure`, 1%) — Path-scoped rules, skills for focused context
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
@@ -1031,13 +1146,13 @@ cr src/**/*.js
 
 ## Implementation Status
 
-AgentReady's assessor implementations are actively maintained across four tiers. Most essential and critical attributes (Tier 1 and Tier 2) are fully implemented with rich remediation guidance.
+All 28 assessors are fully implemented across all four tiers.
 
 **Current State**:
-- ✅ **Tier 1 (Essential)**: Fully implemented
-- ✅ **Tier 2 (Critical)**: Majority implemented
-- 🚧 **Tier 3 (Important)**: Active development
-- 🚧 **Tier 4 (Advanced)**: Planned implementations
+- ✅ **Tier 1 (Essential)**: Fully implemented (9 attributes)
+- ✅ **Tier 2 (Critical)**: Fully implemented (9 attributes)
+- ✅ **Tier 3 (Important)**: Fully implemented (6 attributes)
+- ✅ **Tier 4 (Advanced)**: Fully implemented (4 attributes)
 
 See the [GitHub repository](https://github.com/ambient-code/agentready) for current implementation details.
 
