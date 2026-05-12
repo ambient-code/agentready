@@ -163,9 +163,8 @@ reviews:
   # Tools
   # ---------------------------------------------------------------------------
   tools:
-    # Python formatting/linting (we run locally before push)
     ruff:
-      enabled: false
+      enabled: true
     flake8:
       enabled: false
     pylint:
