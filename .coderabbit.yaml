@@ -1,90 +1,42 @@
-# CodeRabbit Configuration for AgentReady
-# Only non-default values specified for maximum clarity
-# Full schema: https://coderabbit.ai/integrations/schema.v2.json
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 
-# Disable poems (default: true)
+# =============================================================================
+# General
+# =============================================================================
+language: en-US
+tone_instructions: >-
+  Be direct and concise. Focus on why, not just what.
+  This is a Python CLI tool that assesses repositories for AI-assisted development readiness.
+early_access: false
+enable_free_tier: false
+
+# =============================================================================
+# Reviews
+# =============================================================================
 reviews:
-  poem: false
-
-  # Request changes for critical issues (default: false)
+  profile: assertive
   request_changes_workflow: true
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  suggested_reviewers: false
+  in_progress_fortune: false
+  poem: false
+  commit_status: false
+  estimate_code_review_effort: false
 
-  # Disable tools we run locally to reduce noise
-  tools:
-    # Python formatting/linting (we run locally before push)
-    ruff:
-      enabled: false  # default: true
-    flake8:
-      enabled: false  # default: true
-    pylint:
-      enabled: false  # default: true
+  slop_detection:
+    enabled: true
 
-    # We don't use these technologies
-    biome:
-      enabled: false  # default: true (JS/TS tool, not applicable)
-
-  # Path-specific review instructions
-  path_instructions:
-    # Core assessors - enforce patterns
-    - path: "src/agentready/assessors/**"
-      instructions: |
-        - Verify BaseAssessor pattern compliance
-        - Check for proper error handling (return skipped/error, don't crash)
-        - Ensure proportional scoring using calculate_proportional_score()
-        - Validate attribute_id matches research report
-        - Check for graceful degradation when tools missing
-
-    # Data models - check for breaking changes
-    - path: "src/agentready/models/**"
-      instructions: |
-        - Check for breaking changes to data models
-        - Verify backwards compatibility
-        - Ensure schema version bumps when needed
-
-    # Services - security and performance focus
-    - path: "src/agentready/services/**"
-      instructions: |
-        - Check for proper error handling
-        - Verify performance implications (file I/O, subprocess calls)
-        - Look for security issues (path traversal, command injection)
-
-    # Tests - coverage and correctness only
-    - path: "tests/**"
-      instructions: |
-        - Verify test actually tests the intended behavior
-        - Check for missing edge cases
-        - Flag overly brittle tests (mocking too much)
-        - Skip all style comments
-
-    # CLI - UX and error messages
-    - path: "src/agentready/cli/**"
-      instructions: |
-        - Check for clear error messages
-        - Verify help text is accurate
-        - Look for missing error handling for user input
-
-    # GitHub Actions - security focus
-    - path: ".github/workflows/**"
-      instructions: |
-        - Check for secret exposure risks
-        - Verify proper permissions (least privilege)
-        - Flag outdated action versions (security)
-
-    # Documentation - critical issues only
-    - path: "**/*.md"
-      instructions: |
-        - Only comment on factual errors or broken links
-        - Skip formatting/style suggestions
-        - Flag outdated information (version mismatches, wrong commands)
-
-    # Scripts - security and robustness
-    - path: "scripts/**"
-      instructions: |
-        - Check for command injection vulnerabilities
-        - Verify error handling for subprocess calls
-        - Flag missing input validation
-
-  # Skip reviewing these paths entirely
+  # ---------------------------------------------------------------------------
+  # Path filters
+  # ---------------------------------------------------------------------------
   path_filters:
     - "!**/*.pyc"
     - "!**/__pycache__/**"
@@ -107,47 +59,168 @@ reviews:
     - "!examples/**/*.html"
     - "!examples/**/*.md"
 
-# Teach CodeRabbit about AgentReady-specific patterns
+  # ---------------------------------------------------------------------------
+  # Path instructions
+  # ---------------------------------------------------------------------------
+  path_instructions:
+    - path: "**/*"
+      instructions: |
+        - Prioritize Critical and Major severity issues. Minimize Minor and Trivial findings.
+        - Flag bugs, security vulnerabilities, logic errors, and meaningful refactoring opportunities.
+        - No pure style or formatting suggestions (black/ruff handle this).
+        - Limit to 3-5 comments max; group similar issues; mention repeated patterns once.
+        - If nothing is broken, approve briefly.
+
+    - path: "src/agentready/assessors/**"
+      instructions: |
+        - Verify BaseAssessor pattern compliance.
+        - Check for proper error handling (return skipped/error Finding, don't crash).
+        - Ensure proportional scoring using calculate_proportional_score().
+        - Check for graceful degradation when tools missing.
+
+    - path: "src/agentready/models/**"
+      instructions: |
+        - Check for breaking changes to data models.
+        - Verify backwards compatibility.
+        - Ensure schema version bumps when needed.
+
+    - path: "src/agentready/services/**"
+      instructions: |
+        - Check for proper error handling.
+        - Verify performance implications (file I/O, subprocess calls).
+        - Look for security issues (path traversal, command injection).
+
+    - path: "src/agentready/cli/**"
+      instructions: |
+        - Check for clear error messages.
+        - Verify help text is accurate.
+        - Look for missing error handling for user input.
+
+    - path: "tests/**"
+      instructions: |
+        - Verify test actually tests the intended behavior.
+        - Check for missing edge cases.
+        - Flag overly brittle tests (mocking too much).
+        - Skip all style comments.
+
+    - path: ".github/workflows/**/*.{yml,yaml}"
+      instructions: |
+        - Pin action versions to SHA. Verify secrets are not exposed and permissions are scoped.
+
+    - path: "scripts/**"
+      instructions: |
+        - Check for command injection vulnerabilities.
+        - Verify error handling for subprocess calls.
+        - Flag missing input validation.
+
+  # ---------------------------------------------------------------------------
+  # Auto review
+  # ---------------------------------------------------------------------------
+  auto_review:
+    enabled: true
+    drafts: false
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+    ignore_usernames:
+      - "dependabot[bot]"
+      - "renovate[bot]"
+    base_branches:
+      - "main"
+
+  # ---------------------------------------------------------------------------
+  # Finishing touches
+  # ---------------------------------------------------------------------------
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: true
+    simplify:
+      enabled: true
+
+  # ---------------------------------------------------------------------------
+  # Pre-merge checks
+  # ---------------------------------------------------------------------------
+  pre_merge_checks:
+    docstrings:
+      mode: warning
+      threshold: 80
+
+    title:
+      mode: warning
+      requirements: >-
+        Conventional Commits format: type(scope): description.
+        Types: feat, fix, chore, docs, refactor, test, ci, perf.
+
+    description:
+      mode: warning
+
+    issue_assessment:
+      mode: warning
+
+  # ---------------------------------------------------------------------------
+  # Tools
+  # ---------------------------------------------------------------------------
+  tools:
+    # Python formatting/linting (we run locally before push)
+    ruff:
+      enabled: false
+    flake8:
+      enabled: false
+    pylint:
+      enabled: false
+
+    # Not applicable to this project
+    biome:
+      enabled: false
+    oxc:
+      enabled: false
+    golangci-lint:
+      enabled: false
+    buf:
+      enabled: false
+    checkmake:
+      enabled: false
+
+    # Enabled
+    actionlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    yamllint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    trufflehog:
+      enabled: true
+    github-checks:
+      enabled: true
+      timeout_ms: 90000
+    hadolint:
+      enabled: true
+
+# =============================================================================
+# Chat
+# =============================================================================
+chat:
+  auto_reply: false
+  art: false
+
+# =============================================================================
+# Knowledge base
+# =============================================================================
 knowledge_base:
+  opt_out: false
+  web_search:
+    enabled: false
   code_guidelines:
-    # Custom guidelines (default has empty array)
-    learnings:
-      - |
-        AgentReady assesses repositories against 25 agent-ready best practices.
-        Research report (agent-ready-codebase-attributes.md) defines these attributes.
-        All assessors must inherit from BaseAssessor and implement attribute_id and assess().
-
-      - |
-        We intentionally don't enforce line length (E501 ignored in ruff).
-        We use black for formatting with defaults.
-        Prefer explicit over clever, simple over complex.
-
-      - |
-        Error handling: Assessors return Finding.create_skipped() when tools missing, not crash.
-        Fail gracefully and provide actionable remediation guidance.
-
-      - |
-        Conventional commits (feat:, fix:, chore:, docs:, test:, refactor:).
-        All commits squashed before merge and signed with git signature.
-
-      - |
-        Target >80% test coverage on new code.
-        Tests focus on behavior, not implementation.
-        Mock external dependencies, don't over-mock internals.
-
-      - |
-        CLAUDE.md is source of truth for development.
-        README.md is user-facing.
-        All new features must update CLAUDE.md before merging.
-
-# Professional, concise tone (default: "")
-tone_instructions: |
-  - Be direct and concise - no fluff or pleasantries
-  - Focus on "why" not just "what" (explain the impact)
-  - Provide specific examples and code suggestions
-  - Link to documentation when relevant
-  - Don't repeat what the developer already knows
-  - Skip comments on anything already handled by automated tools
-  - Use "Consider" for suggestions, "This will" for bugs/issues
-  - No emoji, no enthusiasm, just facts
-  - If you're not 75%+ confident, don't comment
+    enabled: true
+  learnings:
+    scope: global
+  issues:
+    scope: auto
+  pull_requests:
+    scope: auto
