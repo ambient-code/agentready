@@ -967,7 +967,7 @@ echo "*.log" >> .gitignore
 
 #### Definition
 
-Single command to set up development environment from fresh clone (`make setup`, `npm install`, `./bootstrap.sh`).
+Single command to set up development environment from fresh clone (`make setup`, `npm install`, `./bootstrap.sh`). Recognized Makefile variants: `Makefile`, `GNUmakefile`, `makefile`.
 
 #### Why It Matters
 
@@ -1080,7 +1080,68 @@ radon cc src/ -s -nb
 **Design Intent Documentation** (`design_intent`, 2%) — Preconditions, invariants, and rationale in design docs
 **Structured Logging** (`structured_logging`, 2%) — JSON logs with consistent fields
 **OpenAPI/Swagger Specs** (`openapi_specs`, 3%) — Machine-readable API docs
-**Architecture Decision Records** (`architecture_decisions`, 3%) — Document major decisions in `docs/adr/`
+### Architecture Decision Records
+
+**ID**: `architecture_decisions`
+**Tier**: Tier 3
+**Weight**: 3%
+**Category**: Documentation Standards
+**Status**: ✅ Implemented
+
+#### Definition
+
+Lightweight documents (ADRs) that record why significant architectural choices were made, not just what was chosen.
+
+#### Why It Matters
+
+Agents can read current code but cannot infer the constraints, failed alternatives, or tradeoffs that shaped it. Without ADRs, agents confidently suggest changes that were already tried and rejected.
+
+#### Measurable Criteria
+
+Scoring is based on directory presence, ADR count, and template compliance:
+
+| State | Score | Status |
+|-------|-------|--------|
+| No ADR directory, no agent context file reference | 0 | fail |
+| Architecture section AND external link in CLAUDE.md/AGENTS.md | 60 | fail |
+| ADR directory found, empty | 40 | fail |
+| ADR directory + 1-4 ADRs | 40-72 | fail/pass |
+| ADR directory + 5+ ADRs + template compliance | up to 100 | pass |
+
+**Recognized directory locations** (case-insensitive):
+
+- `docs/adr/`, `docs/adrs/`, `docs/ADRs/`
+- `docs/architecture/`, `docs/design/`, `docs/specs/`
+- `adr/`, `specs/`, `.adr/`
+
+**Partial credit (60/100)** is awarded when no inline ADR directory exists but `CLAUDE.md` or `AGENTS.md` contains both an architecture/decisions section heading and a link to an external ADR/RFC repository. Both conditions are required — a heading alone is too common a false positive, and a link alone provides insufficient signal. Inline ADRs are more agent-ready because agents cannot follow external links.
+
+**Template compliance** checks for the four Michael Nygard sections: Status, Context, Decision, Consequences.
+
+#### Remediation
+
+```bash
+mkdir -p docs/adr
+
+cat > docs/adr/0001-use-python.md << 'EOF'
+# 1. Use Python as primary language
+
+## Status
+Accepted
+
+## Context
+Team has strong Python expertise; data science integrations are Python-first.
+
+## Decision
+Python 3.12+ is the primary implementation language.
+
+## Consequences
+Strong ML/data library access. Type annotations required to compensate for
+dynamic typing risks.
+EOF
+```
+
+**Tools**: [adr-tools](https://github.com/npryce/adr-tools), [log4brains](https://github.com/thomvaill/log4brains)
 
 ---
 

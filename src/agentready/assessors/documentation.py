@@ -565,15 +565,25 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
         - ADR directory exists (40%)
         - ADR count (40%, up to 5 ADRs)
         - Template compliance (20%)
+        - Partial credit (60%) when no directory exists but CLAUDE.md/AGENTS.md
+          references an architecture decisions section or external ADR repo
         """
-        # Case-insensitive ADR directory scan — handles docs/adr, docs/ADRs, docs/Adr, adr/, etc.
-        adr_target_names = {
+        # Case-insensitive ADR directory scan. Covers common conventions:
+        # docs/adr, docs/ADRs, docs/architecture, docs/design, docs/specs, specs/, adr/, etc.
+        docs_target_names = {
             "adr",
             "adrs",
             "decisions",
             "architecture-decisions",
             "architecture",
             "design",
+            "specs",
+        }
+        root_target_names = {
+            "adr",
+            "adrs",
+            "decisions",
+            "architecture-decisions",
             "specs",
         }
         adr_dir = None
@@ -585,7 +595,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                 for candidate in sorted(docs_dir.iterdir()):
                     if (
                         candidate.is_dir()
-                        and candidate.name.lower() in adr_target_names
+                        and candidate.name.lower() in docs_target_names
                     ):
                         adr_dir = candidate
                         break
@@ -601,7 +611,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                     for candidate in sorted(repository.path.iterdir()):
                         if (
                             candidate.is_dir()
-                            and candidate.name.lower() in adr_target_names
+                            and candidate.name.lower() in root_target_names
                         ):
                             adr_dir = candidate
                             break
@@ -609,6 +619,20 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                     pass  # root unreadable — adr_dir stays None, fail finding follows
 
         if not adr_dir:
+            partial_score, partial_evidence = self._check_agent_file_adr_summary(
+                repository
+            )
+            if partial_score > 0:
+                return Finding(
+                    attribute=self.attribute,
+                    status="fail",
+                    score=partial_score,
+                    measured_value="ADR summary in agent context file",
+                    threshold="ADR directory with decisions",
+                    evidence=partial_evidence,
+                    remediation=self._create_remediation(),
+                    error_message=None,
+                )
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -616,7 +640,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                 measured_value="no ADR directory",
                 threshold="ADR directory with decisions",
                 evidence=[
-                    "No ADR directory found (checked docs/adr/, docs/architecture/, docs/specs/, specs/, adr/, and variants — all case-insensitive)"
+                    "No ADR directory found (checked docs/adr/, docs/architecture/, docs/design/, docs/specs/, specs/, and variants — all case-insensitive)"
                 ],
                 remediation=self._create_remediation(),
                 error_message=None,
@@ -685,6 +709,52 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
+
+    def _check_agent_file_adr_summary(
+        self, repository: Repository
+    ) -> tuple[float, list[str]]:
+        """Check CLAUDE.md/AGENTS.md for an architecture decisions section or
+        external ADR repo link. Returns (score, evidence) — score is 0 if nothing found.
+
+        Partial credit (60/100) recognises projects that summarise key architectural
+        decisions in their agent context file and link out to an external ADR repo.
+        This is less agent-ready than an inline directory (agents can't follow links),
+        but it's meaningfully better than no documentation at all.
+        """
+        section_header = re.compile(
+            r"^#{1,3}\s.*(architecture|decision|adr|rfc|design)",
+            re.IGNORECASE | re.MULTILINE,
+        )
+        external_link = re.compile(
+            r"https?://\S*(adr|rfc|decision|architecture)\S*",
+            re.IGNORECASE,
+        )
+
+        for filename in ("CLAUDE.md", "AGENTS.md"):
+            filepath = repository.path / filename
+            if not filepath.is_file():
+                continue
+            try:
+                content = filepath.read_text()
+            except OSError:
+                continue
+
+            has_section = bool(section_header.search(content))
+            has_link = bool(external_link.search(content))
+
+            if has_section and has_link:
+                evidence = [
+                    "No inline ADR directory found",
+                    f"{filename} contains architectural decision documentation (partial credit: 60/100)",
+                    "Add a docs/adr/ directory with inline ADRs for full credit",
+                ]
+                if has_link:
+                    evidence.insert(
+                        2, f"{filename} links to external ADR/RFC repository"
+                    )
+                return 60.0, evidence
+
+        return 0.0, []
 
     def _has_consistent_naming(self, adr_files: list) -> bool:
         """Check if ADR files follow consistent naming pattern."""
