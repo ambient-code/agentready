@@ -1,3 +1,11 @@
+## [2.36.1](https://github.com/ambient-code/agentready/compare/v2.36.0...v2.36.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* case-insensitive file lookups and GNUmakefile support ([960e005](https://github.com/ambient-code/agentready/commit/960e005136241527f1699710c4b0cb0d482a9774)), closes [#387](https://github.com/ambient-code/agentready/issues/387) [#380](https://github.com/ambient-code/agentready/issues/380) [#379](https://github.com/ambient-code/agentready/issues/379)
+* sort README candidates for determinism and guard iterdir OSErrors ([fd2be32](https://github.com/ambient-code/agentready/commit/fd2be32314d37652d7e8a45b3641598b1e31283c))
+
 # [2.36.0](https://github.com/ambient-code/agentready/compare/v2.35.3...v2.36.0) (2026-05-12)
 
 
