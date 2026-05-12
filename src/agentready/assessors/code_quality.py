@@ -2,6 +2,7 @@
 
 import ast
 import logging
+import re
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -55,16 +56,17 @@ class TypeAnnotationsAssessor(BaseAssessor):
     def assess(self, repository: Repository) -> Finding:
         """Check type annotation coverage.
 
-        For Python: Use mypy or similar
-        For TypeScript: Check tsconfig.json strict mode
-        For others: Heuristic checks
+        Dispatches based on the primary programming language (by file count)
+        to handle multi-language repos correctly.
         """
-        if "Python" in repository.languages:
+        primary = self._primary_language(repository, {"Python", "TypeScript", "Go"})
+        if primary == "Python":
             return self._assess_python_types(repository)
-        elif "TypeScript" in repository.languages:
+        elif primary == "TypeScript":
             return self._assess_typescript_types(repository)
+        elif primary == "Go":
+            return self._assess_go_types(repository)
         else:
-            # For other languages, use heuristic
             return Finding.not_applicable(
                 self.attribute,
                 reason=f"Type annotation check not implemented for {list(repository.languages.keys())}",
@@ -202,6 +204,157 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 self.attribute, reason=f"Could not parse tsconfig.json: {str(e)}"
             )
 
+    @staticmethod
+    def _strip_go_non_code(content: str) -> str:
+        """Strip comments and string literal contents from Go source.
+
+        Preserves line structure so line-anchored regexes still work.
+        """
+        out = []
+        i = 0
+        n = len(content)
+        while i < n:
+            c = content[i]
+
+            # Block comment
+            if c == "/" and i + 1 < n and content[i + 1] == "*":
+                i += 2
+                while i + 1 < n and not (content[i] == "*" and content[i + 1] == "/"):
+                    out.append("\n" if content[i] == "\n" else " ")
+                    i += 1
+                out.append(" ")  # *
+                i += 1
+                if i < n:
+                    out.append(" ")  # /
+                    i += 1
+                continue
+
+            # Line comment
+            if c == "/" and i + 1 < n and content[i + 1] == "/":
+                i += 2
+                while i < n and content[i] != "\n":
+                    i += 1
+                continue
+
+            # Double-quoted string
+            if c == '"':
+                out.append(c)
+                i += 1
+                while i < n and content[i] != '"':
+                    if content[i] == "\\" and i + 1 < n:
+                        out.append(" ")
+                        out.append(" ")
+                        i += 2
+                    else:
+                        out.append(" ")
+                        i += 1
+                if i < n:
+                    out.append(c)
+                    i += 1
+                continue
+
+            # Raw string (backtick)
+            if c == "`":
+                out.append(c)
+                i += 1
+                while i < n and content[i] != "`":
+                    out.append("\n" if content[i] == "\n" else " ")
+                    i += 1
+                if i < n:
+                    out.append(c)
+                    i += 1
+                continue
+
+            out.append(c)
+            i += 1
+
+        return "".join(out)
+
+    def _assess_go_types(self, repository: Repository) -> Finding:
+        """Assess Go type safety.
+
+        Go is statically typed at compile time. Score starts at 100 and
+        deducts for excessive use of interface{}/any which weakens type safety.
+        """
+        from ..utils.subprocess_utils import safe_subprocess_run
+
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files", "*.go"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
+            go_files = [
+                f
+                for f in result.stdout.strip().split("\n")
+                if f and not f.endswith("_test.go")
+            ]
+        except Exception:
+            go_files = [
+                str(f.relative_to(repository.path))
+                for f in repository.path.rglob("*.go")
+                if not f.name.endswith("_test.go")
+            ]
+
+        if not go_files:
+            return Finding.not_applicable(
+                self.attribute, reason="No Go source files found"
+            )
+
+        total_funcs = 0
+        any_usage_count = 0
+
+        for file_path in go_files:
+            full_path = repository.path / file_path
+            try:
+                content = full_path.read_text(encoding="utf-8")
+                code_content = self._strip_go_non_code(content)
+                total_funcs += len(re.findall(r"^func\s+", code_content, re.MULTILINE))
+                any_usage_count += len(
+                    re.findall(r"\binterface\s*\{\s*\}|\bany\b", code_content)
+                )
+            except (OSError, UnicodeDecodeError):
+                continue
+
+        evidence = ["Go enforces types at compile time (statically typed)"]
+
+        if total_funcs == 0:
+            score = 100.0
+        elif any_usage_count == 0:
+            score = 100.0
+            evidence.append("No interface{}/any usage found — strong type safety")
+        else:
+            ratio = any_usage_count / max(total_funcs, 1)
+            if ratio < 0.1:
+                score = 95.0
+                evidence.append(
+                    f"Minimal interface{{}}/any usage: {any_usage_count} occurrences"
+                )
+            elif ratio < 0.25:
+                score = 85.0
+                evidence.append(
+                    f"Moderate interface{{}}/any usage: {any_usage_count} occurrences"
+                )
+            else:
+                score = 70.0
+                evidence.append(
+                    f"Heavy interface{{}}/any usage: {any_usage_count} occurrences — consider using generics"
+                )
+
+        return Finding(
+            attribute=self.attribute,
+            status="pass" if score >= 75 else "fail",
+            score=score,
+            measured_value=f"{score:.0f}%",
+            threshold="≥80%",
+            evidence=evidence,
+            remediation=None,
+            error_message=None,
+        )
+
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for type annotations."""
         return Remediation(
@@ -283,16 +436,18 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         )
 
     def is_applicable(self, repository: Repository) -> bool:
-        """Applicable to languages supported by radon or lizard."""
-        supported = {"Python", "JavaScript", "TypeScript", "C", "C++", "Java"}
+        """Applicable to languages supported by radon, lizard, or gocyclo."""
+        supported = {"Python", "JavaScript", "TypeScript", "C", "C++", "Java", "Go"}
         return bool(set(repository.languages.keys()) & supported)
 
     def assess(self, repository: Repository) -> Finding:
-        """Check cyclomatic complexity using radon or lizard."""
-        if "Python" in repository.languages:
+        """Check cyclomatic complexity using radon, lizard, or gocyclo."""
+        primary = self._primary_language(repository, {"Python", "Go"})
+        if primary == "Python":
             return self._assess_python_complexity(repository)
+        elif primary == "Go":
+            return self._assess_go_complexity(repository)
         else:
-            # Use lizard for other languages
             return self._assess_with_lizard(repository)
 
     def _assess_python_complexity(self, repository: Repository) -> Finding:
@@ -386,6 +541,114 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 self.attribute, reason=f"Complexity analysis failed: {str(e)}"
             )
 
+    def _assess_go_complexity(self, repository: Repository) -> Finding:
+        """Assess Go complexity using gocyclo or golangci-lint config detection.
+
+        Tries gocyclo first. Falls back to checking if golangci-lint has
+        complexity linters (gocyclo/cyclop) enabled in config.
+        """
+        try:
+            result = safe_subprocess_run(
+                ["gocyclo", "-avg", str(repository.path)],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+
+            if result.returncode == 0 and result.stdout.strip():
+                lines = result.stdout.strip().split("\n")
+                avg_line = [line for line in lines if "Average" in line]
+                if avg_line:
+                    avg_value = float(avg_line[0].split()[-1])
+
+                    score = self.calculate_proportional_score(
+                        measured_value=avg_value,
+                        threshold=10.0,
+                        higher_is_better=False,
+                    )
+                    status = "pass" if score >= 75 else "fail"
+
+                    return Finding(
+                        attribute=self.attribute,
+                        status=status,
+                        score=score,
+                        measured_value=f"{avg_value:.1f}",
+                        threshold="<10.0",
+                        evidence=[
+                            f"Average cyclomatic complexity (gocyclo): {avg_value:.1f}"
+                        ],
+                        remediation=(
+                            self._create_go_complexity_remediation()
+                            if status == "fail"
+                            else None
+                        ),
+                        error_message=None,
+                    )
+        except (FileNotFoundError, Exception):
+            pass
+
+        # Fallback: check if golangci-lint has complexity linters configured
+        # Search root and Go module root directories
+        search_dirs = [repository.path] + self._find_go_module_roots(repository)
+        for search_dir in search_dirs:
+            for config_name in [
+                ".golangci.yml",
+                ".golangci.yaml",
+                ".golangci.toml",
+            ]:
+                config_path = search_dir / config_name
+                if config_path.exists():
+                    try:
+                        content = config_path.read_text(encoding="utf-8")
+                        has_complexity = bool(
+                            re.search(r"\b(gocyclo|cyclop|gocognit)\b", content)
+                        )
+                        if has_complexity:
+                            rel = config_path.relative_to(repository.path)
+                            return Finding(
+                                attribute=self.attribute,
+                                status="pass",
+                                score=80.0,
+                                measured_value="configured",
+                                threshold="complexity linter enabled",
+                                evidence=[f"Complexity linter configured in {rel}"],
+                                remediation=None,
+                                error_message=None,
+                            )
+                    except (OSError, UnicodeDecodeError):
+                        continue
+
+        raise MissingToolError(
+            "gocyclo",
+            install_command="go install github.com/fzipp/gocyclo/cmd/gocyclo@latest",
+        )
+
+    def _create_go_complexity_remediation(self) -> Remediation:
+        """Create remediation guidance for Go complexity."""
+        return Remediation(
+            summary="Reduce cyclomatic complexity in Go functions",
+            steps=[
+                "Identify functions with complexity >15",
+                "Break complex functions into smaller, focused functions",
+                "Use early returns to reduce nesting",
+                "Extract switch/case logic into separate functions or maps",
+            ],
+            tools=["gocyclo", "golangci-lint"],
+            commands=[
+                "go install github.com/fzipp/gocyclo/cmd/gocyclo@latest",
+                "gocyclo -over 15 .",
+            ],
+            examples=[],
+            citations=[
+                Citation(
+                    source="Go Community",
+                    title="gocyclo - Cyclomatic Complexity for Go",
+                    url="https://github.com/fzipp/gocyclo",
+                    relevance="Go cyclomatic complexity analysis tool",
+                )
+            ],
+        )
+
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for high complexity."""
         return Remediation(
@@ -453,9 +716,11 @@ class StructuredLoggingAssessor(BaseAssessor):
 
     def assess(self, repository: Repository) -> Finding:
         """Check for structured logging library usage."""
-        # Check Python dependencies
-        if "Python" in repository.languages:
+        primary = self._primary_language(repository, {"Python", "Go"})
+        if primary == "Python":
             return self._assess_python_logging(repository)
+        elif primary == "Go":
+            return self._assess_go_logging(repository)
         else:
             return Finding.not_applicable(
                 self.attribute,
@@ -523,6 +788,123 @@ class StructuredLoggingAssessor(BaseAssessor):
             evidence=evidence,
             remediation=remediation,
             error_message=None,
+        )
+
+    def _assess_go_logging(self, repository: Repository) -> Finding:
+        """Check for Go structured logging libraries in go.mod and source."""
+        go_structured_libs = {
+            "go.uber.org/zap": "zap",
+            "github.com/sirupsen/logrus": "logrus",
+            "github.com/rs/zerolog": "zerolog",
+            "golang.org/x/exp/slog": "slog (experimental)",
+        }
+
+        found_libs = []
+
+        module_roots = self._find_go_module_roots(repository)
+        if not module_roots:
+            return Finding.not_applicable(self.attribute, reason="No go.mod found")
+
+        for root in module_roots:
+            try:
+                mod_content = (root / "go.mod").read_text(encoding="utf-8")
+                for lib_path, lib_name in go_structured_libs.items():
+                    if lib_path in mod_content:
+                        found_libs.append(lib_name)
+            except (OSError, UnicodeDecodeError):
+                pass
+
+        # Check for stdlib log/slog (Go 1.21+, no go.mod entry needed)
+        if not found_libs:
+            from ..utils.subprocess_utils import safe_subprocess_run
+
+            try:
+                result = safe_subprocess_run(
+                    ["git", "ls-files", "*.go"],
+                    cwd=repository.path,
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                if result.returncode == 0:
+                    for f in result.stdout.strip().split("\n"):
+                        if not f or f.endswith("_test.go"):
+                            continue
+                        try:
+                            content = (repository.path / f).read_text(encoding="utf-8")
+                            if '"log/slog"' in content:
+                                found_libs.append("slog (stdlib)")
+                                break
+                        except (OSError, UnicodeDecodeError):
+                            continue
+            except Exception:
+                pass
+
+        if found_libs:
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=100.0,
+                measured_value="configured",
+                threshold="structured logging library",
+                evidence=[
+                    f"Structured logging library found: {', '.join(set(found_libs))}",
+                    "Checked: go.mod and source imports",
+                ],
+                remediation=None,
+                error_message=None,
+            )
+
+        return Finding(
+            attribute=self.attribute,
+            status="fail",
+            score=0.0,
+            measured_value="not configured",
+            threshold="structured logging library",
+            evidence=[
+                "No structured logging library found in go.mod",
+                "Go stdlib log package produces unstructured output",
+            ],
+            remediation=self._create_go_logging_remediation(),
+            error_message=None,
+        )
+
+    def _create_go_logging_remediation(self) -> Remediation:
+        """Create remediation guidance for Go structured logging."""
+        return Remediation(
+            summary="Add structured logging library for Go",
+            steps=[
+                "Choose a structured logging library (slog for Go 1.21+, zap for high-performance)",
+                "Configure JSON output for production",
+                "Use consistent field naming across the codebase",
+            ],
+            tools=["slog", "zap", "zerolog"],
+            commands=[
+                "# Option A: Use stdlib slog (Go 1.21+)",
+                '# No installation needed — import "log/slog"',
+                "",
+                "# Option B: Use zap",
+                "go get go.uber.org/zap",
+            ],
+            examples=[
+                """// Using Go stdlib slog (Go 1.21+)
+import "log/slog"
+
+logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+logger.Info("user_login",
+    slog.String("user_id", "123"),
+    slog.String("ip", remoteAddr),
+)
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Go Documentation",
+                    title="log/slog package",
+                    url="https://pkg.go.dev/log/slog",
+                    relevance="Go stdlib structured logging (Go 1.21+)",
+                ),
+            ],
         )
 
     def _create_remediation(self) -> Remediation:
@@ -648,10 +1030,15 @@ class CodeSmellsAssessor(BaseAssessor):
         ).exists()
 
     def _has_golangci_lint(self, repository: Repository) -> bool:
-        """Check for golangci-lint configuration."""
-        return (repository.path / ".golangci.yml").exists() or (
-            repository.path / ".golangci.yaml"
-        ).exists()
+        """Check for golangci-lint configuration at root or in Go module dirs."""
+        config_names = [
+            ".golangci.yml",
+            ".golangci.yaml",
+            ".golangci.toml",
+            ".golangci.json",
+        ]
+        search_dirs = [repository.path] + self._find_go_module_roots(repository)
+        return any((d / name).exists() for d in search_dirs for name in config_names)
 
     def _has_actionlint(self, repository: Repository) -> bool:
         """Check for actionlint in pre-commit or GitHub Actions."""

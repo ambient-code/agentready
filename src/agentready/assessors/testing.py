@@ -46,19 +46,25 @@ class TestExecutionAssessor(BaseAssessor):
             return True
         if (repository.path / "package.json").exists():
             return True
+        if self._has_go_test_files(repository):
+            return True
         return False
 
     def assess(self, repository: Repository) -> Finding:
         """Check for test coverage configuration and actual coverage.
 
-        Looks for:
-        - Python: pytest.ini, .coveragerc, pyproject.toml with coverage config
-        - JavaScript: jest.config.js, package.json with coverage threshold
+        Dispatches based on the primary programming language (by file count)
+        to handle multi-language repos correctly.
         """
-        if "Python" in repository.languages:
+        primary = self._primary_language(
+            repository, {"Python", "JavaScript", "TypeScript", "Go"}
+        )
+        if primary == "Python":
             return self._assess_python_coverage(repository)
-        elif any(lang in repository.languages for lang in ["JavaScript", "TypeScript"]):
+        elif primary in ("JavaScript", "TypeScript"):
             return self._assess_javascript_coverage(repository)
+        elif primary == "Go":
+            return self._assess_go_coverage(repository)
         else:
             return Finding.not_applicable(
                 self.attribute,
@@ -313,6 +319,161 @@ class TestExecutionAssessor(BaseAssessor):
 
         return False
 
+    def _has_go_test_files(self, repository: Repository) -> bool:
+        """Check if Go test files (*_test.go) exist."""
+        from ..utils.subprocess_utils import safe_subprocess_run
+
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files", "*_test.go", "**/*_test.go"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                files = [f for f in result.stdout.strip().split("\n") if f]
+                return len(files) > 0
+        except Exception:
+            pass
+        return bool(list(repository.path.rglob("*_test.go")))
+
+    def _assess_go_coverage(self, repository: Repository) -> Finding:
+        """Assess Go test execution and coverage configuration.
+
+        Scoring (additive, 100 max):
+        - Test files exist (*_test.go):                40 pts
+        - Test command found (Makefile/CI/README):     20 pts
+        - Coverage configured (-coverprofile):         20 pts
+        - Race detection (-race flag):                 20 pts
+        """
+        score = 0.0
+        evidence = []
+
+        has_test_files = self._has_go_test_files(repository)
+        if has_test_files:
+            score += 40.0
+            evidence.append("Go test files found (*_test.go)")
+        else:
+            evidence.append("No Go test files found (*_test.go)")
+
+        text_sources = self._read_go_build_files(repository)
+
+        has_test_cmd = bool(re.search(r"(?:\bgo|\$\(GO\))\s+test\b", text_sources))
+        if has_test_cmd:
+            score += 20.0
+            evidence.append("Go test command found in project files")
+        else:
+            evidence.append("No 'go test' command found in Makefile/CI/README")
+
+        has_coverage = bool(
+            re.search(r"(?<!\S)-cover(?:\b|profile\b|mode\b)", text_sources)
+        )
+        if has_coverage:
+            score += 20.0
+            evidence.append("Coverage configuration found")
+        else:
+            evidence.append("No coverage configuration found")
+
+        has_race = bool(re.search(r"-race\b", text_sources))
+        if has_race:
+            score += 20.0
+            evidence.append("Race detector enabled (-race flag)")
+        else:
+            evidence.append("Race detector not configured (-race flag)")
+
+        score = min(score, 100.0)
+        status = "pass" if has_test_files and has_test_cmd and score > 50 else "fail"
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=(
+                "configured"
+                if has_test_files and has_test_cmd and score > 50
+                else "not configured"
+            ),
+            threshold="runnable tests with coverage config",
+            evidence=evidence,
+            remediation=self._create_go_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _read_go_build_files(self, repository: Repository) -> str:
+        """Read Makefiles, CI configs, and README for Go test patterns.
+
+        Checks root and subdirectory Makefiles to support Go monorepos
+        where go.mod and Makefile live in subdirectories.
+        """
+        contents = []
+        files_to_check: list[Path] = [
+            repository.path / "Makefile",
+            repository.path / "Taskfile.yml",
+            repository.path / "README.md",
+        ]
+
+        # Include module-local build files (Go monorepos)
+        for module_root in self._find_go_module_roots(repository):
+            if module_root == repository.path:
+                continue
+            files_to_check.extend(
+                [
+                    module_root / "Makefile",
+                    module_root / "Taskfile.yml",
+                    module_root / "README.md",
+                ]
+            )
+
+        ci_dir = repository.path / ".github" / "workflows"
+        if ci_dir.exists():
+            files_to_check.extend(ci_dir.glob("*.yml"))
+            files_to_check.extend(ci_dir.glob("*.yaml"))
+
+        for f in files_to_check:
+            if f.exists():
+                try:
+                    contents.append(f.read_text(encoding="utf-8"))
+                except (OSError, UnicodeDecodeError):
+                    pass
+        return "\n".join(contents)
+
+    def _create_go_remediation(self) -> Remediation:
+        """Create remediation guidance for Go test coverage."""
+        return Remediation(
+            summary="Configure Go test execution with coverage and race detection",
+            steps=[
+                "Create test files alongside source code (*_test.go)",
+                "Add a Makefile target for running tests with coverage",
+                "Enable race detection in CI with -race flag",
+                "Configure coverage reporting in CI pipeline",
+            ],
+            tools=["go test"],
+            commands=[
+                "go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...",
+                "go tool cover -html=coverage.txt -o coverage.html",
+            ],
+            examples=[
+                """# Makefile
+.PHONY: test
+test:
+\tgo test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+.PHONY: coverage
+coverage: test
+\tgo tool cover -html=coverage.txt -o coverage.html
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Go Documentation",
+                    title="Testing",
+                    url="https://pkg.go.dev/testing",
+                    relevance="Go testing package reference",
+                )
+            ],
+        )
+
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for test coverage."""
         return Remediation(
@@ -323,7 +484,7 @@ class TestExecutionAssessor(BaseAssessor):
                 "Add coverage reporting to CI/CD pipeline",
                 "Run coverage locally before committing",
             ],
-            tools=["pytest-cov", "jest", "vitest", "coverage"],
+            tools=["pytest-cov", "jest", "vitest", "coverage", "go test"],
             commands=[
                 "# Python",
                 "pip install pytest-cov",
@@ -332,6 +493,9 @@ class TestExecutionAssessor(BaseAssessor):
                 "# JavaScript",
                 "npm install --save-dev jest",
                 "npm test -- --coverage --coverageThreshold='{\\'global\\': {\\'lines\\': 80}}'",
+                "",
+                "# Go",
+                "go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...",
             ],
             examples=[
                 """# Python - pyproject.toml
@@ -672,15 +836,17 @@ class CIQualityGatesAssessor(BaseAssessor):
             r"\bmocha\b",
             r"\bnpm\s+test\b",
             r"\byarn\s+test\b",
-            r"\bgo\s+test\b",
+            r"(?:\bgo|\$\(GO\))\s+test\b",
             r"\bcargo\s+test\b",
             r"\brspec\b",
+            r"\bmake\s+test\b",
         ]
         typecheck_patterns = [
             r"\bmypy\b",
             r"\bpyright\b",
             r"\btsc\b",
             r"\btype[_-]?check\b",
+            r"\bgo\s+vet\b",
         ]
 
         found_lint = False

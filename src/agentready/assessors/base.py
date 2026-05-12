@@ -1,6 +1,7 @@
 """Base assessor interface for attribute evaluation."""
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from ..models.finding import Finding
 from ..models.repository import Repository
@@ -66,6 +67,80 @@ class BaseAssessor(ABC):
             - API check: return any openapi/swagger files exist
         """
         return True
+
+    # Root-level manifest files that strongly signal the project's primary language.
+    # When file counts are close, these break the tie.
+    _LANG_ROOT_MANIFESTS: dict[str, list[str]] = {
+        "Go": ["go.mod"],
+        "Python": ["pyproject.toml", "setup.py", "setup.cfg"],
+        "JavaScript": ["package.json"],
+        "TypeScript": ["tsconfig.json"],
+    }
+
+    def _primary_language(
+        self,
+        repository: Repository,
+        candidates: set[str],
+    ) -> str | None:
+        """Return the primary programming language among candidates.
+
+        Uses file count as the base signal, but when counts are within 30%
+        of each other, a root-level project manifest (go.mod, pyproject.toml,
+        package.json) acts as tiebreaker — the language whose manifest sits
+        at the repo root is treated as primary.
+
+        This handles repos like Go operators with a Python SDK subdirectory,
+        where Python may have slightly more files but Go owns the root.
+        """
+        lang_counts = {
+            lang: repository.languages.get(lang, 0)
+            for lang in candidates
+            if repository.languages.get(lang, 0) > 0
+        }
+        if not lang_counts:
+            return None
+
+        top_lang = max(lang_counts, key=lambda k: (lang_counts[k], k))
+        top_count = lang_counts[top_lang]
+
+        if top_count == 0:
+            return None
+
+        # Check if any other candidate is close enough to contest
+        close_langs = {
+            lang for lang, count in lang_counts.items() if count >= top_count * 0.7
+        }
+        if len(close_langs) > 1:
+            manifest_winners = [
+                lang
+                for lang in sorted(close_langs)
+                if any(
+                    (repository.path / m).exists()
+                    for m in self._LANG_ROOT_MANIFESTS.get(lang, [])
+                )
+            ]
+            if len(manifest_winners) == 1:
+                return manifest_winners[0]
+
+        return top_lang
+
+    def _find_go_module_roots(self, repository: Repository) -> list[Path]:
+        """Find directories containing go.mod (Go module roots).
+
+        Supports both single-module repos (go.mod at root) and monorepos
+        (go.mod in subdirectories at any depth). Excludes vendor and
+        testdata directories.
+        """
+        roots: list[Path] = []
+        if (repository.path / "go.mod").exists():
+            roots.append(repository.path)
+        for gomod in repository.path.rglob("go.mod"):
+            if "vendor" in gomod.parts or "testdata" in gomod.parts:
+                continue
+            if gomod.parent == repository.path:
+                continue
+            roots.append(gomod.parent)
+        return sorted(set(roots))
 
     def calculate_proportional_score(
         self,

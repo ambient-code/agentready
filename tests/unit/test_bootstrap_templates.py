@@ -80,7 +80,7 @@ class TestTemplateInheritance:
         # Verify Go-specific elements
         assert "actions/setup-go@v5" in content
         assert "go-version:" in content
-        assert "'1.21', '1.22'" in content
+        assert "'1.23', '1.24'" in content
         assert "go mod download" in content
         assert "go test" in content
         assert "gofmt" in content

@@ -3,7 +3,7 @@
 {% block strategy %}
     strategy:
       matrix:
-        go-version: ['1.21', '1.22']
+        go-version: ['1.23', '1.24']
 {% endblock %}
 
 {% block setup_environment %}
@@ -29,7 +29,7 @@
         run: go vet ./...
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
 {% endblock %}
@@ -39,4 +39,4 @@
         run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 {% endblock %}
 
-{% block coverage_condition %}if: matrix.go-version == '1.22'{% endblock %}
+{% block coverage_condition %}if: matrix.go-version == '1.24'{% endblock %}

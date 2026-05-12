@@ -1079,21 +1079,25 @@ class InlineDocumentationAssessor(BaseAssessor):
         )
 
     def is_applicable(self, repository: Repository) -> bool:
-        """Only applicable to languages with docstring conventions."""
-        applicable_languages = {"Python", "JavaScript", "TypeScript"}
+        """Only applicable to languages with documentation conventions."""
+        applicable_languages = {"Python", "JavaScript", "TypeScript", "Go"}
         return bool(set(repository.languages.keys()) & applicable_languages)
 
     def assess(self, repository: Repository) -> Finding:
-        """Check docstring coverage for public functions and classes.
+        """Check documentation coverage for public functions and classes.
 
-        Currently supports Python only. JavaScript/TypeScript can be added later.
+        Dispatches based on the primary programming language (by file count)
+        to handle multi-language repos correctly.
         """
-        if "Python" in repository.languages:
+        primary = self._primary_language(repository, {"Python", "Go"})
+        if primary == "Python":
             return self._assess_python_docstrings(repository)
+        elif primary == "Go":
+            return self._assess_go_godoc(repository)
         else:
             return Finding.not_applicable(
                 self.attribute,
-                reason=f"Docstring check not implemented for {list(repository.languages.keys())}",
+                reason=f"Documentation check not implemented for {list(repository.languages.keys())}",
             )
 
     def _assess_python_docstrings(self, repository: Repository) -> Finding:
@@ -1186,6 +1190,160 @@ class InlineDocumentationAssessor(BaseAssessor):
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
+        )
+
+    @staticmethod
+    def _has_go_doc_comment(
+        lines: list[str], symbol_idx: int, symbol_name: str
+    ) -> bool:
+        """Check if an exported Go symbol has a doc comment above it.
+
+        Matches go doc behavior: any comment immediately preceding a
+        declaration (no blank line between) is a doc comment.
+        """
+        prev_idx = symbol_idx - 1
+        while prev_idx >= 0 and not lines[prev_idx].strip():
+            prev_idx -= 1
+        if prev_idx < 0:
+            return False
+
+        prev_line = lines[prev_idx].strip()
+
+        if prev_line.startswith("//"):
+            return True
+
+        if prev_line.endswith("*/"):
+            return True
+
+        return False
+
+    def _assess_go_godoc(self, repository: Repository) -> Finding:
+        """Assess Go godoc comment coverage on exported symbols.
+
+        Go convention: exported symbols (starting with uppercase) should have
+        a comment directly above starting with the symbol name.
+        """
+        import re
+
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files", "*.go"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
+            go_files = [
+                f
+                for f in result.stdout.strip().split("\n")
+                if f and not f.endswith("_test.go") and "vendor/" not in f
+            ]
+        except Exception:
+            go_files = [
+                str(f.relative_to(repository.path))
+                for f in repository.path.rglob("*.go")
+                if not f.name.endswith("_test.go") and "vendor" not in f.parts
+            ]
+
+        total_exported = 0
+        documented_exported = 0
+        has_doc_go = False
+
+        # Match exported functions (including methods with receivers), types,
+        # vars, and consts. Group 1 captures the exported symbol name.
+        exported_pattern = re.compile(
+            r"^(?:func\s+(?:\([^)]+\)\s+)?|type\s+|var\s+|const\s+)([A-Z]\w*)"
+        )
+
+        for file_path in go_files:
+            full_path = repository.path / file_path
+            if full_path.name == "doc.go":
+                has_doc_go = True
+
+            try:
+                lines = full_path.read_text(encoding="utf-8").splitlines()
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            for i, line in enumerate(lines):
+                match = exported_pattern.match(line.strip())
+                if not match:
+                    continue
+
+                total_exported += 1
+                symbol_name = match.group(1)
+
+                if i > 0 and self._has_go_doc_comment(lines, i, symbol_name):
+                    documented_exported += 1
+
+        if total_exported == 0:
+            return Finding.not_applicable(
+                self.attribute,
+                reason="No exported Go symbols found",
+            )
+
+        coverage_percent = (documented_exported / total_exported) * 100
+        score = self.calculate_proportional_score(
+            measured_value=coverage_percent,
+            threshold=80.0,
+            higher_is_better=True,
+        )
+
+        status = "pass" if score >= 75 else "fail"
+
+        evidence = [
+            f"Documented exports: {documented_exported}/{total_exported}",
+            f"Godoc coverage: {coverage_percent:.1f}%",
+        ]
+        if has_doc_go:
+            evidence.append("doc.go package documentation found")
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{coverage_percent:.1f}%",
+            threshold="≥80%",
+            evidence=evidence,
+            remediation=self._create_go_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _create_go_remediation(self) -> Remediation:
+        """Create remediation guidance for missing Go godoc comments."""
+        return Remediation(
+            summary="Add godoc comments to exported Go symbols",
+            steps=[
+                "Add comments above all exported functions, types, and constants",
+                "Comments must start with the symbol name (Go convention)",
+                "Add doc.go files for package-level documentation",
+                "Add Example functions in test files for executable docs",
+            ],
+            tools=[],
+            commands=[
+                "# Check for missing documentation",
+                "go vet ./...",
+            ],
+            examples=[
+                """// Handler processes incoming HTTP requests and routes them
+// to the appropriate service method.
+func Handler(w http.ResponseWriter, r *http.Request) {
+    // ...
+}
+
+// ErrNotFound is returned when the requested resource does not exist.
+var ErrNotFound = errors.New("not found")
+""",
+            ],
+            citations=[
+                Citation(
+                    source="Go Documentation",
+                    title="Effective Go - Commentary",
+                    url="https://go.dev/doc/effective_go#commentary",
+                    relevance="Go documentation conventions",
+                ),
+            ],
         )
 
     def _create_remediation(self) -> Remediation:
