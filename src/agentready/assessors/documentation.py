@@ -640,7 +640,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                 measured_value="no ADR directory",
                 threshold="ADR directory with decisions",
                 evidence=[
-                    "No ADR directory found (checked docs/adr/, docs/architecture/, docs/specs/, specs/, and variants — all case-insensitive)"
+                    "No ADR directory found (checked docs/adr/, docs/architecture/, docs/design/, docs/specs/, specs/, and variants — all case-insensitive)"
                 ],
                 remediation=self._create_remediation(),
                 error_message=None,
@@ -721,10 +721,6 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
         This is less agent-ready than an inline directory (agents can't follow links),
         but it's meaningfully better than no documentation at all.
         """
-        adr_keywords = re.compile(
-            r"(architecture|architectural|decision|adr|rfc|design)",
-            re.IGNORECASE,
-        )
         section_header = re.compile(
             r"^#{1,3}\s.*(architecture|decision|adr|rfc|design)",
             re.IGNORECASE | re.MULTILINE,
@@ -746,7 +742,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             has_section = bool(section_header.search(content))
             has_link = bool(external_link.search(content))
 
-            if has_section or (adr_keywords.search(content) and has_link):
+            if has_section and has_link:
                 evidence = [
                     "No inline ADR directory found",
                     f"{filename} contains architectural decision documentation (partial credit: 60/100)",

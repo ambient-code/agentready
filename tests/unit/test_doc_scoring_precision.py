@@ -133,11 +133,16 @@ class TestExtendedDirectoryPaths:
 
 
 class TestClaudeMdPartialCredit:
-    """Issue #392: partial credit when CLAUDE.md/AGENTS.md references ADRs."""
+    """Issue #392: partial credit when CLAUDE.md/AGENTS.md references ADRs.
 
-    def test_claude_md_with_architecture_section(self, assessor, tmp_path):
+    Partial credit requires BOTH a matching section heading AND an external link.
+    Either condition alone is insufficient (too many false positives).
+    """
+
+    def test_section_and_link_scores_60(self, assessor, tmp_path):
         (tmp_path / "CLAUDE.md").write_text(
-            "# Project\n\n## Architecture Decisions\n\nWe use hexagonal architecture.\n"
+            "# Project\n\n## Architecture Decisions\n\nSee "
+            "https://github.com/org/architecture-decisions for the full record.\n"
         )
         repo = _make_repo(tmp_path)
         finding = assessor.assess(repo)
@@ -145,22 +150,42 @@ class TestClaudeMdPartialCredit:
         assert finding.status == "fail"
         assert any("partial credit" in e for e in finding.evidence)
 
-    def test_agents_md_with_adr_section(self, assessor, tmp_path):
+    def test_agents_md_section_and_link_scores_60(self, assessor, tmp_path):
         (tmp_path / "AGENTS.md").write_text(
-            "# Guide\n\n## ADR Summary\n\nKey decisions are logged here.\n"
+            "# Guide\n\n## ADR Summary\n\nDecisions tracked at "
+            "https://github.com/org/adrs.\n"
         )
         repo = _make_repo(tmp_path)
         finding = assessor.assess(repo)
         assert finding.score == 60.0
 
-    def test_claude_md_with_external_link(self, assessor, tmp_path):
+    def test_section_only_scores_zero(self, assessor, tmp_path):
+        """Section heading without a link is not sufficient — too many false positives."""
+        (tmp_path / "CLAUDE.md").write_text(
+            "# Project\n\n## Architecture Decisions\n\nWe use hexagonal architecture.\n"
+        )
+        repo = _make_repo(tmp_path)
+        finding = assessor.assess(repo)
+        assert finding.score == 0.0
+
+    def test_link_only_scores_zero(self, assessor, tmp_path):
+        """External link without a matching section heading is not sufficient."""
         (tmp_path / "CLAUDE.md").write_text(
             "# Project\n\nArchitectural decisions are tracked at "
             "https://github.com/org/architecture-decisions.\n"
         )
         repo = _make_repo(tmp_path)
         finding = assessor.assess(repo)
-        assert finding.score == 60.0
+        assert finding.score == 0.0
+
+    def test_keyword_only_scores_zero(self, assessor, tmp_path):
+        """Architecture keyword in body text with no heading and no link scores 0."""
+        (tmp_path / "CLAUDE.md").write_text(
+            "# Project\n\nWe follow an architecture-first approach.\n"
+        )
+        repo = _make_repo(tmp_path)
+        finding = assessor.assess(repo)
+        assert finding.score == 0.0
 
     def test_claude_md_without_adr_content_scores_zero(self, assessor, tmp_path):
         (tmp_path / "CLAUDE.md").write_text("# Project\n\nRun tests with pytest.\n")
