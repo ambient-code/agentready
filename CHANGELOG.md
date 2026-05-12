@@ -1,3 +1,15 @@
+# [2.37.0](https://github.com/ambient-code/agentready/compare/v2.36.1...v2.37.0) (2026-05-12)
+
+
+### Bug Fixes
+
+* tighten partial-credit gate to require section heading AND external link ([feda57d](https://github.com/ambient-code/agentready/commit/feda57d20dfe16cbf7b7402b24f0f40dcc03f51f))
+
+
+### Features
+
+* extend ADR detection paths and add CLAUDE.md partial credit ([2a38344](https://github.com/ambient-code/agentready/commit/2a38344dfd1b4d9fa2c56e3659f499813da4bc0e)), closes [#414](https://github.com/ambient-code/agentready/issues/414) [#392](https://github.com/ambient-code/agentready/issues/392)
+
 ## [2.36.1](https://github.com/ambient-code/agentready/compare/v2.36.0...v2.36.1) (2026-05-12)
 
 
