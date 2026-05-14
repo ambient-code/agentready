@@ -87,7 +87,7 @@ This document catalogs 27 assessed attributes (across 41 sub-topics) that make c
 
 **Citations:**
 - ETH Zurich: "Are Repository-Level Context Files Helpful for Coding Agents?" (Feb 2026) — arxiv.org/html/2602.11988v1
-- Zhang et al.: "What Makes Repository-Level Instructions Effective for AI Agents?" (Apr 2026) — arxiv.org/html/2604.11088
+- Zhang et al.: "Do Agent Rules Shape or Distort? Guardrails Beat Guidance in Coding Agents" (Apr 2026) — arxiv.org/abs/2604.11088
 - Anthropic: Claude Code Best Practices — code.claude.com/docs/en/best-practices
 - GitHub Blog: "How to write a great agents.md — lessons from over 2,500 repositories" (2026)
 - Addy Osmani: "Stop Using /init for AGENTS.md" (Feb 2026)
@@ -1985,7 +1985,7 @@ This document synthesizes findings from sources of varying rigor and generalizab
 - [Anthropic: Claude Code Best Practices](https://code.claude.com/docs/en/best-practices)
 - [Anthropic: 2026 Agentic Coding Trends Report](https://resources.anthropic.com/2026-agentic-coding-trends-report)
 - Red Hat: Repository Scaffolding for AI Coding Agents (April 2026) — internal guide, evidence-based
-- [Zhang et al.: "What Makes Repository-Level Instructions Effective for AI Agents?"](https://arxiv.org/html/2604.11088) (Apr 2026) — positive directives hurt, negative constraints help
+- [Zhang et al.: "Do Agent Rules Shape or Distort? Guardrails Beat Guidance in Coding Agents"](https://arxiv.org/abs/2604.11088) (Apr 2026) — positive directives hurt, negative constraints help
 - [AGENTS.md Empirical Study: Agent READMEs](https://arxiv.org/html/2511.12884v1) — analysis of 2,303 context files
 - [Configuring Agentic AI Coding Tools](https://arxiv.org/html/2602.14690v3) — systematic study across 2,923 repos
 
