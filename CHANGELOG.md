@@ -1,3 +1,12 @@
+## [2.37.1](https://github.com/ambient-code/agentready/compare/v2.37.0...v2.37.1) (2026-05-14)
+
+
+### Bug Fixes
+
+* correct 3 citation-claim mismatches in research report (v2.0.1) ([0b91f44](https://github.com/ambient-code/agentready/commit/0b91f44f350e984b260da2436de019fd1ea089f4))
+* correct Zhang et al. citation title and broken URL (v2.0.1) ([e674953](https://github.com/ambient-code/agentready/commit/e67495395f0e47c0091236d484f331c0dc13db66)), closes [#429](https://github.com/ambient-code/agentready/issues/429)
+* update research template title to match report rename ([ed3d113](https://github.com/ambient-code/agentready/commit/ed3d113ed1d690c50c80a0365e424d21624d7409))
+
 # [2.37.0](https://github.com/ambient-code/agentready/compare/v2.36.1...v2.37.0) (2026-05-12)
 
 
