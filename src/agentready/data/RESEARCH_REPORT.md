@@ -1,19 +1,19 @@
 ---
-version: "2.0.0"
-date: "2026-05-03"
+version: "2.0.1"
+date: "2026-05-13"
 focus: "AI coding agent optimization (Claude Code, Copilot, Cursor, Codex, and cross-tool)"
 attribute_count: 41
 tier_count: 4
-reference_count: 55
+reference_count: 53
 ---
 
-# Agent-Ready Codebase Attributes: Comprehensive Research
+# Agent-Ready Codebase Attributes: Curated Best Practices
 *Optimizing Codebases for AI-Assisted Development*
 
-**Version:** 2.0.0
-**Date:** 2026-05-03
+**Version:** 2.0.1
+**Date:** 2026-05-13
 **Focus:** AI coding agent optimization (cross-tool: Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI)
-**Sources:** 55+ authoritative sources including Anthropic, ETH Zurich, Red Hat, GitHub, Microsoft, Google, ArXiv
+**Sources:** 50+ curated sources including Anthropic, ETH Zurich, Red Hat, GitHub, Microsoft, ArXiv
 
 ---
 
@@ -28,7 +28,7 @@ This document catalogs 27 assessed attributes (across 41 sub-topics) that make c
 
 **Key Research Findings (2025-2026):**
 - Auto-generated context files **reduce** agent success by ~3% and increase cost by 20-23% (ETH Zurich, Feb 2026)
-- The same model scores 52.8% vs 66.5% depending on surrounding infrastructure — scaffolding matters more than the model (LangChain Terminal-Bench)
+- Positive directives ("follow code style") actively hurt agent performance; only negative constraints ("do not refactor unrelated code") reliably help (Zhang et al., Apr 2026)
 - Anthropic identifies "giving agents a way to verify their work" as the single highest-leverage practice
 - Human-written context files help only marginally (+4%) — only include what agents can't discover on their own (ETH Zurich)
 
@@ -83,8 +83,11 @@ This document catalogs 27 assessed attributes (across 41 sub-topics) that make c
 
 **Litmus test for every line:** "Would removing this cause the agent to make a mistake it wouldn't otherwise make?" If not, delete it.
 
+**Directive Framing (Critical):** Zhang et al. (Apr 2026) found that positive directives in context files ("follow the existing code style," "use descriptive names") actively hurt agent performance, while negative constraints ("do not refactor code outside the target function," "never modify the public API") reliably improve it. Frame context file instructions as boundaries and prohibitions, not aspirational guidance.
+
 **Citations:**
 - ETH Zurich: "Are Repository-Level Context Files Helpful for Coding Agents?" (Feb 2026) — arxiv.org/html/2602.11988v1
+- Zhang et al.: "Do Agent Rules Shape or Distort? Guardrails Beat Guidance in Coding Agents" (Apr 2026) — arxiv.org/abs/2604.11088
 - Anthropic: Claude Code Best Practices — code.claude.com/docs/en/best-practices
 - GitHub Blog: "How to write a great agents.md — lessons from over 2,500 repositories" (2026)
 - Addy Osmani: "Stop Using /init for AGENTS.md" (Feb 2026)
@@ -535,7 +538,7 @@ project/
 
 **Definition:** Ability to run tests with a single command, with adequate code coverage.
 
-**Why It Matters:** Anthropic identifies test execution as "the single highest-leverage thing you can do" for AI agent effectiveness. Agents succeed through tight feedback loops: change code, run tests, see failures, iterate. Without runnable tests, agents fly blind. The DORA 2025 report confirms AI amplifies existing good testing practices — TDD is more critical than ever.
+**Why It Matters:** Anthropic identifies test execution as "the single highest-leverage thing you can do" for AI agent effectiveness. Agents succeed through tight feedback loops: change code, run tests, see failures, iterate. Without runnable tests, agents fly blind. Red Hat independently reached the same conclusion, placing single-command test execution as the first requirement in their repository scaffolding guide.
 
 **Impact on Agent Behavior:**
 - Enables self-correction through test-driven iteration
@@ -558,9 +561,7 @@ project/
 **Citations:**
 - Anthropic: Claude Code Best Practices — "giving agents a way to verify their work" — code.claude.com/docs/en/best-practices
 - Red Hat: Repository Scaffolding for AI Coding Agents, Section 1.1 (April 2026)
-- DORA 2025 (Google Cloud): "AI amplifies existing good practices. TDD is more critical than ever."
-- LangChain Terminal-Bench: same model scored 52.8% vs 66.5% depending on scaffolding (+26%)
-- Salesforce Engineering: "How Cursor AI Cut Legacy Code Coverage Time by 85%"
+- Cursor: "Use typed languages, configure linters, and write tests. Give the agent clear signals for whether changes are correct." — cursor.com/blog/agent-best-practices
 
 ---
 
@@ -1954,6 +1955,29 @@ Where each category is 0.0-1.0 based on attribute completion.
 
 ---
 
+## LIMITATIONS & EVIDENCE QUALITY
+
+This document synthesizes findings from sources of varying rigor and generalizability:
+
+**Source type distribution:**
+- **Peer-reviewed / arXiv preprints** (ETH Zurich, Zhang et al., AGENTS.md study, others): Controlled experiments with reproducible methodology. Strongest evidence, but often narrow scope (specific models, specific benchmarks, specific time period).
+- **Vendor best practices** (Anthropic, Red Hat, Cursor, OpenAI, GitHub): First-party guidance from tool developers. High relevance but potentially self-serving; recommendations may reflect product design choices rather than universal truths.
+- **Engineering blog posts** (Dropbox, Stack Overflow, Factory.ai): Experience reports from specific teams. Valuable for real-world signal but not controlled experiments; survivorship bias likely.
+- **Standards & specifications** (Conventional Commits, OpenAPI, PEP 8): Consensus documents, not empirical evidence. Included for measurability, not for causal claims.
+
+**Known gaps:**
+- Most benchmarks test single-turn or short-session agent behavior. Long-running multi-session agent effectiveness is poorly studied.
+- Evidence is heavily weighted toward Python and JavaScript ecosystems. Generalization to other languages is assumed, not demonstrated.
+- The field moves fast. Findings from early 2025 may not apply to models released in 2026. Weight assignments should be revisited as new evidence emerges.
+- No controlled studies directly measure the impact of individual codebase attributes on agent task success in isolation. Most evidence is correlational or qualitative.
+
+**What this document is not:**
+- Not a systematic review or meta-analysis
+- Not peer-reviewed
+- Not a substitute for testing practices against your specific codebase and agent
+
+---
+
 ## REFERENCES & CITATIONS
 
 ### Key Research (2025-2026)
@@ -1961,8 +1985,7 @@ Where each category is 0.0-1.0 based on attribute completion.
 - [Anthropic: Claude Code Best Practices](https://code.claude.com/docs/en/best-practices)
 - [Anthropic: 2026 Agentic Coding Trends Report](https://resources.anthropic.com/2026-agentic-coding-trends-report)
 - Red Hat: Repository Scaffolding for AI Coding Agents (April 2026) — internal guide, evidence-based
-- LangChain: Terminal-Bench — scaffolding impact measurement (+26% accuracy from infrastructure alone)
-- [DORA 2025 (Google Cloud): TDD and AI Quality](https://cloud.google.com/discover/how-test-driven-development-amplifies-ai-success)
+- [Zhang et al.: "Do Agent Rules Shape or Distort? Guardrails Beat Guidance in Coding Agents"](https://arxiv.org/abs/2604.11088) (Apr 2026) — positive directives hurt, negative constraints help
 - [AGENTS.md Empirical Study: Agent READMEs](https://arxiv.org/html/2511.12884v1) — analysis of 2,303 context files
 - [Configuring Agentic AI Coding Tools](https://arxiv.org/html/2602.14690v3) — systematic study across 2,923 repos
 
@@ -1986,7 +2009,6 @@ Where each category is 0.0-1.0 based on attribute completion.
 
 ### Engineering Blogs
 - [Dropbox Tech Blog: "Our journey to type checking 4 million lines of Python"](https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python)
-- [Salesforce Engineering: "How Cursor AI Cut Legacy Code Coverage Time by 85%"](https://engineering.salesforce.com/)
 - [GitClear: "Coding on Copilot" whitepaper](https://www.gitclear.com/coding_on_copilot_data_shows_ais_downward_pressure_on_code_quality)
 
 ### Standards & Specifications
@@ -2013,6 +2035,17 @@ Where each category is 0.0-1.0 based on attribute completion.
 
 ## VERSION HISTORY
 
+- **v2.0.1 (2026-05-13):** Citation accuracy and evidence quality improvements
+  - Fixed 3 citation-claim mismatches in Section 5.1 (test_execution):
+    - Removed Terminal-Bench: finding was about agent scaffolding, not test execution
+    - Removed DORA 2025 marketing page: URL was Google Cloud blog, not actual DORA report
+    - Removed Salesforce Cursor article: about AI writing tests for humans, not tests helping agents
+  - Added Zhang et al. (arXiv:2604.11088) finding on positive vs negative directives
+  - Renamed title from "Comprehensive Research" to "Curated Best Practices"
+  - Added LIMITATIONS & EVIDENCE QUALITY section
+  - Updated source count (55 -> 53)
+  - No tier or weight changes
+
 - **v2.0.0 (2026-05-03):** Major research update based on 2025-2026 evidence
   - Rebalanced priorities: verification/testing elevated to #1 (was #6)
   - Added 4 new attributes: single-file verification, CI quality gates, pattern references, design intent, progressive disclosure
@@ -2036,4 +2069,4 @@ Where each category is 0.0-1.0 based on attribute completion.
 **Document prepared for:** agentready tool development
 **Primary use case:** Scanning repositories for AI agent optimization
 **Target agents:** Claude Code, GitHub Copilot, Cursor, Codex, Gemini CLI, and cross-tool
-**Methodology:** Evidence-based, cited research from authoritative sources
+**Methodology:** Evidence-based, curated from vendor best practices, arXiv preprints, and engineering experience reports

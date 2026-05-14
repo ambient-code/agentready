@@ -2,7 +2,7 @@
 #
 # This file defines the default weights for all 28 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
-# Red Hat best practices (April 2026), and LangChain Terminal-Bench.
+# Red Hat best practices (April 2026), and Cursor agent guidelines.
 #
 # Key finding: Verification (tests, lint, CI) has highest impact on
 # agent effectiveness. Documentation helps only marginally (+4%).
