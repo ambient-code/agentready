@@ -127,7 +127,9 @@ class StandardLayoutAssessor(BaseAssessor):
 
         Fix for #246, #305: Support multiple valid Python layouts
         """
-        if self._primary_language(repository, {"Python", "Go"}) == "Go":
+        # Check for Go project first: go.mod presence is definitive,
+        # regardless of file counts (handles Go projects with Python scripts)
+        if self._find_go_module_roots(repository):
             return self._assess_go_layout(repository)
 
         # Check for tests directory (either tests/ or test/)

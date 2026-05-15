@@ -1,5 +1,6 @@
 """Tests for structure assessors."""
 
+import re
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -832,6 +833,94 @@ another_entry
         content = arsrc_path.read_text()
         assert len(content) > 0, "Python.arsrc is empty"
         assert "tests" in content, "Python.arsrc missing expected entry 'tests'"
+
+    # === Tests for Go project layout ===
+
+    def test_go_project_with_gomod_uses_go_assessment(self, tmp_path):
+        """Test that a Go project with go.mod uses Go-specific assessment."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # Create go.mod to indicate Go project
+        (tmp_path / "go.mod").write_text("module example.com/myproject\n")
+
+        # Create standard Go directories
+        (tmp_path / "cmd").mkdir()
+        (tmp_path / "internal").mkdir()
+
+        repo = Repository(
+            path=tmp_path,
+            name="go-project",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Go": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should use Go assessment
+        evidence_str = " ".join(finding.evidence)
+        assert "go.mod" in evidence_str
+        assert "cmd/" in evidence_str or "internal/" in evidence_str
+
+    def test_go_project_with_python_scripts_uses_go_assessment(self, tmp_path):
+        """Test that Go project with Python scripts still uses Go assessment.
+
+        This is the bug fix: even if a Go project has Python scripts (e.g., in
+        scripts/ directory) and Python has more file count, the presence of
+        go.mod should definitively mark it as a Go project.
+        """
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # Create go.mod to indicate Go project
+        (tmp_path / "go.mod").write_text("module example.com/myproject\n")
+
+        # Create standard Go directories
+        (tmp_path / "cmd").mkdir()
+        (tmp_path / "internal").mkdir()
+
+        # Create Python scripts directory (many Python files)
+        scripts_dir = tmp_path / "scripts"
+        scripts_dir.mkdir()
+        for i in range(10):
+            (scripts_dir / f"script{i}.py").write_text("# Python script\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="go-project-with-scripts",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            # Python has more files than Go in this scenario
+            languages={"Python": 150, "Go": 50},
+            total_files=200,
+            total_lines=1000,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should STILL use Go assessment despite Python having more files
+        # because go.mod definitively indicates a Go project
+        evidence_str = " ".join(finding.evidence)
+        assert "go.mod" in evidence_str, "Should detect go.mod and use Go assessment"
+        assert (
+            "cmd/" in evidence_str or "internal/" in evidence_str
+        ), "Should check Go directories, not Python"
+        # Should NOT check for Python src/ or tests/ directories
+        # If "src/" appears, it must be in a Go context (with go.mod, module, package)
+        if "src/" in evidence_str.lower():
+            assert "source" not in evidence_str.lower() and (
+                "go.mod" in evidence_str.lower()
+                or "module " in evidence_str.lower()
+                or re.search(r"\bpackage\s+\w+", evidence_str.lower())
+            ), "If 'src/' appears, it must be in a clear Go context, not Python"
+        # Otherwise, evidence_str can omit "src/" entirely (which is expected for Go)
 
 
 class TestIssuePRTemplatesAssessor:
