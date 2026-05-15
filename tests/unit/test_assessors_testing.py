@@ -529,6 +529,148 @@ class TestCIQualityGatesAssessor:
         # 50 (CI) + 30 (all gates) + config quality bonus
         assert finding.score > 80
 
+    # --- Tekton Pipelines as Code tests ---
+
+    def test_tekton_on_event_simple_pull_request(self, tmp_path):
+        """Test Tekton pipeline with simple pull_request on-event annotation."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "pull-request.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: pr-pipeline\n"
+            "  annotations:\n"
+            '    pipelinesascode.tekton.dev/on-event: "pull_request"\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+            "  tasks:\n"
+            "    - name: test\n"
+            "      taskRef:\n"
+            "        name: pytest\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        # Use internal method to verify PR trigger detection
+        assert assessor._has_pr_trigger(tekton_dir / "pull-request.yaml")
+
+    def test_tekton_on_event_array_single(self, tmp_path):
+        """Test Tekton pipeline with on-event as array containing only pull_request."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "pull-request.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: pr-pipeline\n"
+            "  annotations:\n"
+            '    pipelinesascode.tekton.dev/on-event: "[pull_request]"\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        assert assessor._has_pr_trigger(tekton_dir / "pull-request.yaml")
+
+    def test_tekton_on_event_array_multiple(self, tmp_path):
+        """Test Tekton pipeline with on-event as array containing pull_request and push."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "pull-request.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: pr-pipeline\n"
+            "  annotations:\n"
+            '    pipelinesascode.tekton.dev/on-event: "[push,pull_request]"\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        assert assessor._has_pr_trigger(tekton_dir / "pull-request.yaml")
+
+    def test_tekton_cel_expression_simple(self, tmp_path):
+        """Test Tekton pipeline with CEL expression checking for pull_request event."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "pull-request.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: pr-pipeline\n"
+            "  annotations:\n"
+            '    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request"\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        assert assessor._has_pr_trigger(tekton_dir / "pull-request.yaml")
+
+    def test_tekton_cel_expression_complex(self, tmp_path):
+        """Test Tekton pipeline with complex CEL expression containing pull_request check."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "pull-request.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: pr-pipeline\n"
+            "  annotations:\n"
+            "    pipelinesascode.tekton.dev/on-cel-expression: |\n"
+            '      target_branch == "main" && (event == "push" || event == "pull_request") && \n'
+            '      ( "my-component/***".pathChanged() || ".tekton/my-component-sample-pull-request.yaml".pathChanged() )\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        assert assessor._has_pr_trigger(tekton_dir / "pull-request.yaml")
+
+    def test_tekton_no_pr_trigger_push_only(self, tmp_path):
+        """Test Tekton pipeline without pull_request trigger (push only)."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "push-only.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: push-pipeline\n"
+            "  annotations:\n"
+            '    pipelinesascode.tekton.dev/on-event: "push"\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        assert not assessor._has_pr_trigger(tekton_dir / "push-only.yaml")
+
+    def test_tekton_cel_expression_no_pull_request(self, tmp_path):
+        """Test Tekton pipeline with CEL expression that doesn't check for pull_request."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        (tekton_dir / "push-only.yaml").write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: push-pipeline\n"
+            "  annotations:\n"
+            '    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "main"\n'
+            "spec:\n"
+            "  pipelineRef:\n"
+            "    name: test-pipeline\n"
+        )
+
+        assessor = CIQualityGatesAssessor()
+        assert not assessor._has_pr_trigger(tekton_dir / "push-only.yaml")
+
 
 class TestDeterministicEnforcementAssessor:
     """Test DeterministicEnforcementAssessor."""

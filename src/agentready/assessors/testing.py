@@ -786,6 +786,7 @@ class CIQualityGatesAssessor(BaseAssessor):
             repository.path / ".circleci" / "config.yml",  # CircleCI
             repository.path / ".travis.yml",  # Travis CI
             repository.path / "Jenkinsfile",  # Jenkins
+            repository.path / ".tekton",  # Pipelines-as-Code
         ]
 
         configs = []
@@ -813,6 +814,25 @@ class CIQualityGatesAssessor(BaseAssessor):
             try:
                 content = config.read_text()
                 return bool(re.search(r"\bpull_request", content))
+            except (OSError, UnicodeDecodeError):
+                return False
+        elif ".tekton" in str(config):
+            # Check each pipeline definition for annotation: pipelinesascode.tekton.dev/on-event,
+            # note, values could be just "pull_request" or be an array of events "[pull_request,push]"
+            # Also, the matcher could be configured as CEL expression, so check for
+            # pipelinesascode.tekton.dev/on-cel-expression: ... event == "pull_request" ...
+            try:
+                content = config.read_text()
+                # Check for on-event annotation with pull_request value
+                on_event_pattern = (
+                    r"pipelinesascode\.tekton\.dev/on-event[:\s]+.*\bpull_request\b"
+                )
+                # Check for CEL expression with event == "pull_request" (use DOTALL to match across newlines)
+                cel_pattern = r'pipelinesascode\.tekton\.dev/on-cel-expression.*event\s*==\s*["\']pull_request["\']'
+                return bool(
+                    re.search(on_event_pattern, content)
+                    or re.search(cel_pattern, content, re.DOTALL)
+                )
             except (OSError, UnicodeDecodeError):
                 return False
         return True
