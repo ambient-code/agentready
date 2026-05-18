@@ -855,9 +855,7 @@ class IssuePRTemplatesAssessor(BaseAssessor):
                     result["issue_template_count"] = sum(
                         1
                         for item in items
-                        if item.get("name", "").endswith(
-                            (".md", ".yml", ".yaml")
-                        )
+                        if item.get("name", "").endswith((".md", ".yml", ".yaml"))
                     )
         except (requests.RequestException, ValueError):
             logger.debug("Could not check org-level issue templates for %s", owner)

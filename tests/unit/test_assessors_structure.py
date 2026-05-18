@@ -4,7 +4,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agentready.assessors.structure import IssuePRTemplatesAssessor, StandardLayoutAssessor
+from agentready.assessors.structure import (
+    IssuePRTemplatesAssessor,
+    StandardLayoutAssessor,
+)
 from agentready.models.repository import Repository
 
 
@@ -854,16 +857,25 @@ class TestIssuePRTemplatesAssessor:
     # --- _parse_github_owner tests ---
 
     def test_parse_owner_https(self, assessor):
-        assert assessor._parse_github_owner("https://github.com/myorg/myrepo.git") == "myorg"
+        assert (
+            assessor._parse_github_owner("https://github.com/myorg/myrepo.git")
+            == "myorg"
+        )
 
     def test_parse_owner_https_no_git_suffix(self, assessor):
-        assert assessor._parse_github_owner("https://github.com/myorg/myrepo") == "myorg"
+        assert (
+            assessor._parse_github_owner("https://github.com/myorg/myrepo") == "myorg"
+        )
 
     def test_parse_owner_ssh(self, assessor):
-        assert assessor._parse_github_owner("git@github.com:myorg/myrepo.git") == "myorg"
+        assert (
+            assessor._parse_github_owner("git@github.com:myorg/myrepo.git") == "myorg"
+        )
 
     def test_parse_owner_non_github(self, assessor):
-        assert assessor._parse_github_owner("https://gitlab.com/myorg/myrepo.git") is None
+        assert (
+            assessor._parse_github_owner("https://gitlab.com/myorg/myrepo.git") is None
+        )
 
     def test_parse_owner_none(self, assessor):
         assert assessor._parse_github_owner(None) is None
@@ -926,7 +938,9 @@ class TestIssuePRTemplatesAssessor:
             r.status_code = 404
             return r
 
-        with patch("agentready.assessors.structure.requests.get", side_effect=side_effect):
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
             finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -952,7 +966,9 @@ class TestIssuePRTemplatesAssessor:
             r.status_code = 404
             return r
 
-        with patch("agentready.assessors.structure.requests.get", side_effect=side_effect):
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
             finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -983,7 +999,9 @@ class TestIssuePRTemplatesAssessor:
             r.status_code = 404
             return r
 
-        with patch("agentready.assessors.structure.requests.get", side_effect=side_effect):
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
             finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -1009,7 +1027,9 @@ class TestIssuePRTemplatesAssessor:
             r.status_code = 404
             return r
 
-        with patch("agentready.assessors.structure.requests.get", side_effect=side_effect):
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
             finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -1026,7 +1046,9 @@ class TestIssuePRTemplatesAssessor:
             r.status_code = 404
             return r
 
-        with patch("agentready.assessors.structure.requests.get", side_effect=side_effect):
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
             finding = assessor.assess(repo)
 
         assert finding.status == "fail"
