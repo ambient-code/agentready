@@ -1,5 +1,7 @@
 """Structure assessors for project layout and separation of concerns."""
 
+import logging
+import os
 import re
 import tomllib
 import warnings
@@ -7,10 +9,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal, TypedDict
 
+import requests
+
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from .base import BaseAssessor
+
+logger = logging.getLogger(__name__)
 
 
 class SourceDirectoryInfo(TypedDict):
@@ -801,15 +807,93 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             default_weight=0.01,
         )
 
+    @staticmethod
+    def _parse_github_owner(url: str | None) -> str | None:
+        """Extract the GitHub owner (org or user) from a remote URL.
+
+        Returns None if the URL is missing or not a GitHub URL.
+        """
+        if not url:
+            return None
+
+        # HTTPS: https://github.com/owner/repo.git
+        match = re.match(r"https?://github\.com/([^/]+)/", url)
+        if match:
+            return match.group(1)
+
+        # SSH: git@github.com:owner/repo.git
+        match = re.match(r"git@github\.com:([^/]+)/", url)
+        if match:
+            return match.group(1)
+
+        return None
+
+    @staticmethod
+    def _check_org_templates(owner: str) -> dict:
+        """Check an org's .github repo for default issue/PR templates.
+
+        Uses the GitHub REST API to check {owner}/.github for templates.
+        Falls back gracefully on any error (returns empty results).
+        """
+        result = {"pr_template": False, "issue_template_count": 0}
+
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        token = os.getenv("GITHUB_TOKEN")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+
+        api_base = f"https://api.github.com/repos/{owner}/.github/contents/.github"
+
+        # Check for issue templates
+        try:
+            resp = requests.get(
+                f"{api_base}/ISSUE_TEMPLATE", headers=headers, timeout=5
+            )
+            if resp.status_code == 200:
+                items = resp.json()
+                if isinstance(items, list):
+                    result["issue_template_count"] = sum(
+                        1
+                        for item in items
+                        if item.get("name", "").endswith((".md", ".yml", ".yaml"))
+                    )
+        except (requests.RequestException, ValueError):
+            logger.debug("Could not check org-level issue templates for %s", owner)
+
+        # Check for PR template
+        try:
+            resp = requests.get(
+                f"{api_base}/PULL_REQUEST_TEMPLATE.md", headers=headers, timeout=5
+            )
+            if resp.status_code == 200:
+                result["pr_template"] = True
+            else:
+                # Also check lowercase variant
+                resp = requests.get(
+                    f"{api_base}/pull_request_template.md",
+                    headers=headers,
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    result["pr_template"] = True
+        except (requests.RequestException, ValueError):
+            logger.debug("Could not check org-level PR template for %s", owner)
+
+        return result
+
     def assess(self, repository: Repository) -> Finding:
         """Check for GitHub issue and PR templates.
 
         Scoring:
         - PR template exists (50%)
         - Issue templates exist (50%, requires ≥2 templates)
+
+        Falls back to org-level templates in the owner's .github repo
+        when templates are not found locally.
         """
         score = 0
         evidence = []
+        template_count = 0
 
         # Check for PR template (50%)
         pr_template_paths = [
@@ -823,15 +907,13 @@ class IssuePRTemplatesAssessor(BaseAssessor):
         if pr_template_found:
             score += 50
             evidence.append("PR template found")
-        else:
-            evidence.append("No PR template found")
 
         # Check for issue templates (50%)
         issue_template_dir = repository.path / ".github" / "ISSUE_TEMPLATE"
+        issue_templates_found = False
 
         if issue_template_dir.exists() and issue_template_dir.is_dir():
             try:
-                # Count .md and .yml files (both formats supported)
                 md_templates = list(issue_template_dir.glob("*.md"))
                 yml_templates = list(issue_template_dir.glob("*.yml")) + list(
                     issue_template_dir.glob("*.yaml")
@@ -843,16 +925,47 @@ class IssuePRTemplatesAssessor(BaseAssessor):
                     evidence.append(
                         f"Issue templates found: {template_count} templates"
                     )
+                    issue_templates_found = True
                 elif template_count == 1:
                     score += 25
                     evidence.append(
                         "Issue template directory exists with 1 template (need ≥2)"
                     )
+                    issue_templates_found = True
                 else:
                     evidence.append("Issue template directory exists but is empty")
             except OSError:
                 evidence.append("Could not read issue template directory")
-        else:
+
+        # Fall back to org-level .github repo if anything is still missing
+        if not pr_template_found or not issue_templates_found:
+            owner = self._parse_github_owner(repository.url)
+            if owner:
+                org_templates = self._check_org_templates(owner)
+
+                if not pr_template_found and org_templates["pr_template"]:
+                    pr_template_found = True
+                    score += 50
+                    evidence.append("PR template found (org-level)")
+
+                if not issue_templates_found:
+                    org_count = org_templates["issue_template_count"]
+                    if org_count >= 2:
+                        template_count = org_count
+                        score += 50
+                        evidence.append(
+                            f"Issue templates found (org-level): {org_count} templates"
+                        )
+                    elif org_count == 1:
+                        template_count = org_count
+                        score += 25
+                        evidence.append(
+                            "Issue template found (org-level): 1 template (need ≥2)"
+                        )
+
+        if not pr_template_found:
+            evidence.append("No PR template found")
+        if not issue_templates_found and template_count == 0:
             evidence.append("No issue template directory found")
 
         status = "pass" if score >= 75 else "fail"
@@ -861,7 +974,7 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             attribute=self.attribute,
             status=status,
             score=score,
-            measured_value=f"PR:{pr_template_found}, Issues:{template_count if issue_template_dir.exists() else 0}",
+            measured_value=f"PR:{pr_template_found}, Issues:{template_count}",
             threshold="PR template + ≥2 issue templates",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
@@ -879,6 +992,7 @@ class IssuePRTemplatesAssessor(BaseAssessor):
                 "Add bug_report.md for bug reports",
                 "Add feature_request.md for feature requests",
                 "Optionally add config.yml to configure template chooser",
+                "Note: org-level templates in <org>/.github are also recognized",
             ],
             tools=["gh"],
             commands=[

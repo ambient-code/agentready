@@ -1,6 +1,13 @@
 """Tests for structure assessors."""
 
-from agentready.assessors.structure import StandardLayoutAssessor
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from agentready.assessors.structure import (
+    IssuePRTemplatesAssessor,
+    StandardLayoutAssessor,
+)
 from agentready.models.repository import Repository
 
 
@@ -825,3 +832,250 @@ another_entry
         content = arsrc_path.read_text()
         assert len(content) > 0, "Python.arsrc is empty"
         assert "tests" in content, "Python.arsrc missing expected entry 'tests'"
+
+
+class TestIssuePRTemplatesAssessor:
+    """Test IssuePRTemplatesAssessor."""
+
+    @pytest.fixture
+    def assessor(self):
+        return IssuePRTemplatesAssessor()
+
+    def _make_repo(self, tmp_path, url=None):
+        (tmp_path / ".git").mkdir(exist_ok=True)
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=url,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 10},
+            total_files=5,
+            total_lines=50,
+        )
+
+    # --- _parse_github_owner tests ---
+
+    def test_parse_owner_https(self, assessor):
+        assert (
+            assessor._parse_github_owner("https://github.com/myorg/myrepo.git")
+            == "myorg"
+        )
+
+    def test_parse_owner_https_no_git_suffix(self, assessor):
+        assert (
+            assessor._parse_github_owner("https://github.com/myorg/myrepo") == "myorg"
+        )
+
+    def test_parse_owner_ssh(self, assessor):
+        assert (
+            assessor._parse_github_owner("git@github.com:myorg/myrepo.git") == "myorg"
+        )
+
+    def test_parse_owner_non_github(self, assessor):
+        assert (
+            assessor._parse_github_owner("https://gitlab.com/myorg/myrepo.git") is None
+        )
+
+    def test_parse_owner_none(self, assessor):
+        assert assessor._parse_github_owner(None) is None
+
+    def test_parse_owner_empty(self, assessor):
+        assert assessor._parse_github_owner("") is None
+
+    # --- Local template detection (no API call) ---
+
+    def test_local_templates_pass(self, assessor, tmp_path):
+        """Full local templates should pass without any API call."""
+        (tmp_path / ".git").mkdir()
+        (tmp_path / ".github").mkdir()
+        (tmp_path / ".github" / "PULL_REQUEST_TEMPLATE.md").write_text("PR")
+        tpl_dir = tmp_path / ".github" / "ISSUE_TEMPLATE"
+        tpl_dir.mkdir()
+        (tpl_dir / "bug_report.md").write_text("bug")
+        (tpl_dir / "feature_request.yml").write_text("feature")
+
+        repo = self._make_repo(tmp_path, url="https://github.com/org/repo.git")
+        with patch("agentready.assessors.structure.requests.get") as mock_get:
+            finding = assessor.assess(repo)
+            mock_get.assert_not_called()
+
+        assert finding.status == "pass"
+        assert finding.score == 100
+
+    def test_no_templates_no_url(self, assessor, tmp_path):
+        """No templates and no URL should fail without API call."""
+        repo = self._make_repo(tmp_path, url=None)
+        with patch("agentready.assessors.structure.requests.get") as mock_get:
+            finding = assessor.assess(repo)
+            mock_get.assert_not_called()
+
+        assert finding.status == "fail"
+        assert finding.score == 0
+
+    # --- Org-level fallback tests ---
+
+    def test_org_fallback_issue_templates(self, assessor, tmp_path):
+        """Org-level issue templates should be found when local ones are missing."""
+        (tmp_path / ".git").mkdir()
+        (tmp_path / ".github").mkdir()
+        (tmp_path / ".github" / "PULL_REQUEST_TEMPLATE.md").write_text("PR")
+
+        repo = self._make_repo(tmp_path, url="https://github.com/kagenti/kagenti.git")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {"name": "bug_report.md"},
+            {"name": "feature_request.yml"},
+            {"name": "config.yml"},
+        ]
+
+        def side_effect(url, **kwargs):
+            if "ISSUE_TEMPLATE" in url:
+                return mock_response
+            r = MagicMock()
+            r.status_code = 404
+            return r
+
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100
+        evidence_str = " ".join(finding.evidence)
+        assert "org-level" in evidence_str
+
+    def test_org_fallback_pr_template(self, assessor, tmp_path):
+        """Org-level PR template should be found when local one is missing."""
+        (tmp_path / ".git").mkdir()
+        tpl_dir = tmp_path / ".github" / "ISSUE_TEMPLATE"
+        tpl_dir.mkdir(parents=True)
+        (tpl_dir / "bug.md").write_text("bug")
+        (tpl_dir / "feature.md").write_text("feature")
+
+        repo = self._make_repo(tmp_path, url="https://github.com/myorg/myrepo.git")
+
+        def side_effect(url, **kwargs):
+            r = MagicMock()
+            if "PULL_REQUEST_TEMPLATE.md" in url:
+                r.status_code = 200
+                return r
+            r.status_code = 404
+            return r
+
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100
+        evidence_str = " ".join(finding.evidence)
+        assert "PR template found (org-level)" in evidence_str
+
+    def test_org_fallback_both_templates(self, assessor, tmp_path):
+        """Org-level fallback should find both PR and issue templates."""
+        repo = self._make_repo(tmp_path, url="https://github.com/myorg/myrepo.git")
+
+        issue_resp = MagicMock()
+        issue_resp.status_code = 200
+        issue_resp.json.return_value = [
+            {"name": "bug.md"},
+            {"name": "feature.yml"},
+        ]
+
+        pr_resp = MagicMock()
+        pr_resp.status_code = 200
+
+        def side_effect(url, **kwargs):
+            if "ISSUE_TEMPLATE" in url:
+                return issue_resp
+            if "PULL_REQUEST_TEMPLATE" in url:
+                return pr_resp
+            r = MagicMock()
+            r.status_code = 404
+            return r
+
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100
+
+    def test_org_fallback_one_issue_template(self, assessor, tmp_path):
+        """Org-level with only 1 issue template should give partial score."""
+        repo = self._make_repo(tmp_path, url="https://github.com/myorg/myrepo.git")
+
+        issue_resp = MagicMock()
+        issue_resp.status_code = 200
+        issue_resp.json.return_value = [{"name": "bug.md"}]
+
+        pr_resp = MagicMock()
+        pr_resp.status_code = 200
+
+        def side_effect(url, **kwargs):
+            if "ISSUE_TEMPLATE" in url:
+                return issue_resp
+            if "PULL_REQUEST_TEMPLATE" in url:
+                return pr_resp
+            r = MagicMock()
+            r.status_code = 404
+            return r
+
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 75
+
+    # --- Graceful failure ---
+
+    def test_org_fallback_api_404(self, assessor, tmp_path):
+        """API returning 404 should not change the score."""
+        repo = self._make_repo(tmp_path, url="https://github.com/myorg/myrepo.git")
+
+        def side_effect(url, **kwargs):
+            r = MagicMock()
+            r.status_code = 404
+            return r
+
+        with patch(
+            "agentready.assessors.structure.requests.get", side_effect=side_effect
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0
+
+    def test_org_fallback_api_timeout(self, assessor, tmp_path):
+        """API timeout should not change the score."""
+        import requests
+
+        repo = self._make_repo(tmp_path, url="https://github.com/myorg/myrepo.git")
+
+        with patch(
+            "agentready.assessors.structure.requests.get",
+            side_effect=requests.Timeout("timeout"),
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 0
+
+    def test_org_fallback_non_github_url(self, assessor, tmp_path):
+        """Non-GitHub URL should skip org-level check entirely."""
+        repo = self._make_repo(tmp_path, url="https://gitlab.com/myorg/myrepo.git")
+
+        with patch("agentready.assessors.structure.requests.get") as mock_get:
+            finding = assessor.assess(repo)
+            mock_get.assert_not_called()
+
+        assert finding.status == "fail"
+        assert finding.score == 0
