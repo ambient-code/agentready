@@ -10,6 +10,7 @@ from typing import Literal, TypedDict
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
+from ..utils.github_templates import GitHubTemplatesFetcher
 from .base import BaseAssessor
 
 
@@ -807,11 +808,17 @@ class IssuePRTemplatesAssessor(BaseAssessor):
         Scoring:
         - PR template exists (50%)
         - Issue templates exist (50%, requires ≥2 templates)
+
+        Checks local .github/ directory first, then falls back to
+        organization-level templates from the org's .github repo if the
+        repository has no local templates and the GITHUB_TOKEN is
+        available.
         """
         score = 0
         evidence = []
+        template_count = 0
 
-        # Check for PR template (50%)
+        # Check for PR template (50%) - local first
         pr_template_paths = [
             repository.path / ".github" / "PULL_REQUEST_TEMPLATE.md",
             repository.path / "PULL_REQUEST_TEMPLATE.md",
@@ -824,9 +831,23 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             score += 50
             evidence.append("PR template found")
         else:
-            evidence.append("No PR template found")
+            # Check org-level fallback for PR templates
+            fetcher = GitHubTemplatesFetcher()
+            owner = fetcher.extract_owner(repository.url)
+            if owner:
+                org_pr_templates = fetcher.fetch_pr_templates(owner)
+                if org_pr_templates:
+                    score += 50
+                    pr_template_found = True
+                    evidence.append(
+                        "PR template found (inherited from org-level .github repo)"
+                    )
+                else:
+                    evidence.append("No PR template found")
+            else:
+                evidence.append("No PR template found")
 
-        # Check for issue templates (50%)
+        # Check for issue templates (50%) - local first
         issue_template_dir = repository.path / ".github" / "ISSUE_TEMPLATE"
 
         if issue_template_dir.exists() and issue_template_dir.is_dir():
@@ -853,7 +874,27 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             except OSError:
                 evidence.append("Could not read issue template directory")
         else:
-            evidence.append("No issue template directory found")
+            # Check org-level fallback for issue templates
+            fetcher = GitHubTemplatesFetcher()
+            owner = fetcher.extract_owner(repository.url)
+            if owner:
+                org_issue_templates = fetcher.fetch_issue_templates(owner)
+                if len(org_issue_templates) >= 2:
+                    score += 50
+                    template_count = len(org_issue_templates)
+                    evidence.append(
+                        f"Issue templates found: {template_count} templates (inherited from org-level .github repo)"
+                    )
+                elif len(org_issue_templates) == 1:
+                    score += 25
+                    template_count = 1
+                    evidence.append(
+                        "Issue template directory exists with 1 template (need ≥2, inherited from org-level .github repo)"
+                    )
+                else:
+                    evidence.append("No issue template directory found")
+            else:
+                evidence.append("No issue template directory found")
 
         status = "pass" if score >= 75 else "fail"
 
@@ -861,7 +902,7 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             attribute=self.attribute,
             status=status,
             score=score,
-            measured_value=f"PR:{pr_template_found}, Issues:{template_count if issue_template_dir.exists() else 0}",
+            measured_value=f"PR:{pr_template_found}, Issues:{template_count}",
             threshold="PR template + ≥2 issue templates",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
