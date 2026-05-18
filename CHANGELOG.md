@@ -1,3 +1,10 @@
+# [2.38.0](https://github.com/ambient-code/agentready/compare/v2.37.1...v2.38.0) (2026-05-18)
+
+
+### Features
+
+* support org-level issue/PR templates from .github repo ([67ec7ec](https://github.com/ambient-code/agentready/commit/67ec7ec8b2964f2f166e2979199451884c27af86))
+
 ## [2.37.1](https://github.com/ambient-code/agentready/compare/v2.37.0...v2.37.1) (2026-05-14)
 
 
