@@ -88,6 +88,7 @@ line_length = 88
 skip_gitignore = true
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
