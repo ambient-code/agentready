@@ -101,6 +101,12 @@ class BootstrapGenerator:
         content = template.render()
         created.append(self._write_file(security_workflow, content, dry_run))
 
+        # Repomix update workflow
+        repomix_workflow = workflows_dir / "repomix-update.yml"
+        template = self.env.get_template("workflows/repomix-update.yml.j2")
+        content = template.render()
+        created.append(self._write_file(repomix_workflow, content, dry_run))
+
         return created
 
     def _generate_github_templates(self, dry_run: bool) -> List[Path]:

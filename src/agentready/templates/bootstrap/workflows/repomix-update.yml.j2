@@ -1,3 +1,4 @@
+{% raw -%}
 name: Update Repomix Output
 
 on:
@@ -36,14 +37,15 @@ jobs:
 
       - name: Generate Repomix output
         run: |
-          repomix --verbose
+          mkdir -p repomix
+          repomix --verbose --output repomix/repomix-output.md
           echo "Generated Repomix output files:"
-          ls -lh repomix-output.*
+          ls -lh repomix/repomix-output.*
 
       - name: Check for changes
         id: check_changes
         run: |
-          if git diff --quiet repomix-output.*; then
+          if git diff --quiet repomix/repomix-output.*; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected in Repomix output"
           else
@@ -56,7 +58,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add repomix-output.*
+          git add repomix/repomix-output.*
           git commit -m "chore: Update Repomix repository context
 
           🤖 Generated with [Repomix](https://github.com/yamadashy/repomix)
@@ -70,7 +72,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const stats = fs.statSync('repomix-output.md');
+            const stats = fs.statSync('repomix/repomix-output.md');
             const sizeKB = (stats.size / 1024).toFixed(2);
 
             github.rest.issues.createComment({
@@ -81,7 +83,7 @@ jobs:
 
               This PR modifies repository files. The Repomix context output has been regenerated.
 
-              **Updated File**: \`repomix-output.md\` (${sizeKB} KB)
+              **Updated File**: \`repomix/repomix-output.md\` (${sizeKB} KB)
 
               The Repomix output provides AI-friendly context for the entire repository. Consider regenerating locally if you need the latest context for AI-assisted development.
 
@@ -97,7 +99,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
             echo "✅ Repomix output updated successfully" >> $GITHUB_STEP_SUMMARY
-            ls -lh repomix-output.* | awk '{print "- " $9 ": " $5}' >> $GITHUB_STEP_SUMMARY
+            ls -lh repomix/repomix-output.* | awk '{print "- " $9 ": " $5}' >> $GITHUB_STEP_SUMMARY
           else
             echo "ℹ️ No changes to Repomix output" >> $GITHUB_STEP_SUMMARY
           fi
+{% endraw %}
