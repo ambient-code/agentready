@@ -397,7 +397,7 @@ class BootstrapGenerator:
 - `_render_template()` — Render Jinja2 template with context variables
 - `_get_templates_for_language()` — Map language to template files
 - `_write_file()` — Create file on disk (respects dry_run)
-- `_file_exists()` — Check for conflicts (never overwrites)
+- `_write_file()` — Write file to disk (⚠️ currently overwrites existing files, see [#449](https://github.com/ambient-code/agentready/issues/449))
 
 #### 2. Bootstrap CLI (`cli/bootstrap.py`)
 
