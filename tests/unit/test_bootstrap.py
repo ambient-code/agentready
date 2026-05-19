@@ -70,14 +70,15 @@ class TestBootstrapGenerator:
         """Test workflow generation."""
         workflows = generator._generate_workflows(dry_run=False)
 
-        # Should generate 3 workflows
-        assert len(workflows) == 3
+        # Should generate 4 workflows
+        assert len(workflows) == 4
 
         # Check workflow files exist
         workflow_names = [w.name for w in workflows]
         assert "agentready-assessment.yml" in workflow_names
         assert "tests.yml" in workflow_names
         assert "security.yml" in workflow_names
+        assert "repomix-update.yml" in workflow_names
 
         # Verify content is valid YAML
         for workflow in workflows:
@@ -192,7 +193,7 @@ class TestBootstrapGenerator:
 
         # Check specific locations
         workflow_files = [f for f in files if "workflows" in str(f)]
-        assert len(workflow_files) == 3
+        assert len(workflow_files) == 4
 
         issue_template_files = [f for f in files if "ISSUE_TEMPLATE" in str(f)]
         assert len(issue_template_files) == 2
@@ -250,6 +251,17 @@ class TestBootstrapTemplateRendering:
             # Should not have Jinja2 control flow syntax in output
             # Note: GitHub Actions uses ${{ }} syntax which is valid and expected
             assert "{%" not in content
+
+    def test_repomix_workflow_uses_subdirectory_output(self, generator):
+        """Test that repomix workflow outputs to repomix/ subdirectory."""
+        generator.generate_all(dry_run=False)
+
+        workflow = generator.repo_path / ".github" / "workflows" / "repomix-update.yml"
+        assert workflow.exists()
+
+        content = workflow.read_text()
+        assert "repomix/repomix-output" in content
+        assert "mkdir -p repomix" in content
 
     def test_templates_render_without_errors(self, generator):
         """Test that all templates render without errors."""
