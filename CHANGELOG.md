@@ -1,3 +1,10 @@
+## [2.38.1](https://github.com/ambient-code/agentready/compare/v2.38.0...v2.38.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* wire orphaned repomix-update.yml.j2 template and fix output paths ([84806a3](https://github.com/ambient-code/agentready/commit/84806a304e9eecab795747bee72f898a877767ea)), closes [#410](https://github.com/ambient-code/agentready/issues/410)
+
 # [2.38.0](https://github.com/ambient-code/agentready/compare/v2.37.1...v2.38.0) (2026-05-18)
 
 
