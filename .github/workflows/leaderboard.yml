@@ -155,13 +155,12 @@ jobs:
           if [ "$HOST" = "github" ]; then
             # GitHub: verify via API
             ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
-            HTTP_CODE=$(gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" --silent 2>/dev/null; echo $?)
-            if [ "$HTTP_CODE" = "0" ]; then
+            if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" --silent 2>/dev/null; then
               echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
             elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
               echo "✅ $SUBMITTER is the owner of $ORG_REPO"
             else
-              echo "::warning::Cannot verify submitter access for $ORG_REPO (API returned 403). Manual review required."
+              echo "::warning::Cannot verify submitter access for $ORG_REPO (API check failed). Manual review required."
               echo "⚠️ Submitter access must be verified manually by maintainers."
             fi
           else
