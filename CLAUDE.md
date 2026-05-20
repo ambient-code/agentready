@@ -118,6 +118,7 @@ Finding.create_fail(self.attribute, evidence="...", remediation="...")
 4. **Backwards compatibility** - Schema version bump for model changes
 5. **Rich remediation** - Actionable steps with tools, commands, examples
 6. **Self-assign issues** - Before starting work on a GitHub issue, check if it is already assigned. If it is, warn the user and ask for confirmation before continuing. If unassigned (or the user confirms), self-assign it immediately to prevent duplicate effort from other contributors
+7. **Keep docs/attributes.md in sync** - When changing how an assessor scores (thresholds, partial credit rules, recognized paths, pass/fail conditions), update the corresponding entry in `docs/attributes.md` in the same PR
 
 ## Related Docs
 
