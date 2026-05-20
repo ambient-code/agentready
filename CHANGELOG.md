@@ -1,3 +1,10 @@
+# [2.39.0](https://github.com/ambient-code/agentready/compare/v2.38.2...v2.39.0) (2026-05-20)
+
+
+### Features
+
+* add pdm.lock to recognized lockfiles ([4ede2d3](https://github.com/ambient-code/agentready/commit/4ede2d3c1a036393092095a32e476f1b1cc49f33))
+
 ## [2.38.2](https://github.com/ambient-code/agentready/compare/v2.38.1...v2.38.2) (2026-05-20)
 
 
