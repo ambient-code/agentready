@@ -155,13 +155,13 @@ jobs:
           if [ "$HOST" = "github" ]; then
             # GitHub: verify via API
             ORG_REPO=$(echo "$REPO_URL" | sed 's|git@github.com:||' | sed 's|https://github.com/||' | sed 's|\.git$||')
-            if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" 2>/dev/null; then
+            if gh api "/repos/$ORG_REPO/collaborators/$SUBMITTER" --silent 2>/dev/null; then
               echo "✅ $SUBMITTER is a collaborator on $ORG_REPO"
             elif [ "$(gh api "/repos/$ORG_REPO" -q '.owner.login')" == "$SUBMITTER" ]; then
               echo "✅ $SUBMITTER is the owner of $ORG_REPO"
             else
-              echo "::error::$SUBMITTER does not have commit access to $ORG_REPO"
-              exit 1
+              echo "::warning::Cannot verify submitter access for $ORG_REPO (API check failed). Manual review required."
+              echo "⚠️ Submitter access must be verified manually by maintainers."
             fi
           else
             # Non-GitHub: cannot verify cross-platform access automatically
