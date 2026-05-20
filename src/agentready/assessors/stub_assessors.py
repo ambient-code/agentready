@@ -56,6 +56,7 @@ class DependencyPinningAssessor(BaseAssessor):
             "Cargo.lock",  # Rust
             "Gemfile.lock",  # Ruby
             "go.sum",  # Go
+            "pdm.lock",  # pdm
         ]
 
         # Manual lock files (need validation)
