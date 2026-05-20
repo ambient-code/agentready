@@ -1,3 +1,10 @@
+## [2.39.1](https://github.com/ambient-code/agentready/compare/v2.39.0...v2.39.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* ensure pytest imports from local src/ not installed package ([11225c9](https://github.com/ambient-code/agentready/commit/11225c95a6b118d26ce19fc96d384bf29309391f))
+
 # [2.39.0](https://github.com/ambient-code/agentready/compare/v2.38.2...v2.39.0) (2026-05-20)
 
 
