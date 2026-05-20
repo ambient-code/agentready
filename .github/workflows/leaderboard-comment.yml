@@ -1,0 +1,112 @@
+name: Leaderboard Validation Comment
+
+# Post validation results as a PR comment after the leaderboard workflow completes.
+# Uses workflow_run to run in the upstream repo context with write permissions,
+# enabling comments on fork PRs (same pattern as coverage-comment.yml).
+
+on:
+  workflow_run:
+    workflows: ["Leaderboard Management"]
+    types: [completed]
+
+jobs:
+  post-comment:
+    name: Post Validation Comment
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    permissions:
+      pull-requests: write
+      actions: read
+
+    steps:
+      - name: Get PR number from workflow run
+        id: pr_info
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEAD_REPO="${{ github.event.workflow_run.head_repository.full_name }}"
+          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+          TARGET_REPO="${{ github.repository }}"
+
+          if [ "$HEAD_REPO" = "$TARGET_REPO" ]; then
+            BRANCH_QUERY="${HEAD_BRANCH}"
+          else
+            BRANCH_QUERY="${HEAD_REPO%%/*}:${HEAD_BRANCH}"
+          fi
+
+          PR_NUMBER=$(gh pr view \
+            --repo "$TARGET_REPO" \
+            "$BRANCH_QUERY" \
+            --json number --jq .number 2>/dev/null || echo "")
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::warning::Could not find PR for ${BRANCH_QUERY} in ${TARGET_REPO}"
+            exit 0
+          fi
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Download validation data
+        if: steps.pr_info.outputs.pr_number
+        uses: actions/download-artifact@v4
+        with:
+          name: leaderboard-validation
+          path: validation-data
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post validation comment
+        if: steps.pr_info.outputs.pr_number
+        uses: actions/github-script@v9
+        env:
+          TRUSTED_PR_NUMBER: ${{ steps.pr_info.outputs.pr_number }}
+        with:
+          script: |
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('validation-data/validation.json', 'utf8'));
+
+            const artifactPR = data.pr_number;
+            const trustedPR = parseInt(process.env.TRUSTED_PR_NUMBER);
+            if (parseInt(artifactPR) !== trustedPR) {
+              core.setFailed(`PR number mismatch: artifact=${artifactPR}, expected=${trustedPR}`);
+              return;
+            }
+
+            const claimed = data.claimed_score || 'N/A';
+            const actual = data.actual_score || 'N/A';
+            const diff = actual !== 'N/A' && actual !== ''
+              ? Math.abs(parseFloat(actual) - parseFloat(claimed)).toFixed(1)
+              : 'N/A';
+
+            const status = parseFloat(diff) <= 2.0 ? '✅ **PASSED**' : '❌ **FAILED**';
+            const body = `## Leaderboard Validation\n\n${status}\n\n` +
+                         `**Claimed**: ${claimed}/100\n` +
+                         `**Verified**: ${actual}/100\n` +
+                         `**Diff**: ${diff} points (±2 tolerance)`;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: trustedPR,
+            });
+
+            const existing = comments.data.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Leaderboard Validation')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: trustedPR,
+                body: body,
+              });
+            }
