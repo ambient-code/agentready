@@ -26,8 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read            # Checkout PR branch
-      pull-requests: write      # Post validation results as PR comment
-      issues: write             # Required by github-script (PRs are issues in GH API)
     steps:
       # Fix for outdated forks: Always use upstream for validation tools/schema
       # The PR branch may be from a fork that hasn't synced with upstream,
@@ -203,34 +201,34 @@ jobs:
             exit 1
           fi
 
-      - name: Post validation results
+      - name: Save validation results
         if: always()
-        uses: actions/github-script@v9
         env:
           CLAIMED_SCORE: ${{ steps.extract.outputs.claimed_score }}
           ACTUAL_SCORE: ${{ env.ACTUAL_SCORE }}
           REPO_NAME: ${{ steps.extract.outputs.repo_name }}
           CLAIMED_RESEARCH_VERSION: ${{ steps.extract.outputs.research_version }}
           ACTUAL_RESEARCH_VERSION: ${{ env.ACTUAL_RESEARCH_VERSION }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          mkdir -p /tmp/validation-data
+          jq -n \
+            --arg claimed "$CLAIMED_SCORE" \
+            --arg actual "$ACTUAL_SCORE" \
+            --arg repo_name "$REPO_NAME" \
+            --arg claimed_rv "$CLAIMED_RESEARCH_VERSION" \
+            --arg actual_rv "$ACTUAL_RESEARCH_VERSION" \
+            --arg pr_number "$PR_NUMBER" \
+            '{claimed_score: $claimed, actual_score: $actual, repo_name: $repo_name, claimed_research_version: $claimed_rv, actual_research_version: $actual_rv, pr_number: $pr_number}' \
+            > /tmp/validation-data/validation.json
+
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          script: |
-            // SAFE: All values from environment variables
-            const claimed = process.env.CLAIMED_SCORE || 'N/A';
-            const actual = process.env.ACTUAL_SCORE || 'N/A';
-            const diff = actual !== 'N/A' ? Math.abs(parseFloat(actual) - parseFloat(claimed)).toFixed(1) : 'N/A';
-
-            const status = parseFloat(diff) <= 2.0 ? '✅ **PASSED**' : '❌ **FAILED**';
-            const body = `## Leaderboard Validation\n\n${status}\n\n` +
-                         `**Claimed**: ${claimed}/100\n` +
-                         `**Verified**: ${actual}/100\n` +
-                         `**Diff**: ${diff} points (±2 tolerance)`;
-
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: body
-            });
+          name: leaderboard-validation
+          path: /tmp/validation-data/validation.json
+          retention-days: 1
 
   # Job 2: Update leaderboard data (after merge to main, or manual trigger)
   update:
