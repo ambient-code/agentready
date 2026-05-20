@@ -57,31 +57,26 @@
     },
     "attributes_assessed": {
       "type": "integer",
-      "minimum": 0,
-      "maximum": 25
+      "minimum": 0
     },
     "attributes_skipped": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 25,
       "description": "Canonical key name for skipped/not-assessed attributes"
     },
     "attributes_not_assessed": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 25,
       "description": "Deprecated alias for attributes_skipped (backwards compatibility)"
     },
     "attributes_total": {
       "type": "integer",
       "minimum": 10,
-      "maximum": 25,
-      "description": "Total attributes in assessment (may be < 25 if --exclude was used)"
+      "description": "Total attributes in assessment (may be fewer if --exclude was used)"
     },
     "findings": {
       "type": "array",
       "minItems": 10,
-      "maxItems": 25,
       "items": {
         "type": "object",
         "required": ["attribute", "status"],
