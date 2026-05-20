@@ -1,3 +1,10 @@
+## [2.39.3](https://github.com/ambient-code/agentready/compare/v2.39.2...v2.39.3) (2026-05-20)
+
+
+### Bug Fixes
+
+* post leaderboard validation comments via workflow_run for fork PRs ([308afc4](https://github.com/ambient-code/agentready/commit/308afc46773b7f68ef2d39c1c2211f93e43f5521))
+
 ## [2.39.2](https://github.com/ambient-code/agentready/compare/v2.39.1...v2.39.2) (2026-05-20)
 
 
