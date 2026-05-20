@@ -1,3 +1,11 @@
+## [2.39.2](https://github.com/ambient-code/agentready/compare/v2.39.1...v2.39.2) (2026-05-20)
+
+
+### Bug Fixes
+
+* simplify submitter access check per review feedback ([10309b2](https://github.com/ambient-code/agentready/commit/10309b257dec6ff49bdb8baf4a0de4ab5999eea1))
+* treat unverifiable submitter access as warning instead of error ([246fde3](https://github.com/ambient-code/agentready/commit/246fde35045c7760d38cdfd2544090ca41d3c09a))
+
 ## [2.39.1](https://github.com/ambient-code/agentready/compare/v2.39.0...v2.39.1) (2026-05-20)
 
 
