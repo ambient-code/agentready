@@ -1,3 +1,10 @@
+## [2.38.2](https://github.com/ambient-code/agentready/compare/v2.38.1...v2.38.2) (2026-05-20)
+
+
+### Bug Fixes
+
+* remove hardcoded attribute count limits from assessment schema ([54456cf](https://github.com/ambient-code/agentready/commit/54456cf5a42eb8a8c070ff26a8a0274dd5dbeaa7))
+
 ## [2.38.1](https://github.com/ambient-code/agentready/compare/v2.38.0...v2.38.1) (2026-05-19)
 
 
