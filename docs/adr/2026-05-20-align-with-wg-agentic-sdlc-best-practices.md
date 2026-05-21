@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Date** | 2026-05-20 |
 | **Author** | Bill Murdock (with assistance from Claude Code) |
 
@@ -299,7 +299,9 @@ repo snapshot. Document them as limitations, not gaps to close.
 
 ## Decision
 
-Pending review and discussion.
+Accepted. All proposals (A through E) approved for implementation. Proposal D
+(BP recommendations) will be contributed to the wg-agentic-sdlc working group
+separately from the code changes.
 
 ## Consequences
 
