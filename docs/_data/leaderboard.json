@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-21T16:06:51.150950Z",
-  "total_repositories": 26,
+  "generated_at": "2026-05-21T16:12:20.734728Z",
+  "total_repositories": 27,
   "overall": [
     {
       "repo": "opendatahub-io/opendatahub-tests",
@@ -333,6 +333,31 @@
       }
     },
     {
+      "repo": "red-hat-data-services/agentic-starter-kits",
+      "org": "red-hat-data-services",
+      "name": "agentic-starter-kits",
+      "score": 58.4,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-05-21",
+      "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
+      "agentready_version": "2.39.3",
+      "research_version": "2.0.1",
+      "history": [
+        {
+          "date": "2026-05-21",
+          "score": 58.4,
+          "agentready_version": "2.39.3",
+          "research_version": "2.0.1"
+        }
+      ],
+      "rank": 13,
+      "lang_rank": {
+        "Unknown": 13
+      }
+    },
+    {
       "repo": "ambient-code/reference",
       "org": "ambient-code",
       "name": "reference",
@@ -352,9 +377,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 13,
+      "rank": 14,
       "lang_rank": {
-        "Unknown": 13
+        "Unknown": 14
       }
     },
     {
@@ -377,9 +402,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 14,
+      "rank": 15,
       "lang_rank": {
-        "Unknown": 14
+        "Unknown": 15
       }
     },
     {
@@ -402,9 +427,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 15,
+      "rank": 16,
       "lang_rank": {
-        "Unknown": 15
+        "Unknown": 16
       }
     },
     {
@@ -427,9 +452,9 @@
           "research_version": "1.0.0"
         }
       ],
-      "rank": 16,
+      "rank": 17,
       "lang_rank": {
-        "Unknown": 16
+        "Unknown": 17
       }
     },
     {
@@ -452,9 +477,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 17,
+      "rank": 18,
       "lang_rank": {
-        "Unknown": 17
+        "Unknown": 18
       }
     },
     {
@@ -477,9 +502,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 18,
+      "rank": 19,
       "lang_rank": {
-        "Unknown": 18
+        "Unknown": 19
       }
     },
     {
@@ -502,9 +527,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 19,
+      "rank": 20,
       "lang_rank": {
-        "Unknown": 19
+        "Unknown": 20
       }
     },
     {
@@ -527,9 +552,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 20,
+      "rank": 21,
       "lang_rank": {
-        "Unknown": 20
+        "Unknown": 21
       }
     },
     {
@@ -552,9 +577,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 21,
+      "rank": 22,
       "lang_rank": {
-        "Unknown": 21
+        "Unknown": 22
       }
     },
     {
@@ -577,9 +602,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 22,
+      "rank": 23,
       "lang_rank": {
-        "Unknown": 22
+        "Unknown": 23
       }
     },
     {
@@ -602,9 +627,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 23,
+      "rank": 24,
       "lang_rank": {
-        "Unknown": 23
+        "Unknown": 24
       }
     },
     {
@@ -627,9 +652,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 24,
+      "rank": 25,
       "lang_rank": {
-        "Unknown": 24
+        "Unknown": 25
       }
     },
     {
@@ -652,9 +677,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 25,
+      "rank": 26,
       "lang_rank": {
-        "Unknown": 25
+        "Unknown": 26
       }
     },
     {
@@ -677,9 +702,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 26,
+      "rank": 27,
       "lang_rank": {
-        "Unknown": 26
+        "Unknown": 27
       }
     }
   ],
@@ -1016,6 +1041,31 @@
         }
       },
       {
+        "repo": "red-hat-data-services/agentic-starter-kits",
+        "org": "red-hat-data-services",
+        "name": "agentic-starter-kits",
+        "score": 58.4,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-05-21",
+        "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
+        "agentready_version": "2.39.3",
+        "research_version": "2.0.1",
+        "history": [
+          {
+            "date": "2026-05-21",
+            "score": 58.4,
+            "agentready_version": "2.39.3",
+            "research_version": "2.0.1"
+          }
+        ],
+        "rank": 13,
+        "lang_rank": {
+          "Unknown": 13
+        }
+      },
+      {
         "repo": "ambient-code/reference",
         "org": "ambient-code",
         "name": "reference",
@@ -1035,9 +1085,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 13,
+        "rank": 14,
         "lang_rank": {
-          "Unknown": 13
+          "Unknown": 14
         }
       },
       {
@@ -1060,9 +1110,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 14,
+        "rank": 15,
         "lang_rank": {
-          "Unknown": 14
+          "Unknown": 15
         }
       },
       {
@@ -1085,9 +1135,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 15,
+        "rank": 16,
         "lang_rank": {
-          "Unknown": 15
+          "Unknown": 16
         }
       },
       {
@@ -1110,9 +1160,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 16,
+        "rank": 17,
         "lang_rank": {
-          "Unknown": 16
+          "Unknown": 17
         }
       },
       {
@@ -1135,9 +1185,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 17,
+        "rank": 18,
         "lang_rank": {
-          "Unknown": 17
+          "Unknown": 18
         }
       },
       {
@@ -1160,9 +1210,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 18,
+        "rank": 19,
         "lang_rank": {
-          "Unknown": 18
+          "Unknown": 19
         }
       },
       {
@@ -1185,9 +1235,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 19,
+        "rank": 20,
         "lang_rank": {
-          "Unknown": 19
+          "Unknown": 20
         }
       },
       {
@@ -1210,9 +1260,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 20,
+        "rank": 21,
         "lang_rank": {
-          "Unknown": 20
+          "Unknown": 21
         }
       },
       {
@@ -1235,9 +1285,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 21,
+        "rank": 22,
         "lang_rank": {
-          "Unknown": 21
+          "Unknown": 22
         }
       },
       {
@@ -1260,9 +1310,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 22,
+        "rank": 23,
         "lang_rank": {
-          "Unknown": 22
+          "Unknown": 23
         }
       },
       {
@@ -1285,9 +1335,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 23,
+        "rank": 24,
         "lang_rank": {
-          "Unknown": 23
+          "Unknown": 24
         }
       },
       {
@@ -1310,9 +1360,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 24,
+        "rank": 25,
         "lang_rank": {
-          "Unknown": 24
+          "Unknown": 25
         }
       },
       {
@@ -1335,9 +1385,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 25,
+        "rank": 26,
         "lang_rank": {
-          "Unknown": 25
+          "Unknown": 26
         }
       },
       {
@@ -1360,9 +1410,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 26,
+        "rank": 27,
         "lang_rank": {
-          "Unknown": 26
+          "Unknown": 27
         }
       }
     ]
@@ -1700,6 +1750,31 @@
         }
       },
       {
+        "repo": "red-hat-data-services/agentic-starter-kits",
+        "org": "red-hat-data-services",
+        "name": "agentic-starter-kits",
+        "score": 58.4,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-05-21",
+        "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
+        "agentready_version": "2.39.3",
+        "research_version": "2.0.1",
+        "history": [
+          {
+            "date": "2026-05-21",
+            "score": 58.4,
+            "agentready_version": "2.39.3",
+            "research_version": "2.0.1"
+          }
+        ],
+        "rank": 13,
+        "lang_rank": {
+          "Unknown": 13
+        }
+      },
+      {
         "repo": "ambient-code/reference",
         "org": "ambient-code",
         "name": "reference",
@@ -1719,9 +1794,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 13,
+        "rank": 14,
         "lang_rank": {
-          "Unknown": 13
+          "Unknown": 14
         }
       },
       {
@@ -1744,9 +1819,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 14,
+        "rank": 15,
         "lang_rank": {
-          "Unknown": 14
+          "Unknown": 15
         }
       },
       {
@@ -1769,9 +1844,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 15,
+        "rank": 16,
         "lang_rank": {
-          "Unknown": 15
+          "Unknown": 16
         }
       },
       {
@@ -1794,9 +1869,9 @@
             "research_version": "1.0.0"
           }
         ],
-        "rank": 16,
+        "rank": 17,
         "lang_rank": {
-          "Unknown": 16
+          "Unknown": 17
         }
       },
       {
@@ -1819,9 +1894,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 17,
+        "rank": 18,
         "lang_rank": {
-          "Unknown": 17
+          "Unknown": 18
         }
       },
       {
@@ -1844,9 +1919,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 18,
+        "rank": 19,
         "lang_rank": {
-          "Unknown": 18
+          "Unknown": 19
         }
       },
       {
@@ -1869,9 +1944,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 19,
+        "rank": 20,
         "lang_rank": {
-          "Unknown": 19
+          "Unknown": 20
         }
       },
       {
@@ -1894,9 +1969,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 20,
+        "rank": 21,
         "lang_rank": {
-          "Unknown": 20
+          "Unknown": 21
         }
       },
       {
@@ -1919,9 +1994,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 21,
+        "rank": 22,
         "lang_rank": {
-          "Unknown": 21
+          "Unknown": 22
         }
       },
       {
@@ -1944,9 +2019,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 22,
+        "rank": 23,
         "lang_rank": {
-          "Unknown": 22
+          "Unknown": 23
         }
       },
       {
@@ -1969,9 +2044,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 23,
+        "rank": 24,
         "lang_rank": {
-          "Unknown": 23
+          "Unknown": 24
         }
       },
       {
@@ -1994,9 +2069,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 24,
+        "rank": 25,
         "lang_rank": {
-          "Unknown": 24
+          "Unknown": 25
         }
       },
       {
@@ -2019,9 +2094,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 25,
+        "rank": 26,
         "lang_rank": {
-          "Unknown": 25
+          "Unknown": 26
         }
       },
       {
@@ -2044,9 +2119,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 26,
+        "rank": 27,
         "lang_rank": {
-          "Unknown": 26
+          "Unknown": 27
         }
       }
     ]
