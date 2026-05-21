@@ -26,7 +26,7 @@ Complete reference for all 28 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against 28 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
+AgentReady evaluates repositories against 24 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
 Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 
@@ -38,12 +38,12 @@ Attributes are organized into four weighted tiers:
 
 | Tier | Weight | Focus | Attribute Count |
 |------|--------|-------|-----------------|
-| **Tier 1: Essential** | 55% | Fundamentals enabling basic AI functionality | 9 attributes |
+| **Tier 1: Essential** | 59% | Fundamentals enabling basic AI functionality | 9 attributes |
 | **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 9 attributes |
-| **Tier 3: Important** | 14% | Significant improvements in specific areas | 6 attributes |
-| **Tier 4: Advanced** | 4% | Refinement and optimization | 4 attributes |
+| **Tier 3: Important** | 12% | Significant improvements in specific areas | 5 attributes |
+| **Tier 4: Advanced** | 2% | Refinement and optimization | 2 attributes |
 
-Missing a Tier 1 attribute (up to 10% weight) has up to 10x the score impact of missing a Tier 4 attribute (1% weight).
+Missing a Tier 1 attribute (up to 12% weight) has up to 12x the score impact of missing a Tier 4 attribute (1% weight).
 
 ---
 
@@ -1015,11 +1015,11 @@ setup:
 
 ### Additional Tier 2 Attributes
 
-**Concise Structured Documentation** (`concise_documentation`, 3%) — Focused, scannable docs optimized for AI context windows
 **Inline Documentation** (`inline_documentation`, 3%) — Comments and docstrings for functions, classes, modules
 **File Size Limits** (`file_size_limits`, 3%) — Files under threshold to keep context manageable
 **Separation of Concerns** (`separation_of_concerns`, 3%) — Clean module boundaries and single-responsibility
-**Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes (NEW)
+**Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes
+**Design Intent Documentation** (`design_intent`, 3%) — Preconditions, invariants, and rationale in design docs (moved from T3)
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
@@ -1027,7 +1027,7 @@ setup:
 
 ## Tier 3: Important Attributes
 
-*Significant improvements in specific areas — 14% of total score*
+*Significant improvements in specific areas — 12% of total score*
 
 ### 14. Cyclomatic Complexity Limits
 
@@ -1077,9 +1077,9 @@ radon cc src/ -s -nb
 
 ### Additional Tier 3 Attributes
 
-**Design Intent Documentation** (`design_intent`, 2%) — Preconditions, invariants, and rationale in design docs
 **Structured Logging** (`structured_logging`, 2%) — JSON logs with consistent fields
 **OpenAPI/Swagger Specs** (`openapi_specs`, 3%) — Machine-readable API docs
+**Progressive Disclosure** (`progressive_disclosure`, 2%) — Path-scoped rules, skills for focused context (moved from T4)
 ### Architecture Decision Records
 
 **ID**: `architecture_decisions`
@@ -1145,61 +1145,18 @@ EOF
 
 ---
 
-### Repomix Configuration
-
-**ID**: `repomix_config`
-**Tier**: Tier 3
-**Weight**: 2%
-**Category**: Context Window Optimization
-**Status**: Implemented
-
-#### Definition
-
-[Repomix](https://github.com/yamadashy/repomix) is a tool that generates an AI-friendly single-file snapshot of a repository, making it easy to feed the entire codebase into an LLM as context.
-
-#### Why It Matters
-
-A fresh Repomix output lets an agent understand the full repo in a single context window, without making dozens of file-read tool calls. Stale output (older than 7 days) may not reflect recent changes, which is why freshness is scored.
-
-#### Measurable Criteria
-
-Scoring is based on configuration and output freshness:
-
-| State | Score | Status |
-|-------|-------|--------|
-| No `repomix.config.json` | 0 | fail |
-| Config present, no output file | 50 | fail |
-| Config + output + output <7 days old | 100 | pass |
-| Config + output + output >=7 days old | 75 | fail |
-
-Output file is expected in the `repomix/` directory.
-
-#### Remediation
-
-```bash
-# Initialize Repomix configuration
-agentready repomix-generate --init
-
-# Generate snapshot
-agentready repomix-generate
-
-# Re-run weekly or on a schedule to keep output fresh
-```
-
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
 
 ## Tier 4: Advanced Attributes
 
-*Refinement and optimization — 4% of total score*
+*Refinement and optimization — 2% of total score*
 
 ### Tier 4 Attributes
 
-**Code Smell Elimination** (`code_smells`, 1%) — DRY violations, long methods, magic numbers
 **Issue & PR Templates** (`issue_pr_templates`, 1%) — PR template (50 pts) + issue templates in `.github/ISSUE_TEMPLATE/` (25 pts for 1, 50 pts for 2+); pass threshold 75. ✅ Bootstrap generates these automatically.
 **Container/Virtualization Setup** (`container_setup`, 1%) — Dockerfile or Containerfile (40 pts), multi-stage build bonus (10 pts), docker-compose (30 pts), .dockerignore/.containerignore (20 pts); pass threshold 40. Returns not_applicable if no Dockerfile/Containerfile found.
-**Progressive Disclosure** (`progressive_disclosure`, 1%) — Path-scoped rules, skills for focused context
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
@@ -1207,13 +1164,13 @@ agentready repomix-generate
 
 ## Implementation Status
 
-All 28 assessors are fully implemented across all four tiers.
+All 24 assessors are fully implemented across all four tiers.
 
 **Current State**:
 - ✅ **Tier 1 (Essential)**: Fully implemented (9 attributes)
 - ✅ **Tier 2 (Critical)**: Fully implemented (9 attributes)
-- ✅ **Tier 3 (Important)**: Fully implemented (6 attributes)
-- ✅ **Tier 4 (Advanced)**: Fully implemented (4 attributes)
+- ✅ **Tier 3 (Important)**: Fully implemented (5 attributes)
+- ✅ **Tier 4 (Advanced)**: Fully implemented (2 attributes)
 
 See the [GitHub repository](https://github.com/ambient-code/agentready) for current implementation details.
 

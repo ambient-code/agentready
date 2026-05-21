@@ -123,7 +123,6 @@ def map_finding_to_attribute(
         "lock file": "lock_file_present",
         "security": "security_best_practices",
         "vulnerability": "security_best_practices",
-        "repomix": "repomix_configuration",
         "complexity": "low_complexity",
         "cyclomatic": "low_complexity",
     }

@@ -162,14 +162,14 @@ class TestDesignIntentAssessor:
         assert assessor.attribute_id == "design_intent"
 
     def test_tier(self):
-        """Test tier is Important (3)."""
+        """Test tier is Critical (2)."""
         assessor = DesignIntentAssessor()
-        assert assessor.tier == 3
+        assert assessor.tier == 2
 
     def test_default_weight(self):
         """Test default weight matches YAML config."""
         assessor = DesignIntentAssessor()
-        assert assessor.attribute.default_weight == 0.02
+        assert assessor.attribute.default_weight == 0.03
 
     def test_fails_with_no_design_docs(self, tmp_path):
         """Test that assessor fails when no design docs exist."""
@@ -351,14 +351,14 @@ class TestProgressiveDisclosureAssessor:
         assert assessor.attribute_id == "progressive_disclosure"
 
     def test_tier(self):
-        """Test tier is Advanced (4)."""
+        """Test tier is Important (3)."""
         assessor = ProgressiveDisclosureAssessor()
-        assert assessor.tier == 4
+        assert assessor.tier == 3
 
     def test_default_weight(self):
         """Test default weight matches YAML config."""
         assessor = ProgressiveDisclosureAssessor()
-        assert assessor.attribute.default_weight == 0.01
+        assert assessor.attribute.default_weight == 0.02
 
     def test_not_applicable_for_small_repos(self, tmp_path):
         """Test that small repos get not_applicable status."""

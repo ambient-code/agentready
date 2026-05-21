@@ -223,7 +223,7 @@ class TestCriticalConfigHandling:
 weights:
   claude_md: 2.0
 excluded_attributes:
-  - repomix_config
+  - container_setup
 """)
 
             # Run assessment with config
@@ -238,5 +238,5 @@ excluded_attributes:
             data = helper.load_assessment_json(temp_output_dir)
             finding_ids = [f["attribute"]["id"] for f in data["findings"]]
             assert (
-                "repomix_config" not in finding_ids
+                "container_setup" not in finding_ids
             ), "Excluded attribute should not be in findings"

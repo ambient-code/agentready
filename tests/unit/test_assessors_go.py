@@ -5,7 +5,6 @@ import subprocess
 import pytest
 
 from agentready.assessors.code_quality import (
-    CodeSmellsAssessor,
     CyclomaticComplexityAssessor,
     StructuredLoggingAssessor,
     TypeAnnotationsAssessor,
@@ -549,20 +548,6 @@ class TestStructuredLoggingAssessorGo:
 class TestGoMonorepoSupport:
     """Test that assessors handle Go monorepos with go.mod in subdirectories."""
 
-    def test_code_smells_golangci_in_subdir(self, tmp_path):
-        """CodeSmellsAssessor finds .golangci.yml in Go module subdirectory."""
-        repo = _make_go_repo(tmp_path)
-
-        svc = tmp_path / "my-service"
-        svc.mkdir()
-        (svc / "go.mod").write_text("module github.com/test/svc\n\ngo 1.22\n")
-        (svc / ".golangci.yml").write_text("linters:\n  enable:\n    - errcheck\n")
-
-        assessor = CodeSmellsAssessor()
-        finding = assessor.assess(repo)
-
-        assert any("golangci-lint" in e for e in finding.evidence)
-
     def test_complexity_golangci_in_subdir(self, tmp_path):
         """CyclomaticComplexityAssessor finds golangci-lint config in subdirectory."""
         repo = _make_go_repo(tmp_path)
@@ -740,37 +725,6 @@ class TestInlineDocumentationAssessorGo:
         finding = assessor.assess(repo)
 
         assert finding.status == "not_applicable"
-
-
-# =============================================================================
-# CodeSmellsAssessor — Go (already supported, verify)
-# =============================================================================
-
-
-class TestCodeSmellsAssessorGo:
-    """Verify existing Go support in CodeSmellsAssessor."""
-
-    def test_go_with_golangci_lint(self, tmp_path):
-        """Go repo with .golangci.yml should score for Go linter."""
-        repo = _make_go_repo(tmp_path)
-
-        (tmp_path / ".golangci.yml").write_text("linters:\n  enable:\n    - errcheck\n")
-
-        assessor = CodeSmellsAssessor()
-        finding = assessor.assess(repo)
-
-        assert any("golangci-lint" in e for e in finding.evidence)
-
-    def test_go_with_golangci_toml(self, tmp_path):
-        """Go repo with .golangci.toml should also be detected."""
-        repo = _make_go_repo(tmp_path)
-
-        (tmp_path / ".golangci.toml").write_text('[linters]\nenable = ["errcheck"]\n')
-
-        assessor = CodeSmellsAssessor()
-        finding = assessor.assess(repo)
-
-        assert any("golangci-lint" in e for e in finding.evidence)
 
 
 # =============================================================================
