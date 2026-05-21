@@ -74,7 +74,7 @@ class BaseAssessor(ABC):
         "Go": ["go.mod"],
         "Python": ["pyproject.toml", "setup.py", "setup.cfg"],
         "JavaScript": ["package.json"],
-        "TypeScript": ["package.json", "tsconfig.json"],
+        "TypeScript": ["tsconfig.json"],
         "Java": ["pom.xml", "build.gradle", "build.gradle.kts"],
         "Rust": ["Cargo.toml"],
         "Ruby": ["Gemfile"],
@@ -120,17 +120,10 @@ class BaseAssessor(ABC):
         if len(detected_by_manifest) == 1:
             return detected_by_manifest[0]
 
-        # Special handling for JavaScript/TypeScript (share package.json)
+        # Special handling for JavaScript/TypeScript
         if set(detected_by_manifest) == {"JavaScript", "TypeScript"}:
             # TypeScript projects have tsconfig.json - stronger signal than file count
             if (repository.path / "tsconfig.json").exists():
-                return "TypeScript"
-            # Otherwise determine by file count
-            js_count = repository.languages.get("JavaScript", 0)
-            ts_count = repository.languages.get("TypeScript", 0)
-            if js_count > ts_count:
-                return "JavaScript"
-            elif ts_count > js_count:
                 return "TypeScript"
 
         # Use file counts to detect primary language

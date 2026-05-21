@@ -28,6 +28,7 @@ class TestPrimaryLanguage:
     def test_go_manifest_detection(self, tmp_path):
         """Single language detected by manifest returns immediately."""
         (tmp_path / "go.mod").write_text("module test\n")
+
         with patch.object(Repository, "__post_init__", lambda self: None):
             repo = Repository(
                 path=tmp_path,
@@ -68,32 +69,10 @@ class TestPrimaryLanguage:
             # Python should win because pyproject.toml exists
             assert result == "Python"
 
-    def test_typescript_manifest_tsconfig_priority(self, tmp_path):
+    def test_typescript_manifest_detection(self, tmp_path):
         """TypeScript detected when tsconfig.json exists."""
         (tmp_path / "package.json").write_text("{}")
         (tmp_path / "tsconfig.json").write_text("{}")
-
-        with patch.object(Repository, "__post_init__", lambda self: None):
-            repo = Repository(
-                path=tmp_path,
-                name="test",
-                url=None,
-                branch="main",
-                commit_hash="abc",
-                languages={"JavaScript": 200, "TypeScript": 50},  # More JS files
-                total_files=250,
-                total_lines=5000,
-            )
-
-            assessor = ConcreteAssessor()
-            result = assessor._primary_language(repo, {"JavaScript", "TypeScript"})
-
-            # TypeScript should win because tsconfig.json exists
-            assert result == "TypeScript"
-
-    def test_javascript_manifest_detection_without_tsconfig(self, tmp_path):
-        """JavaScript wins when no tsconfig.json and more JS files."""
-        (tmp_path / "package.json").write_text("{}")
 
         with patch.object(Repository, "__post_init__", lambda self: None):
             repo = Repository(
@@ -110,28 +89,7 @@ class TestPrimaryLanguage:
             assessor = ConcreteAssessor()
             result = assessor._primary_language(repo, {"JavaScript", "TypeScript"})
 
-            # JavaScript should win by file count
-            assert result == "JavaScript"
-
-    def test_typescript_by_file_count(self, tmp_path):
-        """TypeScript wins by file count when no tsconfig.json."""
-        (tmp_path / "package.json").write_text("{}")
-
-        with patch.object(Repository, "__post_init__", lambda self: None):
-            repo = Repository(
-                path=tmp_path,
-                name="test",
-                url=None,
-                branch="main",
-                commit_hash="abc",
-                languages={"JavaScript": 50, "TypeScript": 200},
-                total_files=250,
-                total_lines=5000,
-            )
-
-            assessor = ConcreteAssessor()
-            result = assessor._primary_language(repo, {"JavaScript", "TypeScript"})
-
+            # TypeScript should win because tsconfig.json exists
             assert result == "TypeScript"
 
     def test_java_maven_detection(self, tmp_path):
