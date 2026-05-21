@@ -32,7 +32,7 @@ agentready harbor compare -t task1 -t task2
 
 ```
 src/agentready/
-├── assessors/    # 24 attribute evaluators (see assessors/__init__.py)
+├── assessors/    # 25 attribute evaluators (see assessors/__init__.py)
 ├── cli/          # Click commands with LazyGroup optimization
 ├── data/         # default-weights.yaml, RESEARCH_REPORT.md
 ├── fixers/       # Automated remediation strategies

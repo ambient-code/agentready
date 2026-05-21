@@ -60,7 +60,7 @@ def create_all_assessors() -> list[BaseAssessor]:
     """Create all assessors for assessment.
 
     Centralized factory function to eliminate duplication across CLI commands.
-    Returns all implemented and stub assessors (24 attributes).
+    Returns all implemented and stub assessors (25 attributes).
 
     Returns:
         List of all assessor instances

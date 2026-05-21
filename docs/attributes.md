@@ -26,7 +26,7 @@ Complete reference for all 28 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against 24 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
+AgentReady evaluates repositories against 25 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
 Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 

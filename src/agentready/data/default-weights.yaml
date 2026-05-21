@@ -1,6 +1,6 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 24 attributes.
+# This file defines the default weights for all 25 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
 # Red Hat best practices (April 2026), and Cursor agent guidelines.
 #
