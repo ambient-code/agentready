@@ -7,7 +7,7 @@ Assess repositories against evidence-based attributes for AI-assisted developmen
 | Item | Value |
 |------|-------|
 | **Python** | >=3.12 |
-| **Entry Point** | `agentready.cli.main:cli` |
+| **Entry Point** | `agentready.cli.main:cli` (or `python -m agentready`) |
 | **Self-Score** | 80.0/100 (Gold) |
 | **Test Coverage** | 37% (target: >80%) |
 
@@ -23,6 +23,9 @@ agentready align <repo>            # Automated remediation
 pytest                             # Run tests
 pytest --cov=src/agentready        # With coverage
 black . && isort . && ruff check . # Lint
+
+# Local development (uses this checkout, not the installed package)
+PYTHONPATH=src python -m agentready assess <repo>
 
 # Benchmarks (requires: uv tool install harbor)
 agentready harbor compare -t task1 -t task2
