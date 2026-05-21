@@ -1,3 +1,10 @@
+# [2.40.0](https://github.com/ambient-code/agentready/compare/v2.39.3...v2.40.0) (2026-05-21)
+
+
+### Features
+
+* add red-hat-data-services/agentic-starter-kits to leaderboard ([8c8a899](https://github.com/ambient-code/agentready/commit/8c8a8991a903ca521f50c45c999c9b3d02a5b567))
+
 ## [2.39.3](https://github.com/ambient-code/agentready/compare/v2.39.2...v2.39.3) (2026-05-20)
 
 
