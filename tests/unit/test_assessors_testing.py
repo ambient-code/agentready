@@ -671,6 +671,26 @@ class TestCIQualityGatesAssessor:
         assessor = CIQualityGatesAssessor()
         assert not assessor._has_pr_trigger(tekton_dir / "push-only.yaml")
 
+    def test_tekton_directory_detection(self, tmp_path):
+        """Test that _detect_ci_configs discovers files inside .tekton/ directory."""
+        tekton_dir = tmp_path / ".tekton"
+        tekton_dir.mkdir()
+        pipeline_file = tekton_dir / "pipeline.yaml"
+        pipeline_file.write_text(
+            "apiVersion: tekton.dev/v1beta1\n"
+            "kind: PipelineRun\n"
+            "metadata:\n"
+            "  name: test-pipeline\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+
+        # Verify that _detect_ci_configs finds the Tekton pipeline file
+        ci_configs = assessor._detect_ci_configs(repo)
+        assert len(ci_configs) == 1
+        assert ci_configs[0] == pipeline_file
+
 
 class TestDeterministicEnforcementAssessor:
     """Test DeterministicEnforcementAssessor."""
