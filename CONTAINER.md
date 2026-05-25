@@ -22,6 +22,8 @@ podman run --rm \
 open ~/agentready-reports/report-latest.html
 ```
 
+> **RHEL / Fedora / SELinux users:** The commands above will fail with `Permission denied` or `dubious ownership` errors. See [Podman Rootless Mode](#podman-rootless-mode) for the required flags.
+
 ## Usage
 
 ### Assess AgentReady Itself

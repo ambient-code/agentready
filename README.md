@@ -51,6 +51,8 @@ podman run --rm \
 open ~/agentready-reports/report-latest.html
 ```
 
+> **RHEL / Fedora / SELinux users:** The commands above will fail on systems with SELinux enforcing. See the [Podman Rootless Mode](CONTAINER.md#podman-rootless-mode) section for required flags.
+
 [See full container documentation →](CONTAINER.md)
 
 ### Python Package
