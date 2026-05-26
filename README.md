@@ -34,24 +34,22 @@ mkdir -p ~/agentready-reports
 # Assess AgentReady itself
 git clone https://github.com/ambient-code/agentready /tmp/agentready
 podman run --rm \
-  -v /tmp/agentready:/repo:ro \
-  -v ~/agentready-reports:/reports \
+  -v /tmp/agentready:/repo:ro,Z \
+  -v ~/agentready-reports:/reports:Z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
 # Assess your repository
 # For large repos, add -i flag to confirm the size warning
 podman run --rm \
-  -v /path/to/your/repo:/repo:ro \
-  -v ~/agentready-reports:/reports \
+  -v /path/to/your/repo:/repo:ro,Z \
+  -v ~/agentready-reports:/reports:Z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
 # Open reports
 open ~/agentready-reports/report-latest.html
 ```
-
-> **RHEL / Fedora / SELinux users:** The commands above will fail on systems with SELinux enforcing. See the [Podman Rootless Mode](CONTAINER.md#podman-rootless-mode) section for required flags.
 
 [See full container documentation →](CONTAINER.md)
 

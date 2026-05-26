@@ -13,16 +13,14 @@ mkdir -p ~/agentready-reports
 
 # Assess repository
 podman run --rm \
-  -v /path/to/repo:/repo:ro \
-  -v ~/agentready-reports:/reports \
+  -v /path/to/repo:/repo:ro,Z \
+  -v ~/agentready-reports:/reports:Z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
 # Open reports
 open ~/agentready-reports/report-latest.html
 ```
-
-> **RHEL / Fedora / SELinux users:** The commands above will fail with `Permission denied` or `dubious ownership` errors. See [Podman Rootless Mode](#podman-rootless-mode) for the required flags.
 
 ## Usage
 
