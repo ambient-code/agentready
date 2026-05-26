@@ -561,6 +561,49 @@ class TestDeterministicEnforcementAssessor:
         assert finding.score >= 60.0
         assert any("pre-commit" in e.lower() for e in finding.evidence)
 
+    def test_husky_with_hooks_passes(self, tmp_path):
+        """Test that .husky directory with hook scripts passes."""
+        husky_dir = tmp_path / ".husky"
+        husky_dir.mkdir()
+        (husky_dir / "pre-commit").write_text("#!/bin/sh\nnpx lint-staged\n")
+        (husky_dir / "commit-msg").write_text("#!/bin/sh\nnpx commitlint --edit $1\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 60.0
+        assert any(".husky" in e for e in finding.evidence)
+        assert any("pre-commit" in e for e in finding.evidence)
+        assert any("commit-msg" in e for e in finding.evidence)
+
+    def test_husky_empty_dir_does_not_pass(self, tmp_path):
+        """Test that .husky directory without hook scripts only gives partial score."""
+        husky_dir = tmp_path / ".husky"
+        husky_dir.mkdir()
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 10.0
+        assert any("no hook scripts" in e for e in finding.evidence)
+
+    def test_husky_ignores_underscore_files(self, tmp_path):
+        """Test that files starting with _ (like _/husky.sh) are ignored."""
+        husky_dir = tmp_path / ".husky"
+        husky_dir.mkdir()
+        (husky_dir / "_").mkdir()
+        (husky_dir / "pre-commit").write_text("#!/bin/sh\nnpx lint-staged\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 60.0
+
     def test_no_config_fails(self, tmp_path):
         """Test fail when no enforcement config exists."""
         repo = _make_repo(tmp_path)

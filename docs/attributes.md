@@ -789,10 +789,11 @@ Pre-commit hooks give immediate local feedback. They can be bypassed with `--no-
 The assessor scores on a 100-point scale:
 
 - **`.pre-commit-config.yaml` present** (60 pts): pre-commit hooks configured
+- **`.husky` directory with hook scripts** (60 pts): Husky git hooks configured (e.g., pre-commit, commit-msg)
+- **`.husky` directory without hook scripts** (10 pts): Husky directory exists but no hooks defined
 - **`.claude/settings.json` with hooks** (30 pts): Claude Code hook configuration present
-- **`.husky` directory** (10 pts): Husky git hooks configured
 
-**Pass threshold**: 60 points or higher. A `.pre-commit-config.yaml` alone is sufficient to pass.
+**Pass threshold**: 60 points or higher. Either `.pre-commit-config.yaml` or `.husky` with hook scripts is sufficient to pass.
 
 #### Remediation
 

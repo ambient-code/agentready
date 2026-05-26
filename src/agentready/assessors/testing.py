@@ -588,9 +588,19 @@ class DeterministicEnforcementAssessor(BaseAssessor):
                 score += 10.0
                 evidence.append(".claude/settings.json exists")
 
-        if husky_dir.exists():
-            score += 10.0
-            evidence.append(".husky directory found (git hooks)")
+        if husky_dir.exists() and husky_dir.is_dir():
+            hook_scripts = [
+                f.name
+                for f in husky_dir.iterdir()
+                if f.is_file() and not f.name.startswith("_")
+            ]
+            if hook_scripts:
+                score += 60.0
+                hooks_list = ", ".join(sorted(hook_scripts))
+                evidence.append(f".husky directory found with hooks: {hooks_list}")
+            else:
+                score += 10.0
+                evidence.append(".husky directory found but no hook scripts")
 
         score = min(score, 100.0)
 
@@ -634,14 +644,14 @@ class DeterministicEnforcementAssessor(BaseAssessor):
             summary="Set up deterministic enforcement with hooks and lint rules",
             steps=[
                 "Start with 2 hooks: auto-format on edit + block destructive operations",
-                "Install pre-commit framework for git hooks",
+                "Install pre-commit (Python) or Husky (Node.js) for git hooks",
                 "Configure .claude/settings.json with agent hooks for team-wide sharing",
                 "Add lint rules for import restrictions and architectural boundaries",
             ],
-            tools=["pre-commit"],
+            tools=["pre-commit", "husky"],
             commands=[
-                "pip install pre-commit",
-                "pre-commit install",
+                "pip install pre-commit && pre-commit install",
+                "npx husky init",
                 "mkdir -p .claude",
             ],
             examples=[
