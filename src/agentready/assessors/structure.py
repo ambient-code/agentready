@@ -1166,7 +1166,7 @@ class SeparationOfConcernsAssessor(BaseAssessor):
                 # Skip venv, node_modules, etc.
                 if any(
                     part in py_file.parts
-                    for part in [".venv", "venv", "node_modules", ".git"]
+                    for part in [".venv", "venv", "node_modules", ".git", ".tox"]
                 ):
                     continue
 
@@ -1205,7 +1205,7 @@ class SeparationOfConcernsAssessor(BaseAssessor):
                     for m in matches
                     if not any(
                         part in m.parts
-                        for part in [".venv", "venv", "node_modules", ".git"]
+                        for part in [".venv", "venv", "node_modules", ".git", ".tox"]
                     )
                 ]
                 if matches:
