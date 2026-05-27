@@ -1,3 +1,10 @@
+## [2.41.1](https://github.com/ambient-code/agentready/compare/v2.41.0...v2.41.1) (2026-05-27)
+
+
+### Bug Fixes
+
+* Exclude .tox from separation of concerns check ([c2d8f8f](https://github.com/ambient-code/agentready/commit/c2d8f8ff5a473ce082b16a15593b7c5c273a0eb8))
+
 # [2.41.0](https://github.com/ambient-code/agentready/compare/v2.40.1...v2.41.0) (2026-05-27)
 
 
