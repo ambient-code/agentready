@@ -1,3 +1,15 @@
+# [2.41.0](https://github.com/ambient-code/agentready/compare/v2.40.1...v2.41.0) (2026-05-27)
+
+
+### Bug Fixes
+
+* resolve merge conflict in CLAUDE.md ([ec334b1](https://github.com/ambient-code/agentready/commit/ec334b15ca43e03f865704948e2940a3f49b36bc))
+
+
+### Features
+
+* add __main__.py for local CLI execution ([eb4ceba](https://github.com/ambient-code/agentready/commit/eb4ceba3244b7e331d2eaa2d24c557cfaafb9e5a))
+
 ## [2.40.1](https://github.com/ambient-code/agentready/compare/v2.40.0...v2.40.1) (2026-05-27)
 
 
