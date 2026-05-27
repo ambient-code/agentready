@@ -1,3 +1,10 @@
+## [2.40.1](https://github.com/ambient-code/agentready/compare/v2.40.0...v2.40.1) (2026-05-27)
+
+
+### Bug Fixes
+
+* correct attribute count from 24 to 25 ([ee504cb](https://github.com/ambient-code/agentready/commit/ee504cb845cc07894c7d98146de467bb3d535442))
+
 # [2.40.0](https://github.com/ambient-code/agentready/compare/v2.39.3...v2.40.0) (2026-05-21)
 
 

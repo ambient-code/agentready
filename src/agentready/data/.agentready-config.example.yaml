@@ -6,49 +6,46 @@
 # All fields are optional - missing values use defaults from src/agentready/data/default-weights.yaml
 
 # Custom attribute weights (must sum to 1.0)
-# Tier 1 (Essential) attributes default to 10% each
-# Tier 2 (Critical) attributes default to 3% each
-# Tier 3 (Important) attributes default to 3% each
-# Tier 4 (Advanced) attributes default to 1% each
+# Tier 1 (Essential) attributes: 59% total
+# Tier 2 (Critical) attributes: 3% each, 27% total
+# Tier 3 (Important) attributes: 12% total
+# Tier 4 (Advanced) attributes: 1% each, 2% total
 weights:
-  # Tier 1 (Essential) - 50% total
-  test_execution: 0.10               # Test execution & coverage (highest priority)
-  type_annotations: 0.08            # Type hints in code
-  claude_md_file: 0.07              # CLAUDE.md/AGENTS.md configuration files
-  ci_quality_gates: 0.05            # CI quality gates (lint + type-check + tests)
-  single_file_verification: 0.05    # Single-file lint/type-check commands
-  readme_structure: 0.05            # README structure and content
-  standard_layout: 0.05             # Standard project layout
-  lock_files: 0.05                  # Dependency lock files
-  dependency_security: 0.05         # Dependency security & vulnerability scanning
+  # Tier 1 (Essential) - 59% total
+  test_execution: 0.12               # Test execution & coverage (highest priority)
+  type_annotations: 0.10             # Type hints in code
+  claude_md_file: 0.07               # CLAUDE.md/AGENTS.md configuration files
+  ci_quality_gates: 0.05             # CI quality gates (lint + type-check + tests)
+  single_file_verification: 0.05     # Single-file lint/type-check commands
+  readme_structure: 0.05             # README structure and content
+  standard_layout: 0.05              # Standard project layout
+  lock_files: 0.05                   # Dependency lock files
+  dependency_security: 0.05          # Dependency security & vulnerability scanning
 
-  # Tier 2 (Critical) - 27% total
-  deterministic_enforcement: 0.03   # Hooks & lint rules (deterministic > advisory)
-  conventional_commits: 0.03        # Conventional commit messages
-  gitignore_completeness: 0.03      # Comprehensive .gitignore
-  one_command_setup: 0.03           # One-command build/setup
-  concise_documentation: 0.03       # Concise structured docs
-  inline_documentation: 0.03        # Inline code documentation
-  file_size_limits: 0.03            # File size constraints
-  separation_concerns: 0.03         # Separation of concerns
-  pattern_references: 0.03          # Pattern references for common changes
+  # Tier 2 (Critical) - 27% total (3% each)
+  deterministic_enforcement: 0.03    # Hooks & lint rules (deterministic > advisory)
+  conventional_commits: 0.03         # Conventional commit messages
+  gitignore_completeness: 0.03       # Comprehensive .gitignore
+  one_command_setup: 0.03            # One-command build/setup
+  inline_documentation: 0.03         # Inline code documentation
+  file_size_limits: 0.03             # File size constraints
+  separation_of_concerns: 0.03       # Separation of concerns
+  pattern_references: 0.03           # Pattern references for common changes
+  design_intent: 0.03                # Design intent documentation
 
-  # Tier 3 (Important) - 14% total
-  design_intent: 0.02               # Design intent documentation
-  cyclomatic_complexity: 0.03       # Complexity thresholds
-  structured_logging: 0.03          # Structured logging
-  openapi_specs: 0.03               # OpenAPI/Swagger specs
-  architecture_decisions: 0.03      # Architecture Decision Records
+  # Tier 3 (Important) - 12% total
+  architecture_decisions: 0.03       # Architecture Decision Records
+  openapi_specs: 0.03                # OpenAPI/Swagger specs
+  cyclomatic_complexity: 0.02        # Complexity thresholds
+  structured_logging: 0.02           # Structured logging
+  progressive_disclosure: 0.02       # Progressive disclosure (path-scoped rules)
 
-  # Tier 4 (Advanced) - 4% total
-  code_smells: 0.01                 # Code smell elimination
-  issue_pr_templates: 0.01          # GitHub templates
-  container_setup: 0.01             # Container/virtualization
-  progressive_disclosure: 0.01      # Progressive disclosure (path-scoped rules)
+  # Tier 4 (Advanced) - 2% total
+  issue_pr_templates: 0.01           # GitHub templates
+  container_setup: 0.01              # Container/virtualization
 
 # Exclude specific attributes from assessment
 excluded_attributes: []
-  # - performance_benchmarks       # Skip if no benchmarks needed
   # - container_setup              # Skip if no Docker/containers
 
 # Force language detection (override automatic detection)
@@ -83,7 +80,7 @@ report_theme: default
 #   shadow: "rgba(0, 0, 0, 0.5)"
 
 # Example: Increase weight for CLAUDE.md and tests
-# This increases CLAUDE.md from 7% to 15% and test_execution from 10% to 15%
+# This increases CLAUDE.md from 7% to 15% and test_execution from 12% to 15%
 # Other attributes are automatically rescaled to maintain sum of 1.0
 #
 # weights:
