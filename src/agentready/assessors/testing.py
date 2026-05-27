@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 
+import yaml
+
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
@@ -786,6 +788,7 @@ class CIQualityGatesAssessor(BaseAssessor):
             repository.path / ".circleci" / "config.yml",  # CircleCI
             repository.path / ".travis.yml",  # Travis CI
             repository.path / "Jenkinsfile",  # Jenkins
+            repository.path / ".tekton",  # Pipelines-as-Code
         ]
 
         configs = []
@@ -807,6 +810,7 @@ class CIQualityGatesAssessor(BaseAssessor):
         """Check if a CI config file triggers on pull requests.
 
         For GitHub Actions, requires explicit pull_request trigger.
+        For Pipelines as Code, requires explicit pull_request event trigger.
         Other CI systems (GitLab CI, CircleCI, Travis) run on MRs by default.
         """
         if ".github" in str(config) and "workflows" in str(config):
@@ -814,6 +818,37 @@ class CIQualityGatesAssessor(BaseAssessor):
                 content = config.read_text()
                 return bool(re.search(r"\bpull_request", content))
             except (OSError, UnicodeDecodeError):
+                return False
+        elif ".tekton" in str(config):
+            # Check each pipeline definition for annotation: pipelinesascode.tekton.dev/on-event,
+            # note, values could be just "pull_request" or be an array of events "[pull_request,push]"
+            # Also, the matcher could be configured as CEL expression, so check for
+            # pipelinesascode.tekton.dev/on-cel-expression: ... event == "pull_request" ...
+            try:
+                content = config.read_text()
+                docs = yaml.safe_load_all(content)
+
+                for doc in docs:
+                    if not isinstance(doc, dict):
+                        continue
+                    annotations = doc.get("metadata", {}).get("annotations", {})
+
+                    # Check on-event annotation
+                    on_event = annotations.get(
+                        "pipelinesascode.tekton.dev/on-event", ""
+                    )
+                    if "pull_request" in str(on_event):
+                        return True
+
+                    # Check on-cel-expression annotation value only
+                    cel_expr = annotations.get(
+                        "pipelinesascode.tekton.dev/on-cel-expression", ""
+                    )
+                    if re.search(r'event\s*==\s*["\']pull_request["\']', str(cel_expr)):
+                        return True
+
+                return False
+            except (OSError, UnicodeDecodeError, yaml.YAMLError):
                 return False
         return True
 

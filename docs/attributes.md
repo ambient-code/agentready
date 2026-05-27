@@ -627,7 +627,7 @@ CI is the one check that can't be skipped. Pre-commit hooks can be bypassed; CI 
 
 The assessor scores on a 100-point scale:
 
-- **CI config exists** (50 pts): A workflow file in `.github/workflows/`, `.gitlab-ci.yml`, or similar
+- **CI config exists** (50 pts): A workflow file in `.github/workflows/`, `.gitlab-ci.yml`, `.tekton` or similar
 - **Quality gates present** (30 pts): lint, type-check, and test steps detected in CI config
 - **Config quality** (15 pts): PR trigger configured, fail-fast enabled
 - **Best practices** (5 pts): matrix testing, caching, or other optimizations
