@@ -8,7 +8,6 @@ v2.0.0: Updated with evidence-based rebalancing (ETH Zurich, Red Hat, Anthropic)
 
 from .base import BaseAssessor
 from .code_quality import (
-    CodeSmellsAssessor,
     CyclomaticComplexityAssessor,
     StructuredLoggingAssessor,
     TypeAnnotationsAssessor,
@@ -23,7 +22,6 @@ from .dbt import (
 from .documentation import (
     ArchitectureDecisionsAssessor,
     CLAUDEmdAssessor,
-    ConciseDocumentationAssessor,
     InlineDocumentationAssessor,
     OpenAPISpecsAssessor,
     READMEAssessor,
@@ -33,7 +31,6 @@ from .patterns import (
     PatternReferencesAssessor,
     ProgressiveDisclosureAssessor,
 )
-from .repomix import RepomixConfigAssessor
 from .security import DependencySecurityAssessor
 from .structure import (
     IssuePRTemplatesAssessor,
@@ -50,7 +47,6 @@ from .stub_assessors import (
     create_stub_assessors,
 )
 from .testing import (
-    BranchProtectionAssessor,
     CIQualityGatesAssessor,
     DeterministicEnforcementAssessor,
     TestExecutionAssessor,
@@ -64,58 +60,45 @@ def create_all_assessors() -> list[BaseAssessor]:
     """Create all assessors for assessment.
 
     Centralized factory function to eliminate duplication across CLI commands.
-    Returns all implemented and stub assessors.
-
-    v2.0.0 changes:
-    - TestCoverageAssessor → TestExecutionAssessor (Tier 1, 10%)
-    - PreCommitHooksAssessor → DeterministicEnforcementAssessor (Tier 2, 3%)
-    - CICDPipelineVisibilityAssessor → CIQualityGatesAssessor (Tier 1, 5%)
-    - Added: SingleFileVerificationAssessor (Tier 1, 5%)
-    - Added: PatternReferencesAssessor (Tier 2, 3%)
-    - Added: DesignIntentAssessor (Tier 3, 2%)
-    - Added: ProgressiveDisclosureAssessor (Tier 4, 1%)
+    Returns all implemented and stub assessors (25 attributes).
 
     Returns:
         List of all assessor instances
     """
     assessors = [
-        # Tier 1 Essential — 55% total
-        TestExecutionAssessor(),  # 10% — #1 priority (was TestCoverageAssessor at T2/3%)
-        TypeAnnotationsAssessor(),  # 8%
-        CLAUDEmdAssessor(),  # 7% (was 10%)
-        CIQualityGatesAssessor(),  # 5% — NEW (was CICDPipelineVisibilityAssessor at T3)
-        SingleFileVerificationAssessor(),  # 5% — NEW
-        READMEAssessor(),  # 5% (was 10%)
-        StandardLayoutAssessor(),  # 5% (was 10%)
-        DependencyPinningAssessor(),  # 5% (was 10%)
+        # Tier 1 Essential — 59% total (9 attributes)
+        TestExecutionAssessor(),  # 12%
+        TypeAnnotationsAssessor(),  # 10%
+        CLAUDEmdAssessor(),  # 7%
+        CIQualityGatesAssessor(),  # 5%
+        SingleFileVerificationAssessor(),  # 5%
+        READMEAssessor(),  # 5%
+        StandardLayoutAssessor(),  # 5%
+        DependencyPinningAssessor(),  # 5%
         DependencySecurityAssessor(),  # 5%
         DbtProjectConfigAssessor(),  # dbt conditional
         DbtModelDocumentationAssessor(),  # dbt conditional
-        # Tier 2 Critical — 27% total (3% each)
-        DeterministicEnforcementAssessor(),  # Was PreCommitHooksAssessor
+        # Tier 2 Critical — 27% total (9 attributes, 3% each)
+        DeterministicEnforcementAssessor(),
         ConventionalCommitsAssessor(),
         GitignoreAssessor(),
         OneCommandSetupAssessor(),
         FileSizeLimitsAssessor(),
         SeparationOfConcernsAssessor(),
-        ConciseDocumentationAssessor(),
         InlineDocumentationAssessor(),
-        PatternReferencesAssessor(),  # NEW
+        PatternReferencesAssessor(),
+        DesignIntentAssessor(),  # 3% (moved from T3)
         DbtDataTestsAssessor(),  # dbt conditional
         DbtProjectStructureAssessor(),  # dbt conditional
-        # Tier 3 Important — 14% total
-        DesignIntentAssessor(),  # NEW (2%)
-        RepomixConfigAssessor(),  # 2%
-        CyclomaticComplexityAssessor(),  # 2%
+        # Tier 3 Important — 12% total (5 attributes)
         ArchitectureDecisionsAssessor(),  # 3%
-        StructuredLoggingAssessor(),  # 2%
         OpenAPISpecsAssessor(),  # 3%
-        # Tier 4 Advanced — 4% total (1% each)
-        BranchProtectionAssessor(),
-        CodeSmellsAssessor(),
-        IssuePRTemplatesAssessor(),  # 1%
+        CyclomaticComplexityAssessor(),  # 2%
+        StructuredLoggingAssessor(),  # 2%
+        ProgressiveDisclosureAssessor(),  # 2% (moved from T4)
+        # Tier 4 Advanced — 2% total (2 attributes, 1% each)
+        IssuePRTemplatesAssessor(),
         ContainerSetupAssessor(),
-        ProgressiveDisclosureAssessor(),  # NEW
     ]
 
     assessors.extend(create_stub_assessors())

@@ -8,7 +8,7 @@ Assess repositories against evidence-based attributes for AI-assisted developmen
 |------|-------|
 | **Python** | >=3.12 |
 | **Entry Point** | `agentready.cli.main:cli` |
-| **Self-Score** | 80.0/100 (Gold) |
+| **Self-Score** | 74.2/100 (Silver) |
 | **Test Coverage** | 37% (target: >80%) |
 
 ## Commands
@@ -32,7 +32,7 @@ agentready harbor compare -t task1 -t task2
 
 ```
 src/agentready/
-├── assessors/    # 25 attribute evaluators (see assessors/__init__.py:49-93)
+├── assessors/    # 25 attribute evaluators (see assessors/__init__.py)
 ├── cli/          # Click commands with LazyGroup optimization
 ├── data/         # default-weights.yaml, RESEARCH_REPORT.md
 ├── fixers/       # Automated remediation strategies

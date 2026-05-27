@@ -151,7 +151,7 @@ class PatternReferencesAssessor(BaseAssessor):
 class DesignIntentAssessor(BaseAssessor):
     """Assesses documentation of architectural intent, preconditions, and invariants.
 
-    Tier 3 Important (2% weight) - Agents can discover what code does but not
+    Tier 2 Critical (3% weight) - Agents can discover what code does but not
     why it was designed that way or what invariants must hold.
     """
 
@@ -161,7 +161,7 @@ class DesignIntentAssessor(BaseAssessor):
 
     @property
     def tier(self) -> int:
-        return 3  # Important
+        return 2  # Critical
 
     @property
     def attribute(self) -> Attribute:
@@ -172,7 +172,7 @@ class DesignIntentAssessor(BaseAssessor):
             tier=self.tier,
             description="Documented preconditions, invariants, and design rationale",
             criteria="Design docs with architectural intent",
-            default_weight=0.02,
+            default_weight=0.03,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -318,7 +318,7 @@ class DesignIntentAssessor(BaseAssessor):
 class ProgressiveDisclosureAssessor(BaseAssessor):
     """Assesses use of progressive disclosure for large repos.
 
-    Tier 4 Advanced (1% weight) - For repos >50K lines, path-scoped rules
+    Tier 3 Important (2% weight) - For repos >50K lines, path-scoped rules
     and skills keep context lean while providing depth where needed.
     Only applicable for larger repositories.
     """
@@ -329,7 +329,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
 
     @property
     def tier(self) -> int:
-        return 4  # Advanced
+        return 3  # Important
 
     @property
     def attribute(self) -> Attribute:
@@ -340,7 +340,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
             tier=self.tier,
             description="Path-scoped rules and skills for large repos",
             criteria="Component-level context files for repos >50K lines",
-            default_weight=0.01,
+            default_weight=0.02,
         )
 
     LOC_THRESHOLD = 50000
