@@ -14,8 +14,8 @@ from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
 
 
-class CLAUDEmdAssessor(BaseAssessor):
-    """Assesses presence and quality of CLAUDE.md/AGENTS.md configuration file.
+class AgentInstructionsAssessor(BaseAssessor):
+    """Assesses presence and quality of agent instruction files (CLAUDE.md/AGENTS.md).
 
     Tier 1 Essential (7% weight). Context files help agents understand project
     conventions, but ETH Zurich (Feb 2026) found: auto-generated files hurt
@@ -25,7 +25,7 @@ class CLAUDEmdAssessor(BaseAssessor):
 
     @property
     def attribute_id(self) -> str:
-        return "claude_md_file"
+        return "agent_instructions"
 
     @property
     def tier(self) -> int:
@@ -35,7 +35,7 @@ class CLAUDEmdAssessor(BaseAssessor):
     def attribute(self) -> Attribute:
         return Attribute(
             id=self.attribute_id,
-            name="CLAUDE.md Configuration Files",
+            name="Agent Instruction Files",
             category="Context Window Optimization",
             tier=self.tier,
             description="Project-specific configuration for AI coding agents",

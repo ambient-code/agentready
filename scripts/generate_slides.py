@@ -146,7 +146,7 @@ Tested 5 Tier 1 assessors:
 .agentready/eval_harness/
 ├── baseline/summary.json
 ├── assessors/
-│   └── claude_md_file/
+│   └── agent_instructions/
 │       ├── impact.json ← Delta, p-value, effect size
 │       └── run_*.json
 └── summary.json ← Ranked results
@@ -192,7 +192,7 @@ agentready eval-harness baseline . --iterations 3
 
 # 2. Test single assessor
 agentready eval-harness test-assessor \\
-  --assessor-id claude_md_file --iterations 3
+  --assessor-id agent_instructions --iterations 3
 
 # 3. Aggregate all results
 agentready eval-harness summarize

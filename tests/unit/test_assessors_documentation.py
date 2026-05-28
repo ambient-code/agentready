@@ -1,11 +1,11 @@
 """Tests for documentation assessors."""
 
-from agentready.assessors.documentation import CLAUDEmdAssessor
+from agentready.assessors.documentation import AgentInstructionsAssessor
 from agentready.models.repository import Repository
 
 
-class TestCLAUDEmdAssessor:
-    """Test CLAUDEmdAssessor."""
+class TestAgentInstructionsAssessor:
+    """Test AgentInstructionsAssessor."""
 
     def test_passes_with_sufficient_claude_md(self, tmp_path):
         """Test that assessor passes with CLAUDE.md file >50 bytes."""
@@ -29,7 +29,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -62,7 +62,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -95,7 +95,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -128,7 +128,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -163,7 +163,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -190,7 +190,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
@@ -218,7 +218,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
@@ -248,7 +248,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -281,7 +281,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -306,7 +306,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
@@ -340,7 +340,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -349,7 +349,7 @@ class TestCLAUDEmdAssessor:
 
     def test_at_reference_extraction_various_formats(self):
         """Test _extract_at_reference method with various formats."""
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
 
         # Test basic @ reference
         assert assessor._extract_at_reference("@AGENTS.md") == "AGENTS.md"
@@ -407,7 +407,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -435,7 +435,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         # Should fail with score 25 (minimal CLAUDE.md, no valid reference)
@@ -463,7 +463,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         # Should fail with score 25 (minimal CLAUDE.md, no valid reference)
@@ -492,7 +492,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -518,7 +518,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -544,7 +544,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -571,7 +571,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -598,7 +598,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -628,7 +628,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -655,7 +655,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -680,7 +680,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"

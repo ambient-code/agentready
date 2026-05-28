@@ -44,7 +44,7 @@ def temp_repo():
 def claude_md_failing_finding():
     """Create a failing finding for CLAUDE.md."""
     attribute = Attribute(
-        id="claude_md_file",
+        id="agent_instructions",
         name="CLAUDE.md File",
         description="Repository has CLAUDE.md",
         category="Documentation",
@@ -122,7 +122,7 @@ class TestCLAUDEmdFixer:
     def test_attribute_id(self):
         """Test attribute ID matches."""
         fixer = CLAUDEmdFixer()
-        assert fixer.attribute_id == "claude_md_file"
+        assert fixer.attribute_id == "agent_instructions"
 
     def test_can_fix_failing_finding(self, claude_md_failing_finding):
         """Test can fix failing CLAUDE.md finding."""
@@ -154,7 +154,7 @@ class TestCLAUDEmdFixer:
         assert fix.steps[0].command == _claude_md_command()
         assert fix.steps[0].working_dir == temp_repo.path
         assert fix.steps[0].capture_output is False
-        assert fix.attribute_id == "claude_md_file"
+        assert fix.attribute_id == "agent_instructions"
         assert fix.points_gained > 0
         assert (
             "Move" in fix.steps[1].preview() and "AGENTS.md" in fix.steps[1].preview()
@@ -172,7 +172,7 @@ class TestCLAUDEmdFixer:
         assert fix is not None
         assert isinstance(fix, Fix)
         assert not isinstance(fix, MultiStepFix)
-        assert fix.attribute_id == "claude_md_file"
+        assert fix.attribute_id == "agent_instructions"
         assert fix.points_gained > 0
         # Applying the fix should create CLAUDE.md with redirect only
         result = fix.apply(dry_run=False)

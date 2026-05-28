@@ -20,7 +20,7 @@ class BaseFixer(ABC):
     @property
     @abstractmethod
     def attribute_id(self) -> str:
-        """Unique attribute identifier (e.g., 'claude_md_file').
+        """Unique attribute identifier (e.g., 'agent_instructions').
 
         Must match the attribute ID from assessors.
         """

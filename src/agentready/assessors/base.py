@@ -20,7 +20,7 @@ class BaseAssessor(ABC):
     @property
     @abstractmethod
     def attribute_id(self) -> str:
-        """Unique attribute identifier (e.g., 'claude_md_file').
+        """Unique attribute identifier (e.g., 'agent_instructions').
 
         Must be lowercase snake_case matching the attribute ID in the
         research report and default-weights.yaml.

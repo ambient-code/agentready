@@ -122,7 +122,7 @@ class LLMCache:
         """Generate cache key from finding attributes.
 
         Args:
-            attribute_id: Attribute ID (e.g., "claude_md_file")
+            attribute_id: Attribute ID (e.g., "agent_instructions")
             score: Finding score
             evidence_hash: Hash of evidence list
 

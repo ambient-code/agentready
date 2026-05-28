@@ -249,7 +249,7 @@ Orchestration and core algorithms:
 Strategy pattern implementations for each attribute:
 
 - **BaseAssessor**: Abstract base class defining interface
-- Concrete assessors: `CLAUDEmdAssessor`, `READMEAssessor`, etc.
+- Concrete assessors: `AgentInstructionsAssessor`, `READMEAssessor`, etc.
 
 **Design Principles**:
 

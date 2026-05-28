@@ -14,7 +14,7 @@ weights:
   # Tier 1 (Essential) - 59% total
   test_execution: 0.12               # Test execution & coverage (highest priority)
   type_annotations: 0.10             # Type hints in code
-  claude_md_file: 0.07               # CLAUDE.md/AGENTS.md configuration files
+  agent_instructions: 0.07            # Agent instruction files (CLAUDE.md/AGENTS.md)
   ci_quality_gates: 0.05             # CI quality gates (lint + type-check + tests)
   single_file_verification: 0.05     # Single-file lint/type-check commands
   readme_structure: 0.05             # README structure and content
@@ -84,5 +84,5 @@ report_theme: default
 # Other attributes are automatically rescaled to maintain sum of 1.0
 #
 # weights:
-#   claude_md_file: 0.15
+#   agent_instructions: 0.15
 #   test_execution: 0.15

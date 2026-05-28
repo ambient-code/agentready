@@ -53,7 +53,7 @@ Missing a Tier 1 attribute (up to 12% weight) has up to 12x the score impact of 
 
 ### 1. CLAUDE.md Configuration File
 
-**ID**: `claude_md_file`
+**ID**: `agent_instructions`
 **Weight**: 7%
 **Category**: Context Window Optimization
 **Status**: ✅ Implemented

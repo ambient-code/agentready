@@ -28,7 +28,7 @@
 # Tier 1 (Essential) - 59% total weight
 test_execution: 0.12                # 5.1 - Test Execution & Coverage
 type_annotations: 0.10              # 3.3 - Type Annotations (structural signals for agents)
-claude_md_file: 0.07                # 1.1 - CLAUDE.md/AGENTS.md Configuration Files
+agent_instructions: 0.07             # 1.1 - Agent Instruction Files (CLAUDE.md/AGENTS.md)
 ci_quality_gates: 0.05              # 16.2 - CI Quality Gates (lint + type-check + tests on PR)
 single_file_verification: 0.05      # 16.1 - Single-File Verification (fast feedback loops)
 readme_structure: 0.05              # 2.1 - README Structure

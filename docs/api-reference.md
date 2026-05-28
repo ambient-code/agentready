@@ -81,7 +81,7 @@ from agentready.models import Attribute
 class Attribute:
     """Immutable attribute definition."""
 
-    id: str              # Unique identifier (e.g., "claude_md_file")
+    id: str              # Unique identifier (e.g., "agent_instructions")
     name: str            # Display name
     tier: int            # Tier 1-4 (1 = most important)
     weight: float        # Weight in scoring (0.0-1.0, sum to 1.0 across all)
@@ -108,8 +108,8 @@ Attribute(
 
 ```python
 attribute = Attribute(
-    id="claude_md_file",
-    name="CLAUDE.md File",
+    id="agent_instructions",
+    name="Agent Instruction Files",
     tier=1,
     weight=0.10,
     category="Context Window Optimization",
@@ -1053,7 +1053,7 @@ from agentready.models import Repository
 
 # Override default weights programmatically
 custom_weights = {
-    "claude_md_file": 0.15,      # Increase from 0.10
+    "agent_instructions": 0.15,   # Increase from 0.10
     "readme_structure": 0.12,    # Increase from 0.10
     "type_annotations": 0.08,    # Decrease from 0.10
     # ... other attributes
