@@ -589,11 +589,33 @@ class DeterministicEnforcementAssessor(BaseAssessor):
                 evidence.append(".claude/settings.json exists")
 
         if husky_dir.exists() and husky_dir.is_dir():
-            hook_scripts = [
-                f.name
-                for f in husky_dir.iterdir()
-                if f.is_file() and not f.name.startswith("_")
-            ]
+            valid_hook_names = {
+                "applypatch-msg",
+                "commit-msg",
+                "post-applypatch",
+                "post-checkout",
+                "post-commit",
+                "post-merge",
+                "post-rewrite",
+                "pre-applypatch",
+                "pre-auto-gc",
+                "pre-commit",
+                "pre-merge-commit",
+                "pre-push",
+                "pre-rebase",
+                "prepare-commit-msg",
+            }
+            try:
+                hook_scripts = [
+                    f.name
+                    for f in husky_dir.iterdir()
+                    if f.is_file()
+                    and not f.name.startswith("_")
+                    and f.name in valid_hook_names
+                ]
+            except OSError:
+                hook_scripts = []
+                evidence.append(".husky directory exists but could not be read")
             if hook_scripts:
                 score += 60.0
                 hooks_list = ", ".join(sorted(hook_scripts))

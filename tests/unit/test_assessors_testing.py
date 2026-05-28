@@ -592,10 +592,13 @@ class TestDeterministicEnforcementAssessor:
         assert any("no hook scripts" in e for e in finding.evidence)
 
     def test_husky_ignores_underscore_files(self, tmp_path):
-        """Test that files starting with _ (like _/husky.sh) are ignored."""
+        """Test that underscore-prefixed files and non-hook files are ignored."""
         husky_dir = tmp_path / ".husky"
         husky_dir.mkdir()
         (husky_dir / "_").mkdir()
+        (husky_dir / "_local").write_text("#!/bin/sh\necho local\n")
+        (husky_dir / ".gitignore").write_text("_\n")
+        (husky_dir / "README.md").write_text("# Hooks\n")
         (husky_dir / "pre-commit").write_text("#!/bin/sh\nnpx lint-staged\n")
 
         repo = _make_repo(tmp_path)
@@ -603,6 +606,10 @@ class TestDeterministicEnforcementAssessor:
         finding = assessor.assess(repo)
 
         assert finding.score >= 60.0
+        evidence_str = " ".join(finding.evidence)
+        assert "_local" not in evidence_str
+        assert ".gitignore" not in evidence_str
+        assert "README.md" not in evidence_str
 
     def test_no_config_fails(self, tmp_path):
         """Test fail when no enforcement config exists."""
