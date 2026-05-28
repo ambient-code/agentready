@@ -315,6 +315,195 @@ class TestTestExecutionAssessor:
 
         assert finding.status == "not_applicable"
 
+    # --- Test command documentation tests (ADR A.3) ---
+
+    def test_python_documented_command_adds_score(self, tmp_path):
+        """Test that documenting pytest in AGENTS.md earns bonus points."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+        (tmp_path / "AGENTS.md").write_text("# Commands\n\nRun tests: `pytest`\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 70.0  # 40 files + 20 runner + 10 documented
+        assert any("documented" in e.lower() for e in finding.evidence)
+
+    def test_python_undocumented_command_no_bonus(self, tmp_path):
+        """Test that missing documentation gives no bonus points."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 60.0  # 40 files + 20 runner, no doc bonus
+        assert any("not documented" in e.lower() for e in finding.evidence)
+
+    def test_python_documented_in_readme(self, tmp_path):
+        """Test that test command in README.md is also detected."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+        (tmp_path / "README.md").write_text("# Dev\n\nRun `pytest` for tests.\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 70.0
+        assert any("README.md" in e for e in finding.evidence)
+
+    def test_js_documented_command_adds_score(self, tmp_path):
+        """Test JS documentation bonus with npm test in context file."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
+        pkg = {
+            "scripts": {"test": "jest"},
+            "devDependencies": {"jest": "^29.0.0"},
+        }
+        (tmp_path / "package.json").write_text(json.dumps(pkg))
+        (tmp_path / "AGENTS.md").write_text("# Test\n\nRun `npm test` to test.\n")
+
+        repo = _make_repo(tmp_path, languages={"JavaScript": 100})
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 70.0  # 40 script + 20 jest + 10 documented
+        assert finding.status == "pass"
+        assert any("documented" in e.lower() for e in finding.evidence)
+
+    def test_go_documented_command_adds_score(self, tmp_path):
+        """Test Go documentation bonus with go test in context file."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
+        (tmp_path / "main_test.go").write_text("package main\n")
+        makefile = tmp_path / "Makefile"
+        makefile.write_text("test:\n\tgo test -race ./...\n")
+        (tmp_path / "AGENTS.md").write_text("# Test\n\nRun `make test`.\n")
+
+        repo = _make_repo(tmp_path, languages={"Go": 100})
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert any("documented" in e.lower() for e in finding.evidence)
+        assert finding.score >= 70.0
+
+    def test_single_file_command_detected(self, tmp_path):
+        """Test that single-file test commands like 'pytest tests/' are detected."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+        (tmp_path / "CLAUDE.md").write_text(
+            "# Dev\n\nRun `pytest tests/unit/` for unit tests.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 70.0
+        assert any("documented" in e.lower() for e in finding.evidence)
+
+    # --- Test organization evidence tests (ADR A.2) ---
+
+    def test_python_organization_dirs_in_evidence(self, tmp_path):
+        """Test that separate unit/integration dirs appear in evidence."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "unit").mkdir()
+        (tests_dir / "unit" / "test_foo.py").write_text("def test_foo(): pass\n")
+        (tests_dir / "integration").mkdir()
+        (tests_dir / "integration" / "test_bar.py").write_text("def test_bar(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert any("unit" in e and "integration" in e for e in finding.evidence)
+
+    def test_python_markers_in_evidence(self, tmp_path):
+        """Test that pytest markers are detected as organization evidence."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_slow.py").write_text(
+            "import pytest\n\n" "@pytest.mark.integration\n" "def test_db(): pass\n"
+        )
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert any("markers" in e.lower() for e in finding.evidence)
+
+    def test_python_makefile_targets_in_evidence(self, tmp_path):
+        """Test that Makefile test targets are detected as organization evidence."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+        (tmp_path / "Makefile").write_text(
+            "test-unit:\n\tpytest tests/unit/\n\n"
+            "test-integration:\n\tpytest tests/integration/\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert any(
+            "makefile" in e.lower() and "test-unit" in e for e in finding.evidence
+        )
+
+    def test_js_organization_scripts_in_evidence(self, tmp_path):
+        """Test that separate test scripts in package.json are detected."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+
+        pkg = {
+            "scripts": {
+                "test": "jest",
+                "test:unit": "jest tests/unit",
+                "test:integration": "jest tests/integration",
+            },
+            "devDependencies": {"jest": "^29.0.0"},
+        }
+        (tmp_path / "package.json").write_text(json.dumps(pkg))
+
+        repo = _make_repo(tmp_path, languages={"JavaScript": 100})
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert any("test:unit" in e for e in finding.evidence)
+
+    def test_no_organization_no_penalty(self, tmp_path):
+        """Test that missing organization signals don't affect score."""
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_example.py").write_text("def test_one(): pass\n")
+        (tmp_path / "pytest.ini").write_text("[pytest]\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 60.0  # unchanged from before
+        assert not any("organization" in e.lower() for e in finding.evidence)
+
 
 class TestCIQualityGatesAssessor:
     """Test CIQualityGatesAssessor."""

@@ -583,12 +583,15 @@ Agents modifying code need a way to verify their changes didn't break anything. 
 
 #### Measurable Criteria
 
-The assessor scores a repository on a 100-point scale based on test infrastructure:
+The assessor scores a repository on a 100-point scale (capped) based on test infrastructure:
 
 - **Test files exist** (40 pts): `tests/` or `test/` directory with test files present
 - **Test runner configured** (20 pts): pytest, unittest, or similar configured in `pyproject.toml`, `setup.cfg`, `tox.ini`, or `Makefile`
 - **Coverage config present** (20 pts): coverage settings in config files (e.g., `[tool.coverage]`)
 - **Coverage enforcement configured** (20 pts): coverage thresholds or fail-under settings present
+- **Test command documented** (10 pts bonus): test command mentioned in CLAUDE.md, AGENTS.md, or README.md. Agents need to *find* the command, not just have one available
+
+**Test organization** (substantiating evidence): The assessor also checks for unit/integration test separation (separate directories, pytest markers, Makefile targets, filtered test scripts). This is recorded as evidence but does not affect the score.
 
 **Pass threshold**: Score of 60 or higher.
 
