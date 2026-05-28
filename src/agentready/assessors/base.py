@@ -69,7 +69,6 @@ class BaseAssessor(ABC):
         return True
 
     # Root-level manifest files that strongly signal the project's primary language.
-    # When file counts are close, these break the tie.
     _LANG_ROOT_MANIFESTS: dict[str, list[str]] = {
         "Go": ["go.mod"],
         "Python": ["pyproject.toml", "setup.py", "setup.cfg"],
