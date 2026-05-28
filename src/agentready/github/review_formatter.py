@@ -107,7 +107,7 @@ def map_finding_to_attribute(
         "test coverage": "test_execution",
         "pytest": "test_execution",
         "missing test": "test_execution",
-        "claude.md": "claude_md_file",
+        "claude.md": "agent_instructions",
         "documentation": "readme_file",
         "readme": "readme_file",
         "conventional commit": "conventional_commits",

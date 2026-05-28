@@ -250,7 +250,7 @@ class TestAssessCommand:
         """Test assess with custom config file."""
         # Create config file
         config_file = test_repo / "test-config.yaml"
-        config_file.write_text("weights:\n  claude_md_file: 1.0\n")
+        config_file.write_text("weights:\n  agent_instructions: 1.0\n")
 
         with patch("agentready.cli.main.Scanner") as mock_scanner_class:
             mock_scanner = MagicMock()
@@ -357,7 +357,7 @@ class TestConfigLoading:
         config_file = tmp_path / "config.yaml"
         config_file.write_text("""
 weights:
-  claude_md_file: 2.0
+  agent_instructions: 2.0
 excluded_attributes:
   - test_attribute
 """)
@@ -365,7 +365,7 @@ excluded_attributes:
         config = load_config(config_file)
 
         assert isinstance(config, Config)
-        assert config.weights["claude_md_file"] == 2.0
+        assert config.weights["agent_instructions"] == 2.0
         assert "test_attribute" in config.excluded_attributes
 
     def test_load_config_empty(self, tmp_path):

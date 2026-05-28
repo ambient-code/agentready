@@ -279,7 +279,7 @@ class TestCriticalConfigHandling:
             config_file = Path(tmp_dir) / "config.yaml"
             config_file.write_text("""
 weights:
-  claude_md_file: 2.0
+  agent_instructions: 2.0
 excluded_attributes:
   - openapi_specs
 """)

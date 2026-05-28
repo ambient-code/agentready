@@ -112,7 +112,7 @@ class CLAUDEmdFixer(BaseFixer):
     @property
     def attribute_id(self) -> str:
         """Return attribute ID."""
-        return "claude_md_file"
+        return "agent_instructions"
 
     def can_fix(self, finding: Finding) -> bool:
         """Check if CLAUDE.md is missing."""

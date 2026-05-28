@@ -8,8 +8,8 @@ class Attribute:
     """Defines an agent-ready quality attribute from the research report.
 
     Attributes:
-        id: Unique identifier (e.g., "claude_md_file", "test_execution")
-        name: Human-readable name (e.g., "CLAUDE.md Configuration Files")
+        id: Unique identifier (e.g., "agent_instructions", "test_execution")
+        name: Human-readable name (e.g., "Agent Instruction Files")
         category: Research report section (e.g., "Context Window Optimization")
         tier: Priority tier 1-4 (1=Essential, 4=Advanced)
         description: What this attribute measures

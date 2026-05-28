@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from agentready.assessors.documentation import CLAUDEmdAssessor, READMEAssessor
+from agentready.assessors.documentation import AgentInstructionsAssessor, READMEAssessor
 from agentready.models.config import Config
 from agentready.models.theme import Theme
 from agentready.reporters.html import HTMLReporter
@@ -21,7 +21,7 @@ class TestScanWorkflow:
         scanner = Scanner(repo_path, config=None)
 
         # Use minimal assessors for faster test
-        assessors = [CLAUDEmdAssessor(), READMEAssessor()]
+        assessors = [AgentInstructionsAssessor(), READMEAssessor()]
 
         # Run scan
         assessment = scanner.scan(assessors, verbose=False)
@@ -44,7 +44,7 @@ class TestScanWorkflow:
         repo_path = Path(__file__).parent.parent.parent
 
         scanner = Scanner(repo_path, config=None)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate HTML report
@@ -67,7 +67,7 @@ class TestScanWorkflow:
         repo_path = Path(__file__).parent.parent.parent
 
         scanner = Scanner(repo_path, config=None)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate Markdown report
@@ -100,7 +100,7 @@ class TestScanWorkflow:
         )
 
         scanner = Scanner(repo_path, config=config)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate HTML report
@@ -131,7 +131,7 @@ class TestScanWorkflow:
         )
 
         scanner = Scanner(repo_path, config=config)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate HTML report
@@ -180,7 +180,7 @@ class TestScanWorkflow:
         )
 
         scanner = Scanner(repo_path, config=config)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate HTML report
@@ -202,7 +202,7 @@ class TestScanWorkflow:
         repo_path = Path(__file__).parent.parent.parent
 
         scanner = Scanner(repo_path, config=None)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate HTML report
@@ -224,7 +224,7 @@ class TestScanWorkflow:
         repo_path = Path(__file__).parent.parent.parent
 
         scanner = Scanner(repo_path, config=None)
-        assessors = [CLAUDEmdAssessor()]
+        assessors = [AgentInstructionsAssessor()]
         assessment = scanner.scan(assessors, verbose=False)
 
         # Generate HTML report

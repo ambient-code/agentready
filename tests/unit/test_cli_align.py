@@ -161,7 +161,7 @@ class TestAlignCommand:
         mock_fixer.return_value.generate_fix_plan.return_value = mock_fix_plan
 
         result = runner.invoke(
-            align, [str(temp_repo), "--attributes", "claude_md_file,gitignore_file"]
+            align, [str(temp_repo), "--attributes", "agent_instructions,gitignore_file"]
         )
 
         # Should succeed
@@ -427,7 +427,7 @@ class TestAlignCommandEdgeCases:
 
 
 class TestAlignClaudeMdFileFeatures:
-    """Test align command features specific to claude_md_file attribute.
+    """Test align command features specific to agent_instructions attribute.
 
     These tests verify the tip message when CLAUDE.md fix is skipped and
     the progress callback logging for CLAUDE.md generation.
@@ -437,15 +437,16 @@ class TestAlignClaudeMdFileFeatures:
     @patch("agentready.cli.align.Scanner")
     @patch("agentready.cli.align.Config")
     @patch("agentready.cli.main.create_all_assessors")
-    def test_align_echoes_tip_when_no_fixes_and_claude_md_file_failing(
+    def test_align_echoes_tip_when_no_fixes_and_agent_instructions_failing(
         self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
     ):
-        """Test that align shows tip when claude_md_file fails but no fix is available."""
-        # Setup mock finding with claude_md_file failing
+        """Test that align shows tip when agent_instructions fails but no fix is available."""
+        # Setup mock finding with agent_instructions failing
         mock_finding = MagicMock()
-        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.attribute.id = "agent_instructions"
         mock_finding.status = "fail"
         mock_finding.score = 0.0
+        mock_finding.measured_value = "missing"
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 65.0
@@ -472,13 +473,13 @@ class TestAlignClaudeMdFileFeatures:
     @patch("agentready.cli.align.Scanner")
     @patch("agentready.cli.align.Config")
     @patch("agentready.cli.main.create_all_assessors")
-    def test_align_does_not_show_tip_when_claude_md_file_passes(
+    def test_align_does_not_show_tip_when_agent_instructions_passes(
         self, mock_assessors, mock_config, mock_scanner, mock_fixer, runner, temp_repo
     ):
-        """Test that align does not show tip when claude_md_file passes."""
-        # Setup mock finding with claude_md_file passing
+        """Test that align does not show tip when agent_instructions passes."""
+        # Setup mock finding with agent_instructions passing
         mock_finding = MagicMock()
-        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.attribute.id = "agent_instructions"
         mock_finding.status = "pass"
         mock_finding.score = 100.0
 
@@ -518,7 +519,7 @@ class TestAlignClaudeMdFileFeatures:
         """Test that align echoes 'Generating CLAUDE.md file...' when applying fix."""
         # Setup mock finding
         mock_finding = MagicMock()
-        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.attribute.id = "agent_instructions"
         mock_finding.status = "fail"
         mock_finding.score = 0.0
 
@@ -528,9 +529,9 @@ class TestAlignClaudeMdFileFeatures:
         mock_assessment.repository = MagicMock()
         mock_scanner.return_value.scan.return_value = mock_assessment
 
-        # Setup mock fix for claude_md_file
+        # Setup mock fix for agent_instructions
         mock_fix = MagicMock()
-        mock_fix.attribute_id = "claude_md_file"
+        mock_fix.attribute_id = "agent_instructions"
         mock_fix.description = "Run Claude CLI to create CLAUDE.md"
         mock_fix.preview.return_value = "RUN claude -p ..."
         mock_fix.points_gained = 10.0
@@ -593,7 +594,7 @@ class TestAlignMultiLineIndentation_Issue285:
         """
         # Setup mock assessment
         mock_finding = MagicMock()
-        mock_finding.attribute.id = "claude_md_file"
+        mock_finding.attribute.id = "agent_instructions"
         mock_finding.status = "fail"
         mock_finding.score = 0.0
 
@@ -605,7 +606,7 @@ class TestAlignMultiLineIndentation_Issue285:
 
         # Create a mock fix with multi-line preview (simulating MultiStepFix)
         mock_fix = MagicMock()
-        mock_fix.attribute_id = "claude_md_file"
+        mock_fix.attribute_id = "agent_instructions"
         mock_fix.description = (
             "Run Claude CLI to create CLAUDE.md, then move content to AGENTS.md"
         )
@@ -632,7 +633,7 @@ class TestAlignMultiLineIndentation_Issue285:
         assert result.exit_code == 0
 
         # The fix header should be indented with 2 spaces + "1. "
-        assert "  1. [claude_md_file]" in result.output
+        assert "  1. [agent_instructions]" in result.output
 
         # The "MULTI-STEP FIX" header should be indented with 5 spaces
         assert "     MULTI-STEP FIX (2 steps):" in result.output

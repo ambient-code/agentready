@@ -8,7 +8,7 @@ Assess repositories against evidence-based attributes for AI-assisted developmen
 |------|-------|
 | **Python** | >=3.12 |
 | **Entry Point** | `agentready.cli.main:cli` (or `python -m agentready`) |
-| **Self-Score** | 80.0/100 (Silver) |
+| **Self-Score** | 74.5/100 (Silver) |
 | **Test Coverage** | 37% (target: >80%) |
 
 ## Commands
@@ -69,7 +69,7 @@ src/agentready/
 4. Add tests in `tests/unit/test_assessors_*.py`
 
 **Reference implementations**:
-- Simple: `CLAUDEmdAssessor` at `assessors/documentation.py`
+- Simple: `AgentInstructionsAssessor` at `assessors/documentation.py`
 - Complex: `TypeAnnotationsAssessor` at `assessors/code_quality.py`
 - Conditional: `ContainerSetupAssessor` at `assessors/containers.py`
 

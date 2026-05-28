@@ -144,7 +144,7 @@ class AssessorImpact:
     with statistical significance testing.
 
     Attributes:
-        assessor_id: Attribute ID (e.g., 'claude_md_file')
+        assessor_id: Attribute ID (e.g., 'agent_instructions')
         assessor_name: Human-readable name
         tier: Tier 1-4 from research report
 

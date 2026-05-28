@@ -20,8 +20,8 @@ from .dbt import (
     DbtProjectStructureAssessor,
 )
 from .documentation import (
+    AgentInstructionsAssessor,
     ArchitectureDecisionsAssessor,
-    CLAUDEmdAssessor,
     InlineDocumentationAssessor,
     OpenAPISpecsAssessor,
     READMEAssessor,
@@ -69,7 +69,7 @@ def create_all_assessors() -> list[BaseAssessor]:
         # Tier 1 Essential — 59% total (9 attributes)
         TestExecutionAssessor(),  # 12%
         TypeAnnotationsAssessor(),  # 10%
-        CLAUDEmdAssessor(),  # 7%
+        AgentInstructionsAssessor(),  # 7%
         CIQualityGatesAssessor(),  # 5%
         SingleFileVerificationAssessor(),  # 5%
         READMEAssessor(),  # 5%

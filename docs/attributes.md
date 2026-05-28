@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 28 agent-ready attributes assessed by AgentReady.
+Complete reference for all 25 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -51,9 +51,9 @@ Missing a Tier 1 attribute (up to 12% weight) has up to 12x the score impact of 
 
 *Fundamentals that enable basic AI agent functionality — 55% of total score*
 
-### 1. CLAUDE.md Configuration File
+### 1. Agent Instruction Files
 
-**ID**: `claude_md_file`
+**ID**: `agent_instructions`
 **Weight**: 7%
 **Category**: Context Window Optimization
 **Status**: ✅ Implemented
@@ -68,12 +68,21 @@ Claude Code reads `CLAUDE.md` at the start of every session. Without it, agents 
 
 #### Measurable Criteria
 
-**Passes if**:
+**Two-phase scoring:**
 
-- File exists at `CLAUDE.md`, `.claude/CLAUDE.md`, or `AGENTS.md` (all treated as fully equivalent)
-- File is at least 50 bytes, OR is a valid symlink, OR contains an `@` file reference
+1. **Presence (up to 70 points)**: File exists at `CLAUDE.md`, `.claude/CLAUDE.md`, or `AGENTS.md` with at least 50 bytes (direct, symlink, or `@` file reference). `AGENTS.md` is a fully equivalent alternative.
 
-`AGENTS.md` is a fully equivalent alternative and scores identically to `CLAUDE.md`.
+2. **Length (up to 30 points)**: Context file line count determines length credit:
+
+| Lines | Length Credit | Total Score |
+|-------|-------------|-------------|
+| <=150 | 30 (full) | 100 |
+| 151-300 | 15 (partial) | 85 |
+| >300 | 0 (none) | 70 |
+
+For symlinks and `@` references, line count is measured on the resolved target file.
+
+**Agent access documentation** (substantiating evidence): The assessor also checks for agent access sections documenting platform, CLI tool, and authentication requirements. This is recorded as evidence but does not affect the score.
 
 #### Example: Good CLAUDE.md
 
@@ -1019,7 +1028,7 @@ setup:
 **Inline Documentation** (`inline_documentation`, 3%) — Comments and docstrings for functions, classes, modules
 **File Size Limits** (`file_size_limits`, 3%) — Files under threshold to keep context manageable
 **Separation of Concerns** (`separation_of_concerns`, 3%) — Clean module boundaries and single-responsibility
-**Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes
+**Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes. Skills scoring is tiered: 1-2 SKILL.md files earn partial credit (30 pts), 3+ earn full credit (60 pts). Context files >150 lines without skills trigger a warning
 **Design Intent Documentation** (`design_intent`, 3%) — Preconditions, invariants, and rationale in design docs (moved from T3)
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*

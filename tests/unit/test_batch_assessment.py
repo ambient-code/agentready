@@ -41,7 +41,7 @@ def sample_repository():
 def sample_assessment(sample_repository):
     """Create a sample assessment for testing."""
     attribute = Attribute(
-        id="claude_md_file",
+        id="agent_instructions",
         name="CLAUDE.md File",
         description="Repository has CLAUDE.md",
         category="Documentation",

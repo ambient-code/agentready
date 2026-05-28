@@ -4,4 +4,4 @@ agentready_changes:
   align:
     enabled: true
     attributes:
-      - claude_md_file
+      - agent_instructions

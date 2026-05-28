@@ -39,15 +39,24 @@ class PatternReferencesAssessor(BaseAssessor):
         """Check for pattern references in skills directories and context files."""
         score = 0.0
         evidence = []
+        has_skills = False
 
-        # Check for .claude/skills/ directory
+        # Check for .claude/skills/ directory with tiered scoring
         skills_dir = repository.path / ".claude" / "skills"
         if skills_dir.exists() and skills_dir.is_dir():
             skill_files = list(skills_dir.rglob("SKILL.md"))
-            if skill_files:
+            skill_count = len(skill_files)
+            if skill_count >= 3:
+                has_skills = True
                 score += 60.0
                 evidence.append(
-                    f".claude/skills/ directory with {len(skill_files)} SKILL.md file(s)"
+                    f".claude/skills/ directory with {skill_count} SKILL.md file(s)"
+                )
+            elif skill_count > 0:
+                has_skills = True
+                score += 30.0
+                evidence.append(
+                    f".claude/skills/ directory with {skill_count} SKILL.md file(s) (3+ recommended for full credit)"
                 )
 
         # Check for pattern references in context files
@@ -93,6 +102,22 @@ class PatternReferencesAssessor(BaseAssessor):
                     evidence.append(f"{dir_name}/ directory with {len(files)} file(s)")
 
         score = min(score, 100.0)
+
+        # Context file length correlation: warn if >150 lines with no skills
+        if not has_skills:
+            for ctx_name in ["CLAUDE.md", "AGENTS.md"]:
+                ctx_path = repository.path / ctx_name
+                if ctx_path.exists():
+                    try:
+                        ctx_lines = len(
+                            ctx_path.read_text(encoding="utf-8").splitlines()
+                        )
+                        if ctx_lines > 150:
+                            evidence.append(
+                                f"{ctx_name} is {ctx_lines} lines with no skills; consider extracting patterns into .claude/skills/"
+                            )
+                    except (OSError, UnicodeDecodeError):
+                        pass
 
         if score >= 40:
             return Finding(

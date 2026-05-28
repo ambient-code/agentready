@@ -174,7 +174,7 @@ Create `.agentready-config.yaml` to customize weights:
 
 ```yaml
 weights:
-  claude_md_file: 0.15      # Increase importance (default: 0.07)
+  agent_instructions: 0.15   # Increase importance (default: 0.07)
   test_execution: 0.15      # Increase importance (default: 0.10)
   conventional_commits: 0.01  # Decrease importance (default: 0.03)
   # Other attributes use defaults, rescaled to sum to 1.0

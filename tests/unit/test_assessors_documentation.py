@@ -1,11 +1,11 @@
 """Tests for documentation assessors."""
 
-from agentready.assessors.documentation import CLAUDEmdAssessor
+from agentready.assessors.documentation import AgentInstructionsAssessor
 from agentready.models.repository import Repository
 
 
-class TestCLAUDEmdAssessor:
-    """Test CLAUDEmdAssessor."""
+class TestAgentInstructionsAssessor:
+    """Test AgentInstructionsAssessor."""
 
     def test_passes_with_sufficient_claude_md(self, tmp_path):
         """Test that assessor passes with CLAUDE.md file >50 bytes."""
@@ -29,7 +29,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -62,7 +62,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -95,7 +95,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -128,7 +128,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -163,7 +163,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -190,7 +190,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
@@ -218,7 +218,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
@@ -248,7 +248,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -281,7 +281,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -306,7 +306,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "fail"
@@ -340,7 +340,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -349,7 +349,7 @@ class TestCLAUDEmdAssessor:
 
     def test_at_reference_extraction_various_formats(self):
         """Test _extract_at_reference method with various formats."""
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
 
         # Test basic @ reference
         assert assessor._extract_at_reference("@AGENTS.md") == "AGENTS.md"
@@ -407,7 +407,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
@@ -435,7 +435,7 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         # Should fail with score 25 (minimal CLAUDE.md, no valid reference)
@@ -463,10 +463,226 @@ class TestCLAUDEmdAssessor:
             total_lines=100,
         )
 
-        assessor = CLAUDEmdAssessor()
+        assessor = AgentInstructionsAssessor()
         finding = assessor.assess(repo)
 
         # Should fail with score 25 (minimal CLAUDE.md, no valid reference)
         assert finding.status == "fail"
         assert finding.score == 25.0
         assert finding.remediation is not None
+
+    # --- Length validation tests (ADR A.1) ---
+
+    def test_length_full_credit_under_150_lines(self, tmp_path):
+        """Test full length credit for context file <=150 lines."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        lines = ["# Project Config"] + [f"Line {i}" for i in range(100)]
+        (tmp_path / "CLAUDE.md").write_text("\n".join(lines))
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert any("good: <=150" in e for e in finding.evidence)
+
+    def test_length_partial_credit_150_to_300_lines(self, tmp_path):
+        """Test partial length credit for context file 151-300 lines."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        lines = ["# Project Config"] + [f"Line {i}" for i in range(200)]
+        (tmp_path / "CLAUDE.md").write_text("\n".join(lines))
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 85.0
+        assert any("partial credit: <=300" in e for e in finding.evidence)
+
+    def test_length_no_credit_over_300_lines(self, tmp_path):
+        """Test no length credit for context file >300 lines."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        lines = ["# Project Config"] + [f"Line {i}" for i in range(400)]
+        (tmp_path / "CLAUDE.md").write_text("\n".join(lines))
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 70.0
+        assert any("exceeds 300 line limit" in e for e in finding.evidence)
+
+    def test_length_check_follows_symlink(self, tmp_path):
+        """Test that length check counts lines of the resolved symlink target."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        lines = ["# Agent Config"] + [f"Line {i}" for i in range(250)]
+        (tmp_path / "AGENTS.md").write_text("\n".join(lines))
+        (tmp_path / "CLAUDE.md").symlink_to("AGENTS.md")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 85.0
+        assert any("partial credit" in e for e in finding.evidence)
+
+    def test_length_check_follows_at_reference(self, tmp_path):
+        """Test that length check counts lines of the @ referenced file."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        lines = ["# Agent Config"] + [f"Line {i}" for i in range(350)]
+        (tmp_path / "AGENTS.md").write_text("\n".join(lines))
+        (tmp_path / "CLAUDE.md").write_text("@AGENTS.md")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 70.0
+        assert any("exceeds 300 line limit" in e for e in finding.evidence)
+
+    # --- Agent access documentation tests (ADR A.9) ---
+
+    def test_agent_access_heading_in_evidence(self, tmp_path):
+        """Test that agent access heading is detected as evidence."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        content = (
+            "# Project\n\n## Agent Access\n\nUse `gh` CLI for GitHub operations.\n"
+        )
+        (tmp_path / "CLAUDE.md").write_text(content)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("Agent access documentation found" in e for e in finding.evidence)
+
+    def test_agent_access_keywords_in_evidence(self, tmp_path):
+        """Test that platform + tool/auth keyword co-occurrence is detected."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        content = (
+            "# Project\n\nHosted on GitHub. Use `gh ` CLI with token authentication.\n"
+        )
+        (tmp_path / "CLAUDE.md").write_text(content)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("Agent access documentation found" in e for e in finding.evidence)
+
+    def test_no_agent_access_no_penalty(self, tmp_path):
+        """Test that missing agent access documentation does not affect score."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        content = "# Project\n\nThis is a Python project using pytest for tests.\n"
+        (tmp_path / "CLAUDE.md").write_text(content)
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = AgentInstructionsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert not any("Agent access" in e for e in finding.evidence)

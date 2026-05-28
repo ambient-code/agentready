@@ -14,8 +14,8 @@ from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
 
 
-class CLAUDEmdAssessor(BaseAssessor):
-    """Assesses presence and quality of CLAUDE.md/AGENTS.md configuration file.
+class AgentInstructionsAssessor(BaseAssessor):
+    """Assesses presence and quality of agent instruction files (CLAUDE.md/AGENTS.md).
 
     Tier 1 Essential (7% weight). Context files help agents understand project
     conventions, but ETH Zurich (Feb 2026) found: auto-generated files hurt
@@ -25,7 +25,7 @@ class CLAUDEmdAssessor(BaseAssessor):
 
     @property
     def attribute_id(self) -> str:
-        return "claude_md_file"
+        return "agent_instructions"
 
     @property
     def tier(self) -> int:
@@ -35,7 +35,7 @@ class CLAUDEmdAssessor(BaseAssessor):
     def attribute(self) -> Attribute:
         return Attribute(
             id=self.attribute_id,
-            name="CLAUDE.md Configuration Files",
+            name="Agent Instruction Files",
             category="Context Window Optimization",
             tier=self.tier,
             description="Project-specific configuration for AI coding agents",
@@ -46,39 +46,48 @@ class CLAUDEmdAssessor(BaseAssessor):
     def assess(self, repository: Repository) -> Finding:
         """Check for CLAUDE.md file in repository root.
 
-        Pass criteria:
-        - CLAUDE.md exists with >50 bytes, OR
-        - CLAUDE.md is a symlink to a file with >50 bytes, OR
-        - CLAUDE.md contains @ reference to a file with >50 bytes, OR
-        - AGENTS.md exists with >50 bytes (alternative)
+        Two-phase scoring:
+
+        Phase 1 - Presence (up to 70 points):
+        - CLAUDE.md exists with >50 bytes (direct, symlink, or @ reference)
+        - .claude/CLAUDE.md exists with >50 bytes
+        - AGENTS.md exists with >50 bytes (cross-tool alternative)
+        - 25 if file exists but is minimal, 0 if missing
+
+        Phase 2 - Length (up to 30 points, only if presence passes):
+        - <=150 lines: 30 (full credit)
+        - 151-300 lines: 15 (partial credit)
+        - >300 lines: 0 (exceeds recommended limit)
+
+        Also checks for agent access documentation (substantiating evidence).
 
         Security:
         - @ references are restricted to relative paths within repository
         - Path traversal attempts (../) and absolute paths are rejected
-
-        Scoring:
-        - 100 if CLAUDE.md passes (direct, symlink, or @ reference)
-        - 90 if AGENTS.md exists without CLAUDE.md
-        - 25 if CLAUDE.md exists but is minimal without valid references
-        - 0 if neither file exists
         """
         claude_md_path = repository.path / "CLAUDE.md"
         agents_md_path = repository.path / "AGENTS.md"
 
-        # Check for CLAUDE.md first
+        # Phase 1: Determine presence and read content
+        resolved_content = None
+        base_score = 0.0
+        evidence = []
+        measured_value = "missing"
+
         try:
-            # Resolve symlinks if CLAUDE.md is a symlink
             resolved_path = claude_md_path.resolve(strict=True)
             is_symlink = claude_md_path.is_symlink()
 
             with open(resolved_path, "r", encoding="utf-8") as f:
-                content = f.read()
+                file_content = f.read()
 
-            size = len(content)
+            size = len(file_content)
 
-            # Check if file has sufficient content
             if size >= 50:
-                evidence = [f"CLAUDE.md found at {claude_md_path}"]
+                resolved_content = file_content
+                base_score = 100.0
+                measured_value = "present"
+                evidence.append(f"CLAUDE.md found at {claude_md_path}")
                 if is_symlink:
                     target = (
                         resolved_path.relative_to(repository.path)
@@ -86,140 +95,124 @@ class CLAUDEmdAssessor(BaseAssessor):
                         else resolved_path
                     )
                     evidence.append(f"Symlink to {target} ({size} bytes)")
-
-                # Bonus: Check if AGENTS.md also exists
                 if self._check_agents_md_exists(agents_md_path):
                     evidence.append("AGENTS.md also present (cross-tool compatibility)")
-
-                return Finding(
-                    attribute=self.attribute,
-                    status="pass",
-                    score=100.0,
-                    measured_value="present",
-                    threshold="present",
-                    evidence=evidence,
-                    remediation=None,
-                    error_message=None,
-                )
-
-            # File is small - check for @ references
-            referenced_file = self._extract_at_reference(content)
-            if referenced_file:
-                ref_path = repository.path / referenced_file
-                ref_content, ref_size = self._read_referenced_file(ref_path)
-
-                if ref_content and ref_size >= 50:
-                    evidence = [
-                        f"CLAUDE.md found with @ reference to {referenced_file}",
-                        f"Referenced file contains {ref_size} bytes",
-                    ]
-
-                    # Bonus: Check if AGENTS.md also exists
-                    if self._check_agents_md_exists(agents_md_path):
+            else:
+                referenced_file = self._extract_at_reference(file_content)
+                if referenced_file:
+                    ref_path = repository.path / referenced_file
+                    ref_content, ref_size = self._read_referenced_file(ref_path)
+                    if ref_content and ref_size >= 50:
+                        resolved_content = ref_content
+                        base_score = 100.0
+                        measured_value = f"@ reference to {referenced_file}"
                         evidence.append(
-                            "AGENTS.md also present (cross-tool compatibility)"
+                            f"CLAUDE.md found with @ reference to {referenced_file}"
                         )
-
-                    return Finding(
-                        attribute=self.attribute,
-                        status="pass",
-                        score=100.0,
-                        measured_value=f"@ reference to {referenced_file}",
-                        threshold="present",
-                        evidence=evidence,
-                        remediation=None,
-                        error_message=None,
-                    )
+                        evidence.append(f"Referenced file contains {ref_size} bytes")
+                        if self._check_agents_md_exists(agents_md_path):
+                            evidence.append(
+                                "AGENTS.md also present (cross-tool compatibility)"
+                            )
+                    else:
+                        base_score = 25.0
+                        measured_value = f"{size} bytes, invalid @ reference"
+                        evidence.append(
+                            f"CLAUDE.md exists but is minimal ({size} bytes)"
+                        )
+                        evidence.append(
+                            f"@ reference to {referenced_file} but file is missing or too small"
+                        )
                 else:
-                    # Referenced file doesn't exist or is too small
-                    return Finding(
-                        attribute=self.attribute,
-                        status="fail",
-                        score=25.0,
-                        measured_value=f"{size} bytes, invalid @ reference",
-                        threshold=">50 bytes or valid @ reference",
-                        evidence=[
-                            f"CLAUDE.md exists but is minimal ({size} bytes)",
-                            f"@ reference to {referenced_file} but file is missing or too small",
-                        ],
-                        remediation=self._create_remediation(),
-                        error_message=None,
-                    )
-
-            # File is small and no valid @ reference
-            return Finding(
-                attribute=self.attribute,
-                status="fail",
-                score=25.0,
-                measured_value=f"{size} bytes",
-                threshold=">50 bytes",
-                evidence=[f"CLAUDE.md exists but is minimal ({size} bytes)"],
-                remediation=self._create_remediation(),
-                error_message=None,
-            )
+                    base_score = 25.0
+                    measured_value = f"{size} bytes"
+                    evidence.append(f"CLAUDE.md exists but is minimal ({size} bytes)")
 
         except FileNotFoundError:
-            # CLAUDE.md not found at root - check .claude/CLAUDE.md
             dotclaude_md_path = repository.path / ".claude" / "CLAUDE.md"
             dotclaude_content, dotclaude_size = self._read_referenced_file(
                 dotclaude_md_path
             )
 
             if dotclaude_content and dotclaude_size >= 50:
-                evidence = [
-                    "CLAUDE.md not found at repository root",
-                    f".claude/CLAUDE.md found with {dotclaude_size} bytes",
-                ]
+                resolved_content = dotclaude_content
+                base_score = 100.0
+                measured_value = ".claude/CLAUDE.md present"
+                evidence.append("CLAUDE.md not found at repository root")
+                evidence.append(f".claude/CLAUDE.md found with {dotclaude_size} bytes")
                 if self._check_agents_md_exists(agents_md_path):
                     evidence.append("AGENTS.md also present (cross-tool compatibility)")
-                return Finding(
-                    attribute=self.attribute,
-                    status="pass",
-                    score=100.0,
-                    measured_value=".claude/CLAUDE.md present",
-                    threshold="CLAUDE.md or AGENTS.md",
-                    evidence=evidence,
-                    remediation=None,
-                    error_message=None,
-                )
-
-            # Check for AGENTS.md as alternative
-            agents_content, agents_size = self._read_referenced_file(agents_md_path)
-
-            if agents_content and agents_size >= 50:
-                return Finding(
-                    attribute=self.attribute,
-                    status="pass",
-                    score=100.0,  # AGENTS.md is the cross-tool standard (60k+ repos)
-                    measured_value="AGENTS.md present",
-                    threshold="CLAUDE.md or AGENTS.md",
-                    evidence=[
-                        "CLAUDE.md not found",
-                        f"AGENTS.md found with {agents_size} bytes",
-                        "AGENTS.md is the cross-tool standard supported by Claude Code, Copilot, Cursor, Codex, and Gemini CLI",
-                    ],
-                    remediation=None,
-                    error_message=None,
-                )
-
-            # Neither file exists
-            return Finding(
-                attribute=self.attribute,
-                status="fail",
-                score=0.0,
-                measured_value="missing",
-                threshold="present",
-                evidence=[
-                    "CLAUDE.md not found in repository root",
-                    "AGENTS.md not found (alternative)",
-                ],
-                remediation=self._create_remediation(),
-                error_message=None,
-            )
+            else:
+                agents_content, agents_size = self._read_referenced_file(agents_md_path)
+                if agents_content and agents_size >= 50:
+                    resolved_content = agents_content
+                    base_score = 100.0
+                    measured_value = "AGENTS.md present"
+                    evidence.extend(
+                        [
+                            "CLAUDE.md not found",
+                            f"AGENTS.md found with {agents_size} bytes",
+                            "AGENTS.md is the cross-tool standard supported by Claude Code, Copilot, Cursor, Codex, and Gemini CLI",
+                        ]
+                    )
+                else:
+                    base_score = 0.0
+                    measured_value = "missing"
+                    evidence.extend(
+                        [
+                            "CLAUDE.md not found in repository root",
+                            "AGENTS.md not found (alternative)",
+                        ]
+                    )
         except OSError as e:
             return Finding.error(
                 self.attribute, reason=f"Could not read CLAUDE.md file: {e}"
             )
+
+        # File missing or minimal: return early without quality checks
+        if base_score < 50:
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=base_score,
+                measured_value=measured_value,
+                threshold=">50 bytes, <=150 lines recommended",
+                evidence=evidence,
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
+
+        # Phase 2: Length validation (applies to all repos)
+        line_count = len(resolved_content.splitlines()) if resolved_content else 0
+        if line_count <= 150:
+            length_score = 30.0
+            evidence.append(f"Context file is {line_count} lines (good: <=150)")
+        elif line_count <= 300:
+            length_score = 15.0
+            evidence.append(
+                f"Context file is {line_count} lines (partial credit: <=300)"
+            )
+        else:
+            length_score = 0.0
+            evidence.append(
+                f"Context file is {line_count} lines (exceeds 300 line limit, consider splitting into .claude/skills/)"
+            )
+
+        final_score = min(70.0 + length_score, 100.0)
+
+        # Phase 3: Agent access documentation (substantiating evidence only)
+        self._check_agent_access(resolved_content, evidence)
+
+        return Finding(
+            attribute=self.attribute,
+            status="pass",
+            score=final_score,
+            measured_value=measured_value,
+            threshold=">50 bytes, <=150 lines recommended",
+            evidence=evidence,
+            remediation=None,
+            error_message=None,
+        )
 
     def _extract_at_reference(self, content: str) -> str | None:
         """Extract @ reference from CLAUDE.md content.
@@ -263,6 +256,43 @@ class CLAUDEmdAssessor(BaseAssessor):
         content, size = self._read_referenced_file(agents_md_path)
         return content is not None and size >= 50
 
+    def _check_agent_access(self, content: str, evidence: list[str]) -> None:
+        """Check for agent access documentation in context file content.
+
+        Substantiating evidence only, not a hard gate. Looks for access-related
+        headings or co-occurrence of platform and tool/auth keywords.
+        """
+        if not content:
+            return
+
+        access_heading = re.compile(
+            r"^#{1,3}\s.*(agent\s+access|repository\s+access|repo\s+access|platform)",
+            re.IGNORECASE | re.MULTILINE,
+        )
+        if access_heading.search(content):
+            evidence.append("Agent access documentation found")
+            return
+
+        content_lower = content.lower()
+        platform_keywords = ["github", "gitlab", "bitbucket", "azure devops"]
+        tool_auth_keywords = [
+            "gh ",
+            "glab",
+            "authentication",
+            "token",
+            "credential",
+            "vpn",
+            "cli tool",
+        ]
+
+        has_platform = any(kw in content_lower for kw in platform_keywords)
+        has_tool_auth = any(kw in content_lower for kw in tool_auth_keywords)
+
+        if has_platform and has_tool_auth:
+            evidence.append(
+                "Agent access documentation found (platform and tool/auth references)"
+            )
+
     def _create_remediation(self) -> Remediation:
         """Create remediation guidance for missing/inadequate CLAUDE.md."""
         return Remediation(
@@ -272,10 +302,12 @@ class CLAUDEmdAssessor(BaseAssessor):
                 "  Option 1: Create standalone CLAUDE.md (>50 bytes) with project context",
                 "  Option 2: Create AGENTS.md and symlink CLAUDE.md to it (cross-tool compatibility)",
                 "  Option 3: Create AGENTS.md and reference it with @AGENTS.md in minimal CLAUDE.md",
+                "Keep the file under 150 lines (hard cap: 300 lines)",
                 "Add project overview and purpose",
                 "Document key architectural patterns",
                 "Specify coding standards and conventions",
                 "Include build/test/deployment commands",
+                "Add agent access info (platform, CLI tool, auth requirements) if applicable",
                 "Add any project-specific context that helps AI assistants",
             ],
             tools=[],

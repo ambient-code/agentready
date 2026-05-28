@@ -291,7 +291,7 @@ Create `.agentready-config.yaml` to customize:
 ```yaml
 # Custom attribute weights (must sum to 1.0)
 weights:
-  claude_md_file: 0.15      # Increase from default 0.10
+  agent_instructions: 0.15   # Increase from default 0.10
   readme_structure: 0.12
   type_annotations: 0.08
 
