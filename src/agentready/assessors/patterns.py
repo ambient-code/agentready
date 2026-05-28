@@ -118,7 +118,6 @@ class PatternReferencesAssessor(BaseAssessor):
                             )
                     except (OSError, UnicodeDecodeError):
                         pass
-                    break
 
         if score >= 40:
             return Finding(

@@ -51,7 +51,7 @@ Missing a Tier 1 attribute (up to 12% weight) has up to 12x the score impact of 
 
 *Fundamentals that enable basic AI agent functionality — 55% of total score*
 
-### 1. CLAUDE.md Configuration File
+### 1. Agent Instruction Files
 
 **ID**: `agent_instructions`
 **Weight**: 7%

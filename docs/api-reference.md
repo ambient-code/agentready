@@ -113,7 +113,7 @@ attribute = Attribute(
     tier=1,
     weight=0.10,
     category="Context Window Optimization",
-    description="CLAUDE.md file at repository root",
+    description="Agent instruction file (CLAUDE.md, AGENTS.md, or .claude/CLAUDE.md)",
     rationale="Provides immediate project context to AI agents"
 )
 ```

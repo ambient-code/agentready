@@ -446,6 +446,7 @@ class TestAlignClaudeMdFileFeatures:
         mock_finding.attribute.id = "agent_instructions"
         mock_finding.status = "fail"
         mock_finding.score = 0.0
+        mock_finding.measured_value = "missing"
 
         mock_assessment = MagicMock()
         mock_assessment.overall_score = 65.0
