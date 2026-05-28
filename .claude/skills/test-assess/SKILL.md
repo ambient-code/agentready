@@ -9,11 +9,13 @@ argument-hint: "[description of what to test]"
 allowed-tools:
   - Bash(mktemp -d /tmp/agentready-test-*)
   - Bash(git clone *)
+  - Bash(gh *)
+  - Bash(yes *)
   - Bash(rm -rf /tmp/agentready-test-*)
   - Bash(PYTHONPATH=src python -m agentready *)
 ---
 
-## Test agentready assess on real repositories
+# Test agentready assess on real repositories
 
 You are testing the agentready assessment tool against real GitHub repositories
 to validate that a change works correctly.
