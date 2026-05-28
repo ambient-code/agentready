@@ -52,8 +52,8 @@ class TestPatternReferencesAssessor:
         assert finding.status == "fail"
         assert finding.score == 0.0
 
-    def test_passes_with_skills_directory(self, tmp_path):
-        """Test that .claude/skills/ with SKILL.md files passes."""
+    def test_partial_credit_with_single_skill(self, tmp_path):
+        """Test that 1 skill gets partial credit (30 pts) below pass threshold."""
         skills_dir = tmp_path / ".claude" / "skills" / "add-endpoint"
         skills_dir.mkdir(parents=True)
         (skills_dir / "SKILL.md").write_text(
@@ -64,8 +64,8 @@ class TestPatternReferencesAssessor:
         assessor = PatternReferencesAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.status == "pass"
-        assert finding.score >= 60.0
+        assert finding.status == "fail"
+        assert finding.score == 30.0
         assert any(".claude/skills/" in e for e in finding.evidence)
 
     def test_passes_with_pattern_refs_in_claude_md(self, tmp_path):
@@ -110,14 +110,14 @@ class TestPatternReferencesAssessor:
         # examples/ alone gives 20 points, which is below pass threshold (40)
         assert finding.score == 20.0
 
-    def test_skills_plus_examples_caps_at_100(self, tmp_path):
-        """Test that combined score caps at 100."""
-        # Skills dir
+    def test_skills_plus_examples_combined_score(self, tmp_path):
+        """Test combined score from skills + examples."""
+        # Skills dir (1 skill = 30 pts partial credit)
         skills_dir = tmp_path / ".claude" / "skills" / "add-endpoint"
         skills_dir.mkdir(parents=True)
         (skills_dir / "SKILL.md").write_text("# Pattern\n")
 
-        # Examples dir
+        # Examples dir (+20 pts)
         examples_dir = tmp_path / "examples"
         examples_dir.mkdir()
         (examples_dir / "example.py").write_text("# Example\n")
@@ -126,7 +126,7 @@ class TestPatternReferencesAssessor:
         assessor = PatternReferencesAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.score == 80.0  # 60 + 20
+        assert finding.score == 50.0  # 30 + 20
 
     def test_remediation_on_fail(self, tmp_path):
         """Test that remediation is provided on failure."""
@@ -151,6 +151,89 @@ class TestPatternReferencesAssessor:
 
         assert finding.status == "pass"
         assert finding.score >= 40.0
+
+    # --- Skill depth tiering tests (ADR A.4) ---
+
+    def test_skills_partial_credit_1_skill(self, tmp_path):
+        """Test that 1 skill gets partial credit (30 pts, not 60)."""
+        skills_dir = tmp_path / ".claude" / "skills" / "build"
+        skills_dir.mkdir(parents=True)
+        (skills_dir / "SKILL.md").write_text("# Build\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = PatternReferencesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 30.0
+        assert any("3+ recommended" in e for e in finding.evidence)
+
+    def test_skills_partial_credit_2_skills(self, tmp_path):
+        """Test that 2 skills get partial credit (30 pts)."""
+        for name in ["build", "test"]:
+            skill_dir = tmp_path / ".claude" / "skills" / name
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(f"# {name.title()}\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = PatternReferencesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 30.0
+        assert any("3+ recommended" in e for e in finding.evidence)
+
+    def test_skills_full_credit_3_plus_skills(self, tmp_path):
+        """Test that 3+ skills get full credit (60 pts)."""
+        for name in ["build", "test", "deploy"]:
+            skill_dir = tmp_path / ".claude" / "skills" / name
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(f"# {name.title()}\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = PatternReferencesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 60.0
+        assert not any("3+ recommended" in e for e in finding.evidence)
+
+    def test_context_file_length_warning_no_skills(self, tmp_path):
+        """Test warning when context file >150 lines with no skills."""
+        lines = ["# Project Config"] + [f"Line {i}" for i in range(200)]
+        (tmp_path / "CLAUDE.md").write_text("\n".join(lines))
+
+        repo = _make_repo(tmp_path)
+        assessor = PatternReferencesAssessor()
+        finding = assessor.assess(repo)
+
+        assert any(
+            "no skills" in e and "consider extracting" in e for e in finding.evidence
+        )
+
+    def test_context_file_length_no_warning_with_skills(self, tmp_path):
+        """Test no length warning when skills exist."""
+        lines = ["# Project Config"] + [f"Line {i}" for i in range(200)]
+        (tmp_path / "CLAUDE.md").write_text("\n".join(lines))
+
+        skills_dir = tmp_path / ".claude" / "skills" / "build"
+        skills_dir.mkdir(parents=True)
+        (skills_dir / "SKILL.md").write_text("# Build\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = PatternReferencesAssessor()
+        finding = assessor.assess(repo)
+
+        assert not any(
+            "no skills" in e and "consider extracting" in e for e in finding.evidence
+        )
+
+    def test_context_file_length_no_warning_under_150(self, tmp_path):
+        """Test no length warning when context file is short."""
+        (tmp_path / "CLAUDE.md").write_text("# Short file\nJust a few lines.\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = PatternReferencesAssessor()
+        finding = assessor.assess(repo)
+
+        assert not any("consider extracting" in e for e in finding.evidence)
 
 
 class TestDesignIntentAssessor:
