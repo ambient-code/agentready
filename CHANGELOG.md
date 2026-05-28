@@ -1,3 +1,15 @@
+# [2.42.0](https://github.com/ambient-code/agentready/compare/v2.41.1...v2.42.0) (2026-05-28)
+
+
+### Bug Fixes
+
+* address CodeRabbit review feedback on Husky detection ([0ec0a07](https://github.com/ambient-code/agentready/commit/0ec0a0746a52c9f62c0698a95fecc7d3fe32c347))
+
+
+### Features
+
+* support Husky as equivalent pre-commit hook framework ([#433](https://github.com/ambient-code/agentready/issues/433)) ([c7d80a0](https://github.com/ambient-code/agentready/commit/c7d80a00d53364bddbc3db0e9a22c1afc13bbe81))
+
 ## [2.41.1](https://github.com/ambient-code/agentready/compare/v2.41.0...v2.41.1) (2026-05-27)
 
 
