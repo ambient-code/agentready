@@ -51974,7 +51974,7 @@ class LanguageDetector:
         # ... more extensions
     }
 
-    def detect(self, repo_path: str) -> Dict[str, int]:
+    def detect_languages(self) -> Dict[str, int]:
         """
         Count files by language.
 
@@ -51982,10 +51982,6 @@ class LanguageDetector:
             Dict mapping language name to file count
             Example: {"Python": 42, "JavaScript": 18}
         """
-
-    def get_primary_language(self, languages: Dict[str, int]) -> str:
-        """Return language with most files."""
-        return max(languages, key=languages.get)
 ```
 
 ### File Generation Flow

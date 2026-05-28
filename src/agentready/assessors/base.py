@@ -69,12 +69,16 @@ class BaseAssessor(ABC):
         return True
 
     # Root-level manifest files that strongly signal the project's primary language.
-    # When file counts are close, these break the tie.
     _LANG_ROOT_MANIFESTS: dict[str, list[str]] = {
         "Go": ["go.mod"],
         "Python": ["pyproject.toml", "setup.py", "setup.cfg"],
         "JavaScript": ["package.json"],
         "TypeScript": ["tsconfig.json"],
+        "Java": ["pom.xml", "build.gradle", "build.gradle.kts"],
+        "Rust": ["Cargo.toml"],
+        "Ruby": ["Gemfile"],
+        "PHP": ["composer.json"],
+        "C#": ["*.csproj", "*.sln"],
     }
 
     def _primary_language(
@@ -84,7 +88,10 @@ class BaseAssessor(ABC):
     ) -> str | None:
         """Return the primary programming language among candidates.
 
-        Uses file count as the base signal, but when counts are within 30%
+        First checks for root-level project manifests.
+        If exactly one language is detected by these manifest files, returns it immediately.
+
+        Otherwise, uses file count as the base signal, but when counts are within 30%
         of each other, a root-level project manifest (go.mod, pyproject.toml,
         package.json) acts as tiebreaker — the language whose manifest sits
         at the repo root is treated as primary.
@@ -92,6 +99,33 @@ class BaseAssessor(ABC):
         This handles repos like Go operators with a Python SDK subdirectory,
         where Python may have slightly more files but Go owns the root.
         """
+
+        def has_manifest(lang: str) -> bool:
+            """Check if language has root manifest file(s)."""
+            manifests = self._LANG_ROOT_MANIFESTS.get(lang, [])
+            for manifest in manifests:
+                if "*" in manifest:
+                    if list(repository.path.glob(manifest)):
+                        return True
+                else:
+                    if (repository.path / manifest).exists():
+                        return True
+            return False
+
+        # First, check for project files in root
+        detected_by_manifest = [lang for lang in candidates if has_manifest(lang)]
+
+        # If exactly one language detected by manifests, return it
+        if len(detected_by_manifest) == 1:
+            return detected_by_manifest[0]
+
+        # Special handling for JavaScript/TypeScript
+        if set(detected_by_manifest) == {"JavaScript", "TypeScript"}:
+            # TypeScript projects have tsconfig.json - stronger signal than file count
+            if (repository.path / "tsconfig.json").exists():
+                return "TypeScript"
+
+        # Use file counts to detect primary language
         lang_counts = {
             lang: repository.languages.get(lang, 0)
             for lang in candidates
@@ -112,12 +146,7 @@ class BaseAssessor(ABC):
         }
         if len(close_langs) > 1:
             manifest_winners = [
-                lang
-                for lang in sorted(close_langs)
-                if any(
-                    (repository.path / m).exists()
-                    for m in self._LANG_ROOT_MANIFESTS.get(lang, [])
-                )
+                lang for lang in sorted(close_langs) if has_manifest(lang)
             ]
             if len(manifest_winners) == 1:
                 return manifest_winners[0]

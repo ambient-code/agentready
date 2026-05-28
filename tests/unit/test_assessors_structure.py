@@ -833,6 +833,37 @@ another_entry
         assert len(content) > 0, "Python.arsrc is empty"
         assert "tests" in content, "Python.arsrc missing expected entry 'tests'"
 
+    def test_go_project_with_gomod_uses_go_assessment(self, tmp_path):
+        """Test that a Go project with go.mod uses Go-specific assessment."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # Create go.mod to indicate Go project
+        (tmp_path / "go.mod").write_text("module example.com/myproject\n")
+
+        # Create standard Go directories
+        (tmp_path / "cmd").mkdir()
+        (tmp_path / "internal").mkdir()
+
+        repo = Repository(
+            path=tmp_path,
+            name="go-project",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Go": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should use Go assessment
+        evidence_str = " ".join(finding.evidence)
+        assert "go.mod" in evidence_str
+        assert "cmd/" in evidence_str or "internal/" in evidence_str
+
 
 class TestIssuePRTemplatesAssessor:
     """Test IssuePRTemplatesAssessor."""
