@@ -98,7 +98,7 @@ class MarkdownReporter(BaseReporter):
 
 | Metric | Value |
 |--------|-------|
-| **Overall Score** | **{assessment.overall_score:.1f}/100** {cert_emoji} **{assessment.certification_level}** ([Tier Definitions](https://agentready.dev/attributes.html#tier-system)) |
+| **Overall Score** | **{assessment.overall_score:.1f}/100** {cert_emoji} **{assessment.certification_level}** ([Tier Definitions](https://ambient-code.github.io/agentready/attributes.html#tier-system)) |
 | **Attributes Assessed** | {assessment.attributes_assessed}/{assessment.attributes_total} |
 | **Attributes Not Assessed** | {assessment.attributes_not_assessed} |
 | **Assessment Duration** | {assessment.duration_seconds:.1f}s |
