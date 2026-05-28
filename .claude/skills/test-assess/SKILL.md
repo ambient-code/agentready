@@ -7,6 +7,7 @@ description: >
   a PR's scoring behavior, or validating that a change works on real-world repos.
 argument-hint: "[description of what to test]"
 allowed-tools:
+  - Bash(mktemp -d /tmp/agentready-test-*)
   - Bash(git clone *)
   - Bash(rm -rf /tmp/agentready-test-*)
   - Bash(PYTHONPATH=src python -m agentready *)
@@ -51,13 +52,13 @@ Briefly confirm your repo selections with the user before cloning.
 
 Create a unique temp directory for this test run:
 
-```
+```bash
 TESTDIR=$(mktemp -d /tmp/agentready-test-XXXXXX)
 ```
 
 Shallow clone each repo into that directory:
 
-```
+```bash
 git clone --depth 1 <repo-url> $TESTDIR/<repo-name>
 ```
 
@@ -65,7 +66,7 @@ git clone --depth 1 <repo-url> $TESTDIR/<repo-name>
 
 Run each assessment using the local checkout, not the globally installed package:
 
-```
+```bash
 yes | PYTHONPATH=src python -m agentready assess $TESTDIR/<repo-name>
 ```
 
@@ -86,7 +87,7 @@ Summarize all results in a table at the end if multiple repos were tested.
 
 After the user has seen the results, delete the temp directory:
 
-```
+```bash
 rm -rf $TESTDIR
 ```
 
