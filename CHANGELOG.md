@@ -1,3 +1,15 @@
+# [2.43.0](https://github.com/ambient-code/agentready/compare/v2.42.2...v2.43.0) (2026-05-28)
+
+
+### Bug Fixes
+
+* address review feedback on context file assessor PR ([7e0ba3e](https://github.com/ambient-code/agentready/commit/7e0ba3e0fe5d1a6b2996b6d7c92f91da17449684))
+
+
+### Features
+
+* context file assessor improvements (ADR A.1, A.9, A.4) ([3b52e79](https://github.com/ambient-code/agentready/commit/3b52e79b5adfab93f6b879f80805311eec14866e)), closes [#459](https://github.com/ambient-code/agentready/issues/459)
+
 ## [2.42.2](https://github.com/ambient-code/agentready/compare/v2.42.1...v2.42.2) (2026-05-28)
 
 

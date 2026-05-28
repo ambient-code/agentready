@@ -8,7 +8,7 @@ Assess repositories against evidence-based attributes for AI-assisted developmen
 |------|-------|
 | **Python** | >=3.12 |
 | **Entry Point** | `agentready.cli.main:cli` (or `python -m agentready`) |
-| **Self-Score** | 74.5/100 (Silver) |
+| **Self-Score** | 80.0/100 (Silver) |
 | **Test Coverage** | 37% (target: >80%) |
 
 ## Commands
