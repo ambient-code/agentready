@@ -1,3 +1,10 @@
+# [2.45.0](https://github.com/ambient-code/agentready/compare/v2.44.0...v2.45.0) (2026-05-28)
+
+
+### Features
+
+* test assessor enhancements for command documentation and organization (ADR A.2, A.3) ([51030ec](https://github.com/ambient-code/agentready/commit/51030ecc0c94453d02671b667ff5671969404eab)), closes [#460](https://github.com/ambient-code/agentready/issues/460)
+
 # [2.44.0](https://github.com/ambient-code/agentready/compare/v2.43.0...v2.44.0) (2026-05-28)
 
 
