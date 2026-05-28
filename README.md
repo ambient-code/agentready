@@ -34,16 +34,16 @@ mkdir -p ~/agentready-reports
 # Assess AgentReady itself
 git clone https://github.com/ambient-code/agentready /tmp/agentready
 podman run --rm \
-  -v /tmp/agentready:/repo:ro,Z \
-  -v ~/agentready-reports:/reports:Z \
+  -v /tmp/agentready:/repo:ro,z \
+  -v ~/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
 # Assess your repository
 # For large repos, add -i flag to confirm the size warning
 podman run --rm \
-  -v /path/to/your/repo:/repo:ro,Z \
-  -v ~/agentready-reports:/reports:Z \
+  -v /path/to/your/repo:/repo:ro,z \
+  -v ~/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
