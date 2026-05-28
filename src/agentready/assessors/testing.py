@@ -76,11 +76,12 @@ class TestExecutionAssessor(BaseAssessor):
     def _assess_python_coverage(self, repository: Repository) -> Finding:
         """Assess Python test execution and coverage configuration.
 
-        Scoring (additive, 100 max):
+        Scoring (additive, capped at 100):
         - Test files exist (tests/test_*.py or test/*.py):  40 pts
         - Runnable test command configured:                  20 pts
         - Coverage config (.coveragerc, pyproject.toml):     20 pts
         - Coverage enforcement (pytest-cov, fail_under):     20 pts
+        - Test command documented in context files:          10 pts (bonus)
         """
         score = 0.0
         evidence = []
@@ -144,6 +145,28 @@ class TestExecutionAssessor(BaseAssessor):
             score += 20.0
             evidence.append("Coverage enforcement configured (pytest-cov/fail_under)")
 
+        # Signal 5: Test command documented in context files (10 pts)
+        python_patterns = [
+            "pytest",
+            "python -m pytest",
+            "tox",
+            "make test",
+            "nox",
+            "pytest -k",
+            "pytest path/",
+            "pytest tests/",
+        ]
+        doc_found, doc_evidence = self._check_test_command_documented(
+            repository, python_patterns
+        )
+        if doc_found:
+            score += 10.0
+        evidence.extend(doc_evidence)
+
+        # Substantiating evidence: test organization
+        org_evidence = self._check_test_organization(repository, "Python")
+        evidence.extend(org_evidence)
+
         score = min(score, 100.0)
         status = "pass" if has_test_files and has_runner and score > 50 else "fail"
 
@@ -161,6 +184,159 @@ class TestExecutionAssessor(BaseAssessor):
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
+
+    def _check_test_command_documented(
+        self, repository: Repository, patterns: list[str]
+    ) -> tuple[bool, list[str]]:
+        """Check if test commands are documented in context files.
+
+        Scans CLAUDE.md, AGENTS.md, and README.md for test command keywords.
+        Returns (found, evidence_lines).
+        """
+        context_files = ["CLAUDE.md", "AGENTS.md", "README.md"]
+        for filename in context_files:
+            filepath = repository.path / filename
+            if not filepath.exists():
+                continue
+            try:
+                content = filepath.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            content_lower = content.lower()
+            for pattern in patterns:
+                if pattern.lower() in content_lower:
+                    return True, [f"Test command documented in {filename}"]
+        return False, ["Test command not documented in context files"]
+
+    def _check_test_organization(
+        self, repository: Repository, language: str
+    ) -> list[str]:
+        """Check for test organization signals (substantiating evidence).
+
+        Looks for unit/integration separation patterns. Returns evidence lines.
+        """
+        evidence = []
+
+        if language == "Python":
+            tests_dir = repository.path / "tests"
+            has_unit = (tests_dir / "unit").is_dir() if tests_dir.exists() else False
+            has_integration = (
+                (tests_dir / "integration").is_dir() if tests_dir.exists() else False
+            )
+            if has_unit or has_integration:
+                parts = []
+                if has_unit:
+                    parts.append("unit")
+                if has_integration:
+                    parts.append("integration")
+                evidence.append(
+                    f"Test organization: separate {'/'.join(parts)} directories"
+                )
+
+            if not evidence:
+                test_files = (
+                    list((tests_dir).rglob("test_*.py"))[:10]
+                    if tests_dir.exists()
+                    else []
+                )
+                for tf in test_files:
+                    try:
+                        content = tf.read_text(encoding="utf-8")
+                        if (
+                            "@pytest.mark.integration" in content
+                            or "@pytest.mark.slow" in content
+                        ):
+                            evidence.append(
+                                "Test organization: pytest markers found (integration/slow)"
+                            )
+                            break
+                    except (OSError, UnicodeDecodeError):
+                        continue
+
+            makefile = repository.path / "Makefile"
+            if makefile.exists():
+                try:
+                    content = makefile.read_text(encoding="utf-8")
+                    targets = []
+                    for target in ["test-unit", "test-integration", "test-e2e"]:
+                        if re.search(rf"^{target}\s*:", content, re.MULTILINE):
+                            targets.append(target)
+                    if targets:
+                        evidence.append(
+                            f"Test organization: Makefile targets ({', '.join(targets)})"
+                        )
+                except (OSError, UnicodeDecodeError):
+                    pass
+
+        elif language in ("JavaScript", "TypeScript"):
+            for test_root in ["__tests__", "test", "tests"]:
+                test_dir = repository.path / test_root
+                if not test_dir.is_dir():
+                    continue
+                has_unit = (test_dir / "unit").is_dir()
+                has_integration = (test_dir / "integration").is_dir()
+                if has_unit or has_integration:
+                    parts = []
+                    if has_unit:
+                        parts.append("unit")
+                    if has_integration:
+                        parts.append("integration")
+                    evidence.append(
+                        f"Test organization: separate {'/'.join(parts)} directories"
+                    )
+                    break
+
+            pkg_json = repository.path / "package.json"
+            if pkg_json.exists():
+                try:
+                    import json
+
+                    pkg = json.loads(pkg_json.read_text(encoding="utf-8"))
+                    scripts = pkg.get("scripts", {})
+                    test_scripts = [
+                        k
+                        for k in scripts
+                        if k.startswith("test:") or k.startswith("test-")
+                    ]
+                    if test_scripts:
+                        evidence.append(
+                            f"Test organization: filtered test scripts ({', '.join(test_scripts[:3])})"
+                        )
+                except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+                    pass
+
+        elif language == "Go":
+            test_files = list(repository.path.rglob("*_test.go"))[:10]
+            for tf in test_files:
+                try:
+                    content = tf.read_text(encoding="utf-8")
+                    if (
+                        "//go:build integration" in content
+                        or "// +build integration" in content
+                    ):
+                        evidence.append(
+                            "Test organization: Go build tags for integration tests"
+                        )
+                        break
+                except (OSError, UnicodeDecodeError):
+                    continue
+
+            makefile = repository.path / "Makefile"
+            if makefile.exists():
+                try:
+                    content = makefile.read_text(encoding="utf-8")
+                    targets = []
+                    for target in ["test-unit", "test-integration", "test-e2e"]:
+                        if re.search(rf"^{target}\s*:", content, re.MULTILINE):
+                            targets.append(target)
+                    if targets:
+                        evidence.append(
+                            f"Test organization: Makefile targets ({', '.join(targets)})"
+                        )
+                except (OSError, UnicodeDecodeError):
+                    pass
+
+        return evidence
 
     def _has_python_test_files(self, repository: Repository) -> bool:
         """Check if Python test files exist."""
@@ -200,11 +376,12 @@ class TestExecutionAssessor(BaseAssessor):
     def _assess_javascript_coverage(self, repository: Repository) -> Finding:
         """Assess JavaScript/TypeScript test execution and coverage.
 
-        Scoring (additive, 100 max):
+        Scoring (additive, capped at 100):
         - scripts.test entry in package.json:                40 pts
         - Test files exist (*.test.js, *.spec.js, etc.):     20 pts
         - jest/vitest in devDependencies:                     20 pts
         - Coverage threshold configured:                     20 pts
+        - Test command documented in context files:           10 pts (bonus)
         """
         package_json = repository.path / "package.json"
 
@@ -262,6 +439,31 @@ class TestExecutionAssessor(BaseAssessor):
             if has_threshold:
                 score += 20.0
                 evidence.append("Coverage threshold configured")
+
+            # Signal 5: Test command documented in context files (10 pts)
+            js_patterns = [
+                "npm test",
+                "yarn test",
+                "pnpm test",
+                "npx jest",
+                "npx vitest",
+                "npm test --",
+                "jest path/",
+                "vitest path/",
+            ]
+            doc_found, doc_evidence = self._check_test_command_documented(
+                repository, js_patterns
+            )
+            if doc_found:
+                score += 10.0
+            evidence.extend(doc_evidence)
+
+            # Substantiating evidence: test organization
+            primary = self._primary_language(repository, {"JavaScript", "TypeScript"})
+            org_evidence = self._check_test_organization(
+                repository, primary or "JavaScript"
+            )
+            evidence.extend(org_evidence)
 
             score = min(score, 100.0)
             status = "pass" if has_test_script and score > 50 else "fail"
@@ -343,11 +545,12 @@ class TestExecutionAssessor(BaseAssessor):
     def _assess_go_coverage(self, repository: Repository) -> Finding:
         """Assess Go test execution and coverage configuration.
 
-        Scoring (additive, 100 max):
+        Scoring (additive, capped at 100):
         - Test files exist (*_test.go):                40 pts
         - Test command found (Makefile/CI/README):     20 pts
         - Coverage configured (-coverprofile):         20 pts
         - Race detection (-race flag):                 20 pts
+        - Test command documented in context files:    10 pts (bonus)
         """
         score = 0.0
         evidence = []
@@ -383,6 +586,24 @@ class TestExecutionAssessor(BaseAssessor):
             evidence.append("Race detector enabled (-race flag)")
         else:
             evidence.append("Race detector not configured (-race flag)")
+
+        # Signal 5: Test command documented in context files (10 pts)
+        go_patterns = [
+            "go test",
+            "make test",
+            "go test ./",
+            "go test -run",
+        ]
+        doc_found, doc_evidence = self._check_test_command_documented(
+            repository, go_patterns
+        )
+        if doc_found:
+            score += 10.0
+        evidence.extend(doc_evidence)
+
+        # Substantiating evidence: test organization
+        org_evidence = self._check_test_organization(repository, "Go")
+        evidence.extend(org_evidence)
 
         score = min(score, 100.0)
         status = "pass" if has_test_files and has_test_cmd and score > 50 else "fail"
