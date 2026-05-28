@@ -1,3 +1,12 @@
+## [2.42.1](https://github.com/ambient-code/agentready/compare/v2.42.0...v2.42.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* detection of Golang project layout ([1ec4312](https://github.com/ambient-code/agentready/commit/1ec43124e3ae8874ba35fcb69597f499aa4df364))
+* drop support for typescript projects without tsconfig.json ([3635148](https://github.com/ambient-code/agentready/commit/36351481eb7d841aa279ddeffd270048b77b2ada))
+* rework _primary_language method ([d4295f2](https://github.com/ambient-code/agentready/commit/d4295f2309bb768ccf0e92b3da7a52acf0e7cca7))
+
 # [2.42.0](https://github.com/ambient-code/agentready/compare/v2.41.1...v2.42.0) (2026-05-28)
 
 
