@@ -1,3 +1,10 @@
+## [2.42.2](https://github.com/ambient-code/agentready/compare/v2.42.1...v2.42.2) (2026-05-28)
+
+
+### Bug Fixes
+
+* correct broken Tier Definitions link in Markdown report ([#468](https://github.com/ambient-code/agentready/issues/468)) ([aa04bcd](https://github.com/ambient-code/agentready/commit/aa04bcd07e1eba0553bb68ba126e1d0cbda529f3))
+
 ## [2.42.1](https://github.com/ambient-code/agentready/compare/v2.42.0...v2.42.1) (2026-05-28)
 
 
