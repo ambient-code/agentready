@@ -1,3 +1,16 @@
+# [2.44.0](https://github.com/ambient-code/agentready/compare/v2.43.0...v2.44.0) (2026-05-28)
+
+
+### Bug Fixes
+
+* address CodeRabbit review feedback on test-assess skill ([74dbc1b](https://github.com/ambient-code/agentready/commit/74dbc1b360b91eb6877c95a364c8b3de63b8c993))
+* address second round of CodeRabbit feedback on test-assess skill ([4cbaf9c](https://github.com/ambient-code/agentready/commit/4cbaf9c1f8a0e1e8fa3ec8a717d3a10f18194650))
+
+
+### Features
+
+* add test-assess skill for validating assessors against real repos ([a12ef7b](https://github.com/ambient-code/agentready/commit/a12ef7b8e518b9652613e30f73d87c07f5d40342))
+
 # [2.43.0](https://github.com/ambient-code/agentready/compare/v2.42.2...v2.43.0) (2026-05-28)
 
 
