@@ -13,8 +13,8 @@ mkdir -p ~/agentready-reports
 
 # Assess repository
 podman run --rm \
-  -v /path/to/repo:/repo:ro \
-  -v ~/agentready-reports:/reports \
+  -v /path/to/repo:/repo:ro,z \
+  -v ~/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
@@ -35,8 +35,8 @@ mkdir -p ~/agentready-reports
 
 # Run assessment
 podman run --rm \
-  -v /tmp/agentready:/repo:ro \
-  -v ~/agentready-reports:/reports \
+  -v /tmp/agentready:/repo:ro,z \
+  -v ~/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
@@ -52,22 +52,22 @@ mkdir -p ./agentready-reports
 
 # Local repository
 podman run --rm \
-  -v $(pwd):/repo:ro \
-  -v $(pwd)/agentready-reports:/reports \
+  -v $(pwd):/repo:ro,z \
+  -v $(pwd)/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
 # With additional options
 podman run --rm \
-  -v $(pwd):/repo:ro \
-  -v $(pwd)/agentready-reports:/reports \
+  -v $(pwd):/repo:ro,z \
+  -v $(pwd)/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports --verbose
 
 # Exclude specific assessors
 podman run --rm \
-  -v $(pwd):/repo:ro \
-  -v $(pwd)/agentready-reports:/reports \
+  -v $(pwd):/repo:ro,z \
+  -v $(pwd)/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports -e type_annotations -e test_execution
 ```
@@ -77,8 +77,8 @@ podman run --rm \
 ```bash
 # Mount writable output directory
 podman run --rm \
-  -v /path/to/repo:/repo:ro \
-  -v $(pwd)/reports:/reports \
+  -v /path/to/repo:/repo:ro,z \
+  -v $(pwd)/reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 
@@ -227,8 +227,8 @@ Mount a writable output directory to save reports to your host filesystem:
 ```bash
 mkdir -p ~/agentready-reports
 podman run --rm \
-  -v /repo:/repo:ro \
-  -v ~/agentready-reports:/reports \
+  -v /repo:/repo:ro,z \
+  -v ~/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 ```
@@ -258,8 +258,8 @@ podman run --rm \
   -e GIT_CONFIG_COUNT=1 \
   -e GIT_CONFIG_KEY_0=safe.directory \
   -e GIT_CONFIG_VALUE_0=/repo \
-  -v $(pwd):/repo:ro \
-  -v $(pwd)/agentready-reports:/reports \
+  -v $(pwd):/repo:ro,z \
+  -v $(pwd)/agentready-reports:/reports:z \
   ghcr.io/ambient-code/agentready:latest \
   assess /repo --output-dir /reports
 ```
