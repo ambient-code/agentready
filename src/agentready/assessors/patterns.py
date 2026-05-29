@@ -352,7 +352,11 @@ class DesignIntentAssessor(BaseAssessor):
                 settings = json.loads(settings_path.read_text(encoding="utf-8"))
                 hooks = settings.get("hooks", {})
                 hooks_str = json.dumps(hooks).lower()
-                if hooks and doc_ref_pattern.search(hooks_str):
+                if (
+                    hooks
+                    and doc_ref_pattern.search(hooks_str)
+                    and enforcement_verb_pattern.search(hooks_str)
+                ):
                     deterministic_score = 15.0
                     deterministic_evidence.append(
                         ".claude/settings.json hooks reference design docs (deterministic enforcement)"

@@ -975,22 +975,27 @@ class TestDeterministicEnforcementAssessor:
 
     def test_agent_hooks_score_higher_than_precommit(self, tmp_path):
         """Test that agent hooks (60 pts) score higher than pre-commit (40 pts)."""
-        claude_dir = tmp_path / ".claude"
+        agent_path = tmp_path / "agent"
+        agent_path.mkdir()
+        claude_dir = agent_path / ".claude"
         claude_dir.mkdir()
         (claude_dir / "settings.json").write_text(
             '{"hooks": {"PostToolUse": [{"matcher": "Edit", "command": "echo ok"}]}}'
         )
 
-        repo = _make_repo(tmp_path)
+        repo = _make_repo(agent_path)
         assessor = DeterministicEnforcementAssessor()
         agent_finding = assessor.assess(repo)
 
-        (tmp_path / ".pre-commit-config.yaml").write_text("repos: []\n")
-        precommit_repo = _make_repo(tmp_path)
+        precommit_path = tmp_path / "precommit"
+        precommit_path.mkdir()
+        (precommit_path / ".pre-commit-config.yaml").write_text("repos: []\n")
+        precommit_repo = _make_repo(precommit_path)
         precommit_finding = assessor.assess(precommit_repo)
 
         assert agent_finding.score == 60.0
-        assert precommit_finding.score > 60.0  # 40 + 60 from agent hooks
+        assert precommit_finding.score == 40.0
+        assert agent_finding.score > precommit_finding.score
 
     def test_claude_settings_with_hooks_passes(self, tmp_path):
         """Test that .claude/settings.json with hooks alone passes."""

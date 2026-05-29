@@ -799,7 +799,11 @@ class DeterministicEnforcementAssessor(BaseAssessor):
                 import json
 
                 content = json.loads(claude_settings.read_text())
-                if "hooks" in content:
+                hooks = content.get("hooks")
+                has_configured_hooks = isinstance(hooks, dict) and any(
+                    isinstance(entries, list) and entries for entries in hooks.values()
+                )
+                if has_configured_hooks:
                     score += 60.0
                     evidence.append(
                         ".claude/settings.json has hooks configured (deterministic agent hooks)"
@@ -908,7 +912,12 @@ class DeterministicEnforcementAssessor(BaseAssessor):
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "npx prettier --write $CLAUDE_FILE_PATH 2>/dev/null || true"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write $CLAUDE_FILE_PATH 2>/dev/null || true"
+          }
+        ]
       }
     ]
   }

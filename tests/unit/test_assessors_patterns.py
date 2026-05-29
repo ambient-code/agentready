@@ -467,6 +467,27 @@ class TestDesignIntentAssessor:
         assert finding.score >= 65.0  # 50 (dir) + 15 (deterministic)
         assert any("deterministic" in e.lower() for e in finding.evidence)
 
+    def test_hooks_mentioning_design_without_enforcement_no_bonus(self, tmp_path):
+        """Test that hooks referencing design docs without enforcement verbs get no bonus."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text(
+            '{"hooks": {"PostToolUse": [{"matcher": "Edit",'
+            ' "hooks": [{"type": "command", "command": "echo docs/design"}]}]}}'
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 50.0  # dir only, no enforcement bonus
+        assert not any("deterministic" in e.lower() for e in finding.evidence)
+
     def test_deterministic_supersedes_advisory(self, tmp_path):
         """Test that deterministic enforcement (15 pts) takes precedence over advisory (10 pts)."""
         design_dir = tmp_path / "docs" / "design"
