@@ -11,7 +11,8 @@ allowed-tools:
   - Bash(git clone *)
   - Bash(gh *)
   - Bash(yes *)
-  - Bash(rm -rf /tmp/agentready-test-*)
+  - Bash(find /tmp/agentready-test-* -delete)
+  - Bash(rmdir /tmp/agentready-test-*)
   - Bash(PYTHONPATH=src python -m agentready *)
 ---
 
@@ -90,7 +91,7 @@ Summarize all results in a table at the end if multiple repos were tested.
 After the user has seen the results, delete the temp directory:
 
 ```bash
-rm -rf $TESTDIR
+find $TESTDIR -delete
 ```
 
 Tell the user the cleanup is done. If any repo's reports are worth preserving,

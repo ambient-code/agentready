@@ -1,4 +1,28 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "black --quiet \"$CLAUDE_FILE_PATH\" 2>/dev/null; isort --quiet \"$CLAUDE_FILE_PATH\" 2>/dev/null; true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm -rf|DROP TABLE|--force' && echo 'BLOCK: destructive command' && exit 1 || true"
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Skill(frontend-design:frontend-design)",

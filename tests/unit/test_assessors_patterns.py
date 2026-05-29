@@ -424,6 +424,152 @@ class TestDesignIntentAssessor:
 
         assert finding.score >= 30.0
 
+    def test_advisory_enforcement_bonus(self, tmp_path):
+        """Test that AGENTS.md with design doc update rules adds 10 pts."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+        agents_md = tmp_path / "AGENTS.md"
+        agents_md.write_text(
+            "## Design Documentation\n"
+            "When modifying architecture, update the corresponding design doc "
+            "in docs/design/.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 60.0  # 50 (dir) + 10 (advisory)
+        assert any("advisory enforcement" in e.lower() for e in finding.evidence)
+
+    def test_deterministic_enforcement_bonus(self, tmp_path):
+        """Test that .claude/settings.json hooks referencing design docs add 15 pts."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text(
+            '{"hooks": {"PreToolUse": [{"matcher": "Bash",'
+            ' "command": "check-design-doc-update.sh"}],'
+            ' "design_doc_path": "docs/design"}}'
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 65.0  # 50 (dir) + 15 (deterministic)
+        assert any("deterministic" in e.lower() for e in finding.evidence)
+
+    def test_deterministic_supersedes_advisory(self, tmp_path):
+        """Test that deterministic enforcement (15 pts) takes precedence over advisory (10 pts)."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+        agents_md = tmp_path / "AGENTS.md"
+        agents_md.write_text(
+            "When modifying architecture, review the design doc in docs/design/.\n"
+        )
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text(
+            '{"hooks": {"PreToolUse": [{"matcher": "Bash",'
+            ' "command": "check-design-doc.sh"}],'
+            ' "design_doc_path": "docs/design"}}'
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        # 50 (dir with intent) + 15 (deterministic, supersedes advisory 10)
+        assert finding.score == 65.0
+        assert any("deterministic" in e.lower() for e in finding.evidence)
+        assert not any("advisory" in e.lower() for e in finding.evidence)
+
+    def test_enforcement_with_design_dir_scores_higher(self, tmp_path):
+        """Test that design dir + enforcement scores higher than dir alone."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        baseline = assessor.assess(repo)
+
+        agents_md = tmp_path / "AGENTS.md"
+        agents_md.write_text(
+            "When changing architecture, update the design doc in docs/design/.\n"
+        )
+        repo2 = _make_repo(tmp_path)
+        with_enforcement = assessor.assess(repo2)
+
+        assert with_enforcement.score > baseline.score
+
+    def test_skill_based_enforcement(self, tmp_path):
+        """Test that a skill referencing design doc review triggers deterministic bonus."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+        skill_dir = tmp_path / ".claude" / "skills" / "design-review"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(
+            "# Design Review Skill\n"
+            "Review and update the design doc in docs/design/ "
+            "when architectural changes are detected.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 65.0  # 50 (dir) + 15 (deterministic via skill)
+        assert any("deterministic" in e.lower() for e in finding.evidence)
+
+    def test_no_enforcement_no_bonus(self, tmp_path):
+        """Test that AGENTS.md without enforcement language gives no bonus."""
+        design_dir = tmp_path / "docs" / "design"
+        design_dir.mkdir(parents=True)
+        (design_dir / "overview.md").write_text(
+            "# Design\n## Invariants\n- Data is append-only\n"
+        )
+        agents_md = tmp_path / "AGENTS.md"
+        agents_md.write_text("# Agent Guide\nFollow the coding standards.\n")
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 50.0  # dir only, no enforcement bonus
+
+    def test_enforcement_without_design_docs(self, tmp_path):
+        """Test enforcement bonus applies even without design directory."""
+        agents_md = tmp_path / "AGENTS.md"
+        agents_md.write_text(
+            "When modifying architecture, create a design doc in docs/design/.\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DesignIntentAssessor()
+        finding = assessor.assess(repo)
+
+        # 0 (no dir) + 10 (advisory) = 10, still fail
+        assert finding.status == "fail"
+        assert finding.score == 10.0
+        assert any("advisory enforcement" in e.lower() for e in finding.evidence)
+
 
 class TestProgressiveDisclosureAssessor:
     """Test ProgressiveDisclosureAssessor."""

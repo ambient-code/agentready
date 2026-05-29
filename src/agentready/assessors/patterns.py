@@ -290,6 +290,13 @@ class DesignIntentAssessor(BaseAssessor):
                     evidence.append(f"Design intent language found in {filename}")
                     break
 
+        enforcement_pts, enforcement_evidence = self._check_design_enforcement(
+            repository
+        )
+        if enforcement_pts > 0:
+            score += enforcement_pts
+            evidence.extend(enforcement_evidence)
+
         score = min(score, 100.0)
 
         if score >= 50:
@@ -315,6 +322,95 @@ class DesignIntentAssessor(BaseAssessor):
                 error_message=None,
             )
 
+    def _check_design_enforcement(
+        self, repository: Repository
+    ) -> tuple[float, list[str]]:
+        """Check for enforcement of design doc updates alongside code changes.
+
+        Advisory enforcement (10 pts): AGENTS.md/CLAUDE.md rules requiring
+        design doc updates with architectural changes.
+        Deterministic enforcement (15 pts): Hooks or skills that check for
+        design doc updates. Awards the higher of the two, not both.
+        """
+        import json
+
+        doc_ref_pattern = re.compile(
+            r"design\s+doc|docs/design|architecture\s+doc|\.adr|design\s+document",
+            re.IGNORECASE,
+        )
+        enforcement_verb_pattern = re.compile(
+            r"update|review|create|maintain|must|required|ensure|check",
+            re.IGNORECASE,
+        )
+
+        deterministic_score = 0.0
+        deterministic_evidence = []
+
+        settings_path = repository.path / ".claude" / "settings.json"
+        if settings_path.exists():
+            try:
+                settings = json.loads(settings_path.read_text(encoding="utf-8"))
+                hooks = settings.get("hooks", {})
+                hooks_str = json.dumps(hooks).lower()
+                if hooks and doc_ref_pattern.search(hooks_str):
+                    deterministic_score = 15.0
+                    deterministic_evidence.append(
+                        ".claude/settings.json hooks reference design docs (deterministic enforcement)"
+                    )
+            except (json.JSONDecodeError, OSError):
+                pass
+
+        if deterministic_score == 0:
+            skills_dir = repository.path / ".claude" / "skills"
+            if skills_dir.exists() and skills_dir.is_dir():
+                try:
+                    for skill_dir in skills_dir.iterdir():
+                        if not skill_dir.is_dir():
+                            continue
+                        skill_md = skill_dir / "SKILL.md"
+                        if not skill_md.exists():
+                            continue
+                        try:
+                            content = skill_md.read_text(encoding="utf-8")
+                            if doc_ref_pattern.search(
+                                content
+                            ) and enforcement_verb_pattern.search(content):
+                                deterministic_score = 15.0
+                                deterministic_evidence.append(
+                                    f".claude/skills/{skill_dir.name}/ references design doc enforcement (deterministic)"
+                                )
+                                break
+                        except (OSError, UnicodeDecodeError):
+                            continue
+                except OSError:
+                    pass
+
+        if deterministic_score > 0:
+            return deterministic_score, deterministic_evidence
+
+        advisory_score = 0.0
+        advisory_evidence = []
+        context_files = ["AGENTS.md", "CLAUDE.md", ".claude/CLAUDE.md"]
+        for filename in context_files:
+            filepath = repository.path / filename
+            if not filepath.exists():
+                continue
+            try:
+                content = filepath.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            if doc_ref_pattern.search(content) and enforcement_verb_pattern.search(
+                content
+            ):
+                advisory_score = 10.0
+                advisory_evidence.append(
+                    f"{filename} contains design doc update rules (advisory enforcement)"
+                )
+                break
+
+        return advisory_score, advisory_evidence
+
     def _create_remediation(self) -> Remediation:
         return Remediation(
             summary="Document design intent: preconditions, invariants, and rationale",
@@ -323,11 +419,14 @@ class DesignIntentAssessor(BaseAssessor):
                 "For each critical module, document preconditions, invariants, and rationale",
                 "Use an AI agent to reverse-engineer initial design docs from code, then enrich with intent",
                 "Reference design docs from CLAUDE.md/AGENTS.md",
+                "Add a rule to AGENTS.md requiring design doc updates with architectural changes",
+                "For stronger enforcement, add a hook or skill that checks for design doc updates",
             ],
             tools=[],
             commands=["mkdir -p docs/design"],
             examples=[
                 "# docs/design/event-system.md\n## Invariants\n- Event log is append-only; never mutate or delete entries\n- Events are processed exactly-once via idempotency keys\n\n## Preconditions\n- Auth middleware must validate token before event handlers run\n\n## Rationale\n- Polling instead of webhooks: upstream API has 5s delivery SLA, too slow for our use case",
+                "# AGENTS.md - Advisory enforcement\n## Design Documentation\nWhen modifying component boundaries, data flows, or API contracts,\nreview and update the corresponding design doc in docs/design/.",
             ],
             citations=[
                 Citation(
@@ -335,6 +434,12 @@ class DesignIntentAssessor(BaseAssessor):
                     title="Repository Scaffolding for AI Coding Agents, Section 2.3",
                     url="",
                     relevance="Agents cannot infer design intent from code alone",
+                ),
+                Citation(
+                    source="Red Hat",
+                    title="Repository Scaffolding for AI Coding Agents, Section 2.3 Practice C",
+                    url="",
+                    relevance="Enforce design doc updates as part of architectural changes",
                 ),
             ],
         )

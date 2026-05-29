@@ -900,7 +900,7 @@ class TestDeterministicEnforcementAssessor:
         assert assessor.attribute.default_weight == 0.03
 
     def test_pre_commit_config_passes(self, tmp_path):
-        """Test that .pre-commit-config.yaml is detected."""
+        """Test that .pre-commit-config.yaml is detected and passes at threshold 40."""
         (tmp_path / ".pre-commit-config.yaml").write_text(
             "repos:\n  - repo: https://github.com/pre-commit/pre-commit-hooks\n"
         )
@@ -909,11 +909,12 @@ class TestDeterministicEnforcementAssessor:
         assessor = DeterministicEnforcementAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.score >= 60.0
+        assert finding.status == "pass"
+        assert finding.score == 40.0
         assert any("pre-commit" in e.lower() for e in finding.evidence)
 
     def test_husky_with_hooks_passes(self, tmp_path):
-        """Test that .husky directory with hook scripts passes."""
+        """Test that .husky directory with hook scripts passes at threshold 40."""
         husky_dir = tmp_path / ".husky"
         husky_dir.mkdir()
         (husky_dir / "pre-commit").write_text("#!/bin/sh\nnpx lint-staged\n")
@@ -924,7 +925,7 @@ class TestDeterministicEnforcementAssessor:
         finding = assessor.assess(repo)
 
         assert finding.status == "pass"
-        assert finding.score >= 60.0
+        assert finding.score == 40.0
         assert any(".husky" in e for e in finding.evidence)
         assert any("pre-commit" in e for e in finding.evidence)
         assert any("commit-msg" in e for e in finding.evidence)
@@ -956,7 +957,7 @@ class TestDeterministicEnforcementAssessor:
         assessor = DeterministicEnforcementAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.score >= 60.0
+        assert finding.score == 40.0
         evidence_str = " ".join(finding.evidence)
         assert "_local" not in evidence_str
         assert ".gitignore" not in evidence_str
@@ -971,3 +972,67 @@ class TestDeterministicEnforcementAssessor:
 
         assert finding.status == "fail"
         assert finding.score == 0.0
+
+    def test_agent_hooks_score_higher_than_precommit(self, tmp_path):
+        """Test that agent hooks (60 pts) score higher than pre-commit (40 pts)."""
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text(
+            '{"hooks": {"PostToolUse": [{"matcher": "Edit", "command": "echo ok"}]}}'
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        agent_finding = assessor.assess(repo)
+
+        (tmp_path / ".pre-commit-config.yaml").write_text("repos: []\n")
+        precommit_repo = _make_repo(tmp_path)
+        precommit_finding = assessor.assess(precommit_repo)
+
+        assert agent_finding.score == 60.0
+        assert precommit_finding.score > 60.0  # 40 + 60 from agent hooks
+
+    def test_claude_settings_with_hooks_passes(self, tmp_path):
+        """Test that .claude/settings.json with hooks alone passes."""
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text(
+            '{"hooks": {"PostToolUse": [{"matcher": "Edit", "command": "echo ok"}]}}'
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 60.0
+        assert any("deterministic" in e.lower() for e in finding.evidence)
+
+    def test_claude_settings_without_hooks_does_not_pass(self, tmp_path):
+        """Test that .claude/settings.json without hooks does not pass."""
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text('{"permissions": {}}')
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score == 10.0
+
+    def test_precommit_plus_agent_hooks_scores_100(self, tmp_path):
+        """Test that pre-commit (40) + agent hooks (60) = 100."""
+        (tmp_path / ".pre-commit-config.yaml").write_text("repos: []\n")
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / "settings.json").write_text(
+            '{"hooks": {"PostToolUse": [{"matcher": "Edit", "command": "echo ok"}]}}'
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = DeterministicEnforcementAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
