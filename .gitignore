@@ -83,3 +83,7 @@ docs/_site/
 
 # Claude
 .claude/settings.local.json
+
+# Other AI agent tooling
+.agents/
+.codex/

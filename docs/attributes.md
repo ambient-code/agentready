@@ -794,18 +794,19 @@ Automated code quality checks before commits (pre-commit hooks) and in CI/CD pip
 
 #### Why It Matters
 
-Pre-commit hooks give immediate local feedback. They can be bypassed with `--no-verify`, which is why CI matters too — but for agent-generated commits that go through a normal PR flow, hooks are the first line of defense. Catching a lint error before a commit beats catching it in CI review.
+Agent hooks (`.claude/settings.json`) are deterministic for agent workflows: they always execute and cannot be bypassed. Git hooks (pre-commit, Husky) provide local feedback but can be bypassed with `--no-verify`. Both matter, but agent hooks score higher because they are the primary enforcement mechanism for AI-assisted development.
 
 #### Measurable Criteria
 
 The assessor scores on a 100-point scale:
 
-- **`.pre-commit-config.yaml` present** (60 pts): pre-commit hooks configured
-- **`.husky` directory with hook scripts** (60 pts): Husky git hooks configured (e.g., pre-commit, commit-msg)
+- **`.claude/settings.json` with hooks** (60 pts): Deterministic agent hooks configured (cannot be bypassed)
+- **`.pre-commit-config.yaml` present** (40 pts): Pre-commit git hooks configured (bypassable with `--no-verify`)
+- **`.husky` directory with hook scripts** (40 pts): Husky git hooks configured (bypassable with `--no-verify`)
+- **`.claude/settings.json` without hooks** (10 pts): Agent settings present but no hooks defined
 - **`.husky` directory without hook scripts** (10 pts): Husky directory exists but no hooks defined
-- **`.claude/settings.json` with hooks** (30 pts): Claude Code hook configuration present
 
-**Pass threshold**: 60 points or higher. Either `.pre-commit-config.yaml` or `.husky` with hook scripts is sufficient to pass.
+**Pass threshold**: 40 points or higher. Any single enforcement mechanism (agent hooks, pre-commit, or Husky with scripts) is sufficient to pass.
 
 #### Remediation
 
@@ -1032,7 +1033,7 @@ setup:
 **File Size Limits** (`file_size_limits`, 3%) — Files under threshold to keep context manageable
 **Separation of Concerns** (`separation_of_concerns`, 3%) — Clean module boundaries and single-responsibility
 **Pattern References** (`pattern_references`, 3%) — Documented patterns for common changes. Skills scoring is tiered: 1-2 SKILL.md files earn partial credit (30 pts), 3+ earn full credit (60 pts). Context files >150 lines without skills trigger a warning
-**Design Intent Documentation** (`design_intent`, 3%) — Preconditions, invariants, and rationale in design docs (moved from T3)
+**Design Intent Documentation** (`design_intent`, 3%) — Preconditions, invariants, and rationale in design docs (moved from T3). Enforcement bonus: advisory rules in AGENTS.md requiring design doc updates (+10 pts), or deterministic enforcement via hooks/skills (+15 pts). The higher of the two is awarded, not both
 
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 

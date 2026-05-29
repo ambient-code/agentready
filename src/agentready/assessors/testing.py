@@ -791,18 +791,22 @@ class DeterministicEnforcementAssessor(BaseAssessor):
         score = 0.0
 
         if precommit_config.exists():
-            score += 60.0
-            evidence.append(".pre-commit-config.yaml found (pre-commit hooks)")
+            score += 40.0
+            evidence.append(".pre-commit-config.yaml found (git hooks, bypassable)")
 
         if claude_settings.exists():
             try:
                 import json
 
                 content = json.loads(claude_settings.read_text())
-                if "hooks" in content:
-                    score += 30.0
+                hooks = content.get("hooks")
+                has_configured_hooks = isinstance(hooks, dict) and any(
+                    isinstance(entries, list) and entries for entries in hooks.values()
+                )
+                if has_configured_hooks:
+                    score += 60.0
                     evidence.append(
-                        ".claude/settings.json has hooks configured (agent hooks)"
+                        ".claude/settings.json has hooks configured (deterministic agent hooks)"
                     )
                 else:
                     score += 10.0
@@ -840,16 +844,18 @@ class DeterministicEnforcementAssessor(BaseAssessor):
                 hook_scripts = []
                 evidence.append(".husky directory exists but could not be read")
             if hook_scripts:
-                score += 60.0
+                score += 40.0
                 hooks_list = ", ".join(sorted(hook_scripts))
-                evidence.append(f".husky directory found with hooks: {hooks_list}")
+                evidence.append(
+                    f".husky directory found with hooks: {hooks_list} (git hooks, bypassable)"
+                )
             else:
                 score += 10.0
                 evidence.append(".husky directory found but no hook scripts")
 
         score = min(score, 100.0)
 
-        if score >= 60:
+        if score >= 40:
             return Finding(
                 attribute=self.attribute,
                 status="pass",
@@ -888,9 +894,9 @@ class DeterministicEnforcementAssessor(BaseAssessor):
         return Remediation(
             summary="Set up deterministic enforcement with hooks and lint rules",
             steps=[
+                "Configure .claude/settings.json with agent hooks (deterministic, cannot be bypassed)",
                 "Start with 2 hooks: auto-format on edit + block destructive operations",
-                "Install pre-commit (Python) or Husky (Node.js) for git hooks",
-                "Configure .claude/settings.json with agent hooks for team-wide sharing",
+                "Optionally add pre-commit (Python) or Husky (Node.js) for git hooks",
                 "Add lint rules for import restrictions and architectural boundaries",
             ],
             tools=["pre-commit", "husky"],
@@ -906,7 +912,12 @@ class DeterministicEnforcementAssessor(BaseAssessor):
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "npx prettier --write $CLAUDE_FILE_PATH 2>/dev/null || true"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write $CLAUDE_FILE_PATH 2>/dev/null || true"
+          }
+        ]
       }
     ]
   }
