@@ -1,3 +1,10 @@
+# [2.46.0](https://github.com/ambient-code/agentready/compare/v2.45.0...v2.46.0) (2026-05-29)
+
+
+### Features
+
+* enforcement and intent assessor improvements (ADR A.5, A.8) ([#484](https://github.com/ambient-code/agentready/issues/484)) ([efe7507](https://github.com/ambient-code/agentready/commit/efe750796e2bbe797ee1b5b607133f90cc8e136a))
+
 # [2.45.0](https://github.com/ambient-code/agentready/compare/v2.44.0...v2.45.0) (2026-05-28)
 
 
