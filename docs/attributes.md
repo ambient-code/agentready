@@ -271,7 +271,7 @@ Type annotations give agents reliable information about what a function expects 
 **TypeScript**:
 
 - `strict` mode enabled in tsconfig.json (supports JSONC with comments)
-- All tsconfig.json files checked (monorepo support: root + subdirectories, excluding node_modules)
+- All tsconfig.json files checked (monorepo support: root + subdirectories, excluding node_modules, vendor, testdata)
 - Scoring: proportional to strict-enabled configs (e.g., 2/3 strict = 67%)
 - No `any` types (use `unknown` if needed)
 - Interfaces for complex objects

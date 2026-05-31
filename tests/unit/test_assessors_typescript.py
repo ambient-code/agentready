@@ -164,15 +164,33 @@ class TestTypeAnnotationsAssessorTypeScript:
         assert finding.score == 100.0
         assert "1/1 strict" in finding.measured_value
 
-    def test_malformed_json_error(self, tmp_path):
-        """Completely malformed tsconfig.json returns error."""
+    def test_malformed_json_counts_as_non_strict(self, tmp_path):
+        """Malformed tsconfig.json counts against the score, not silently skipped."""
         repo = _make_ts_repo(tmp_path)
         (tmp_path / "tsconfig.json").write_text("{ not valid json at all !!!")
 
         assessor = TypeAnnotationsAssessor()
         finding = assessor.assess(repo)
 
-        assert finding.status == "error"
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert any("parse error" in e for e in finding.evidence)
+
+    def test_malformed_mixed_with_valid(self, tmp_path):
+        """One broken + one strict config penalizes the score."""
+        repo = _make_ts_repo(tmp_path)
+        _write_tsconfig(tmp_path / "tsconfig.json", strict=True)
+
+        pkg_dir = tmp_path / "packages" / "broken"
+        pkg_dir.mkdir(parents=True)
+        (pkg_dir / "tsconfig.json").write_text("not json")
+
+        assessor = TypeAnnotationsAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.score < 100.0
+        assert "1/2 strict" in finding.measured_value
 
     def test_root_plus_packages(self, tmp_path):
         """Root tsconfig + package tsconfigs all count."""

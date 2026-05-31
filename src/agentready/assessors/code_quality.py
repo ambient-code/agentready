@@ -176,19 +176,18 @@ class TypeAnnotationsAssessor(BaseAssessor):
         strict_count = 0
         total_count = 0
         evidence: list[str] = []
-        errors: list[str] = []
 
         for tsconfig_path in tsconfig_files:
             rel_path = str(tsconfig_path.relative_to(repository.path))
+            total_count += 1
             try:
                 raw = tsconfig_path.read_text(encoding="utf-8")
                 cleaned = self._strip_json_comments(raw)
                 tsconfig = json.loads(cleaned)
             except (OSError, json.JSONDecodeError) as e:
-                errors.append(f"{rel_path}: parse error ({e})")
+                evidence.append(f"{rel_path}: parse error ({e})")
                 continue
 
-            total_count += 1
             strict = tsconfig.get("compilerOptions", {}).get("strict", False)
             if strict:
                 strict_count += 1
@@ -196,22 +195,12 @@ class TypeAnnotationsAssessor(BaseAssessor):
             else:
                 evidence.append(f"{rel_path}: strict mode disabled")
 
-        if total_count == 0:
-            err_detail = "; ".join(errors) if errors else "no parseable tsconfig.json"
-            return Finding.error(
-                self.attribute,
-                reason=f"Could not parse any tsconfig.json: {err_detail}",
-            )
-
         score = self.calculate_proportional_score(
             measured_value=(strict_count / total_count) * 100,
             threshold=100.0,
             higher_is_better=True,
         )
         status = "pass" if strict_count == total_count else "fail"
-
-        if errors:
-            evidence.extend(errors)
 
         return Finding(
             attribute=self.attribute,
