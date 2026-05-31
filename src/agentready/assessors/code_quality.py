@@ -153,10 +153,15 @@ class TypeAnnotationsAssessor(BaseAssessor):
         )
 
     def _assess_typescript_types(self, repository: Repository) -> Finding:
-        """Assess TypeScript type configuration."""
-        tsconfig_path = repository.path / "tsconfig.json"
+        """Assess TypeScript type configuration across all tsconfig.json files.
 
-        if not tsconfig_path.exists():
+        Supports monorepos with per-package tsconfig.json and JSONC comments.
+        """
+        import json
+
+        tsconfig_files = self._find_tsconfig_files(repository)
+
+        if not tsconfig_files:
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -168,41 +173,56 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 error_message=None,
             )
 
-        try:
-            import json
+        strict_count = 0
+        total_count = 0
+        evidence: list[str] = []
+        errors: list[str] = []
 
-            with open(tsconfig_path, "r") as f:
-                tsconfig = json.load(f)
+        for tsconfig_path in tsconfig_files:
+            rel_path = str(tsconfig_path.relative_to(repository.path))
+            try:
+                raw = tsconfig_path.read_text(encoding="utf-8")
+                cleaned = self._strip_json_comments(raw)
+                tsconfig = json.loads(cleaned)
+            except (OSError, json.JSONDecodeError) as e:
+                errors.append(f"{rel_path}: parse error ({e})")
+                continue
 
+            total_count += 1
             strict = tsconfig.get("compilerOptions", {}).get("strict", False)
-
             if strict:
-                return Finding(
-                    attribute=self.attribute,
-                    status="pass",
-                    score=100.0,
-                    measured_value="strict mode enabled",
-                    threshold="strict mode enabled",
-                    evidence=["tsconfig.json has strict: true"],
-                    remediation=None,
-                    error_message=None,
-                )
+                strict_count += 1
+                evidence.append(f"{rel_path}: strict: true")
             else:
-                return Finding(
-                    attribute=self.attribute,
-                    status="fail",
-                    score=50.0,
-                    measured_value="strict mode disabled",
-                    threshold="strict mode enabled",
-                    evidence=["tsconfig.json missing strict: true"],
-                    remediation=self._create_remediation(),
-                    error_message=None,
-                )
+                evidence.append(f"{rel_path}: strict mode disabled")
 
-        except (OSError, json.JSONDecodeError) as e:
+        if total_count == 0:
+            err_detail = "; ".join(errors) if errors else "no parseable tsconfig.json"
             return Finding.error(
-                self.attribute, reason=f"Could not parse tsconfig.json: {str(e)}"
+                self.attribute,
+                reason=f"Could not parse any tsconfig.json: {err_detail}",
             )
+
+        score = self.calculate_proportional_score(
+            measured_value=(strict_count / total_count) * 100,
+            threshold=100.0,
+            higher_is_better=True,
+        )
+        status = "pass" if strict_count == total_count else "fail"
+
+        if errors:
+            evidence.extend(errors)
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{strict_count}/{total_count} strict",
+            threshold="all tsconfig.json files strict",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
 
     @staticmethod
     def _strip_go_non_code(content: str) -> str:
@@ -269,6 +289,59 @@ class TypeAnnotationsAssessor(BaseAssessor):
             i += 1
 
         return "".join(out)
+
+    @staticmethod
+    def _strip_json_comments(text: str) -> str:
+        """Strip // and /* */ comments from JSONC, preserving string contents."""
+        out: list[str] = []
+        i = 0
+        n = len(text)
+        while i < n:
+            c = text[i]
+
+            if c == '"':
+                out.append(c)
+                i += 1
+                while i < n and text[i] != '"':
+                    if text[i] == "\\" and i + 1 < n:
+                        out.append(text[i])
+                        out.append(text[i + 1])
+                        i += 2
+                    else:
+                        out.append(text[i])
+                        i += 1
+                if i < n:
+                    out.append(text[i])
+                    i += 1
+                continue
+
+            if c == "/" and i + 1 < n and text[i + 1] == "/":
+                i += 2
+                while i < n and text[i] != "\n":
+                    i += 1
+                continue
+
+            if c == "/" and i + 1 < n and text[i + 1] == "*":
+                i += 2
+                while i + 1 < n and not (text[i] == "*" and text[i + 1] == "/"):
+                    i += 1
+                i += 2
+                continue
+
+            out.append(c)
+            i += 1
+
+        return "".join(out)
+
+    def _find_tsconfig_files(self, repository: Repository) -> list:
+        """Find all tsconfig.json files, excluding node_modules/vendor/testdata."""
+        found = []
+        for tsconfig in repository.path.rglob("tsconfig.json"):
+            parts = tsconfig.parts
+            if "node_modules" in parts or "vendor" in parts or "testdata" in parts:
+                continue
+            found.append(tsconfig)
+        return sorted(found)
 
     def _assess_go_types(self, repository: Repository) -> Finding:
         """Assess Go type safety.
