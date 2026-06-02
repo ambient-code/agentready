@@ -1,3 +1,10 @@
+## [2.46.1](https://github.com/ambient-code/agentready/compare/v2.46.0...v2.46.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* recognize compiled-language build steps as type-check gates ([#473](https://github.com/ambient-code/agentready/issues/473)) ([#483](https://github.com/ambient-code/agentready/issues/483)) ([991d839](https://github.com/ambient-code/agentready/commit/991d83969aaaa7c1502f798a00ab19747dde5a9c))
+
 # [2.46.0](https://github.com/ambient-code/agentready/compare/v2.45.0...v2.46.0) (2026-05-29)
 
 
