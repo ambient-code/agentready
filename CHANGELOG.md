@@ -1,3 +1,10 @@
+## [2.46.2](https://github.com/ambient-code/agentready/compare/v2.46.1...v2.46.2) (2026-06-02)
+
+
+### Bug Fixes
+
+* support JSONC comments and monorepo tsconfig.json discovery ([#485](https://github.com/ambient-code/agentready/issues/485)) ([1086255](https://github.com/ambient-code/agentready/commit/1086255f7b2e7acf6309939232c2abc9c06ec37a)), closes [#431](https://github.com/ambient-code/agentready/issues/431) [#383](https://github.com/ambient-code/agentready/issues/383)
+
 ## [2.46.1](https://github.com/ambient-code/agentready/compare/v2.46.0...v2.46.1) (2026-06-02)
 
 
