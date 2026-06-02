@@ -718,6 +718,120 @@ class TestCIQualityGatesAssessor:
         # 50 (CI) + 30 (all gates) + config quality bonus
         assert finding.score > 80
 
+    # --- Compiled-language type-check gate tests (#473) ---
+
+    def test_go_build_detected_as_typecheck(self, tmp_path):
+        """Test that 'go build' is recognized as a type-check gate for Go repos."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  lint:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: golangci-lint run\n"
+            "  test:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: go test ./...\n"
+            "  build:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: go build ./...\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("Type-check gate detected" in e for e in finding.evidence)
+
+    def test_make_build_detected_as_typecheck(self, tmp_path):
+        """Test that 'make build' is recognized as a type-check gate."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  lint:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: golangci-lint run\n"
+            "  test:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: make test\n"
+            "  build:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: make build\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("Type-check gate detected" in e for e in finding.evidence)
+
+    def test_golangci_lint_detected_as_typecheck(self, tmp_path):
+        """Test that golangci-lint is recognized as a type-check gate."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  lint:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - uses: golangci/golangci-lint-action@v6\n"
+            "  test:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: go test ./...\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("Type-check gate detected" in e for e in finding.evidence)
+
+    def test_cargo_build_detected_as_typecheck(self, tmp_path):
+        """Test that 'cargo build' is recognized as a type-check gate for Rust repos."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  lint:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: cargo clippy\n"
+            "  test:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: cargo test\n"
+            "  build:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - run: cargo build\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert any("Type-check gate detected" in e for e in finding.evidence)
+
     # --- Tekton Pipelines as Code tests ---
 
     def test_tekton_on_event_simple_pull_request(self, tmp_path):

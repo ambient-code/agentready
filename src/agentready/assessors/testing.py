@@ -1127,6 +1127,7 @@ class CIQualityGatesAssessor(BaseAssessor):
             r"(?:eslint|ruff|pylint|flake8|rubocop|golangci-lint|black|isort|prettier|stylelint)\b",
             r"\blint\b",
             r"\bformatting?\b",
+            r"\bcargo\s+clippy\b",
         ]
         test_patterns = [
             r"\bpytest\b",
@@ -1146,6 +1147,10 @@ class CIQualityGatesAssessor(BaseAssessor):
             r"\btsc\b",
             r"\btype[_-]?check\b",
             r"\bgo\s+vet\b",
+            r"(?:\bgo|\$\(GO\))\s+build\b",
+            r"\bmake\s+build\b",
+            r"\bgolangci-lint\b",
+            r"\bcargo\s+build\b",
         ]
 
         found_lint = False
