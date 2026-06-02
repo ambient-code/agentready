@@ -1,3 +1,10 @@
+## [2.46.3](https://github.com/ambient-code/agentready/compare/v2.46.2...v2.46.3) (2026-06-02)
+
+
+### Bug Fixes
+
+* scan AGENTS.md/CLAUDE.md for Go test commands ([#470](https://github.com/ambient-code/agentready/issues/470)) ([#487](https://github.com/ambient-code/agentready/issues/487)) ([15dad46](https://github.com/ambient-code/agentready/commit/15dad46358fc4d449b0c193356b56180ddf329d6))
+
 ## [2.46.2](https://github.com/ambient-code/agentready/compare/v2.46.1...v2.46.2) (2026-06-02)
 
 
