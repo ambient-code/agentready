@@ -145,6 +145,29 @@ class TestTestExecutionAssessorGo:
         assert finding.remediation is not None
         assert any("go test" in cmd for cmd in finding.remediation.commands)
 
+    def test_go_test_command_in_agents_md(self, tmp_path):
+        """Go test command documented in AGENTS.md is detected (#470)."""
+        repo = _make_go_repo(tmp_path)
+
+        test_file = tmp_path / "main_test.go"
+        test_file.write_text('package main\nimport "testing"\n')
+        _git_add(tmp_path, test_file)
+
+        agents_md = tmp_path / "AGENTS.md"
+        agents_md.write_text(
+            "## Quick Commands\n\n"
+            "| Action | Command |\n"
+            "|--------|----------|\n"
+            "| Run tests | `make test` (runs fmt and vet first) |\n"
+            "| Lint | `make lint` |\n"
+        )
+
+        assessor = TestExecutionAssessor()
+        finding = assessor.assess(repo)
+
+        assert any("test command found" in e.lower() for e in finding.evidence)
+        assert finding.score >= 60.0
+
 
 # =============================================================================
 # TypeAnnotationsAssessor — Go support

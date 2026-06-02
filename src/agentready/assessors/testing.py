@@ -564,12 +564,17 @@ class TestExecutionAssessor(BaseAssessor):
 
         text_sources = self._read_go_build_files(repository)
 
-        has_test_cmd = bool(re.search(r"(?:\bgo|\$\(GO\))\s+test\b", text_sources))
+        has_test_cmd = bool(
+            re.search(
+                r"(?:\bgo|\$\(GO\))\s+test\b|\bmake\s+test\b|\bginkgo\b",
+                text_sources,
+            )
+        )
         if has_test_cmd:
             score += 20.0
             evidence.append("Go test command found in project files")
         else:
-            evidence.append("No 'go test' command found in Makefile/CI/README")
+            evidence.append("No test command found in Makefile/CI/README/AGENTS.md")
 
         has_coverage = bool(
             re.search(r"(?<!\S)-cover(?:\b|profile\b|mode\b)", text_sources)
@@ -634,6 +639,8 @@ class TestExecutionAssessor(BaseAssessor):
             repository.path / "Makefile",
             repository.path / "Taskfile.yml",
             repository.path / "README.md",
+            repository.path / "AGENTS.md",
+            repository.path / "CLAUDE.md",
         ]
 
         # Include module-local build files (Go monorepos)
