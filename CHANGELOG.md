@@ -1,3 +1,10 @@
+# [2.47.0](https://github.com/ambient-code/agentready/compare/v2.46.3...v2.47.0) (2026-06-05)
+
+
+### Features
+
+* add A.6 strict mode detection and A.7 naming consistency assessors ([4710591](https://github.com/ambient-code/agentready/commit/4710591b10945b46e12b7523ce72a64d2d4da4da))
+
 ## [2.46.3](https://github.com/ambient-code/agentready/compare/v2.46.2...v2.46.3) (2026-06-02)
 
 
