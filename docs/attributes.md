@@ -265,7 +265,8 @@ Type annotations give agents reliable information about what a function expects 
 
 - All public functions have parameter and return type hints
 - Generic types from `typing` module used appropriately
-- Coverage: >80% of functions typed
+- Coverage: >80% of functions typed (proportional score up to 100 pts)
+- Strict mode configured: mypy `strict = true` (mypy.ini, setup.cfg, or pyproject.toml `[tool.mypy]`) or pyright `typeCheckingMode = "strict"` (pyrightconfig.json) adds +15 pts bonus (capped at 100)
 - Tools: mypy, pyright
 
 **TypeScript**:
@@ -407,6 +408,8 @@ Using community-recognized directory structures for each language/framework (e.g
 Models trained on open-source code have seen the standard layouts thousands of times. When a repo uses the Python `src/` layout or Go's `cmd/internal/pkg` structure, the agent knows where to look for things and where to put new ones. Non-standard layouts force it to explore, and it may still place files in the wrong location.
 
 #### Measurable Criteria
+
+**Naming consistency** (evidence-only, does not affect score): For repos with 20+ files, reports directories where snake\_case and camelCase filenames coexist. Mixed conventions reduce agent glob-ability. Skipped for repos with fewer than 20 files.
 
 **Python (src/ layout)**:
 

@@ -1,8 +1,10 @@
 """Code quality assessors for complexity, file length, type annotations, and code smells."""
 
 import ast
+import json
 import logging
 import re
+import tomllib
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -136,7 +138,23 @@ class TypeAnnotationsAssessor(BaseAssessor):
             higher_is_better=True,
         )
 
+        is_strict, strict_desc = self._check_python_strict_mode(repository)
+        if is_strict:
+            score = min(100.0, score + 15.0)
+
         status = "pass" if score >= 75 else "fail"
+
+        evidence = [
+            f"Typed functions: {typed_functions}/{total_functions}",
+            f"Coverage: {coverage_percent:.1f}%",
+        ]
+        if is_strict:
+            evidence.append(f"Strict mode: {strict_desc}")
+        else:
+            evidence.append(
+                "Strict mode: not configured"
+                " (add mypy strict=true or pyright typeCheckingMode=strict for +15 pts)"
+            )
 
         return Finding(
             attribute=self.attribute,
@@ -144,13 +162,71 @@ class TypeAnnotationsAssessor(BaseAssessor):
             score=score,
             measured_value=f"{coverage_percent:.1f}%",
             threshold="≥80%",
-            evidence=[
-                f"Typed functions: {typed_functions}/{total_functions}",
-                f"Coverage: {coverage_percent:.1f}%",
-            ],
+            evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
+
+    def _check_python_strict_mode(self, repository: Repository) -> tuple[bool, str]:
+        """Check whether a Python type checker is configured in strict mode.
+
+        Returns (is_strict, evidence_description).
+        Checks mypy.ini, setup.cfg, pyproject.toml [tool.mypy], pyrightconfig.json.
+        """
+        for ini_name in ("mypy.ini", "setup.cfg"):
+            ini_path = repository.path / ini_name
+            if ini_path.exists():
+                try:
+                    if self._ini_mypy_is_strict(ini_path.read_text(encoding="utf-8")):
+                        return True, f"mypy strict mode configured in {ini_name}"
+                except (OSError, UnicodeDecodeError):
+                    pass
+
+        pyproject = repository.path / "pyproject.toml"
+        if pyproject.exists():
+            try:
+                with open(pyproject, "rb") as f:
+                    data = tomllib.load(f)
+                mypy_cfg = data.get("tool", {}).get("mypy", {})
+                if mypy_cfg.get("strict") or mypy_cfg.get("disallow_untyped_defs"):
+                    return (
+                        True,
+                        "mypy strict mode configured in pyproject.toml [tool.mypy]",
+                    )
+            except (OSError, Exception):
+                pass
+
+        pyright = repository.path / "pyrightconfig.json"
+        if pyright.exists():
+            try:
+                data = json.loads(pyright.read_text(encoding="utf-8"))
+                if data.get("typeCheckingMode") == "strict":
+                    return True, "pyright strict mode configured in pyrightconfig.json"
+            except (OSError, ValueError):
+                pass
+
+        return False, "not configured"
+
+    @staticmethod
+    def _ini_mypy_is_strict(content: str) -> bool:
+        """Return True if INI content has a [mypy] section with strict mode enabled."""
+        in_mypy = False
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("["):
+                in_mypy = stripped == "[mypy]"
+                continue
+            if in_mypy and "=" in stripped:
+                key, _, val = stripped.partition("=")
+                key = key.strip().lower()
+                val = val.strip().lower()
+                if key in ("strict", "disallow_untyped_defs") and val in (
+                    "true",
+                    "1",
+                    "yes",
+                ):
+                    return True
+        return False
 
     def _assess_typescript_types(self, repository: Repository) -> Finding:
         """Assess TypeScript type configuration across all tsconfig.json files.

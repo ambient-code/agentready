@@ -1110,3 +1110,158 @@ class TestIssuePRTemplatesAssessor:
 
         assert finding.status == "fail"
         assert finding.score == 0
+
+
+class TestNamingConsistency:
+    """Tests for A.7: Naming consistency check in StandardLayoutAssessor."""
+
+    def _make_repo(self, tmp_path, total_files=25):
+        (tmp_path / ".git").mkdir(exist_ok=True)
+        (tmp_path / "src").mkdir(exist_ok=True)
+        (tmp_path / "tests").mkdir(exist_ok=True)
+        return Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=total_files,
+            total_lines=500,
+        )
+
+    def test_consistent_snake_case_no_warning(self, tmp_path):
+        """All snake_case files in src/ produce a clean evidence message."""
+        repo = self._make_repo(tmp_path)
+        src = tmp_path / "src"
+        for name in ("my_module.py", "another_module.py", "utils_helper.py"):
+            (src / name).write_text("x = 1")
+
+        finding = StandardLayoutAssessor().assess(repo)
+        evidence_str = " ".join(finding.evidence)
+        assert "consistent" in evidence_str
+        assert "mixed conventions in" not in evidence_str
+
+    def test_mixed_conventions_reported_in_evidence(self, tmp_path):
+        """snake_case and camelCase files in the same directory appear in evidence."""
+        repo = self._make_repo(tmp_path)
+        src = tmp_path / "src"
+        (src / "my_module.py").write_text("x = 1")
+        (src / "myModule.py").write_text("x = 1")
+
+        finding = StandardLayoutAssessor().assess(repo)
+        evidence_str = " ".join(finding.evidence)
+        assert "mixed" in evidence_str
+        assert "snake_case" in evidence_str
+        assert "camelCase" in evidence_str
+
+    def test_mixed_does_not_affect_score(self, tmp_path):
+        """Mixed naming changes evidence but not the score."""
+        clean_dir = tmp_path / "clean"
+        clean_dir.mkdir()
+        (clean_dir / ".git").mkdir()
+        (clean_dir / "src").mkdir()
+        (clean_dir / "tests").mkdir()
+        (clean_dir / "src" / "my_module.py").write_text("x = 1")
+        repo_clean = Repository(
+            path=clean_dir,
+            name="clean-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=25,
+            total_lines=500,
+        )
+
+        mixed_dir = tmp_path / "mixed"
+        mixed_dir.mkdir()
+        (mixed_dir / ".git").mkdir()
+        (mixed_dir / "src").mkdir()
+        (mixed_dir / "tests").mkdir()
+        (mixed_dir / "src" / "my_module.py").write_text("x = 1")
+        (mixed_dir / "src" / "myModule.py").write_text("x = 1")
+        repo_mixed = Repository(
+            path=mixed_dir,
+            name="mixed-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=25,
+            total_lines=500,
+        )
+
+        finding_clean = StandardLayoutAssessor().assess(repo_clean)
+        finding_mixed = StandardLayoutAssessor().assess(repo_mixed)
+
+        assert finding_clean.score == finding_mixed.score
+
+    def test_small_repo_skips_naming_check(self, tmp_path):
+        """Repos with fewer than 20 files skip the naming check entirely."""
+        repo = self._make_repo(tmp_path, total_files=10)
+        src = tmp_path / "src"
+        (src / "my_module.py").write_text("x = 1")
+        (src / "myModule.py").write_text("x = 1")
+
+        finding = StandardLayoutAssessor().assess(repo)
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming:" not in evidence_str
+
+    def test_multiple_mixed_dirs_shown(self, tmp_path):
+        """Multiple mixed directories are reported in evidence."""
+        repo = self._make_repo(tmp_path)
+        src = tmp_path / "src"
+        for subdir in ("a", "b", "c", "d"):
+            d = src / subdir
+            d.mkdir()
+            (d / "my_file.py").write_text("x = 1")
+            (d / "myFile.py").write_text("x = 1")
+
+        finding = StandardLayoutAssessor().assess(repo)
+        evidence_str = " ".join(finding.evidence)
+        assert "mixed" in evidence_str
+
+    def test_hidden_files_excluded_from_convention_check(self, tmp_path):
+        """Files starting with . or _ are excluded from convention classification."""
+        repo = self._make_repo(tmp_path)
+        src = tmp_path / "src"
+        (src / "__init__.py").write_text("")
+        (src / ".hidden.py").write_text("")
+        (src / "my_module.py").write_text("x = 1")
+
+        finding = StandardLayoutAssessor().assess(repo)
+        evidence_str = " ".join(finding.evidence)
+        assert "consistent" in evidence_str
+
+
+class TestClassifyNameConvention:
+    """Unit tests for the _classify_name_convention static method."""
+
+    def test_snake_case(self):
+        assert (
+            StandardLayoutAssessor._classify_name_convention("my_module")
+            == "snake_case"
+        )
+
+    def test_camel_case(self):
+        assert (
+            StandardLayoutAssessor._classify_name_convention("myModule") == "camelCase"
+        )
+
+    def test_pascal_case(self):
+        assert (
+            StandardLayoutAssessor._classify_name_convention("MyModule") == "camelCase"
+        )
+
+    def test_kebab_case(self):
+        assert (
+            StandardLayoutAssessor._classify_name_convention("my-module")
+            == "kebab-case"
+        )
+
+    def test_flat(self):
+        assert StandardLayoutAssessor._classify_name_convention("module") == "flat"
+
+    def test_all_uppercase(self):
+        assert StandardLayoutAssessor._classify_name_convention("MODULE") == "camelCase"

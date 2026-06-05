@@ -182,6 +182,8 @@ class StandardLayoutAssessor(BaseAssessor):
             f"tests/: {'✓' if has_tests else '✗'}",
         ]
 
+        evidence.extend(self._check_naming_consistency(repository, source_info))
+
         return Finding(
             attribute=self.attribute,
             status=status,
@@ -196,6 +198,86 @@ class StandardLayoutAssessor(BaseAssessor):
             ),
             error_message=None,
         )
+
+    def _check_naming_consistency(
+        self,
+        repository: Repository,
+        source_info: SourceDirectoryInfo,
+    ) -> list[str]:
+        """Check for mixed naming conventions within source directories.
+
+        Evidence-only: does not affect the score. Skipped for repos with
+        fewer than 20 files (too small to have meaningful convention patterns).
+        Detects snake_case and camelCase/PascalCase coexisting in the same
+        directory, which reduces agent glob-ability.
+        """
+        if repository.total_files < 20:
+            return []
+
+        _SKIP_DIRS = frozenset(
+            {
+                "node_modules",
+                "vendor",
+                "__pycache__",
+                ".git",
+                "dist",
+                "build",
+                ".venv",
+                "venv",
+                "site-packages",
+                "testdata",
+                ".mypy_cache",
+                ".tox",
+            }
+        )
+
+        if source_info["found"]:
+            scan_root = repository.path / source_info["directory"].rstrip("/")
+        else:
+            scan_root = repository.path
+
+        if not scan_root.is_dir():
+            return []
+
+        mixed_dirs: list[str] = []
+        for dirpath, dirnames, filenames in os.walk(scan_root):
+            dirnames[:] = [
+                d for d in dirnames if not d.startswith(".") and d not in _SKIP_DIRS
+            ]
+
+            conventions: set[str] = set()
+            for filename in filenames:
+                stem = Path(filename).stem
+                if not stem or stem.startswith((".", "_")):
+                    continue
+                conventions.add(self._classify_name_convention(stem))
+
+            if "snake_case" in conventions and "camelCase" in conventions:
+                rel = str(Path(dirpath).relative_to(repository.path))
+                mixed_dirs.append(rel)
+
+        if not mixed_dirs:
+            return ["Naming: consistent conventions (no mixed styles detected)"]
+
+        shown = mixed_dirs[:3]
+        extra = f" (+{len(mixed_dirs) - 3} more)" if len(mixed_dirs) > 3 else ""
+        dirs_str = ", ".join(shown)
+        return [
+            f"Naming: mixed conventions in {len(mixed_dirs)} dir(s)"
+            f" ({dirs_str}{extra})"
+            " — snake_case and camelCase coexist, may reduce agent glob-ability"
+        ]
+
+    @staticmethod
+    def _classify_name_convention(stem: str) -> str:
+        """Classify a filename stem by naming convention."""
+        if any(c.isupper() for c in stem):
+            return "camelCase"
+        if "_" in stem:
+            return "snake_case"
+        if "-" in stem:
+            return "kebab-case"
+        return "flat"
 
     def _find_source_directory(self, repository: Repository) -> SourceDirectoryInfo:
         """Find the source directory using multiple strategies.

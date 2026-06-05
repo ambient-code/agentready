@@ -242,3 +242,148 @@ class TestStripJsonComments:
         result = TypeAnnotationsAssessor._strip_json_comments(text)
         with pytest.raises(json.JSONDecodeError):
             json.loads(result)
+
+
+class TestPythonStrictMode:
+    """Tests for A.6: Python strict mode detection in TypeAnnotationsAssessor."""
+
+    def _make_py_repo(self, tmp_path, typed_funcs=0, total_funcs=1):
+        """Create a Python repo with configurable type annotation coverage."""
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+        lines = []
+        for i in range(typed_funcs):
+            lines.append(f"def typed_{i}(x: int) -> str:\n    return str(x)\n")
+        for i in range(total_funcs - typed_funcs):
+            lines.append(f"def untyped_{i}(x):\n    return str(x)\n")
+        (tmp_path / "module.py").write_text("".join(lines))
+        subprocess.run(["git", "add", "module.py"], cwd=tmp_path, capture_output=True)
+        return Repository(
+            path=tmp_path,
+            name="py-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 1},
+            total_files=1,
+            total_lines=len(lines) * 2,
+        )
+
+    def test_no_strict_config_no_bonus(self, tmp_path):
+        """No strict mode config: no bonus and evidence says not configured."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert any("not configured" in e for e in finding.evidence)
+
+    def test_mypy_ini_strict_adds_bonus(self, tmp_path):
+        """mypy.ini with strict=True adds +15 pts bonus."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+
+        # Baseline: no strict config
+        baseline = TypeAnnotationsAssessor().assess(repo)
+
+        # With mypy.ini strict mode
+        (tmp_path / "mypy.ini").write_text("[mypy]\nstrict = True\n")
+        finding_with = TypeAnnotationsAssessor().assess(repo)
+
+        assert finding_with.score == baseline.score + 15.0
+
+    def test_mypy_ini_strict_evidence(self, tmp_path):
+        """mypy.ini strict mode shows in evidence."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "mypy.ini").write_text("[mypy]\nstrict = True\n")
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert any("mypy.ini" in e for e in finding.evidence)
+
+    def test_setup_cfg_strict_adds_bonus(self, tmp_path):
+        """setup.cfg with [mypy] strict=True adds bonus."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "setup.cfg").write_text("[mypy]\nstrict = True\n")
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert any("setup.cfg" in e for e in finding.evidence)
+        assert finding.score == 15.0
+
+    def test_pyproject_toml_mypy_strict_adds_bonus(self, tmp_path):
+        """pyproject.toml [tool.mypy] strict=true adds bonus."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "pyproject.toml").write_text("[tool.mypy]\nstrict = true\n")
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert any("pyproject.toml" in e for e in finding.evidence)
+        assert finding.score == 15.0
+
+    def test_pyproject_toml_disallow_untyped_defs_adds_bonus(self, tmp_path):
+        """pyproject.toml [tool.mypy] disallow_untyped_defs counts as strict."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "pyproject.toml").write_text(
+            "[tool.mypy]\ndisallow_untyped_defs = true\n"
+        )
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert finding.score == 15.0
+
+    def test_pyrightconfig_strict_adds_bonus(self, tmp_path):
+        """pyrightconfig.json typeCheckingMode=strict adds bonus."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "pyrightconfig.json").write_text('{"typeCheckingMode": "strict"}\n')
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert any("pyrightconfig.json" in e for e in finding.evidence)
+        assert finding.score == 15.0
+
+    def test_pyrightconfig_basic_no_bonus(self, tmp_path):
+        """pyrightconfig.json with basic mode does not add bonus."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "pyrightconfig.json").write_text('{"typeCheckingMode": "basic"}\n')
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert finding.score == 0.0
+
+    def test_strict_bonus_caps_at_100(self, tmp_path):
+        """Strict bonus does not push score above 100."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=1, total_funcs=1)
+        (tmp_path / "mypy.ini").write_text("[mypy]\nstrict = True\n")
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert finding.score == 100.0
+
+    def test_disallow_untyped_defs_in_setup_cfg(self, tmp_path):
+        """setup.cfg disallow_untyped_defs=True is recognised as strict."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "setup.cfg").write_text("[mypy]\ndisallow_untyped_defs = True\n")
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert finding.score == 15.0
+
+    def test_mypy_ini_non_strict_section_ignored(self, tmp_path):
+        """strict=True in a non-[mypy] section is not counted."""
+        repo = self._make_py_repo(tmp_path, typed_funcs=0, total_funcs=1)
+        (tmp_path / "mypy.ini").write_text("[other]\nstrict = True\n")
+        finding = TypeAnnotationsAssessor().assess(repo)
+        assert finding.score == 0.0
+
+
+class TestIniMypyIsStrict:
+    """Unit tests for the _ini_mypy_is_strict static method."""
+
+    def test_strict_true(self):
+        assert TypeAnnotationsAssessor._ini_mypy_is_strict("[mypy]\nstrict = True\n")
+
+    def test_strict_lowercase(self):
+        assert TypeAnnotationsAssessor._ini_mypy_is_strict("[mypy]\nstrict = true\n")
+
+    def test_disallow_untyped_defs(self):
+        assert TypeAnnotationsAssessor._ini_mypy_is_strict(
+            "[mypy]\ndisallow_untyped_defs = True\n"
+        )
+
+    def test_no_mypy_section(self):
+        assert not TypeAnnotationsAssessor._ini_mypy_is_strict(
+            "[flake8]\nstrict = True\n"
+        )
+
+    def test_wrong_section(self):
+        assert not TypeAnnotationsAssessor._ini_mypy_is_strict(
+            "[mypy-tests.*]\nstrict = True\n"
+        )
+
+    def test_empty_file(self):
+        assert not TypeAnnotationsAssessor._ini_mypy_is_strict("")
+
+    def test_strict_value_false(self):
+        assert not TypeAnnotationsAssessor._ini_mypy_is_strict(
+            "[mypy]\nstrict = False\n"
+        )
