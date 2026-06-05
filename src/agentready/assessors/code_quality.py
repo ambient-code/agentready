@@ -3,6 +3,7 @@
 import ast
 import logging
 import re
+import tomllib
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -73,7 +74,13 @@ class TypeAnnotationsAssessor(BaseAssessor):
             )
 
     def _assess_python_types(self, repository: Repository) -> Finding:
-        """Assess Python type annotations using AST parsing."""
+        """Assess Python type annotations using AST parsing.
+
+        Checks both annotation coverage (current state) and strict mode
+        configuration (prevents new violations). Both matter — strict mode
+        stops new untyped code from entering; coverage measures what's already
+        typed.
+        """
         # Use AST parsing to accurately detect type annotations
         try:
             # Security: Use safe_subprocess_run for validation and limits
@@ -130,27 +137,120 @@ class TypeAnnotationsAssessor(BaseAssessor):
             )
 
         coverage_percent = (typed_functions / total_functions) * 100
-        score = self.calculate_proportional_score(
+
+        # Check for strict mode configuration (mypy/pyright)
+        strict_mode = self._check_strict_mode(repository)
+
+        # Score combines coverage (up to 80 pts) + strict mode bonus (up to 20 pts)
+        coverage_score = self.calculate_proportional_score(
             measured_value=coverage_percent,
             threshold=80.0,
             higher_is_better=True,
         )
+        score = min(100.0, coverage_score + (20.0 if strict_mode else 0.0))
 
         status = "pass" if score >= 75 else "fail"
+
+        evidence = [
+            f"Typed functions: {typed_functions}/{total_functions}",
+            f"Coverage: {coverage_percent:.1f}%",
+        ]
+        if strict_mode:
+            evidence.append("Strict mode configured")
+        else:
+            evidence.append("No strict mode configuration found")
 
         return Finding(
             attribute=self.attribute,
             status=status,
             score=score,
             measured_value=f"{coverage_percent:.1f}%",
-            threshold="≥80%",
-            evidence=[
-                f"Typed functions: {typed_functions}/{total_functions}",
-                f"Coverage: {coverage_percent:.1f}%",
-            ],
+            threshold="≥80% coverage + strict mode",
+            evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
+
+    @staticmethod
+    def _check_strict_mode(repository: Repository) -> bool:
+        """Check whether the Python type checker is configured in strict mode.
+
+        Looks for mypy/pyright strict mode configuration in pyproject.toml,
+        mypy.ini, setup.cfg, or pyrightconfig.json.
+
+        ADR A.6: Strict mode prevents new violations; coverage measures
+        current state. Both matter.
+        """
+        # Check pyproject.toml for mypy/pyright strict config
+        pyproject_path = repository.path / "pyproject.toml"
+        if pyproject_path.exists():
+            try:
+                with open(pyproject_path, "rb") as f:
+                    data = tomllib.load(f)
+
+                # mypy: [tool.mypy] strict = true
+                tool = data.get("tool", {})
+                mypy_cfg = tool.get("mypy", {})
+                if mypy_cfg.get("strict", False):
+                    return True
+                if "disallow_untyped_defs" in mypy_cfg and mypy_cfg[
+                    "disallow_untyped_defs"
+                ]:
+                    return True
+
+                # pyright: [tool.pyright] strict = true
+                pyright_cfg = tool.get("pyright", {})
+                if pyright_cfg.get("strict", False):
+                    return True
+
+            except (OSError, tomllib.TOMLDecodeError):
+                pass
+
+        # Check mypy.ini
+        mypy_ini_path = repository.path / "mypy.ini"
+        if mypy_ini_path.exists():
+            try:
+                content = mypy_ini_path.read_text(encoding="utf-8")
+                if "[mypy]" in content:
+                    for line in content.splitlines():
+                        stripped = line.strip().lower()
+                        if stripped == "strict = true" or stripped == "strict=true":
+                            return True
+                        if stripped.startswith("disallow_untyped_defs"):
+                            return True
+            except OSError:
+                pass
+
+        # Check setup.cfg
+        setup_cfg_path = repository.path / "setup.cfg"
+        if setup_cfg_path.exists():
+            try:
+                content = setup_cfg_path.read_text(encoding="utf-8")
+                if "[mypy]" in content or "[mypy]" in content.lower():
+                    for line in content.splitlines():
+                        stripped = line.strip().lower()
+                        if "strict = true" in stripped or "strict=true" in stripped:
+                            return True
+                        if stripped.startswith("disallow_untyped_defs"):
+                            return True
+            except OSError:
+                pass
+
+        # Check pyrightconfig.json
+        pyright_path = repository.path / "pyrightconfig.json"
+        if pyright_path.exists():
+            try:
+                import json
+
+                content = json.loads(pyright_path.read_text(encoding="utf-8"))
+                if content.get("typeCheckingMode", "") == "strict":
+                    return True
+                if content.get("strict", False):
+                    return True
+            except (json.JSONDecodeError, OSError):
+                pass
+
+        return False
 
     def _assess_typescript_types(self, repository: Repository) -> Finding:
         """Assess TypeScript type configuration across all tsconfig.json files.

@@ -864,6 +864,307 @@ another_entry
         assert "go.mod" in evidence_str
         assert "cmd/" in evidence_str or "internal/" in evidence_str
 
+    # --- ADR A.7: Naming consistency tests ---
+
+    def test_naming_consistent_snake_case(self, tmp_path):
+        """All snake_case files should have no naming penalty."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "module_a.py").write_text("# code")
+        (src / "module_b.py").write_text("# code")
+        (src / "module_c.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=3,
+            total_lines=30,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should be pass (100.0) with consistent naming
+        assert finding.status == "pass"
+        assert "Naming convention consistent" in " ".join(finding.evidence)
+
+    def test_naming_mixed_snake_and_camel_penalty(self, tmp_path):
+        """Mixed snake_case and camelCase in same directory reduces score."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        # snake_case files
+        (src / "module_a.py").write_text("# code")
+        (src / "module_b.py").write_text("# code")
+        # camelCase file in same dir
+        (src / "moduleHandler.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=3,
+            total_lines=30,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should have a penalty for mixed naming
+        evidence_str = " ".join(finding.evidence)
+        assert "Mixed naming" in evidence_str or "Inconsistent" in evidence_str
+        assert "moduleHandler" in evidence_str or "camelCase" in evidence_str
+        # Score should be reduced by at least 10 points
+        assert finding.score <= 90.0
+
+    def test_naming_consistent_camel_case(self, tmp_path):
+        """All camelCase files should have no naming penalty."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "moduleA.py").write_text("# code")
+        (src / "moduleB.py").write_text("# code")
+        (src / "moduleC.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=3,
+            total_lines=30,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should be pass with consistent naming
+        assert finding.status == "pass"
+        assert "Naming convention consistent" in " ".join(finding.evidence)
+
+    def test_naming_consistency_different_dirs_no_penalty(self, tmp_path):
+        """Different dirs with different conventions should not be penalized."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        # Different dirs can have different conventions
+        (src / "module_a.py").write_text("# code")  # snake_case
+        (src / "handlers").mkdir()
+        (src / "handlers" / "authHandler.py").write_text("# code")  # camelCase
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=2,
+            total_lines=20,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Different dirs should be OK, no penalty
+        assert "Mixed naming" not in " ".join(finding.evidence)
+
+    def test_naming_consistency_single_file_no_penalty(self, tmp_path):
+        """A single file in a directory should not trigger penalty."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "moduleA.py").write_text("# code")
+        # Only one file, no mixing possible
+        (src / "moduleB.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=2,
+            total_lines=20,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # 2 files with same convention should be fine
+        assert "Naming convention consistent" in " ".join(finding.evidence)
+
+    def test_naming_consistency_venv_excluded(self, tmp_path):
+        """Files in venv directories should be excluded from check."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "module_a.py").write_text("# code")
+        (src / "module_b.py").write_text("# code")
+
+        # Create a fake venv with camelCase files
+        venv = tmp_path / ".venv" / "lib" / "site-packages"
+        venv.mkdir(parents=True)
+        (venv / "somePackage.py").write_text("# code")
+        (venv / "anotherPackage.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Venv files should not affect scoring
+        assert "Mixed naming" not in " ".join(finding.evidence)
+
+    def test_naming_penalty_applied_to_score(self, tmp_path):
+        """Naming penalty should be subtracted from layout score."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        # Start with 2/2 directories (100 points)
+        (src / "module_a.py").write_text("# code")
+        (src / "module_b.py").write_text("# code")
+        # Add mixed naming
+        (src / "moduleHandler.py").write_text("# code")
+
+        # Create a tests directory too
+        tests = tmp_path / "tests"
+        tests.mkdir()
+        (tests / "test_module.py").write_text("# test")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # With mixed naming, should get a penalty
+        evidence_str = " ".join(finding.evidence)
+        assert "Inconsistent" in evidence_str or "Mixed" in evidence_str
+        # 100 - 10 (one dir with mixed naming) = 90
+        # Should still pass but with reduced score
+        assert finding.score < 100.0
+        assert finding.score >= 0
+
+    def test_naming_consistency_project_named_dir(self, tmp_path):
+        """Naming check should also apply to project-named directories."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(
+            '[project]\nname = "myproject"\n\n'
+            '[project.urls]\nhomepage = "https://example.com"'
+        )
+        # Project-named directory
+        pkg = tmp_path / "myproject"
+        pkg.mkdir()
+        (pkg / "module_a.py").write_text("# code")
+        (pkg / "moduleHandler.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=4,
+            total_lines=40,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Mixed" in evidence_str or "Inconsistent" in evidence_str
+
+    def test_naming_consistency_no_python_files_no_issue(self, tmp_path):
+        """Non-Python repos should not be affected by naming check."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "handler.ts").write_text("// code")
+        (src / "handlerUtil.ts").write_text("// code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"TypeScript": 100},
+            total_files=2,
+            total_lines=20,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should not have naming evidence for non-Python repos
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming" not in evidence_str
+
+    def test_naming_consistency_no_source_dir(self, tmp_path):
+        """Repo without src/ should check root directory."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        # No src/ directory, so it checks root
+        (tmp_path / "module_a.py").write_text("# code")
+        (tmp_path / "module_b.py").write_text("# code")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=2,
+            total_lines=20,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming convention consistent" in evidence_str
+
 
 class TestIssuePRTemplatesAssessor:
     """Test IssuePRTemplatesAssessor."""

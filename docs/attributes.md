@@ -266,6 +266,8 @@ Type annotations give agents reliable information about what a function expects 
 - All public functions have parameter and return type hints
 - Generic types from `typing` module used appropriately
 - Coverage: >80% of functions typed
+- **Strict mode configured** (prevents new violations): mypy `strict = true` or `disallow_untyped_defs`, or pyright `strict = true` in `pyproject.toml`, `mypy.ini`, `setup.cfg`, or `pyrightconfig.json`
+- Strict mode is scored as a 20-point bonus on a 100-point scale (80 pts max for coverage + 20 pts for strict mode)
 - Tools: mypy, pyright
 
 **TypeScript**:
@@ -362,6 +364,29 @@ def create_user(email, role):
 
 4. **Fix errors iteratively**
 
+5. **Enable strict mode** in your type checker config:
+
+   ```toml
+   # pyproject.toml
+   [tool.mypy]
+   strict = true
+   ```
+
+   Or alternatively:
+
+   ```ini
+   # mypy.ini
+   [mypy]
+   disallow_untyped_defs = true
+   ```
+
+   For pyright:
+
+   ```json
+   // pyrightconfig.json
+   { "typeCheckingMode": "strict" }
+   ```
+
 **TypeScript**:
 
 1. **Enable strict mode** in `tsconfig.json`:
@@ -406,7 +431,20 @@ Using community-recognized directory structures for each language/framework (e.g
 
 Models trained on open-source code have seen the standard layouts thousands of times. When a repo uses the Python `src/` layout or Go's `cmd/internal/pkg` structure, the agent knows where to look for things and where to put new ones. Non-standard layouts force it to explore, and it may still place files in the wrong location.
 
+**Naming consistency** also matters for agent efficiency. When files in the same directory follow a consistent naming convention (e.g., all snake_case in Python), agents can use glob patterns like `src/**/*.py` reliably. Mixed conventions (snake_case and camelCase coexisting in the same directory) reduce "glob-ability" and make it harder for agents to predict file locations.
+
 #### Measurable Criteria
+
+**Python** (naming consistency applies to all languages but assessed via Python files):
+
+- Consistent naming convention within directories:
+  - snake_case (`module_name.py`) — Python community standard
+  - camelCase (`moduleHandler.py`) — also valid but must be consistent
+  - **Mixed naming in the same directory** (e.g., `module_a.py` and `moduleHandler.py` in the same directory) reduces the score
+  - 10-point penalty per directory with mixed naming, capped at 20 points
+  - Directories are checked independently: different dirs can have different conventions
+  - Single-file directories or directories with only one convention are not penalized
+  - Directories with only 1-2 files need both to be from different conventions to trigger a penalty
 
 **Python (src/ layout)**:
 

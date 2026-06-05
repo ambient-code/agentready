@@ -126,6 +126,9 @@ class StandardLayoutAssessor(BaseAssessor):
         - Go: cmd/, internal/, pkg/ with go.mod, tests in *_test.go
 
         Fix for #246, #305: Support multiple valid Python layouts
+        ADR A.7: Adds naming consistency check for Python repos — mixed
+        naming conventions (camelCase vs snake_case in same directory) reduce
+        "glob-ability" for agents.
         """
         if self._primary_language(repository, {"Python", "Go"}) == "Go":
             return self._assess_go_layout(repository)
@@ -162,6 +165,16 @@ class StandardLayoutAssessor(BaseAssessor):
             higher_is_better=True,
         )
 
+        # ADR A.7: Naming consistency check for Python repos
+        naming_penalty = 0.0
+        naming_evidence = []
+        if repository.languages.get("Python", 0) > 0:
+            penalty, evidence = self._check_naming_consistency(repository)
+            naming_penalty = penalty
+            naming_evidence = evidence
+
+        score = max(0.0, score - naming_penalty)
+
         status = "pass" if score >= 75 else "fail"
 
         # Build evidence with detailed source directory info
@@ -180,7 +193,7 @@ class StandardLayoutAssessor(BaseAssessor):
             f"Found {found_dirs}/{required_dirs} standard directories",
             source_evidence,
             f"tests/: {'✓' if has_tests else '✗'}",
-        ]
+        ] + naming_evidence
 
         return Finding(
             attribute=self.attribute,
@@ -496,6 +509,93 @@ project/
                 )
             ],
         )
+
+    def _check_naming_consistency(self, repository: Repository) -> tuple:
+        """Check for mixed naming conventions in the same directory.
+
+        ADR A.7: Inconsistent naming (camelCase vs snake_case coexisting in
+        the same directory) reduces "glob-ability" for agents. A consistent
+        naming convention makes it easier for agents to use glob patterns like
+        `src/**/*.py` to find all relevant files.
+
+        Returns:
+            (penalty_score, evidence_list)
+            - penalty_score: 0-20, where 20 is maximum penalty for mixed conventions
+            - evidence_list: human-readable evidence strings
+        """
+        # Only check source directories, not test directories
+        # We look at Python files (.py, .pyi) in source locations
+        source_path = repository.path / "src"
+        if not source_path.exists():
+            # Try project-named directory
+            package_name = self._get_package_name_from_pyproject(repository)
+            if package_name:
+                source_path = repository.path / package_name.replace("-", "_")
+            if not source_path.exists():
+                # Fall back to root for small repos
+                source_path = repository.path
+
+        file_stats: dict = {"snake_case": 0, "camelCase": 0, "mixed": set()}
+        total_files = 0
+
+        try:
+            for py_file in source_path.rglob("*.py"):
+                # Skip venv, node_modules, etc.
+                if any(
+                    part in py_file.parts
+                    for part in [".venv", "venv", "node_modules", ".git", ".tox"]
+                ):
+                    continue
+                total_files += 1
+                dirname = py_file.parent.name
+                filename = py_file.name
+
+                # Group files by directory and check naming per directory
+                is_snake = bool(re.fullmatch(r"[a-z][a-z0-9]*(?:_[a-z0-9]+)*\.py(?:i)?$", filename))
+                is_camel = bool(re.fullmatch(r"[a-z][a-zA-Z0-9]*\.py(?:i)?$", filename))
+
+                if is_snake and is_camel:
+                    pass  # lowercase is snake_case
+                elif is_snake:
+                    key = f"{dirname}/"
+                    if key not in file_stats:
+                        file_stats[key] = {"snake_case": 0, "camelCase": 0}
+                    file_stats[key]["snake_case"] += 1
+                elif is_camel:
+                    key = f"{dirname}/"
+                    if key not in file_stats:
+                        file_stats[key] = {"snake_case": 0, "camelCase": 0}
+                    file_stats[key]["camelCase"] += 1
+
+        except OSError:
+            return 0.0, []
+
+        # Check if any directory has mixed naming
+        penalty = 0.0
+        evidence = []
+
+        for dir_key, counts in file_stats.items():
+            snake_count = counts.get("snake_case", 0)
+            camel_count = counts.get("camelCase", 0)
+
+            # Only count directories with at least 2 files (need meaningful sample)
+            if snake_count > 0 and camel_count > 0:
+                total_in_dir = snake_count + camel_count
+                if total_in_dir >= 2:
+                    penalty += 10.0
+                    evidence.append(
+                        f"Mixed naming in {dir_key}: {snake_count} snake_case, {camel_count} camelCase"
+                    )
+
+        # Cap the penalty at 20 points
+        penalty = min(20.0, penalty)
+
+        if penalty > 0:
+            evidence.insert(0, "Inconsistent naming conventions detected")
+        elif total_files > 0:
+            evidence.append("Naming convention consistent")
+
+        return penalty, evidence
 
     def _create_remediation(self, has_source: bool, has_tests: bool) -> Remediation:
         """Create context-aware remediation guidance for standard layout.
