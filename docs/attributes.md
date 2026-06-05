@@ -266,6 +266,7 @@ Type annotations give agents reliable information about what a function expects 
 - All public functions have parameter and return type hints
 - Generic types from `typing` module used appropriately
 - Coverage: >80% of functions typed
+- **Strict mode bonus** (+15 pts): type checker configured in strict mode. Checked configs: `mypy.ini`/`.mypy.ini` (`strict = true` or `disallow_untyped_defs = true`), `setup.cfg` `[mypy]`, `pyproject.toml` `[tool.mypy]`, `pyrightconfig.json` (`typeCheckingMode: "strict"`), `pyproject.toml` `[tool.pyright]`
 - Tools: mypy, pyright
 
 **TypeScript**:
@@ -458,6 +459,8 @@ project/
 ├── pom.xml
 └── target/
 ```
+
+**Naming consistency** (evidence only, no score impact): The assessor checks for mixed file naming conventions (snake_case vs camelCase vs PascalCase vs kebab-case) within the same directory. Inconsistent naming reduces "glob-ability" for agents trying to predict file names. Directories with fewer than 3 classifiable files are skipped.
 
 #### Remediation
 
