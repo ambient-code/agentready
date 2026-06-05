@@ -138,18 +138,154 @@ class TypeAnnotationsAssessor(BaseAssessor):
 
         status = "pass" if score >= 75 else "fail"
 
+        # Also check for strict mode configuration (ADR A.6)
+        strict_evidence = self._check_python_strict_mode(repository)
+
+        evidence = [
+            f"Typed functions: {typed_functions}/{total_functions}",
+            f"Coverage: {coverage_percent:.1f}%",
+        ]
+        evidence.extend(strict_evidence)
+
         return Finding(
             attribute=self.attribute,
             status=status,
             score=score,
             measured_value=f"{coverage_percent:.1f}%",
             threshold="≥80%",
-            evidence=[
-                f"Typed functions: {typed_functions}/{total_functions}",
-                f"Coverage: {coverage_percent:.1f}%",
-            ],
+            evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
+        )
+
+    def _check_python_strict_mode(self, repository: Repository) -> list[str]:
+        """Check for strict mode configuration in Python type checker configs.
+
+        Returns evidence strings describing what was found.
+        Checks mypy.ini, setup.cfg [mypy], pyproject.toml [tool.mypy],
+        and pyrightconfig.json.
+        """
+        import json
+
+        evidence: list[str] = []
+        found_config = False
+
+        # Config files to check (in order of preference)
+        config_paths = [
+            ("pyrightconfig.json", lambda p, d: self._parse_pyright(p, d)),
+            ("pyproject.toml", lambda p, d: self._parse_toml_config(p, d, "tool.mypy")),
+            ("setup.cfg", lambda p, d: self._parse_setup_cfg(p, d)),
+            ("mypy.ini", lambda p, d: self._parse_mypy_ini(p)),
+        ]
+
+        configs_found = 0
+        configs_strict = 0
+
+        for config_name, parse_fn in config_paths:
+            config_path = repository.path / config_name
+            if not config_path.exists():
+                continue
+
+            configs_found += 1
+            is_strict = False
+            try:
+                is_strict = parse_fn(config_path, repository)
+                found_config = True
+                if is_strict:
+                    configs_strict += 1
+                    evidence.append(f"{config_name}: strict mode enabled")
+                else:
+                    evidence.append(f"{config_name}: strict mode not enabled")
+            except (OSError, json.JSONDecodeError, Exception):
+                evidence.append(f"{config_name}: read error")
+
+        # Also check for pyrightconfig.json in subdirectories (monorepo pattern)
+        for pyright in repository.path.rglob("pyrightconfig.json"):
+            rel = str(pyright.relative_to(repository.path))
+            # Skip node_modules/vendor/testdata
+            if any(excluded in pyright.parts for excluded in ["node_modules", "vendor", "testdata"]):
+                continue
+            if str(pyright) == str(repository.path / "pyrightconfig.json"):
+                # Skip root - already checked above
+                continue
+            configs_found += 1
+            try:
+                pyright_data = json.loads(pyright.read_text(encoding="utf-8"))
+                # pyright strict typeCheckingMode
+                type_checking = pyright_data.get("typeCheckingMode", "off")
+                if type_checking == "strict":
+                    configs_strict += 1
+                    evidence.append(f"{rel}: typeCheckingMode: strict")
+                else:
+                    evidence.append(f"{rel}: typeCheckingMode: {type_checking}")
+            except (OSError, json.JSONDecodeError):
+                evidence.append(f"{rel}: parse error")
+
+        if not found_config:
+            evidence.append("No strict mode configuration found (mypy/pyright)")
+
+        return evidence
+
+    def _parse_pyright(self, config_path, repository) -> bool:
+        """Parse pyrightconfig.json and check for strict mode."""
+        import json
+
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        type_checking = data.get("typeCheckingMode", "off")
+        return type_checking == "strict"
+
+    def _parse_toml_config(self, config_path, repository, section_path) -> bool:
+        """Parse pyproject.toml and check for mypy strict mode."""
+        import tomllib
+
+        content = config_path.read_text(encoding="utf-8")
+        data = tomllib.loads(content)
+        # Navigate section path like "tool.mypy"
+        section = data
+        for key in section_path.split("."):
+            if isinstance(section, dict) and key in section:
+                section = section[key]
+            else:
+                return False
+        if not isinstance(section, dict):
+            return False
+        return (
+            section.get("strict", False)
+            or section.get("disallow_untyped_defs", False)
+            or section.get("disallow_incomplete_defs", False)
+            or section.get("check_untyped_defs", False)
+        )
+
+    def _parse_setup_cfg(self, config_path, repository) -> bool:
+        """Parse setup.cfg and check for mypy strict mode."""
+        import configparser
+
+        config = configparser.ConfigParser()
+        config.read(str(config_path))
+        # Check [mypy] section
+        if not config.has_section("mypy"):
+            return False
+        mypy_cfg = config["mypy"]
+        return (
+            mypy_cfg.get("disallow_untyped_defs", "").lower() == "true"
+            or mypy_cfg.get("strict", "").lower() == "true"
+            or mypy_cfg.get("disallow_incomplete_defs", "").lower() == "true"
+        )
+
+    def _parse_mypy_ini(self, config_path) -> bool:
+        """Parse mypy.ini and check for strict mode."""
+        import configparser
+
+        config = configparser.ConfigParser()
+        config.read(str(config_path))
+        # Check [mypy] section
+        if not config.has_section("mypy"):
+            return False
+        mypy_cfg = config["mypy"]
+        return (
+            mypy_cfg.get("disallow_untyped_defs", "").lower() == "true"
+            or mypy_cfg.get("strict", "").lower() == "true"
+            or mypy_cfg.get("disallow_incomplete_defs", "").lower() == "true"
         )
 
     def _assess_typescript_types(self, repository: Repository) -> Finding:

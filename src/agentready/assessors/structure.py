@@ -182,6 +182,13 @@ class StandardLayoutAssessor(BaseAssessor):
             f"tests/: {'✓' if has_tests else '✗'}",
         ]
 
+        # Check naming consistency in source directories (ADR A.7)
+        naming_evidence = self._check_naming_consistency(repository, has_source)
+
+        # Add any naming consistency findings to evidence (does not affect score)
+        if naming_evidence:
+            evidence.append("Naming consistency: " + "; ".join(naming_evidence))
+
         return Finding(
             attribute=self.attribute,
             status=status,
@@ -496,6 +503,135 @@ project/
                 )
             ],
         )
+
+    def _check_naming_consistency(self, repository: Repository, has_source: bool) -> list[str]:
+        """Check for mixed naming conventions in source directories.
+
+        Scans source directories (src/, project-named, test/, tests/) for
+        files with conflicting naming conventions within the same directory.
+        Mixed conventions reduce "glob-ability" for agents.
+
+        Naming conventions detected:
+        - snake_case (foo_bar.py)
+        - camelCase (fooBar.py)
+        - PascalCase (FooBar.py)
+        - kebab-case (foo-bar.py)
+
+        Returns a list of evidence strings describing findings.
+        Does not affect the assessor score - purely informational.
+
+        ADR A.7: The BP insight is "inconsistent naming reduces glob-ability
+        for agents." A well-globable codebase has consistent naming within
+        each directory.
+        """
+        findings: list[str] = []
+
+        # Collect source directories to check
+        dirs_to_check: list[Path] = []
+
+        if has_source:
+            # Find source directories - src/ or project-named
+            src = repository.path / "src"
+            if src.is_dir():
+                dirs_to_check.append(src)
+            else:
+                # Check project-named directories
+                for item in repository.path.iterdir():
+                    if item.is_dir() and not item.name.startswith("."):
+                        init = item / "__init__.py"
+                        if init.exists():
+                            dirs_to_check.append(item)
+                        break  # Only check top-level dirs, not nested
+
+        # Always check test directories
+        for test_dir_name in ["tests", "test"]:
+            test_dir = repository.path / test_dir_name
+            if test_dir.is_dir():
+                dirs_to_check.append(test_dir)
+
+        # Check each directory for naming consistency
+        for dir_path in dirs_to_check:
+            try:
+                dir_findings = self._analyze_dir_naming(dir_path)
+                findings.extend(dir_findings)
+            except OSError:
+                continue
+
+        return findings
+
+    def _analyze_dir_naming(self, dir_path: Path) -> list[str]:
+        """Analyze a single directory for naming convention consistency.
+
+        Checks top-level files (not recursively) for mixed conventions.
+        Returns a list of evidence strings if mixed conventions are found.
+        """
+        conventions: dict[str, list[str]] = {}
+        skip_dirs = {"__pycache__", ".mypy_cache", ".pytest_cache", ".eggs", "node_modules"}
+
+        try:
+            entries = sorted(dir_path.iterdir())
+        except OSError:
+            return []
+
+        for entry in entries:
+            if entry.is_dir() and entry.name in skip_dirs:
+                continue
+            name = entry.name
+            # Remove hidden prefix for classification
+            if name.startswith("."):
+                name = name.lstrip(".")
+
+            if name in ("__init__",):
+                continue
+
+            convention = self._classify_naming(name)
+            if convention not in conventions:
+                conventions[convention] = []
+            conventions[convention].append(name)
+
+        if len(conventions) <= 1:
+            return []
+
+        # Multiple conventions detected
+        convention_names = sorted(conventions.keys())
+        examples: list[str] = []
+        for conv in convention_names:
+            files = conventions[conv]
+            examples.append(f"{conv}: {', '.join(sorted(files)[:3])}")
+
+        return [f"{dir_path.name}/ has mixed conventions ({', '.join(examples)})"]
+
+    @staticmethod
+    def _classify_naming(name: str) -> str:
+        """Classify a filename's naming convention.
+
+        Returns:
+            One of: 'snake_case', 'camelCase', 'PascalCase', 'kebab-case', 'other'
+        """
+        # Remove extension
+        base = name
+        if "." in name:
+            base = name.rsplit(".", 1)[0]
+
+        if not base:
+            return "other"
+
+        has_underscore = "_" in base
+        has_hyphen = "-" in base
+        has_upper = any(c.isupper() for c in base)
+
+        if has_hyphen:
+            return "kebab-case"
+        if has_underscore and not has_upper:
+            return "snake_case"
+        if has_underscore and has_upper:
+            # Mixed underscore + camelCase → snake_case with capitals
+            return "snake_case"
+        if has_upper and base[0].isupper():
+            return "PascalCase"
+        if has_upper and base[0].islower():
+            return "camelCase"
+        return "other"
 
     def _create_remediation(self, has_source: bool, has_tests: bool) -> Remediation:
         """Create context-aware remediation guidance for standard layout.

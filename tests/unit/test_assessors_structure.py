@@ -864,6 +864,280 @@ another_entry
         assert "go.mod" in evidence_str
         assert "cmd/" in evidence_str or "internal/" in evidence_str
 
+    # --- Naming consistency tests (ADR A.7) ---
+
+    def test_naming_consistent_snake_case(self, tmp_path):
+        """Test that consistent snake_case naming produces no evidence."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        # All files use snake_case (underscore-based)
+        (src / "my_utils.py").write_text("")
+        (src / "config_values.py").write_text("")
+        (src / "main_module.py").write_text("")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_my_utils.py").write_text("")
+        (tests_dir / "test_config_values.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming consistency" not in evidence_str
+
+    def test_naming_mixed_conventions_detected(self, tmp_path):
+        """Test that mixed naming conventions within a directory produce evidence."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        # Mix snake_case and camelCase
+        (src / "utils.py").write_text("")
+        (src / "config.py").write_text("")
+        (src / "myHelper.py").write_text("")  # camelCase
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_utils.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming consistency" in evidence_str
+        assert "mixed conventions" in evidence_str.lower()
+
+    def test_naming_kebab_case_mixed(self, tmp_path):
+        """Test that kebab-case files mixed with others are detected."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "utils.py").write_text("")
+        (src / "my-module.py").write_text("")  # kebab-case
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_utils.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming consistency" in evidence_str
+        assert "mixed conventions" in evidence_str.lower()
+
+    def test_naming_no_source_skips_check(self, tmp_path):
+        """Test that when there is no source dir, naming check still runs on tests/."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        # No src/ directory
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_utils.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=5,
+            total_lines=50,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Should still not have naming inconsistency evidence
+        evidence_str = " ".join(finding.evidence)
+        # Only one file in tests/ so no mixed conventions
+        assert "Naming consistency" not in evidence_str
+
+    def test_naming_pascal_case_mixed(self, tmp_path):
+        """Test that PascalCase mixed with snake_case is detected."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "utils.py").write_text("")
+        (src / "Config.py").write_text("")  # PascalCase
+        (src / "main_module.py").write_text("")  # snake_case
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_config.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming consistency" in evidence_str
+
+    def test_naming_excludes_ignored_dirs(self, tmp_path):
+        """Test that skip dirs (node_modules, __pycache__) are excluded from analysis."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "utils.py").write_text("")
+        (src / "config.py").write_text("")
+        # Create directories that should be skipped
+        (src / "__pycache__").mkdir()
+        (src / "__pycache__" / "helper.pyc").write_text("")
+        (src / "node_modules").mkdir()
+        (src / "node_modules" / "something-else.js").write_text("")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_utils.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        # Should not have mixed conventions because __pycache__ and node_modules
+        # are excluded and src only has consistent snake_case files
+        assert "Naming consistency" not in evidence_str
+
+    def test_naming_project_named_src(self, tmp_path):
+        """Test naming consistency check works with project-named source dirs."""
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        # Create project-named structure
+        pkg = tmp_path / "myapp"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("")
+        (pkg / "my_utils.py").write_text("")
+        (pkg / "helper_funcs.py").write_text("")
+        # Create pyproject.toml to make it recognizable
+        (tmp_path / "pyproject.toml").write_text(
+            '[project]\nname = "myapp"\n'
+        )
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_my_utils.py").write_text("")
+
+        repo = Repository(
+            path=tmp_path,
+            name="myapp",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        # All files are snake_case, so no naming inconsistency
+        assert "Naming consistency" not in evidence_str
+
+    # --- _classify_naming tests ---
+
+    def test_classify_snake_case(self):
+        a = StandardLayoutAssessor()
+        assert a._classify_naming("foo_bar.py") == "snake_case"
+        assert a._classify_naming("my_module.py") == "snake_case"
+        assert a._classify_naming("foo_bar_baz.py") == "snake_case"
+
+    def test_classify_camel_case(self):
+        a = StandardLayoutAssessor()
+        assert a._classify_naming("fooBar.py") == "camelCase"
+        assert a._classify_naming("myHelper.py") == "camelCase"
+
+    def test_classify_pascal_case(self):
+        a = StandardLayoutAssessor()
+        assert a._classify_naming("FooBar.py") == "PascalCase"
+        assert a._classify_naming("MyModule.py") == "PascalCase"
+
+    def test_classify_kebab_case(self):
+        a = StandardLayoutAssessor()
+        assert a._classify_naming("foo-bar.py") == "kebab-case"
+        assert a._classify_naming("my-module.py") == "kebab-case"
+
+    def test_classify_other(self):
+        a = StandardLayoutAssessor()
+        assert a._classify_naming("README.md") == "PascalCase"
+        assert a._classify_naming("main.py") == "other"
+        assert a._classify_naming("a.py") == "other"
+        assert a._classify_naming("config.json") == "other"
+
+    def test_classify_no_extension(self):
+        a = StandardLayoutAssessor()
+        # Makefile → PascalCase (starts with uppercase, no underscore)
+        assert a._classify_naming("Makefile") == "PascalCase"
+        # Dockerfile → PascalCase
+        assert a._classify_naming("Dockerfile") == "PascalCase"
+
+    def test_classify_underscore_with_upper(self):
+        """Underscore + uppercase → snake_case (not camelCase)."""
+        a = StandardLayoutAssessor()
+        assert a._classify_naming("my_module.py") == "snake_case"
+
 
 class TestIssuePRTemplatesAssessor:
     """Test IssuePRTemplatesAssessor."""

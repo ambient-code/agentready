@@ -267,6 +267,7 @@ Type annotations give agents reliable information about what a function expects 
 - Generic types from `typing` module used appropriately
 - Coverage: >80% of functions typed
 - Tools: mypy, pyright
+- Strict mode configured (mypy `strict`/`disallow_untyped_defs`, pyright `typeCheckingMode: strict`)
 
 **TypeScript**:
 
@@ -361,6 +362,24 @@ def create_user(email, role):
    ```
 
 4. **Fix errors iteratively**
+
+5. **Enable strict mode** (optional, bonus points):
+
+   ```ini
+   # mypy.ini
+   [mypy]
+   strict = true
+   # or: disallow_untyped_defs = true
+   ```
+
+   ```json
+   // pyrightconfig.json
+   {
+     "typeCheckingMode": "strict"
+   }
+   ```
+
+   Strict mode catches additional issues (implicit `Any`, missing return types, etc.) and gives agents more reliable type information.
 
 **TypeScript**:
 
@@ -479,11 +498,15 @@ project/
 
 **Tools**: IDE refactoring tools, git mv
 
-**Citations**:
+**Naming Consistency**:
 
-- Real Python: "Python Application Layouts"
-- GitHub: golang-standards/project-layout
-- Maven standard directory layout
+Beyond directory structure, files within source and test directories should follow a consistent naming convention. Mixed naming (e.g., snake_case with camelCase) can confuse agents and human maintainers alike.
+
+- **Recommended**: snake_case for Python, kebab-case for Go/Rust, PascalCase for Java/C# components
+- **Avoid**: Mixing snake_case and camelCase in the same package
+- **Detection**: The assessor checks source/test directories and flags repos with mixed naming conventions
+
+---
 
 ---
 
