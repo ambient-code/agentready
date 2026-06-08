@@ -97,11 +97,16 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 timeout=30,
                 check=True,
             )
-            python_files = [f for f in result.stdout.strip().split("\n") if f]
+            python_files = [
+                f
+                for f in result.stdout.strip().split("\n")
+                if f and not self._is_python_test_file(f)
+            ]
         except Exception:
             python_files = [
                 str(f.relative_to(repository.path))
                 for f in repository.path.rglob("*.py")
+                if not self._is_python_test_file(str(f.relative_to(repository.path)))
             ]
 
         total_functions = 0
@@ -110,7 +115,7 @@ class TypeAnnotationsAssessor(BaseAssessor):
         for file_path in python_files:
             full_path = repository.path / file_path
             try:
-                with open(full_path, "r", encoding="utf-8") as f:
+                with open(full_path, encoding="utf-8") as f:
                     content = f.read()
 
                 # Parse the file with AST
@@ -119,6 +124,8 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 # Walk the AST and count functions with type annotations
                 for node in ast.walk(tree):
                     if isinstance(node, ast.FunctionDef):
+                        if node.name.startswith("test_"):
+                            continue
                         total_functions += 1
                         # Check if function has type annotations
                         # Return type annotation: node.returns is not None
@@ -245,6 +252,21 @@ class TypeAnnotationsAssessor(BaseAssessor):
                 pass
 
         return 0.0, []
+
+    @staticmethod
+    def _is_python_test_file(file_path: str) -> bool:
+        """Check if a Python file is a test file based on path and name conventions."""
+        from pathlib import PurePosixPath
+
+        parts = PurePosixPath(file_path).parts
+        name = parts[-1] if parts else ""
+        if (
+            name.startswith("test_")
+            or name.endswith("_test.py")
+            or name == "conftest.py"
+        ):
+            return True
+        return any(p in ("tests", "test") for p in parts)
 
     def _assess_typescript_types(self, repository: Repository) -> Finding:
         """Assess TypeScript type configuration across all tsconfig.json files.
