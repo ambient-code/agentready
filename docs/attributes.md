@@ -266,6 +266,7 @@ Type annotations give agents reliable information about what a function expects 
 - All public functions have parameter and return type hints
 - Generic types from `typing` module used appropriately
 - Coverage: >80% of functions typed
+- Test files and test functions (`test_*`) are excluded from scoring
 - Tools: mypy, pyright
 
 **TypeScript**:
