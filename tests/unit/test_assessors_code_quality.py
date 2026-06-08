@@ -48,6 +48,8 @@ class TestIsTestFile:
             "foo_test.py",
             "conftest.py",
             "tests/conftest.py",
+            "tests\\test_foo.py",
+            "test\\test_bar.py",
         ],
     )
     def test_identifies_test_files(self, path):

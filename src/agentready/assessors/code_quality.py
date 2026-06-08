@@ -164,7 +164,8 @@ class TypeAnnotationsAssessor(BaseAssessor):
         """Check if a Python file is a test file based on path and name conventions."""
         from pathlib import PurePosixPath
 
-        parts = PurePosixPath(file_path).parts
+        normalized = file_path.replace("\\", "/")
+        parts = PurePosixPath(normalized).parts
         name = parts[-1] if parts else ""
         if (
             name.startswith("test_")
