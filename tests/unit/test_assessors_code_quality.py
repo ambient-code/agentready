@@ -3,6 +3,7 @@
 import subprocess
 
 import pytest
+
 from agentready.assessors.code_quality import TypeAnnotationsAssessor
 from agentready.models.repository import Repository
 
