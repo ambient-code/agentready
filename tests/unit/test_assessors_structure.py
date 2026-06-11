@@ -1085,6 +1085,9 @@ class TestNamingConventionClassifier:
     def test_all_caps_neutral(self):
         assert StandardLayoutAssessor._classify_naming_convention("CHANGELOG") is None
 
+    def test_empty_string_neutral(self):
+        assert StandardLayoutAssessor._classify_naming_convention("") is None
+
 
 class TestIssuePRTemplatesAssessor:
     """Test IssuePRTemplatesAssessor."""

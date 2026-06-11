@@ -443,6 +443,8 @@ class StandardLayoutAssessor(BaseAssessor):
 
         Returns None for single-word lowercase names (neutral, e.g. "main").
         """
+        if not name:
+            return None
         if "_" in name and name == name.lower():
             return "snake_case"
         if "-" in name and name == name.lower():
