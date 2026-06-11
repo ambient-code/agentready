@@ -1336,7 +1336,7 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  lint:  # lint and test jobs run in parallel
     name: Lint Code
     runs-on: ubuntu-latest
     steps:
