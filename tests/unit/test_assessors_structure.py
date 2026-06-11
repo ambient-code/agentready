@@ -864,6 +864,230 @@ another_entry
         assert "go.mod" in evidence_str
         assert "cmd/" in evidence_str or "internal/" in evidence_str
 
+    # === Tests for ADR A.7: Naming consistency ===
+
+    def test_naming_consistency_all_snake_case(self, tmp_path):
+        """Consistent snake_case naming shows checkmark in evidence."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        src_dir = tmp_path / "src" / "mypackage"
+        src_dir.mkdir()
+        for name in [
+            "user_service.py",
+            "auth_handler.py",
+            "data_loader.py",
+            "config_parser.py",
+        ]:
+            (src_dir / name).touch()
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "Naming consistency: ✓" in evidence_str
+
+    def test_naming_consistency_mixed_conventions(self, tmp_path):
+        """Mixed naming conventions flagged in evidence."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        src_dir = tmp_path / "src" / "mypackage"
+        src_dir.mkdir()
+        for name in [
+            "user_service.py",
+            "authHandler.py",
+            "DataLoader.py",
+            "config_parser.py",
+        ]:
+            (src_dir / name).touch()
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "mixed conventions" in evidence_str
+        assert "glob-ability" in evidence_str
+
+    def test_naming_consistency_single_word_files_neutral(self, tmp_path):
+        """Single-word files like main.py, app.py don't trigger mixed warning."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        src_dir = tmp_path / "src" / "mypackage"
+        src_dir.mkdir()
+        for name in ["main.py", "app.py", "config.py", "utils.py"]:
+            (src_dir / name).touch()
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "mixed conventions" not in evidence_str
+
+    def test_naming_consistency_too_few_files_skipped(self, tmp_path):
+        """Directories with fewer than 3 classifiable files are not checked."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        src_dir = tmp_path / "src" / "mypackage"
+        src_dir.mkdir()
+        (src_dir / "user_service.py").touch()
+        (src_dir / "authHandler.py").touch()
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        evidence_str = " ".join(finding.evidence)
+        assert "mixed conventions" not in evidence_str
+
+    def test_naming_consistency_does_not_affect_score(self, tmp_path):
+        """Naming consistency check doesn't change the score (evidence only)."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "src").mkdir()
+        (tmp_path / "tests").mkdir()
+        src_dir = tmp_path / "src" / "mypackage"
+        src_dir.mkdir()
+        for name in [
+            "user_service.py",
+            "authHandler.py",
+            "DataLoader.py",
+            "config_parser.py",
+        ]:
+            (src_dir / name).touch()
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, capture_output=True, check=True
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = StandardLayoutAssessor()
+        finding = assessor.assess(repo)
+
+        # Score should be 100 (src + tests present) regardless of naming
+        assert finding.score == 100.0
+        assert finding.status == "pass"
+
+
+class TestNamingConventionClassifier:
+    """Test the static _classify_naming_convention method."""
+
+    def test_snake_case(self):
+        assert (
+            StandardLayoutAssessor._classify_naming_convention("user_service")
+            == "snake_case"
+        )
+
+    def test_camel_case(self):
+        assert (
+            StandardLayoutAssessor._classify_naming_convention("userService")
+            == "camelCase"
+        )
+
+    def test_pascal_case(self):
+        assert (
+            StandardLayoutAssessor._classify_naming_convention("UserService")
+            == "PascalCase"
+        )
+
+    def test_kebab_case(self):
+        assert (
+            StandardLayoutAssessor._classify_naming_convention("user-service")
+            == "kebab-case"
+        )
+
+    def test_single_word_lowercase_neutral(self):
+        assert StandardLayoutAssessor._classify_naming_convention("main") is None
+
+    def test_single_word_uppercase_neutral(self):
+        assert StandardLayoutAssessor._classify_naming_convention("README") is None
+
+    def test_all_caps_neutral(self):
+        assert StandardLayoutAssessor._classify_naming_convention("CHANGELOG") is None
+
+    def test_empty_string_neutral(self):
+        assert StandardLayoutAssessor._classify_naming_convention("") is None
+
 
 class TestIssuePRTemplatesAssessor:
     """Test IssuePRTemplatesAssessor."""

@@ -182,6 +182,9 @@ class StandardLayoutAssessor(BaseAssessor):
             f"tests/: {'✓' if has_tests else '✗'}",
         ]
 
+        naming_evidence = self._check_naming_consistency(repository)
+        evidence.extend(naming_evidence)
+
         return Finding(
             attribute=self.attribute,
             status=status,
@@ -411,6 +414,9 @@ class StandardLayoutAssessor(BaseAssessor):
         else:
             evidence.append("*_test.go files: ✗ (no test files found)")
 
+        naming_evidence = self._check_naming_consistency(repository)
+        evidence.extend(naming_evidence)
+
         score = min(score, 100.0)
         status = "pass" if score >= 75 else "fail"
 
@@ -430,6 +436,93 @@ class StandardLayoutAssessor(BaseAssessor):
             ),
             error_message=None,
         )
+
+    @staticmethod
+    def _classify_naming_convention(name: str) -> str | None:
+        """Classify a filename (without extension) into a naming convention.
+
+        Returns None for single-word lowercase names (neutral, e.g. "main").
+        """
+        if not name:
+            return None
+        if "_" in name and name == name.lower():
+            return "snake_case"
+        if "-" in name and name == name.lower():
+            return "kebab-case"
+        if name[0].isupper() and any(c.islower() for c in name):
+            return "PascalCase"
+        if name[0].islower() and any(c.isupper() for c in name) and "_" not in name:
+            return "camelCase"
+        return None
+
+    def _check_naming_consistency(self, repository: Repository) -> list[str]:
+        """Check for mixed file naming conventions within directories.
+
+        Reports as evidence only (no score impact). Mixed conventions
+        reduce "glob-ability" for agents trying to predict file names.
+        """
+        from collections import defaultdict
+
+        from ..utils.subprocess_utils import safe_subprocess_run
+
+        try:
+            result = safe_subprocess_run(
+                ["git", "ls-files"],
+                cwd=repository.path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                return []
+            files = [f for f in result.stdout.strip().split("\n") if f]
+        except Exception:
+            return []
+
+        skip_names = {"__init__", "__main__", "conftest", "setup"}
+        dir_conventions: dict[str, dict[str, int]] = defaultdict(
+            lambda: defaultdict(int)
+        )
+
+        for filepath in files:
+            p = Path(filepath)
+            parts = p.parts
+            if any(
+                part.startswith(".") or part in ("node_modules", "__pycache__")
+                for part in parts
+            ):
+                continue
+
+            stem = p.stem
+            if stem.startswith("_") or stem in skip_names:
+                continue
+
+            convention = self._classify_naming_convention(stem)
+            if convention is None:
+                continue
+
+            parent = str(p.parent) if p.parent != Path(".") else "."
+            dir_conventions[parent][convention] += 1
+
+        mixed_dirs = []
+        for dirname, conventions in sorted(dir_conventions.items()):
+            if sum(conventions.values()) < 3:
+                continue
+            if len(conventions) >= 2:
+                mixed_dirs.append(dirname)
+
+        if mixed_dirs:
+            dirs_display = ", ".join(mixed_dirs[:3])
+            suffix = f" (+{len(mixed_dirs) - 3} more)" if len(mixed_dirs) > 3 else ""
+            return [
+                f"Naming consistency: mixed conventions in {dirs_display}{suffix} "
+                "(reduces glob-ability for agents)"
+            ]
+
+        if dir_conventions:
+            return ["Naming consistency: ✓ (consistent conventions)"]
+
+        return []
 
     def _create_go_remediation(
         self,

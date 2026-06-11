@@ -1,8 +1,10 @@
 """Code quality assessors for complexity, file length, type annotations, and code smells."""
 
 import ast
+import configparser
 import logging
 import re
+import tomllib
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -136,6 +138,16 @@ class TypeAnnotationsAssessor(BaseAssessor):
             higher_is_better=True,
         )
 
+        evidence = [
+            f"Typed functions: {typed_functions}/{total_functions}",
+            f"Coverage: {coverage_percent:.1f}%",
+        ]
+
+        strict_pts, strict_evidence = self._check_python_strict_mode(repository)
+        if strict_pts > 0:
+            score = min(score + strict_pts, 100.0)
+            evidence.extend(strict_evidence)
+
         status = "pass" if score >= 75 else "fail"
 
         return Finding(
@@ -144,13 +156,85 @@ class TypeAnnotationsAssessor(BaseAssessor):
             score=score,
             measured_value=f"{coverage_percent:.1f}%",
             threshold="≥80%",
-            evidence=[
-                f"Typed functions: {typed_functions}/{total_functions}",
-                f"Coverage: {coverage_percent:.1f}%",
-            ],
+            evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
         )
+
+    def _check_python_strict_mode(
+        self, repository: Repository
+    ) -> tuple[float, list[str]]:
+        """Check whether a Python type checker is configured in strict mode.
+
+        Awards 15 bonus points if strict mode is detected in any of:
+        mypy.ini, .mypy.ini, setup.cfg [mypy], pyproject.toml [tool.mypy],
+        pyrightconfig.json, or pyproject.toml [tool.pyright].
+        """
+        import json
+
+        # Check INI-style mypy configs
+        for ini_name in ("mypy.ini", ".mypy.ini", "setup.cfg"):
+            ini_path = repository.path / ini_name
+            if not ini_path.exists():
+                continue
+            try:
+                parser = configparser.ConfigParser()
+                parser.read(str(ini_path), encoding="utf-8")
+                if parser.has_section("mypy"):
+                    strict = parser.get("mypy", "strict", fallback="").lower()
+                    disallow = parser.get(
+                        "mypy", "disallow_untyped_defs", fallback=""
+                    ).lower()
+                    if strict == "true" or disallow == "true":
+                        return 15.0, [
+                            f"mypy strict mode configured in {ini_name} "
+                            "(prevents new type violations)"
+                        ]
+            except (OSError, configparser.Error):
+                continue
+
+        # Check pyproject.toml for [tool.mypy] and [tool.pyright]
+        pyproject_path = repository.path / "pyproject.toml"
+        if pyproject_path.exists():
+            try:
+                with open(pyproject_path, "rb") as f:
+                    data = tomllib.load(f)
+
+                mypy_cfg = data.get("tool", {}).get("mypy", {})
+                if (
+                    mypy_cfg.get("strict") is True
+                    or mypy_cfg.get("disallow_untyped_defs") is True
+                ):
+                    return 15.0, [
+                        "mypy strict mode configured in pyproject.toml "
+                        "(prevents new type violations)"
+                    ]
+
+                pyright_cfg = data.get("tool", {}).get("pyright", {})
+                if pyright_cfg.get("typeCheckingMode") == "strict":
+                    return 15.0, [
+                        "pyright strict mode configured in pyproject.toml "
+                        "(prevents new type violations)"
+                    ]
+            except (OSError, tomllib.TOMLDecodeError):
+                pass
+
+        # Check pyrightconfig.json (supports JSONC comments)
+        pyright_path = repository.path / "pyrightconfig.json"
+        if pyright_path.exists():
+            try:
+                raw = pyright_path.read_text(encoding="utf-8")
+                cleaned = self._strip_json_comments(raw)
+                config = json.loads(cleaned)
+                if config.get("typeCheckingMode") == "strict":
+                    return 15.0, [
+                        "pyright strict mode configured in pyrightconfig.json "
+                        "(prevents new type violations)"
+                    ]
+            except (OSError, json.JSONDecodeError):
+                pass
+
+        return 0.0, []
 
     def _assess_typescript_types(self, repository: Repository) -> Finding:
         """Assess TypeScript type configuration across all tsconfig.json files.
