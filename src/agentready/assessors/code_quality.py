@@ -662,11 +662,19 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         try:
             last_line = None
             with safe_subprocess_run_stream(
-                ["lizard", str(repository.path)],
+                ["lizard", "-i", "-1", str(repository.path)],
                 timeout=60,
             ) as stream:
                 for line in stream:
                     last_line = line
+
+            if stream.returncode != 0:
+                stderr_msg = sanitize_subprocess_error(
+                    Exception(stream.stderr.strip()), repository.path
+                )
+                raise subprocess.CalledProcessError(
+                    stream.returncode, "lizard", stderr=stderr_msg
+                )
 
             try:
                 avg_ccn = float(last_line.split()[2])
