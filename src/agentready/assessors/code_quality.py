@@ -616,8 +616,14 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 stderr_msg = sanitize_subprocess_error(
                     stream.stderr.strip(), repository.path
                 )
+                stdout_msg = sanitize_subprocess_error(
+                    (last_line or "").strip(), repository.path
+                )
                 raise subprocess.CalledProcessError(
-                    stream.returncode, "radon", stderr=stderr_msg
+                    stream.returncode,
+                    "radon",
+                    output=stdout_msg,
+                    stderr=stderr_msg,
                 )
 
             if last_line and last_line.startswith("Average complexity:"):
@@ -672,8 +678,14 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 stderr_msg = sanitize_subprocess_error(
                     stream.stderr.strip(), repository.path
                 )
+                stdout_msg = sanitize_subprocess_error(
+                    (last_line or "").strip(), repository.path
+                )
                 raise subprocess.CalledProcessError(
-                    stream.returncode, "lizard", stderr=stderr_msg
+                    stream.returncode,
+                    "lizard",
+                    output=stdout_msg,
+                    stderr=stderr_msg,
                 )
 
             try:
@@ -763,8 +775,14 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 stderr_msg = sanitize_subprocess_error(
                     stream.stderr.strip(), repository.path
                 )
+                stdout_msg = sanitize_subprocess_error(
+                    (last_line or "").strip(), repository.path
+                )
                 raise subprocess.CalledProcessError(
-                    stream.returncode, "gocyclo", stderr=stderr_msg
+                    stream.returncode,
+                    "gocyclo",
+                    output=stdout_msg,
+                    stderr=stderr_msg,
                 )
 
             if last_line and last_line.startswith("Average:"):
