@@ -604,14 +604,13 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_python_complexity(self, repository: Repository) -> Finding:
         """Assess Python complexity using radon."""
         try:
-            avg_line = None
+            last_line = None
             with safe_subprocess_run_stream(
                 ["radon", "cc", str(repository.path), "-s", "-a"],
                 timeout=60,
             ) as stream:
                 for line in stream:
-                    if "Average complexity:" in line:
-                        avg_line = line
+                    last_line = line
 
             if stream.returncode != 0:
                 stderr_msg = sanitize_subprocess_error(
@@ -621,8 +620,8 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     stream.returncode, "radon", stderr=stderr_msg
                 )
 
-            if avg_line:
-                avg_value = float(avg_line.split("(")[1].split(")")[0])
+            if last_line and last_line.startswith("Average complexity:"):
+                avg_value = float(last_line.split("(")[1].split(")")[0])
 
                 score = self.calculate_proportional_score(
                     measured_value=avg_value,
