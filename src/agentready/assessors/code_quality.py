@@ -815,10 +815,18 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     ),
                     error_message=None,
                 )
+            return Finding.not_applicable(
+                self.attribute, reason="No Go complexity data from gocyclo"
+            )
+
         except FileNotFoundError:
             raise MissingToolError(
                 "gocyclo",
                 install_command="go install github.com/fzipp/gocyclo/cmd/gocyclo@latest",
+            )
+        except Exception as e:
+            return Finding.error(
+                self.attribute, reason=f"Complexity analysis failed: {str(e)}"
             )
 
     def _create_go_complexity_remediation(self) -> Remediation:
