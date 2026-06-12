@@ -651,20 +651,40 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_with_lizard(self, repository: Repository) -> Finding:
         """Assess complexity using lizard (multi-language)."""
         try:
+            last_line = None
             with safe_subprocess_run_stream(
                 ["lizard", str(repository.path)],
                 timeout=60,
             ) as stream:
-                for _line in stream:
-                    pass
+                for line in stream:
+                    last_line = line
 
-                if stream.returncode != 0:
-                    raise MissingToolError(
-                        "lizard", install_command="pip install lizard"
-                    )
+            try:
+                avg_ccn = float(last_line.split()[2])
+            except (AttributeError, IndexError, ValueError):
+                avg_ccn = None
 
-            return Finding.not_applicable(
-                self.attribute, reason="Lizard analysis not fully implemented"
+            if avg_ccn is None:
+                return Finding.not_applicable(
+                    self.attribute, reason="No code to analyze with lizard"
+                )
+
+            score = self.calculate_proportional_score(
+                measured_value=avg_ccn,
+                threshold=10.0,
+                higher_is_better=False,
+            )
+            status = "pass" if score >= 75 else "fail"
+
+            return Finding(
+                attribute=self.attribute,
+                status=status,
+                score=score,
+                measured_value=f"{avg_ccn:.1f}",
+                threshold="<10.0",
+                evidence=[f"Average cyclomatic complexity (lizard): {avg_ccn:.1f}"],
+                remediation=(self._create_remediation() if status == "fail" else None),
+                error_message=None,
             )
 
         except FileNotFoundError:
