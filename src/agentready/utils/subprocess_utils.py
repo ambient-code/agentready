@@ -10,6 +10,8 @@ Security features:
 import getpass
 import logging
 import subprocess
+import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -98,6 +100,230 @@ def sanitize_subprocess_error(error: Exception, repo_path: Path | None = None) -
         msg = msg[:500] + "... (truncated)"
 
     return msg
+
+
+class StreamingSubprocess:
+    """Iterator/context-manager wrapper around Popen that yields stdout lines.
+
+    Provides the same security guardrails as safe_subprocess_run but streams
+    output incrementally instead of buffering. stderr is accumulated in a
+    background thread and available via the .stderr property after iteration.
+
+    Usage::
+
+        with safe_subprocess_run_stream(["cmd", "arg"], timeout=60) as stream:
+            for line in stream:
+                print(line, end="")
+        print(stream.returncode)
+        print(stream.stderr)
+    """
+
+    def __init__(
+        self,
+        process: subprocess.Popen,
+        timeout: int,
+        max_output_size: int,
+        cwd: Path | None,
+    ):
+        self._process = process
+        self._deadline = time.monotonic() + timeout
+        self._timeout = timeout
+        self._max_output_size = max_output_size
+        self._cwd = cwd
+        self._stderr_bytes_read = 0
+        self._stderr_chunks: list[str] = []
+        self._stderr_error: SubprocessSecurityError | None = None
+        self._closed = False
+        self._timed_out = False
+
+        self._stderr_thread = threading.Thread(target=self._read_stderr, daemon=True)
+        self._stderr_thread.start()
+
+        self._watchdog_thread = threading.Thread(target=self._watchdog, daemon=True)
+        self._watchdog_thread.start()
+
+    @property
+    def returncode(self) -> int | None:
+        return self._process.returncode
+
+    @property
+    def stderr(self) -> str:
+        if self._stderr_thread.is_alive():
+            self._stderr_thread.join(timeout=2)
+        return "".join(self._stderr_chunks)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> str:
+        if self._closed or self._process.stdout is None:
+            raise StopIteration
+
+        if self._timed_out:
+            self._cleanup()
+            raise subprocess.TimeoutExpired(self._process.args, self._timeout)
+
+        if self._stderr_error:
+            self._cleanup()
+            raise self._stderr_error
+
+        line = self._process.stdout.readline()
+
+        if self._timed_out:
+            self._cleanup()
+            raise subprocess.TimeoutExpired(self._process.args, self._timeout)
+
+        if not line:
+            self._finalize()
+            if self._stderr_error:
+                raise self._stderr_error
+            raise StopIteration
+
+        if self._stderr_error:
+            self._cleanup()
+            raise self._stderr_error
+
+        return line
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        self.close()
+
+    def close(self):
+        if self._closed:
+            return
+        self._closed = True
+        self._cleanup()
+
+    def _read_stderr(self):
+        try:
+            for line in self._process.stderr:
+                self._stderr_bytes_read += len(line.encode("utf-8"))
+                if self._stderr_bytes_read > self._max_output_size:
+                    self._stderr_error = SubprocessSecurityError(
+                        f"Subprocess stderr too large: "
+                        f"{self._stderr_bytes_read} bytes "
+                        f"(max: {self._max_output_size})"
+                    )
+                    break
+                self._stderr_chunks.append(line)
+        except (OSError, ValueError):
+            pass
+
+    def _watchdog(self):
+        remaining = self._deadline - time.monotonic()
+        if remaining > 0:
+            try:
+                self._process.wait(timeout=remaining)
+                return
+            except subprocess.TimeoutExpired:
+                pass
+        if self._process.poll() is None:
+            self._timed_out = True
+            sanitized = sanitize_subprocess_error(
+                subprocess.TimeoutExpired(self._process.args, self._timeout),
+                self._cwd,
+            )
+            logger.error(f"Subprocess timeout ({self._timeout}s): {sanitized}")
+            self._terminate()
+
+    def _terminate(self):
+        if self._process.poll() is not None:
+            return
+        self._process.terminate()
+        try:
+            self._process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self._process.kill()
+            self._process.wait()
+
+    def _cleanup(self):
+        self._terminate()
+        if self._process.stdout:
+            try:
+                self._process.stdout.close()
+            except OSError:
+                pass
+        if self._process.stderr:
+            try:
+                self._process.stderr.close()
+            except OSError:
+                pass
+        self._stderr_thread.join(timeout=2)
+        self._watchdog_thread.join(timeout=2)
+
+    def _finalize(self):
+        self._process.wait(timeout=10)
+        self._stderr_thread.join(timeout=5)
+        self._closed = True
+
+
+def safe_subprocess_run_stream(
+    cmd: list[str],
+    cwd: Path | None = None,
+    timeout: int | None = None,
+    max_output_size: int | None = None,
+    **kwargs: Any,
+) -> StreamingSubprocess:
+    """Run subprocess with security guardrails, streaming stdout line-by-line.
+
+    Same security features as safe_subprocess_run, but yields output
+    incrementally via a StreamingSubprocess iterator instead of buffering.
+
+    Args:
+        cmd: Command and arguments (list form, never shell=True)
+        cwd: Working directory (validated if provided)
+        timeout: Timeout in seconds (default: SUBPROCESS_TIMEOUT)
+        max_output_size: Max cumulative bytes per stream (default: MAX_OUTPUT_SIZE)
+        **kwargs: Additional subprocess.Popen() arguments
+
+    Returns:
+        StreamingSubprocess that yields str lines from stdout.
+        Access .returncode and .stderr after iteration completes.
+
+    Raises:
+        SubprocessSecurityError: If shell=True or validation fails
+        subprocess.TimeoutExpired: If command exceeds timeout during iteration
+    """
+    if timeout is None:
+        timeout = kwargs.pop("timeout", SUBPROCESS_TIMEOUT)
+
+    if kwargs.get("shell"):
+        raise SubprocessSecurityError("shell=True is forbidden for security")
+
+    if cwd:
+        cwd_path = Path(cwd)
+        if (cwd_path / ".git").exists() or (cwd_path / ".git").is_file():
+            try:
+                cwd = validate_repository_path(cwd_path)
+            except SubprocessSecurityError:
+                logger.debug(f"Repository validation skipped for: {cwd}")
+
+    if max_output_size is None:
+        max_output_size = MAX_OUTPUT_SIZE
+
+    kwargs.pop("capture_output", None)
+    kwargs.pop("text", None)
+
+    logger.debug(f"Executing streaming subprocess: {' '.join(cmd)} in {cwd}")
+
+    try:
+        process = subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            **kwargs,
+        )
+    except Exception as e:
+        sanitized = sanitize_subprocess_error(e, cwd)
+        logger.error(f"Subprocess error: {sanitized}")
+        raise
+
+    return StreamingSubprocess(process, timeout, max_output_size, cwd)
 
 
 def safe_subprocess_run(
