@@ -3,6 +3,7 @@
 import ast
 import configparser
 import logging
+import os
 import re
 import subprocess
 import tomllib
@@ -666,7 +667,14 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         try:
             last_line = None
             with safe_subprocess_run_stream(
-                ["lizard", "-i", "-1", str(repository.path)],
+                [
+                    "lizard",
+                    "-i",
+                    "-1",
+                    "-t",
+                    str(os.cpu_count() or 1),
+                    str(repository.path),
+                ],
                 timeout=60,
             ) as stream:
                 for line in stream:
