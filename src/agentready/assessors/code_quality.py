@@ -4,13 +4,18 @@ import ast
 import configparser
 import logging
 import re
+import subprocess
 import tomllib
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from ..services.scanner import MissingToolError
-from ..utils.subprocess_utils import safe_subprocess_run, safe_subprocess_run_stream
+from ..utils.subprocess_utils import (
+    safe_subprocess_run,
+    safe_subprocess_run_stream,
+    sanitize_subprocess_error,
+)
 from .base import BaseAssessor
 
 logger = logging.getLogger(__name__)
@@ -608,8 +613,13 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     if "Average complexity:" in line:
                         avg_line = line
 
-                if stream.returncode != 0:
-                    raise MissingToolError("radon", install_command="pip install radon")
+            if stream.returncode != 0:
+                stderr_msg = sanitize_subprocess_error(
+                    Exception(stream.stderr.strip()), repository.path
+                )
+                raise subprocess.CalledProcessError(
+                    stream.returncode, "radon", stderr=stderr_msg
+                )
 
             if avg_line:
                 avg_value = float(avg_line.split("(")[1].split(")")[0])
