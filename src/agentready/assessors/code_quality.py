@@ -10,7 +10,7 @@ from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from ..services.scanner import MissingToolError
-from ..utils.subprocess_utils import safe_subprocess_run
+from ..utils.subprocess_utils import safe_subprocess_run, safe_subprocess_run_stream
 from .base import BaseAssessor
 
 logger = logging.getLogger(__name__)
@@ -599,27 +599,19 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_python_complexity(self, repository: Repository) -> Finding:
         """Assess Python complexity using radon."""
         try:
-            # Check if radon is available
-            # Security: Use safe_subprocess_run for validation and limits
-            result = safe_subprocess_run(
+            avg_line = None
+            with safe_subprocess_run_stream(
                 ["radon", "cc", str(repository.path), "-s", "-a"],
-                capture_output=True,
-                text=True,
                 timeout=60,
-            )
+            ) as stream:
+                for line in stream:
+                    if "Average complexity:" in line:
+                        avg_line = line
 
-            if result.returncode != 0:
-                raise MissingToolError("radon", install_command="pip install radon")
+                if stream.returncode != 0:
+                    raise MissingToolError("radon", install_command="pip install radon")
 
-            # Parse radon output for average complexity
-            # Output format: "Average complexity: A (5.2)"
-            output = result.stdout
-
-            if "Average complexity:" in output:
-                # Extract average value
-                avg_line = [
-                    line for line in output.split("\n") if "Average complexity:" in line
-                ][0]
+            if avg_line:
                 avg_value = float(avg_line.split("(")[1].split(")")[0])
 
                 score = self.calculate_proportional_score(
@@ -648,10 +640,9 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 )
 
         except FileNotFoundError:
-            # radon command not found
             raise MissingToolError("radon", install_command="pip install radon")
         except MissingToolError:
-            raise  # Re-raise to be caught by Scanner
+            raise
         except Exception as e:
             return Finding.error(
                 self.attribute, reason=f"Complexity analysis failed: {str(e)}"
@@ -660,25 +651,23 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_with_lizard(self, repository: Repository) -> Finding:
         """Assess complexity using lizard (multi-language)."""
         try:
-            # Security: Use safe_subprocess_run for validation and limits
-            result = safe_subprocess_run(
+            with safe_subprocess_run_stream(
                 ["lizard", str(repository.path)],
-                capture_output=True,
-                text=True,
                 timeout=60,
-            )
+            ) as stream:
+                for _line in stream:
+                    pass
 
-            if result.returncode != 0:
-                raise MissingToolError("lizard", install_command="pip install lizard")
+                if stream.returncode != 0:
+                    raise MissingToolError(
+                        "lizard", install_command="pip install lizard"
+                    )
 
-            # Parse lizard output
-            # This is simplified - production code should parse properly
             return Finding.not_applicable(
                 self.attribute, reason="Lizard analysis not fully implemented"
             )
 
         except FileNotFoundError:
-            # lizard command not found
             raise MissingToolError("lizard", install_command="pip install lizard")
         except MissingToolError:
             raise
@@ -694,18 +683,17 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         complexity linters (gocyclo/cyclop) enabled in config.
         """
         try:
-            result = safe_subprocess_run(
+            avg_line = None
+            with safe_subprocess_run_stream(
                 ["gocyclo", "-avg", str(repository.path)],
-                capture_output=True,
-                text=True,
                 timeout=60,
-            )
+            ) as stream:
+                for line in stream:
+                    if "Average" in line:
+                        avg_line = line.strip()
 
-            if result.returncode == 0 and result.stdout.strip():
-                lines = result.stdout.strip().split("\n")
-                avg_line = [line for line in lines if "Average" in line]
-                if avg_line:
-                    avg_value = float(avg_line[0].split()[-1])
+                if stream.returncode == 0 and avg_line:
+                    avg_value = float(avg_line.split()[-1])
 
                     score = self.calculate_proportional_score(
                         measured_value=avg_value,
