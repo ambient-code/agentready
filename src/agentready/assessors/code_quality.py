@@ -614,7 +614,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
 
             if stream.returncode != 0:
                 stderr_msg = sanitize_subprocess_error(
-                    Exception(stream.stderr.strip()), repository.path
+                    stream.stderr.strip(), repository.path
                 )
                 raise subprocess.CalledProcessError(
                     stream.returncode, "radon", stderr=stderr_msg
@@ -670,7 +670,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
 
             if stream.returncode != 0:
                 stderr_msg = sanitize_subprocess_error(
-                    Exception(stream.stderr.strip()), repository.path
+                    stream.stderr.strip(), repository.path
                 )
                 raise subprocess.CalledProcessError(
                     stream.returncode, "lizard", stderr=stderr_msg
@@ -761,7 +761,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
 
             if stream.returncode != 0:
                 stderr_msg = sanitize_subprocess_error(
-                    Exception(stream.stderr.strip()), repository.path
+                    stream.stderr.strip(), repository.path
                 )
                 raise subprocess.CalledProcessError(
                     stream.returncode, "gocyclo", stderr=stderr_msg

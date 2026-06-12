@@ -63,19 +63,21 @@ def validate_repository_path(path: Path) -> Path:
     return resolved
 
 
-def sanitize_subprocess_error(error: Exception, repo_path: Path | None = None) -> str:
+def sanitize_subprocess_error(
+    error: Exception | str, repo_path: Path | None = None
+) -> str:
     """Sanitize error message to prevent information leakage.
 
     Security: Redacts absolute paths, usernames, and sensitive data.
 
     Args:
-        error: Exception to sanitize
+        error: Exception or string to sanitize
         repo_path: Optional repository path to redact
 
     Returns:
         Sanitized error message
     """
-    msg = str(error)
+    msg = error if isinstance(error, str) else str(error)
 
     # Redact absolute paths
     if repo_path:
