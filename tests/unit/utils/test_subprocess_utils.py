@@ -11,6 +11,7 @@ from agentready.utils.subprocess_utils import (
     SUBPROCESS_TIMEOUT,
     SubprocessSecurityError,
     safe_subprocess_run,
+    safe_subprocess_run_stream,
     sanitize_subprocess_error,
     validate_repository_path,
 )
@@ -396,6 +397,147 @@ class TestSafeSubprocessRun:
         )
         assert result.returncode == 0
         assert isinstance(result.stdout, str)
+
+
+class TestSafeSubprocessRunStream:
+    """Test streaming subprocess execution."""
+
+    def test_stream_basic_output(self):
+        """Test basic line-by-line streaming."""
+        with safe_subprocess_run_stream(["seq", "5"]) as stream:
+            lines = list(stream)
+        assert lines == ["1\n", "2\n", "3\n", "4\n", "5\n"]
+        assert stream.returncode == 0
+
+    def test_stream_returncode_success(self):
+        """Test returncode is 0 on success."""
+        with safe_subprocess_run_stream(["true"]) as stream:
+            list(stream)
+        assert stream.returncode == 0
+
+    def test_stream_returncode_failure(self):
+        """Test returncode is non-zero on failure."""
+        with safe_subprocess_run_stream(["false"]) as stream:
+            list(stream)
+        assert stream.returncode != 0
+
+    def test_stream_stderr_accumulation(self):
+        """Test stderr is accumulated separately."""
+        with safe_subprocess_run_stream(
+            ["bash", "-c", "echo out; echo err >&2"]
+        ) as stream:
+            stdout_lines = list(stream)
+        assert "out\n" in stdout_lines
+        assert "err\n" in stream.stderr
+
+    def test_stream_shell_forbidden(self):
+        """Test that shell=True is blocked."""
+        with pytest.raises(SubprocessSecurityError, match="shell=True is forbidden"):
+            safe_subprocess_run_stream(["echo test"], shell=True)
+
+    def test_stream_timeout(self):
+        """Test timeout enforcement during streaming."""
+        with pytest.raises(subprocess.TimeoutExpired):
+            with safe_subprocess_run_stream(["sleep", "10"], timeout=1) as stream:
+                list(stream)
+
+    def test_stream_stderr_size_limit(self):
+        """Test stderr size limit enforcement."""
+        with pytest.raises(SubprocessSecurityError, match="stderr too large"):
+            with safe_subprocess_run_stream(
+                ["bash", "-c", "head -c 200 /dev/zero >&2"],
+                max_output_size=100,
+            ) as stream:
+                for _ in stream:
+                    pass
+
+    def test_stream_context_manager_cleanup(self):
+        """Test process is cleaned up when exiting context manager."""
+        stream = safe_subprocess_run_stream(["sleep", "60"], timeout=60)
+        with stream:
+            pass
+        assert stream._process.poll() is not None
+
+    def test_stream_early_close(self):
+        """Test explicit close during iteration."""
+        with safe_subprocess_run_stream(["yes"], timeout=10) as stream:
+            next(stream)
+            stream.close()
+        assert stream._process.poll() is not None
+
+    def test_stream_break_from_loop(self):
+        """Test breaking from for-loop cleans up process."""
+        with safe_subprocess_run_stream(["yes"], timeout=10) as stream:
+            for line in stream:
+                break
+        assert stream._process.poll() is not None
+
+    def test_stream_cwd_validation(self, tmp_path):
+        """Test cwd path validation for git repos."""
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / ".git").mkdir()
+
+        with safe_subprocess_run_stream(["echo", "test"], cwd=repo) as stream:
+            lines = list(stream)
+        assert lines == ["test\n"]
+        assert stream.returncode == 0
+
+    def test_stream_kwargs_passthrough(self):
+        """Test additional kwargs are passed to Popen."""
+        with safe_subprocess_run_stream(
+            ["echo", "test"],
+            env={"TEST_VAR": "value", "PATH": "/usr/bin:/bin"},
+        ) as stream:
+            lines = list(stream)
+        assert lines == ["test\n"]
+
+    def test_stream_strips_capture_output_kwarg(self):
+        """Test capture_output kwarg is silently stripped."""
+        with safe_subprocess_run_stream(
+            ["echo", "test"], capture_output=True
+        ) as stream:
+            lines = list(stream)
+        assert lines == ["test\n"]
+
+    def test_stream_strips_text_kwarg(self):
+        """Test text kwarg is silently stripped."""
+        with safe_subprocess_run_stream(["echo", "test"], text=False) as stream:
+            lines = list(stream)
+        assert lines == ["test\n"]
+        assert isinstance(lines[0], str)
+
+    def test_stream_command_not_found(self):
+        """Test handling of command not found."""
+        with pytest.raises(FileNotFoundError):
+            safe_subprocess_run_stream(["nonexistent-command-12345"])
+
+    def test_stream_default_timeout(self):
+        """Test default timeout constant is used."""
+        with safe_subprocess_run_stream(["echo", "test"]) as stream:
+            list(stream)
+        assert stream.returncode == 0
+
+    def test_stream_empty_output(self):
+        """Test command that produces no stdout."""
+        with safe_subprocess_run_stream(["true"]) as stream:
+            lines = list(stream)
+        assert lines == []
+        assert stream.returncode == 0
+
+    def test_stream_close_idempotent(self):
+        """Test calling close multiple times is safe."""
+        with safe_subprocess_run_stream(["echo", "test"]) as stream:
+            list(stream)
+        stream.close()
+        stream.close()
+
+    def test_stream_iteration_after_close(self):
+        """Test iterating after close raises StopIteration."""
+        stream = safe_subprocess_run_stream(["echo", "test"])
+        stream.close()
+        with pytest.raises(StopIteration):
+            next(stream)
 
 
 class TestSecurityConstants:
