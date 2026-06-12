@@ -259,7 +259,7 @@ class StreamingSubprocess:
     def _finalize(self):
         self._process.wait(timeout=10)
         self._stderr_thread.join(timeout=5)
-        self._closed = True
+        self.close()
 
 
 def safe_subprocess_run_stream(
