@@ -707,52 +707,12 @@ class CyclomaticComplexityAssessor(BaseAssessor):
             )
 
     def _assess_go_complexity(self, repository: Repository) -> Finding:
-        """Assess Go complexity using gocyclo or golangci-lint config detection.
+        """Assess Go complexity using golangci-lint config or gocyclo.
 
-        Tries gocyclo first. Falls back to checking if golangci-lint has
-        complexity linters (gocyclo/cyclop) enabled in config.
+        Checks for configured complexity linters first, then falls back
+        to running gocyclo directly.
         """
-        try:
-            avg_line = None
-            with safe_subprocess_run_stream(
-                ["gocyclo", "-avg", str(repository.path)],
-                timeout=60,
-            ) as stream:
-                for line in stream:
-                    if "Average" in line:
-                        avg_line = line.strip()
-
-                if stream.returncode == 0 and avg_line:
-                    avg_value = float(avg_line.split()[-1])
-
-                    score = self.calculate_proportional_score(
-                        measured_value=avg_value,
-                        threshold=10.0,
-                        higher_is_better=False,
-                    )
-                    status = "pass" if score >= 75 else "fail"
-
-                    return Finding(
-                        attribute=self.attribute,
-                        status=status,
-                        score=score,
-                        measured_value=f"{avg_value:.1f}",
-                        threshold="<10.0",
-                        evidence=[
-                            f"Average cyclomatic complexity (gocyclo): {avg_value:.1f}"
-                        ],
-                        remediation=(
-                            self._create_go_complexity_remediation()
-                            if status == "fail"
-                            else None
-                        ),
-                        error_message=None,
-                    )
-        except (FileNotFoundError, Exception):
-            pass
-
-        # Fallback: check if golangci-lint has complexity linters configured
-        # Search root and Go module root directories
+        # Check if golangci-lint has complexity linters configured
         search_dirs = [repository.path] + self._find_go_module_roots(repository)
         for search_dir in search_dirs:
             for config_name in [
@@ -782,10 +742,55 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                     except (OSError, UnicodeDecodeError):
                         continue
 
-        raise MissingToolError(
-            "gocyclo",
-            install_command="go install github.com/fzipp/gocyclo/cmd/gocyclo@latest",
-        )
+        # Fallback: run gocyclo directly
+        try:
+            last_line = None
+            with safe_subprocess_run_stream(
+                ["gocyclo", "-avg", "-top", "1", str(repository.path)],
+                timeout=60,
+            ) as stream:
+                for line in stream:
+                    last_line = line
+
+            if stream.returncode != 0:
+                stderr_msg = sanitize_subprocess_error(
+                    Exception(stream.stderr.strip()), repository.path
+                )
+                raise subprocess.CalledProcessError(
+                    stream.returncode, "gocyclo", stderr=stderr_msg
+                )
+
+            if last_line and last_line.startswith("Average:"):
+                avg_value = float(last_line.split()[-1])
+
+                score = self.calculate_proportional_score(
+                    measured_value=avg_value,
+                    threshold=10.0,
+                    higher_is_better=False,
+                )
+                status = "pass" if score >= 75 else "fail"
+
+                return Finding(
+                    attribute=self.attribute,
+                    status=status,
+                    score=score,
+                    measured_value=f"{avg_value:.1f}",
+                    threshold="<10.0",
+                    evidence=[
+                        f"Average cyclomatic complexity (gocyclo): {avg_value:.1f}"
+                    ],
+                    remediation=(
+                        self._create_go_complexity_remediation()
+                        if status == "fail"
+                        else None
+                    ),
+                    error_message=None,
+                )
+        except FileNotFoundError:
+            raise MissingToolError(
+                "gocyclo",
+                install_command="go install github.com/fzipp/gocyclo/cmd/gocyclo@latest",
+            )
 
     def _create_go_complexity_remediation(self) -> Remediation:
         """Create remediation guidance for Go complexity."""
