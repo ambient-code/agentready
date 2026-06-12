@@ -656,8 +656,6 @@ class CyclomaticComplexityAssessor(BaseAssessor):
 
         except FileNotFoundError:
             raise MissingToolError("radon", install_command="pip install radon")
-        except MissingToolError:
-            raise
         except Exception as e:
             return Finding.error(
                 self.attribute, reason=f"Complexity analysis failed: {str(e)}"
@@ -718,8 +716,6 @@ class CyclomaticComplexityAssessor(BaseAssessor):
 
         except FileNotFoundError:
             raise MissingToolError("lizard", install_command="pip install lizard")
-        except MissingToolError:
-            raise
         except Exception as e:
             return Finding.error(
                 self.attribute, reason=f"Complexity analysis failed: {str(e)}"
