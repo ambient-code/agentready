@@ -9,16 +9,20 @@ from .privacy import (
 )
 from .subprocess_utils import (
     SUBPROCESS_TIMEOUT,
+    StreamingSubprocess,
     SubprocessSecurityError,
     safe_subprocess_run,
+    safe_subprocess_run_stream,
     sanitize_subprocess_error,
     validate_repository_path,
 )
 
 __all__ = [
     "safe_subprocess_run",
+    "safe_subprocess_run_stream",
     "sanitize_subprocess_error",
     "validate_repository_path",
+    "StreamingSubprocess",
     "SubprocessSecurityError",
     "SUBPROCESS_TIMEOUT",
     "sanitize_path",

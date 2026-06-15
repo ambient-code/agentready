@@ -1065,9 +1065,11 @@ A function with 20 branches is hard to reason about whether you're human or an a
 
 #### Measurable Criteria
 
-**Python** (via radon): runs `radon cc` and measures average cyclomatic complexity across all functions. Pass threshold: average < 10.
+**Python** (via radon): analyzes all `.py` files using `radon.complexity.cc_visit()` and computes the average cyclomatic complexity. Pass threshold: average < 10.
 
-**Other languages**: returns `not_applicable` (lizard integration not yet implemented).
+**Other languages** (JavaScript, TypeScript, C, C++, Java — via lizard): analyzes all functions using `lizard.analyze()` and computes the average cyclomatic complexity. Pass threshold: average < 10.
+
+**Go** (via golangci-lint/gocyclo): checks for a configured complexity linter (`gocyclo`, `cyclop`, or `gocognit`) in `.golangci.yml`; if not found, runs `gocyclo -avg` to measure average complexity. Pass threshold: average < 10.
 
 **Pass threshold**: proportional score >= 75 (average complexity well below 10).
 
