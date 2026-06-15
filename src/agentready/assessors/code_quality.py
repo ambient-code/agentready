@@ -8,6 +8,8 @@ import re
 import subprocess
 import tomllib
 
+import lizard
+
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
@@ -665,44 +667,21 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_with_lizard(self, repository: Repository) -> Finding:
         """Assess complexity using lizard (multi-language)."""
         try:
-            last_line = None
-            with safe_subprocess_run_stream(
-                [
-                    "lizard",
-                    "-i",
-                    "-1",
-                    "-t",
-                    str(os.cpu_count() or 1),
-                    str(repository.path),
-                ],
-                timeout=60,
-            ) as stream:
-                for line in stream:
-                    last_line = line
+            total_ccn = 0
+            total_funcs = 0
+            for file_info in lizard.analyze(
+                [str(repository.path)], threads=os.cpu_count() or 1
+            ):
+                for func in file_info.function_list:
+                    total_ccn += func.cyclomatic_complexity
+                    total_funcs += 1
 
-            if stream.returncode != 0:
-                stderr_msg = sanitize_subprocess_error(
-                    stream.stderr.strip(), repository.path
-                )
-                stdout_msg = sanitize_subprocess_error(
-                    (last_line or "").strip(), repository.path
-                )
-                raise subprocess.CalledProcessError(
-                    stream.returncode,
-                    "lizard",
-                    output=stdout_msg,
-                    stderr=stderr_msg,
-                )
-
-            try:
-                avg_ccn = float(last_line.split()[2])
-            except (AttributeError, IndexError, ValueError):
-                avg_ccn = None
-
-            if avg_ccn is None:
+            if total_funcs == 0:
                 return Finding.not_applicable(
                     self.attribute, reason="No code to analyze with lizard"
                 )
+
+            avg_ccn = total_ccn / total_funcs
 
             score = self.calculate_proportional_score(
                 measured_value=avg_ccn,
@@ -722,8 +701,6 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 error_message=None,
             )
 
-        except FileNotFoundError:
-            raise MissingToolError("lizard", install_command="pip install lizard")
         except Exception as e:
             return Finding.error(
                 self.attribute, reason=f"Complexity analysis failed: {str(e)}"

@@ -1,9 +1,13 @@
-"""Tests for Python type annotation strict mode detection (ADR A.6)."""
+"""Tests for code quality assessors."""
 
 import json
 import subprocess
+from unittest.mock import patch
 
-from agentready.assessors.code_quality import TypeAnnotationsAssessor
+from agentready.assessors.code_quality import (
+    CyclomaticComplexityAssessor,
+    TypeAnnotationsAssessor,
+)
 from agentready.models.repository import Repository
 
 
@@ -243,3 +247,111 @@ class TestPythonStrictModeDetection:
 
         assert finding.status in ("pass", "fail")
         assert not any("strict mode" in e for e in finding.evidence)
+
+
+# =============================================================================
+# CyclomaticComplexityAssessor — lizard library path
+# =============================================================================
+
+
+class _FakeFunc:
+    """Minimal stand-in for lizard.FunctionInfo."""
+
+    def __init__(self, ccn):
+        self.cyclomatic_complexity = ccn
+
+
+class _FakeFileInfo:
+    """Minimal stand-in for lizard.FileInformation."""
+
+    def __init__(self, funcs):
+        self.function_list = [_FakeFunc(ccn) for ccn in funcs]
+
+
+def _make_js_repo(tmp_path, **kwargs):
+    """Create a test JavaScript repository."""
+    subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+    return Repository(
+        path=tmp_path,
+        name="test-js-repo",
+        url=None,
+        branch="main",
+        commit_hash="abc123",
+        languages=kwargs.get("languages", {"JavaScript": 100}),
+        total_files=10,
+        total_lines=1000,
+    )
+
+
+class TestCyclomaticComplexityLizard:
+    """Test _assess_with_lizard using the lizard library API."""
+
+    def test_low_complexity_passes(self, tmp_path):
+        """Average CCN below threshold produces a pass finding."""
+        repo = _make_js_repo(tmp_path)
+        assessor = CyclomaticComplexityAssessor()
+
+        fake_results = [_FakeFileInfo([2, 3]), _FakeFileInfo([1, 4])]
+        with patch(
+            "agentready.assessors.code_quality.lizard.analyze",
+            return_value=fake_results,
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score > 0
+        assert "lizard" in finding.evidence[0]
+        assert "2.5" in finding.measured_value
+
+    def test_high_complexity_fails(self, tmp_path):
+        """Average CCN above threshold produces a fail finding."""
+        repo = _make_js_repo(tmp_path)
+        assessor = CyclomaticComplexityAssessor()
+
+        fake_results = [_FakeFileInfo([15, 20, 18])]
+        with patch(
+            "agentready.assessors.code_quality.lizard.analyze",
+            return_value=fake_results,
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "fail"
+        assert finding.remediation is not None
+
+    def test_no_functions_returns_not_applicable(self, tmp_path):
+        """No functions found produces a not_applicable finding."""
+        repo = _make_js_repo(tmp_path)
+        assessor = CyclomaticComplexityAssessor()
+
+        with patch("agentready.assessors.code_quality.lizard.analyze", return_value=[]):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "not_applicable"
+
+    def test_empty_function_lists_returns_not_applicable(self, tmp_path):
+        """Files with no functions produce a not_applicable finding."""
+        repo = _make_js_repo(tmp_path)
+        assessor = CyclomaticComplexityAssessor()
+
+        fake_results = [_FakeFileInfo([]), _FakeFileInfo([])]
+        with patch(
+            "agentready.assessors.code_quality.lizard.analyze",
+            return_value=fake_results,
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "not_applicable"
+
+    def test_analyze_exception_returns_error(self, tmp_path):
+        """Exception from lizard.analyze produces an error finding."""
+        repo = _make_js_repo(tmp_path)
+        assessor = CyclomaticComplexityAssessor()
+
+        with patch(
+            "agentready.assessors.code_quality.lizard.analyze",
+            side_effect=RuntimeError("lizard crashed"),
+        ):
+            finding = assessor.assess(repo)
+
+        assert finding.status == "error"
+        assert "lizard crashed" in finding.error_message
