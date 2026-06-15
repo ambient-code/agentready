@@ -435,6 +435,60 @@ class TestCyclomaticComplexityAssessorGo:
         assert finding.status == "pass"
         assert finding.score == 80.0
 
+    def test_go_commented_linter_not_detected(self, tmp_path):
+        """Commented-out complexity linter does not produce a configured-pass."""
+        from agentready.services.scanner import MissingToolError
+
+        repo = _make_go_repo(tmp_path)
+
+        config = tmp_path / ".golangci.yml"
+        config.write_text(
+            "# gocyclo is too strict for this project\n"
+            "linters:\n"
+            "  enable:\n"
+            "    - govet\n"
+            "    - errcheck\n"
+        )
+
+        assessor = CyclomaticComplexityAssessor()
+        with pytest.raises(MissingToolError):
+            assessor.assess(repo)
+
+    def test_go_disabled_linter_not_detected(self, tmp_path):
+        """Complexity linter in disable list does not produce a configured-pass."""
+        from agentready.services.scanner import MissingToolError
+
+        repo = _make_go_repo(tmp_path)
+
+        config = tmp_path / ".golangci.yml"
+        config.write_text(
+            "linters:\n" "  disable:\n" "    - gocyclo\n" "  enable:\n" "    - govet\n"
+        )
+
+        assessor = CyclomaticComplexityAssessor()
+        with pytest.raises(MissingToolError):
+            assessor.assess(repo)
+
+    def test_go_linter_in_settings_only_not_detected(self, tmp_path):
+        """Complexity linter in linters-settings but not enabled does not pass."""
+        from agentready.services.scanner import MissingToolError
+
+        repo = _make_go_repo(tmp_path)
+
+        config = tmp_path / ".golangci.yml"
+        config.write_text(
+            "linters-settings:\n"
+            "  gocyclo:\n"
+            "    min-complexity: 15\n"
+            "linters:\n"
+            "  enable:\n"
+            "    - govet\n"
+        )
+
+        assessor = CyclomaticComplexityAssessor()
+        with pytest.raises(MissingToolError):
+            assessor.assess(repo)
+
     def test_go_without_tools_raises_missing_tool(self, tmp_path):
         """Go repo without gocyclo or golangci-lint config raises MissingToolError."""
         from agentready.services.scanner import MissingToolError

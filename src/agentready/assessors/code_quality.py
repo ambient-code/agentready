@@ -10,6 +10,7 @@ import tomllib
 
 import lizard
 import radon.complexity
+import yaml
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -707,10 +708,13 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                 if config_path.exists():
                     try:
                         content = config_path.read_text(encoding="utf-8")
-                        has_complexity = bool(
-                            re.search(r"\b(gocyclo|cyclop|gocognit)\b", content)
-                        )
-                        if has_complexity:
+                        if config_name.endswith(".toml"):
+                            parsed = tomllib.loads(content)
+                        else:
+                            parsed = yaml.safe_load(content) or {}
+                        enabled = parsed.get("linters", {}).get("enable") or []
+                        complexity_linters = {"gocyclo", "cyclop", "gocognit"}
+                        if complexity_linters & set(enabled):
                             rel = config_path.relative_to(repository.path)
                             return Finding(
                                 attribute=self.attribute,
@@ -722,7 +726,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
                                 remediation=None,
                                 error_message=None,
                             )
-                    except (OSError, UnicodeDecodeError):
+                    except (OSError, UnicodeDecodeError, yaml.YAMLError, ValueError):
                         continue
 
         # Fallback: run gocyclo directly
