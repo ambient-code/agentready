@@ -9,6 +9,7 @@ import subprocess
 import tomllib
 
 import lizard
+import radon.complexity
 
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
@@ -607,58 +608,40 @@ class CyclomaticComplexityAssessor(BaseAssessor):
     def _assess_python_complexity(self, repository: Repository) -> Finding:
         """Assess Python complexity using radon."""
         try:
-            last_line = None
-            with safe_subprocess_run_stream(
-                ["radon", "cc", str(repository.path), "-s", "-a"],
-                timeout=60,
-            ) as stream:
-                for line in stream:
-                    last_line = line
+            all_blocks = []
+            for py_file in repository.path.rglob("*.py"):
+                try:
+                    code = py_file.read_text(encoding="utf-8")
+                    all_blocks.extend(radon.complexity.cc_visit(code))
+                except (OSError, UnicodeDecodeError, SyntaxError):
+                    continue
 
-            if stream.returncode != 0:
-                stderr_msg = sanitize_subprocess_error(
-                    stream.stderr.strip(), repository.path
-                )
-                stdout_msg = sanitize_subprocess_error(
-                    (last_line or "").strip(), repository.path
-                )
-                raise subprocess.CalledProcessError(
-                    stream.returncode,
-                    "radon",
-                    output=stdout_msg,
-                    stderr=stderr_msg,
-                )
-
-            if last_line and last_line.startswith("Average complexity:"):
-                avg_value = float(last_line.split("(")[1].split(")")[0])
-
-                score = self.calculate_proportional_score(
-                    measured_value=avg_value,
-                    threshold=10.0,
-                    higher_is_better=False,
-                )
-
-                status = "pass" if score >= 75 else "fail"
-
-                return Finding(
-                    attribute=self.attribute,
-                    status=status,
-                    score=score,
-                    measured_value=f"{avg_value:.1f}",
-                    threshold="<10.0",
-                    evidence=[f"Average cyclomatic complexity: {avg_value:.1f}"],
-                    remediation=(
-                        self._create_remediation() if status == "fail" else None
-                    ),
-                    error_message=None,
-                )
-            else:
+            if not all_blocks:
                 return Finding.not_applicable(
                     self.attribute, reason="No Python code to analyze"
                 )
 
-        except FileNotFoundError:
-            raise MissingToolError("radon", install_command="pip install radon")
+            avg_value = radon.complexity.average_complexity(all_blocks)
+
+            score = self.calculate_proportional_score(
+                measured_value=avg_value,
+                threshold=10.0,
+                higher_is_better=False,
+            )
+
+            status = "pass" if score >= 75 else "fail"
+
+            return Finding(
+                attribute=self.attribute,
+                status=status,
+                score=score,
+                measured_value=f"{avg_value:.1f}",
+                threshold="<10.0",
+                evidence=[f"Average cyclomatic complexity: {avg_value:.1f}"],
+                remediation=(self._create_remediation() if status == "fail" else None),
+                error_message=None,
+            )
+
         except Exception as e:
             return Finding.error(
                 self.attribute, reason=f"Complexity analysis failed: {str(e)}"
