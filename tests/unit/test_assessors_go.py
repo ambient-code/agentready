@@ -1,6 +1,7 @@
 """Tests for Go language support across all assessors."""
 
 import subprocess
+from unittest.mock import patch
 
 import pytest
 
@@ -451,8 +452,12 @@ class TestCyclomaticComplexityAssessorGo:
         )
 
         assessor = CyclomaticComplexityAssessor()
-        with pytest.raises(MissingToolError):
-            assessor.assess(repo)
+        with patch(
+            "agentready.assessors.code_quality.safe_subprocess_run_stream",
+            side_effect=FileNotFoundError,
+        ):
+            with pytest.raises(MissingToolError):
+                assessor.assess(repo)
 
     def test_go_disabled_linter_not_detected(self, tmp_path):
         """Complexity linter in disable list does not produce a configured-pass."""
@@ -466,8 +471,12 @@ class TestCyclomaticComplexityAssessorGo:
         )
 
         assessor = CyclomaticComplexityAssessor()
-        with pytest.raises(MissingToolError):
-            assessor.assess(repo)
+        with patch(
+            "agentready.assessors.code_quality.safe_subprocess_run_stream",
+            side_effect=FileNotFoundError,
+        ):
+            with pytest.raises(MissingToolError):
+                assessor.assess(repo)
 
     def test_go_linter_in_settings_only_not_detected(self, tmp_path):
         """Complexity linter in linters-settings but not enabled does not pass."""
@@ -486,8 +495,12 @@ class TestCyclomaticComplexityAssessorGo:
         )
 
         assessor = CyclomaticComplexityAssessor()
-        with pytest.raises(MissingToolError):
-            assessor.assess(repo)
+        with patch(
+            "agentready.assessors.code_quality.safe_subprocess_run_stream",
+            side_effect=FileNotFoundError,
+        ):
+            with pytest.raises(MissingToolError):
+                assessor.assess(repo)
 
     def test_go_without_tools_raises_missing_tool(self, tmp_path):
         """Go repo without gocyclo or golangci-lint config raises MissingToolError."""
