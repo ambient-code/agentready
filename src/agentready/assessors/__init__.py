@@ -91,7 +91,7 @@ def create_all_assessors() -> list[BaseAssessor]:
         DesignIntentAssessor(),  # 3% (moved from T3)
         DbtDataTestsAssessor(),  # dbt conditional
         DbtProjectStructureAssessor(),  # dbt conditional
-        # Tier 3 Important — 14% total (7 attributes)
+        # Tier 3 Important — 13% total (7 attributes)
         ArchitectureDecisionsAssessor(),  # 2%
         OpenAPISpecsAssessor(),  # 2%
         CyclomaticComplexityAssessor(),  # 2%

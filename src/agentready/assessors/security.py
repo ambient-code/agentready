@@ -1,7 +1,6 @@
 """Security assessors for dependency scanning, SAST, and secret detection."""
 
 import json
-import os
 import re
 from pathlib import Path
 
@@ -383,7 +382,7 @@ class ThreatModelAssessor(BaseAssessor):
 
     THREAT_MODEL_SUBDIRS = [
         "docs",
-        os.path.join("docs", "security"),
+        str(Path("docs") / "security"),
     ]
 
     @property
@@ -449,7 +448,7 @@ class ThreatModelAssessor(BaseAssessor):
         except (OSError, UnicodeDecodeError):
             return Finding(
                 attribute=self.attribute,
-                status="pass",
+                status="fail",
                 score=score,
                 measured_value=str(rel_path),
                 threshold="THREAT_MODEL.md with structured sections",
@@ -492,13 +491,13 @@ class ThreatModelAssessor(BaseAssessor):
     def _find_threat_model_file(self, repository: Repository) -> Path | None:
         for filename in self.THREAT_MODEL_FILENAMES:
             path = repository.path / filename
-            if path.exists():
+            if path.is_file():
                 return path
 
         for subdir in self.THREAT_MODEL_SUBDIRS:
             for filename in self.THREAT_MODEL_FILENAMES:
                 path = repository.path / subdir / filename
-                if path.exists():
+                if path.is_file():
                     return path
 
         return None

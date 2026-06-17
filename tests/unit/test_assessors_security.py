@@ -1056,12 +1056,12 @@ A microservice.
         assert any("table" in e.lower() for e in finding.evidence)
 
     def test_malformed_file_no_crash(self, tmp_path):
-        """Malformed file doesn't crash."""
+        """Malformed file doesn't crash, returns fail (below pass threshold)."""
         (tmp_path / "THREAT_MODEL.md").write_bytes(b"\xff\xfe bad encoding")
         repo = self._make_repo(tmp_path)
         assessor = ThreatModelAssessor()
         finding = assessor.assess(repo)
-        assert finding.status == "pass"
+        assert finding.status == "fail"
         assert finding.score == 40.0
 
     def test_attribute_properties(self):

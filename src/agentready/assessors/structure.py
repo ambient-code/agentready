@@ -1531,9 +1531,15 @@ class ArchitecturalBoundaryAssessor(BaseAssessor):
                 return
 
         setup_cfg = self._read_file_safe(repository.path / "setup.cfg")
-        if setup_cfg and "[importlinter]" in setup_cfg:
-            tools_found.append("import-linter")
-            evidence.append("Python import-linter config in setup.cfg")
+        if setup_cfg:
+            if "[importlinter]" in setup_cfg:
+                tools_found.append("import-linter")
+                evidence.append("Python import-linter config in setup.cfg")
+                return
+            if "flake8-tidy-imports" in setup_cfg or "banned-api" in setup_cfg:
+                tools_found.append("flake8-tidy-imports")
+                evidence.append("Python flake8-tidy-imports/banned-api in setup.cfg")
+                return
 
     def _check_dependency_cruiser(
         self,

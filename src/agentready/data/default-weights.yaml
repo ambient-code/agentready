@@ -59,7 +59,7 @@ openapi_specs: 0.02                 # 10.1 - OpenAPI/Swagger Specifications
 cyclomatic_complexity: 0.02         # 3.1 - Cyclomatic Complexity Thresholds
 structured_logging: 0.01            # 9.2 - Structured Logging
 progressive_disclosure: 0.02        # 17.3 - Progressive Disclosure (moved from T4)
-architectural_boundaries: 0.02     # B.1 - Architectural Boundary Lint Rules (ADR)
+architectural_boundaries: 0.02      # B.1 - Architectural Boundary Lint Rules (ADR)
 threat_model: 0.02                  # B.2 - Threat Model Documentation (ADR)
 
 # Tier 4 (Advanced) - 2% total weight
