@@ -5,6 +5,13 @@
 
 * code quality assessor enhancements (ADR A.6, A.7) ([#491](https://github.com/ambient-code/agentready/issues/491)) ([3ec84ef](https://github.com/ambient-code/agentready/commit/3ec84ef72904e07e07b0d9c72eacd13b6bf41690))
 
+# [2.47.0](https://github.com/ambient-code/agentready/compare/v2.46.3...v2.47.0) (2026-06-17)
+
+
+### Features
+
+* code quality assessor enhancements (ADR A.6, A.7) ([#491](https://github.com/ambient-code/agentready/issues/491)) ([3ec84ef](https://github.com/ambient-code/agentready/commit/3ec84ef72904e07e07b0d9c72eacd13b6bf41690))
+
 # [2.47.0](https://github.com/ambient-code/agentready/compare/v2.46.3...v2.47.0) (2026-06-15)
 
 
