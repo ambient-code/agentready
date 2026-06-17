@@ -1368,3 +1368,229 @@ project/
                 ),
             ],
         )
+
+
+class ArchitecturalBoundaryAssessor(BaseAssessor):
+    """Assesses whether linter configs enforce module/import boundaries.
+
+    Tier 3 Important (2% weight) - "Agents write code; linters write the law."
+    Without boundary enforcement, agents freely import across module boundaries
+    creating coupling that humans would catch in review.
+
+    Returns not_applicable for repos with fewer than 20 files.
+    """
+
+    FILE_THRESHOLD = 20
+
+    @property
+    def attribute_id(self) -> str:
+        return "architectural_boundaries"
+
+    @property
+    def tier(self) -> int:
+        return 3
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Architectural Boundary Lint Rules",
+            category="Repository Structure",
+            tier=self.tier,
+            description="Import restriction rules configured in linter to enforce module boundaries",
+            criteria="Linter config with import boundary rules (ESLint no-restricted-imports, Go depguard, Python import-linter, or similar)",
+            default_weight=0.02,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        return repository.total_files >= self.FILE_THRESHOLD
+
+    def assess(self, repository: Repository) -> Finding:
+        if not self.is_applicable(repository):
+            return Finding.not_applicable(
+                self.attribute,
+                reason=f"Repository has {repository.total_files} files (boundary rules relevant for >={self.FILE_THRESHOLD})",
+            )
+
+        tools_found = []
+        evidence = []
+
+        self._check_eslint(repository, tools_found, evidence)
+        self._check_go_boundary_tools(repository, tools_found, evidence)
+        self._check_python_import_linter(repository, tools_found, evidence)
+        self._check_dependency_cruiser(repository, tools_found, evidence)
+
+        if tools_found:
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=100.0,
+                measured_value=f"boundary tools: {', '.join(tools_found)}",
+                threshold="at least one import boundary tool configured",
+                evidence=evidence,
+                remediation=None,
+                error_message=None,
+            )
+
+        return Finding(
+            attribute=self.attribute,
+            status="fail",
+            score=0.0,
+            measured_value="no boundary enforcement found",
+            threshold="at least one import boundary tool configured",
+            evidence=evidence or ["No import boundary lint rules detected"],
+            remediation=self._create_remediation(),
+            error_message=None,
+        )
+
+    def _read_file_safe(self, path: Path) -> str | None:
+        if not path.exists():
+            return None
+        try:
+            return path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            return None
+
+    def _check_eslint(
+        self,
+        repository: Repository,
+        tools_found: list[str],
+        evidence: list[str],
+    ) -> None:
+        eslint_configs = [
+            ".eslintrc.json",
+            ".eslintrc.js",
+            ".eslintrc.yml",
+            ".eslintrc.yaml",
+            "eslint.config.js",
+            "eslint.config.mjs",
+            "eslint.config.cjs",
+        ]
+        boundary_rules = ["no-restricted-imports", "no-restricted-modules"]
+
+        for config_name in eslint_configs:
+            content = self._read_file_safe(repository.path / config_name)
+            if content and any(rule in content for rule in boundary_rules):
+                matched = [r for r in boundary_rules if r in content]
+                tools_found.append(f"ESLint ({matched[0]})")
+                evidence.append(f"ESLint boundary rule in {config_name}: {matched[0]}")
+                return
+
+        pkg_path = repository.path / "package.json"
+        content = self._read_file_safe(pkg_path)
+        if content and "eslintConfig" in content:
+            if any(rule in content for rule in boundary_rules):
+                matched = [r for r in boundary_rules if r in content]
+                tools_found.append(f"ESLint ({matched[0]})")
+                evidence.append(
+                    f"ESLint boundary rule in package.json eslintConfig: {matched[0]}"
+                )
+
+    def _check_go_boundary_tools(
+        self,
+        repository: Repository,
+        tools_found: list[str],
+        evidence: list[str],
+    ) -> None:
+        go_configs = [".golangci.yml", ".golangci.yaml"]
+        go_tools = ["depguard", "gomodguard"]
+
+        for config_name in go_configs:
+            content = self._read_file_safe(repository.path / config_name)
+            if content:
+                matched = [t for t in go_tools if t in content]
+                if matched:
+                    tools_found.append(matched[0])
+                    evidence.append(
+                        f"Go boundary linter in {config_name}: {matched[0]}"
+                    )
+                    return
+
+    def _check_python_import_linter(
+        self,
+        repository: Repository,
+        tools_found: list[str],
+        evidence: list[str],
+    ) -> None:
+        if (repository.path / ".importlinter").exists():
+            tools_found.append("import-linter")
+            evidence.append("Python import-linter config: .importlinter")
+            return
+
+        pyproject = self._read_file_safe(repository.path / "pyproject.toml")
+        if pyproject:
+            if "[tool.importlinter]" in pyproject:
+                tools_found.append("import-linter")
+                evidence.append("Python import-linter config in pyproject.toml")
+                return
+            if "flake8-tidy-imports" in pyproject or "banned-api" in pyproject:
+                tools_found.append("flake8-tidy-imports")
+                evidence.append(
+                    "Python flake8-tidy-imports/banned-api in pyproject.toml"
+                )
+                return
+
+        setup_cfg = self._read_file_safe(repository.path / "setup.cfg")
+        if setup_cfg and "[importlinter]" in setup_cfg:
+            tools_found.append("import-linter")
+            evidence.append("Python import-linter config in setup.cfg")
+
+    def _check_dependency_cruiser(
+        self,
+        repository: Repository,
+        tools_found: list[str],
+        evidence: list[str],
+    ) -> None:
+        dc_configs = [
+            ".dependency-cruiser.cjs",
+            ".dependency-cruiser.mjs",
+            ".dependency-cruiser.js",
+        ]
+        for config_name in dc_configs:
+            if (repository.path / config_name).exists():
+                tools_found.append("dependency-cruiser")
+                evidence.append(f"dependency-cruiser config: {config_name}")
+                return
+
+    def _create_remediation(self) -> Remediation:
+        return Remediation(
+            summary="Configure import boundary rules in your linter",
+            steps=[
+                "Identify module boundaries in your codebase (e.g., frontend vs backend, domain vs infrastructure)",
+                "Add import restriction rules to your existing linter configuration",
+                "For JavaScript/TypeScript: add ESLint no-restricted-imports rule",
+                "For Go: enable depguard or gomodguard in .golangci.yml",
+                "For Python: configure import-linter or flake8-tidy-imports",
+                "For any language: consider dependency-cruiser for cross-language boundary enforcement",
+            ],
+            tools=[
+                "ESLint",
+                "golangci-lint",
+                "import-linter",
+                "dependency-cruiser",
+            ],
+            commands=[
+                "# Python: pip install import-linter",
+                "# Go: add depguard to .golangci.yml linters list",
+                "# JS/TS: add no-restricted-imports to ESLint rules",
+                "# Any: npx dependency-cruiser --init",
+            ],
+            examples=[
+                '# ESLint (.eslintrc.json)\n"rules": {\n  "no-restricted-imports": ["error", {\n    "patterns": [{\n      "group": ["../backend/*"],\n      "message": "Frontend cannot import backend modules directly"\n    }]\n  }]\n}',
+                "# Go (.golangci.yml)\nlinters:\n  enable:\n    - depguard\nlinters-settings:\n  depguard:\n    rules:\n      main:\n        deny:\n          - pkg: internal/\n            desc: Use public API instead of internal packages",
+            ],
+            citations=[
+                Citation(
+                    source="Factory.ai",
+                    title="Using Linters to Direct Agents",
+                    url="https://factory.ai/news/using-linters-to-direct-agents",
+                    relevance="'Agents write code; linters write the law' principle for boundary enforcement",
+                ),
+                Citation(
+                    source="Red Hat",
+                    title="Repository Scaffolding for AI Coding Agents, Section 3.3",
+                    url="",
+                    relevance="Architectural boundary lint rules as Tier 3 best practice",
+                ),
+            ],
+        )

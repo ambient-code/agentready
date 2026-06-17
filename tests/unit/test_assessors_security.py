@@ -2,7 +2,10 @@
 
 import subprocess
 
-from agentready.assessors.security import DependencySecurityAssessor
+from agentready.assessors.security import (
+    DependencySecurityAssessor,
+    ThreatModelAssessor,
+)
 from agentready.models.repository import Repository
 
 
@@ -838,3 +841,246 @@ updates:
         assert any(
             "Meaningful Renovate configuration detected" in e for e in finding.evidence
         )
+
+
+class TestThreatModelAssessor:
+    """Test ThreatModelAssessor (ADR B.2)."""
+
+    def _make_repo(self, tmp_path, **kwargs):
+        (tmp_path / ".git").mkdir(exist_ok=True)
+        defaults = dict(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=50,
+            total_lines=5000,
+        )
+        defaults.update(kwargs)
+        return Repository(**defaults)
+
+    FULL_THREAT_MODEL = """# Threat Model: TestApp
+
+## 1. System context
+A REST API that processes user data.
+
+## 2. Assets
+| asset | description | sensitivity |
+|---|---|---|
+| user_data | PII in database | high |
+
+## 3. Entry points & trust boundaries
+| entry_point | description | trust_boundary | reachable_assets |
+|---|---|---|---|
+| /api/upload | File upload | remote unauth | user_data |
+
+## 4. Threats
+| id | threat | actor | impact | status |
+|---|---|---|---|---|
+| T1 | RCE via upload | remote_unauth | critical | partially_mitigated |
+
+## 5. Deprioritized
+| threat | reason |
+|---|---|
+| Local file injection | Requires admin |
+
+## 6. Open questions
+- Is size limit enforced at proxy?
+
+## 7. Provenance
+- mode: bootstrap
+- date: 2026-01-15
+
+## 8. Recommended mitigations
+| mitigation | threat_ids | effort |
+|---|---|---|
+| Sandbox processing | T1 | M |
+"""
+
+    def test_no_threat_model_fails(self, tmp_path):
+        """No threat model file returns fail with score 0."""
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert finding.remediation is not None
+
+    def test_empty_threat_model(self, tmp_path):
+        """Empty THREAT_MODEL.md gets existence credit only."""
+        (tmp_path / "THREAT_MODEL.md").write_text("")
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 40.0
+
+    def test_full_threat_model_all_sections(self, tmp_path):
+        """THREAT_MODEL.md with all 8 sections scores 100."""
+        (tmp_path / "THREAT_MODEL.md").write_text(self.FULL_THREAT_MODEL)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "8/8" in finding.measured_value
+
+    def test_partial_sections(self, tmp_path):
+        """THREAT_MODEL.md with 4/8 sections gets proportional credit."""
+        content = """# Threat Model
+
+## 1. System context
+A web application.
+
+## 2. Assets
+User data.
+
+## 4. Threats
+| id | threat | actor | impact | status |
+|---|---|---|---|---|
+| T1 | XSS | remote_unauth | high | unmitigated |
+
+## 6. Open questions
+- Need to review auth flow.
+"""
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert 60 <= finding.score <= 80
+        assert "4/8" in finding.measured_value
+
+    def test_substantial_content_bonus(self, tmp_path):
+        """File with >500 bytes of non-heading content gets bonus."""
+        content = "# Threat Model\n\n" + "This is a detailed threat analysis. " * 30
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.score == 50.0  # 40 existence + 10 content
+
+    def test_alternative_filename_threat_dash_model(self, tmp_path):
+        """threat-model.md (lowercase, hyphenated) is detected."""
+        (tmp_path / "threat-model.md").write_text(
+            "# Threat Model\n\n## 1. System context\nA CLI tool.\n"
+        )
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"  # Only 1 section + existence = 46
+        assert finding.score >= 40
+
+    def test_docs_subdirectory(self, tmp_path):
+        """THREAT_MODEL.md in docs/ is detected."""
+        docs = tmp_path / "docs"
+        docs.mkdir()
+        (docs / "THREAT_MODEL.md").write_text(self.FULL_THREAT_MODEL)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert "docs/THREAT_MODEL.md" in finding.measured_value
+
+    def test_docs_security_subdirectory(self, tmp_path):
+        """THREAT_MODEL.md in docs/security/ is detected."""
+        sec_dir = tmp_path / "docs" / "security"
+        sec_dir.mkdir(parents=True)
+        (sec_dir / "THREAT_MODEL.md").write_text(self.FULL_THREAT_MODEL)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+
+    def test_security_md_fallback(self, tmp_path):
+        """SECURITY.md with threat model heading gives partial credit."""
+        (tmp_path / "SECURITY.md").write_text(
+            "# Security Policy\n\n## Threat Model\nWe consider the following threats...\n"
+        )
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 25.0
+        assert any("SECURITY.md" in e for e in finding.evidence)
+
+    def test_security_md_no_threat_section(self, tmp_path):
+        """SECURITY.md without threat model heading gives no credit."""
+        (tmp_path / "SECURITY.md").write_text(
+            "# Security Policy\n\nReport vulnerabilities to security@example.com\n"
+        )
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.score == 0.0
+
+    def test_unnumbered_sections(self, tmp_path):
+        """Sections without numbers are recognized."""
+        content = """# Threat Model
+
+## System context
+A microservice.
+
+## Assets
+| asset | sensitivity |
+|---|---|
+| tokens | critical |
+
+## Threats
+| id | threat | impact |
+|---|---|---|
+| T1 | Token theft | critical |
+"""
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert "3/8" in finding.measured_value
+
+    def test_threat_table_detection(self, tmp_path):
+        """Table in threats section gives bonus points."""
+        content = """# Threat Model
+
+## 4. Threats
+| id | threat | actor | impact |
+|---|---|---|---|
+| T1 | Injection | remote_unauth | high |
+"""
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert any("table" in e.lower() for e in finding.evidence)
+
+    def test_malformed_file_no_crash(self, tmp_path):
+        """Malformed file doesn't crash."""
+        (tmp_path / "THREAT_MODEL.md").write_bytes(b"\xff\xfe bad encoding")
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 40.0
+
+    def test_attribute_properties(self):
+        """Verify attribute metadata."""
+        assessor = ThreatModelAssessor()
+        assert assessor.attribute_id == "threat_model"
+        assert assessor.tier == 3
+        assert assessor.attribute.default_weight == 0.02
+
+    def test_root_file_takes_precedence_over_docs(self, tmp_path):
+        """Root THREAT_MODEL.md is found before docs/ variant."""
+        (tmp_path / "THREAT_MODEL.md").write_text(
+            "# Threat Model\n\n## 1. System context\nRoot file.\n"
+        )
+        docs = tmp_path / "docs"
+        docs.mkdir()
+        (docs / "THREAT_MODEL.md").write_text(self.FULL_THREAT_MODEL)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert "THREAT_MODEL.md" in finding.measured_value
+        assert "docs" not in finding.measured_value

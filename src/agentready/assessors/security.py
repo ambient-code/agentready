@@ -1,6 +1,9 @@
 """Security assessors for dependency scanning, SAST, and secret detection."""
 
 import json
+import os
+import re
+from pathlib import Path
 
 import yaml
 
@@ -348,4 +351,242 @@ class DependencySecurityAssessor(BaseAssessor):
             evidence=evidence if evidence else ["No security scanning tools detected"],
             remediation=remediation,
             error_message=None,
+        )
+
+
+class ThreatModelAssessor(BaseAssessor):
+    """Tier 3 Important - Structured threat model documentation.
+
+    Checks for THREAT_MODEL.md (or equivalent) with structured sections
+    matching the 8-section schema from the wg-agentic-sdlc best practices.
+    A threat model enables AI agents to perform focused security scanning
+    by providing entry points, threat priorities, and scope boundaries.
+    """
+
+    CANONICAL_SECTIONS = [
+        "system context",
+        "assets",
+        "entry points",
+        "threats",
+        "deprioritized",
+        "open questions",
+        "provenance",
+        "recommended mitigations",
+    ]
+
+    THREAT_MODEL_FILENAMES = [
+        "THREAT_MODEL.md",
+        "THREAT-MODEL.md",
+        "threat-model.md",
+        "threat_model.md",
+    ]
+
+    THREAT_MODEL_SUBDIRS = [
+        "docs",
+        os.path.join("docs", "security"),
+    ]
+
+    @property
+    def attribute_id(self) -> str:
+        return "threat_model"
+
+    @property
+    def tier(self) -> int:
+        return 3
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Threat Model Documentation",
+            category="Security",
+            tier=self.tier,
+            description="Structured THREAT_MODEL.md with security assumptions, attack surface, and prioritized threats",
+            criteria="THREAT_MODEL.md with recognized section structure (8-section schema)",
+            default_weight=0.02,
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        score = 0.0
+        evidence = []
+
+        threat_model_path = self._find_threat_model_file(repository)
+
+        if threat_model_path is None:
+            fallback_score = self._check_security_md_fallback(repository)
+            if fallback_score > 0:
+                return Finding(
+                    attribute=self.attribute,
+                    status="fail",
+                    score=fallback_score,
+                    measured_value="threat model section in SECURITY.md",
+                    threshold="standalone THREAT_MODEL.md with structured sections",
+                    evidence=[
+                        "No standalone THREAT_MODEL.md found",
+                        "Partial credit: SECURITY.md contains a threat model section",
+                    ],
+                    remediation=self._create_remediation(),
+                    error_message=None,
+                )
+
+            return Finding(
+                attribute=self.attribute,
+                status="fail",
+                score=0.0,
+                measured_value="no threat model found",
+                threshold="THREAT_MODEL.md with structured sections",
+                evidence=["No THREAT_MODEL.md or equivalent found"],
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
+
+        rel_path = threat_model_path.relative_to(repository.path)
+        score += 40.0
+        evidence.append(f"Threat model file found: {rel_path}")
+
+        try:
+            content = threat_model_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=score,
+                measured_value=str(rel_path),
+                threshold="THREAT_MODEL.md with structured sections",
+                evidence=evidence + ["Could not read file content"],
+                remediation=self._create_remediation(),
+                error_message=None,
+            )
+
+        non_heading_content = re.sub(r"^#.*$", "", content, flags=re.MULTILINE).strip()
+        if len(non_heading_content) > 500:
+            score += 10.0
+            evidence.append("Substantial content (>500 bytes)")
+
+        section_count, sections_found = self._count_recognized_sections(content)
+        if section_count > 0:
+            section_pts = min(section_count * 6.0, 48.0)
+            score += section_pts
+            evidence.append(
+                f"{section_count}/8 recognized sections: {', '.join(sections_found)}"
+            )
+
+        if self._has_threat_table(content):
+            score += 2.0
+            evidence.append("Threats section contains structured table")
+
+        score = min(score, 100.0)
+        status = "pass" if score >= 50 else "fail"
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=score,
+            measured_value=f"{section_count}/8 sections in {rel_path}",
+            threshold="THREAT_MODEL.md with structured sections",
+            evidence=evidence,
+            remediation=self._create_remediation() if score < 100 else None,
+            error_message=None,
+        )
+
+    def _find_threat_model_file(self, repository: Repository) -> Path | None:
+        for filename in self.THREAT_MODEL_FILENAMES:
+            path = repository.path / filename
+            if path.exists():
+                return path
+
+        for subdir in self.THREAT_MODEL_SUBDIRS:
+            for filename in self.THREAT_MODEL_FILENAMES:
+                path = repository.path / subdir / filename
+                if path.exists():
+                    return path
+
+        return None
+
+    def _count_recognized_sections(self, content: str) -> tuple[int, list[str]]:
+        headings = re.findall(r"^##\s+(?:\d+\.\s*)?(.+)$", content, re.MULTILINE)
+        found = []
+        for heading in headings:
+            heading_lower = heading.strip().lower()
+            heading_lower = re.sub(r"\s*[&]\s*", " and ", heading_lower)
+            for canonical in self.CANONICAL_SECTIONS:
+                canonical_words = canonical.split()
+                if all(word in heading_lower for word in canonical_words):
+                    if canonical not in found:
+                        found.append(canonical)
+                    break
+        return len(found), found
+
+    def _has_threat_table(self, content: str) -> bool:
+        threats_match = re.search(
+            r"^##\s+(?:\d+\.\s*)?threats?\b.*$",
+            content,
+            re.MULTILINE | re.IGNORECASE,
+        )
+        if not threats_match:
+            return False
+        after_heading = content[threats_match.end() :]
+        next_section = re.search(r"^##\s+", after_heading, re.MULTILINE)
+        threats_section = (
+            after_heading[: next_section.start()] if next_section else after_heading
+        )
+        return bool(re.search(r"^\|.+\|.+\|", threats_section, re.MULTILINE))
+
+    def _check_security_md_fallback(self, repository: Repository) -> float:
+        security_md = repository.path / "SECURITY.md"
+        if not security_md.exists():
+            return 0.0
+        try:
+            content = security_md.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            return 0.0
+        if re.search(r"^#+\s+.*threat\s+model", content, re.MULTILINE | re.IGNORECASE):
+            return 25.0
+        return 0.0
+
+    def _create_remediation(self) -> Remediation:
+        return Remediation(
+            summary="Create a THREAT_MODEL.md with structured security analysis",
+            steps=[
+                "Create THREAT_MODEL.md in the repository root",
+                "Add the 8-section structure: System context, Assets, Entry points, Threats, Deprioritized, Open questions, Provenance, Recommended mitigations",
+                "Start with system context describing what the project does and its security assumptions",
+                "List assets (what is worth protecting) with sensitivity levels",
+                "Document entry points where untrusted input enters the system",
+                "Add a threat table with actor, impact, likelihood, and status columns",
+                "Explicitly list deprioritized threats with rationale",
+                "Point SECURITY.md at the threat model for scope guidance",
+            ],
+            tools=[],
+            commands=[],
+            examples=[
+                "# Threat Model: MyProject\n\n"
+                "## 1. System context\nA REST API that processes user uploads...\n\n"
+                "## 2. Assets\n| asset | description | sensitivity |\n|---|---|---|\n"
+                "| user_data | PII in database | high |\n\n"
+                "## 3. Entry points & trust boundaries\n| entry_point | description | trust_boundary | reachable_assets |\n"
+                "|---|---|---|---|\n| /api/upload | File upload endpoint | remote unauth | user_data |\n\n"
+                "## 4. Threats\n| id | threat | actor | impact | status |\n"
+                "|---|---|---|---|---|\n| T1 | RCE via file upload | remote_unauth | critical | partially_mitigated |\n\n"
+                "## 5. Deprioritized\n| threat | reason |\n|---|---|\n"
+                "| Local file injection | Requires local admin access |\n\n"
+                "## 6. Open questions\n- Is the upload size limit enforced at the proxy level?\n\n"
+                "## 7. Provenance\n- mode: bootstrap\n- date: 2026-01-15\n\n"
+                "## 8. Recommended mitigations\n| mitigation | threat_ids | effort |\n"
+                "|---|---|---|\n| Sandbox file processing | T1 | M |",
+            ],
+            citations=[
+                Citation(
+                    source="Red Hat",
+                    title="THREAT_MODEL.md: A checked-in threat model for your repository",
+                    url="",
+                    relevance="Defines the 8-section schema for structured, machine-readable threat models",
+                ),
+                Citation(
+                    source="Red Hat",
+                    title="wg-agentic-sdlc Best Practices: Security & Standards",
+                    url="",
+                    relevance="Threat models enable AI agents to perform focused security scanning by providing entry points, threat priorities, and scope boundaries",
+                ),
+            ],
         )
