@@ -51,6 +51,8 @@ podman run --rm \
 open ~/agentready-reports/report-latest.html
 ```
 
+> **Rootless Podman (Fedora, RHEL, CentOS)**: The `--userns=keep-id` flag maps your host UID into the container, preventing Git "dubious ownership" errors. If you still encounter permission issues, see [Podman Rootless Mode](CONTAINER.md#podman-rootless-mode) for the full solution.
+
 [See full container documentation →](CONTAINER.md)
 
 ### Python Package
