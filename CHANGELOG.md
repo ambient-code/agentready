@@ -1,3 +1,10 @@
+# [2.48.0](https://github.com/ambient-code/agentready/compare/v2.47.0...v2.48.0) (2026-06-18)
+
+
+### Features
+
+* add architectural boundary and threat model assessors (ADR B.1, B.2) ([#503](https://github.com/ambient-code/agentready/issues/503)) ([c32325d](https://github.com/ambient-code/agentready/commit/c32325d67c41a825066ffb027170c0b8302e57d7)), closes [#463](https://github.com/ambient-code/agentready/issues/463)
+
 # [2.47.0](https://github.com/ambient-code/agentready/compare/v2.46.3...v2.47.0) (2026-06-17)
 
 
