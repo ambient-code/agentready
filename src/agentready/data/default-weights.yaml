@@ -1,15 +1,15 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 25 attributes.
+# This file defines the default weights for all 27 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
 # Red Hat best practices (April 2026), and Cursor agent guidelines.
 #
 # Key finding: Verification (tests, lint, CI) has highest impact on
 # agent effectiveness. Documentation helps only marginally (+4%).
 #
-# Tier 1 (Essential):  59% total (9 attributes)
+# Tier 1 (Essential):  58% total (9 attributes)
 # Tier 2 (Critical):   27% total (3% each, 9 attributes)
-# Tier 3 (Important):  12% total (varies, 5 attributes)
+# Tier 3 (Important):  13% total (varies, 7 attributes)
 # Tier 4 (Advanced):    2% total (1% each, 2 attributes)
 # TOTAL:              100% (sum to 1.0)
 #
@@ -24,9 +24,15 @@
 #   where agent readiness matters most
 # - Redistributed freed 4% to test_execution (+2%) and
 #   type_annotations (+2%), the highest-evidence T1 attributes
+#
+# Changes in v2.2.0 (ADR Proposal B: new assessors):
+# - Added architectural_boundaries (T3, 2%): import boundary lint rules
+# - Added threat_model (T3, 2%): structured threat model documentation
+# - Reduced test_execution (12% -> 11%), architecture_decisions (3% -> 2%),
+#   structured_logging (2% -> 1%), openapi_specs (3% -> 2%) to fund new weights
 
-# Tier 1 (Essential) - 59% total weight
-test_execution: 0.12                # 5.1 - Test Execution & Coverage
+# Tier 1 (Essential) - 58% total weight
+test_execution: 0.11                # 5.1 - Test Execution & Coverage
 type_annotations: 0.10              # 3.3 - Type Annotations (structural signals for agents)
 agent_instructions: 0.07             # 1.1 - Agent Instruction Files (CLAUDE.md/AGENTS.md)
 ci_quality_gates: 0.05              # 16.2 - CI Quality Gates (lint + type-check + tests on PR)
@@ -47,12 +53,14 @@ separation_of_concerns: 0.03        # 4.2 - Separation of Concerns
 pattern_references: 0.03            # 17.1 - Pattern References for Common Changes
 design_intent: 0.03                 # 17.2 - Design Intent Documentation (moved from T3)
 
-# Tier 3 (Important) - 12% total weight (5 attributes)
-architecture_decisions: 0.03        # 2.3 - Architecture Decision Records
-openapi_specs: 0.03                 # 10.1 - OpenAPI/Swagger Specifications
+# Tier 3 (Important) - 13% total weight (7 attributes)
+architecture_decisions: 0.02        # 2.3 - Architecture Decision Records
+openapi_specs: 0.02                 # 10.1 - OpenAPI/Swagger Specifications
 cyclomatic_complexity: 0.02         # 3.1 - Cyclomatic Complexity Thresholds
-structured_logging: 0.02            # 9.2 - Structured Logging
+structured_logging: 0.01            # 9.2 - Structured Logging
 progressive_disclosure: 0.02        # 17.3 - Progressive Disclosure (moved from T4)
+architectural_boundaries: 0.02      # B.1 - Architectural Boundary Lint Rules (ADR)
+threat_model: 0.02                  # B.2 - Threat Model Documentation (ADR)
 
 # Tier 4 (Advanced) - 2% total weight
 issue_pr_templates: 0.01            # 7.3 - Issue & Pull Request Templates

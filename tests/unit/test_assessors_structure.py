@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from agentready.assessors.structure import (
+    ArchitecturalBoundaryAssessor,
     IssuePRTemplatesAssessor,
     StandardLayoutAssessor,
 )
@@ -1334,3 +1335,200 @@ class TestIssuePRTemplatesAssessor:
 
         assert finding.status == "fail"
         assert finding.score == 0
+
+
+class TestArchitecturalBoundaryAssessor:
+    """Test ArchitecturalBoundaryAssessor (ADR B.1)."""
+
+    def _make_repo(self, tmp_path, total_files=50, **kwargs):
+        (tmp_path / ".git").mkdir(exist_ok=True)
+        defaults = dict(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Python": 100},
+            total_files=total_files,
+            total_lines=5000,
+        )
+        defaults.update(kwargs)
+        return Repository(**defaults)
+
+    def test_small_repo_not_applicable(self, tmp_path):
+        """Repos with <20 files return not_applicable."""
+        repo = self._make_repo(tmp_path, total_files=15)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "not_applicable"
+        assert "15 files" in finding.evidence[0]
+
+    def test_no_boundary_tools_fails(self, tmp_path):
+        """Repo with no boundary enforcement tools fails."""
+        repo = self._make_repo(tmp_path)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert finding.remediation is not None
+
+    def test_eslint_no_restricted_imports(self, tmp_path):
+        """ESLint no-restricted-imports rule detected."""
+        (tmp_path / ".eslintrc.json").write_text(
+            '{"rules": {"no-restricted-imports": ["error", {"patterns": ["../backend/*"]}]}}'
+        )
+        repo = self._make_repo(tmp_path, languages={"TypeScript": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert any("no-restricted-imports" in e for e in finding.evidence)
+
+    def test_eslint_no_restricted_modules(self, tmp_path):
+        """ESLint no-restricted-modules rule detected."""
+        (tmp_path / ".eslintrc.yml").write_text(
+            "rules:\n  no-restricted-modules:\n    - error\n    - fs"
+        )
+        repo = self._make_repo(tmp_path, languages={"JavaScript": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_eslint_flat_config(self, tmp_path):
+        """ESLint flat config (eslint.config.js) detected."""
+        (tmp_path / "eslint.config.js").write_text(
+            'export default [{ rules: { "no-restricted-imports": "error" } }]'
+        )
+        repo = self._make_repo(tmp_path, languages={"TypeScript": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+    def test_eslint_in_package_json(self, tmp_path):
+        """ESLint config in package.json eslintConfig detected."""
+        (tmp_path / "package.json").write_text(
+            '{"eslintConfig": {"rules": {"no-restricted-imports": "error"}}}'
+        )
+        repo = self._make_repo(tmp_path, languages={"JavaScript": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert "package.json" in finding.evidence[0]
+
+    def test_go_depguard(self, tmp_path):
+        """Go depguard in golangci config detected."""
+        (tmp_path / ".golangci.yml").write_text("linters:\n  enable:\n    - depguard\n")
+        repo = self._make_repo(tmp_path, languages={"Go": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert any("depguard" in e for e in finding.evidence)
+
+    def test_go_gomodguard(self, tmp_path):
+        """Go gomodguard in golangci config detected."""
+        (tmp_path / ".golangci.yaml").write_text(
+            "linters:\n  enable:\n    - gomodguard\n"
+        )
+        repo = self._make_repo(tmp_path, languages={"Go": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert any("gomodguard" in e for e in finding.evidence)
+
+    def test_python_importlinter_file(self, tmp_path):
+        """Python .importlinter config file detected."""
+        (tmp_path / ".importlinter").write_text("[importlinter]\nroot_package=myapp\n")
+        repo = self._make_repo(tmp_path)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert any("import-linter" in e for e in finding.evidence)
+
+    def test_python_importlinter_in_pyproject(self, tmp_path):
+        """Python import-linter in pyproject.toml detected."""
+        (tmp_path / "pyproject.toml").write_text(
+            "[tool.importlinter]\nroot_packages = ['myapp']\n"
+        )
+        repo = self._make_repo(tmp_path)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert any("pyproject.toml" in e for e in finding.evidence)
+
+    def test_python_importlinter_in_setup_cfg(self, tmp_path):
+        """Python import-linter in setup.cfg detected."""
+        (tmp_path / "setup.cfg").write_text("[importlinter]\nroot_package = myapp\n")
+        repo = self._make_repo(tmp_path)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert any("setup.cfg" in e for e in finding.evidence)
+
+    def test_python_flake8_tidy_imports(self, tmp_path):
+        """Python flake8-tidy-imports in pyproject.toml detected."""
+        (tmp_path / "pyproject.toml").write_text(
+            '[tool.ruff]\nextend-select = ["TID"]\n[tool.ruff.flake8-tidy-imports]\n'
+        )
+        repo = self._make_repo(tmp_path)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert any("flake8-tidy-imports" in e for e in finding.evidence)
+
+    def test_dependency_cruiser(self, tmp_path):
+        """dependency-cruiser config detected."""
+        (tmp_path / ".dependency-cruiser.cjs").write_text("module.exports = {}")
+        repo = self._make_repo(tmp_path, languages={"JavaScript": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert any("dependency-cruiser" in e for e in finding.evidence)
+
+    def test_malformed_config_no_crash(self, tmp_path):
+        """Malformed config files don't crash the assessor."""
+        (tmp_path / ".eslintrc.json").write_bytes(b"\xff\xfe bad encoding")
+        repo = self._make_repo(tmp_path)
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_eslint_config_without_boundary_rules(self, tmp_path):
+        """ESLint config without boundary rules does not pass."""
+        (tmp_path / ".eslintrc.json").write_text('{"rules": {"no-console": "error"}}')
+        repo = self._make_repo(tmp_path, languages={"JavaScript": 100})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_attribute_properties(self):
+        """Verify attribute metadata."""
+        assessor = ArchitecturalBoundaryAssessor()
+        assert assessor.attribute_id == "architectural_boundaries"
+        assert assessor.tier == 3
+        assert assessor.attribute.default_weight == 0.02
+
+    def test_java_repo_not_applicable(self, tmp_path):
+        """Java-only repo gets not_applicable (unsupported language)."""
+        repo = self._make_repo(tmp_path, languages={"Java": 90, "XML": 10})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_mixed_language_with_supported(self, tmp_path):
+        """Repo with Java and Python is still applicable."""
+        repo = self._make_repo(tmp_path, languages={"Java": 60, "Python": 40})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status != "not_applicable"
+
+    def test_no_languages_defaults_applicable(self, tmp_path):
+        """Repo with empty languages dict remains applicable."""
+        repo = self._make_repo(tmp_path, languages={})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status != "not_applicable"

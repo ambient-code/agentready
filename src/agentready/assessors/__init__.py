@@ -31,8 +31,9 @@ from .patterns import (
     PatternReferencesAssessor,
     ProgressiveDisclosureAssessor,
 )
-from .security import DependencySecurityAssessor
+from .security import DependencySecurityAssessor, ThreatModelAssessor
 from .structure import (
+    ArchitecturalBoundaryAssessor,
     IssuePRTemplatesAssessor,
     OneCommandSetupAssessor,
     SeparationOfConcernsAssessor,
@@ -60,14 +61,14 @@ def create_all_assessors() -> list[BaseAssessor]:
     """Create all assessors for assessment.
 
     Centralized factory function to eliminate duplication across CLI commands.
-    Returns all implemented and stub assessors (25 attributes).
+    Returns all implemented and stub assessors (27 attributes).
 
     Returns:
         List of all assessor instances
     """
     assessors = [
-        # Tier 1 Essential — 59% total (9 attributes)
-        TestExecutionAssessor(),  # 12%
+        # Tier 1 Essential — 58% total (9 attributes)
+        TestExecutionAssessor(),  # 11%
         TypeAnnotationsAssessor(),  # 10%
         AgentInstructionsAssessor(),  # 7%
         CIQualityGatesAssessor(),  # 5%
@@ -90,12 +91,14 @@ def create_all_assessors() -> list[BaseAssessor]:
         DesignIntentAssessor(),  # 3% (moved from T3)
         DbtDataTestsAssessor(),  # dbt conditional
         DbtProjectStructureAssessor(),  # dbt conditional
-        # Tier 3 Important — 12% total (5 attributes)
-        ArchitectureDecisionsAssessor(),  # 3%
-        OpenAPISpecsAssessor(),  # 3%
+        # Tier 3 Important — 13% total (7 attributes)
+        ArchitectureDecisionsAssessor(),  # 2%
+        OpenAPISpecsAssessor(),  # 2%
         CyclomaticComplexityAssessor(),  # 2%
-        StructuredLoggingAssessor(),  # 2%
+        StructuredLoggingAssessor(),  # 1%
         ProgressiveDisclosureAssessor(),  # 2% (moved from T4)
+        ArchitecturalBoundaryAssessor(),  # 2% (ADR B.1)
+        ThreatModelAssessor(),  # 2% (ADR B.2)
         # Tier 4 Advanced — 2% total (2 attributes, 1% each)
         IssuePRTemplatesAssessor(),
         ContainerSetupAssessor(),

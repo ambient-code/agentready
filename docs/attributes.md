@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 25 agent-ready attributes assessed by AgentReady.
+Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -26,7 +26,7 @@ Complete reference for all 25 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against 25 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
+AgentReady evaluates repositories against 27 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
 Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 
@@ -38,9 +38,9 @@ Attributes are organized into four weighted tiers:
 
 | Tier | Weight | Focus | Attribute Count |
 |------|--------|-------|-----------------|
-| **Tier 1: Essential** | 59% | Fundamentals enabling basic AI functionality | 9 attributes |
+| **Tier 1: Essential** | 58% | Fundamentals enabling basic AI functionality | 9 attributes |
 | **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 9 attributes |
-| **Tier 3: Important** | 12% | Significant improvements in specific areas | 5 attributes |
+| **Tier 3: Important** | 13% | Significant improvements in specific areas | 7 attributes |
 | **Tier 4: Advanced** | 2% | Refinement and optimization | 2 attributes |
 
 Missing a Tier 1 attribute (up to 12% weight) has up to 12x the score impact of missing a Tier 4 attribute (1% weight).
@@ -1046,7 +1046,7 @@ setup:
 
 ## Tier 3: Important Attributes
 
-*Significant improvements in specific areas — 12% of total score*
+*Significant improvements in specific areas — 13% of total score*
 
 ### 14. Cyclomatic Complexity Limits
 
@@ -1098,14 +1098,14 @@ radon cc src/ -s -nb
 
 ### Additional Tier 3 Attributes
 
-**Structured Logging** (`structured_logging`, 2%) — JSON logs with consistent fields
-**OpenAPI/Swagger Specs** (`openapi_specs`, 3%) — Machine-readable API docs
+**Structured Logging** (`structured_logging`, 1%) — JSON logs with consistent fields
+**OpenAPI/Swagger Specs** (`openapi_specs`, 2%) — Machine-readable API docs
 **Progressive Disclosure** (`progressive_disclosure`, 2%) — Path-scoped rules, skills for focused context (moved from T4)
 ### Architecture Decision Records
 
 **ID**: `architecture_decisions`
 **Tier**: Tier 3
-**Weight**: 3%
+**Weight**: 2%
 **Category**: Documentation Standards
 **Status**: ✅ Implemented
 
@@ -1166,6 +1166,184 @@ EOF
 
 ---
 
+### Architectural Boundaries
+
+**ID**: `architectural_boundaries`
+**Tier**: Tier 3
+**Weight**: 2%
+**Category**: Repository Structure
+**Status**: ✅ Implemented
+
+#### Definition
+
+Linter or tooling configuration that enforces module import boundaries, preventing uncontrolled cross-module coupling. As the Factory.ai principle puts it: "agents write code; linters write the law."
+
+#### Why It Matters
+
+Without enforced boundaries, AI agents freely import across module lines, creating tight coupling that makes future changes risky. Boundary enforcement via linter rules catches violations at commit time, keeping the architecture intact even when agents generate code at scale.
+
+#### Measurable Criteria
+
+**Not applicable** for repos with fewer than 20 files (too small for meaningful module boundaries), or for repos whose detected languages are not yet supported (currently: Python, JavaScript, TypeScript, Go). Repos in Java, Rust, Ruby, C#, and other languages get `not_applicable` rather than being penalized.
+
+**Binary pass/fail**: the assessor checks for at least one recognized boundary enforcement tool configured in the repository:
+
+| Tool | Config files checked | Signal |
+|------|---------------------|--------|
+| ESLint `no-restricted-imports` / `no-restricted-modules` | `.eslintrc.*`, `eslint.config.*`, `package.json` (eslintConfig) | Rule name present in config |
+| Go `depguard` / `gomodguard` | `.golangci.yml`, `.golangci.yaml` | Linter name in enabled linters list |
+| Python `import-linter` | `.importlinter`, `pyproject.toml` (`[tool.importlinter]`), `setup.cfg` (`[importlinter]`) | Config section present |
+| Python `flake8-tidy-imports` | `pyproject.toml`, `setup.cfg` | Plugin or `banned-api` config present |
+| `dependency-cruiser` | `.dependency-cruiser.cjs`, `.dependency-cruiser.mjs`, `.dependency-cruiser.js` | Config file exists |
+
+**Pass**: any one boundary tool configured (score 100). **Fail**: no boundary tools found (score 0).
+
+#### Remediation
+
+**JavaScript/TypeScript** (ESLint):
+
+```json
+{
+  "rules": {
+    "no-restricted-imports": ["error", {
+      "patterns": ["../internal/*"]
+    }]
+  }
+}
+```
+
+**Go** (depguard via golangci-lint):
+
+```yaml
+linters:
+  enable:
+    - depguard
+linters-settings:
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: "internal/secret"
+            desc: "Use the public API instead"
+```
+
+**Python** (import-linter):
+
+```ini
+# .importlinter or [tool.importlinter] in pyproject.toml
+[importlinter]
+root_packages = myapp
+[importlinter:contract:layers]
+name = Layered architecture
+type = layers
+layers = api | service | repository
+```
+
+**General** (dependency-cruiser):
+
+```bash
+npx depcruise --init
+npx depcruise src --config
+```
+
+**Tools**: ESLint, golangci-lint (depguard/gomodguard), import-linter, flake8-tidy-imports, dependency-cruiser
+
+**Citations**:
+
+- Factory.ai: "Agents write code; linters write the law"
+- wg-agentic-sdlc: "Hooks and Enforcement" best practices
+
+---
+
+### Threat Model
+
+**ID**: `threat_model`
+**Tier**: Tier 3
+**Weight**: 2%
+**Category**: Security
+**Status**: ✅ Implemented
+
+#### Definition
+
+A structured document (typically `THREAT_MODEL.md`) that identifies system assets, entry points, trust boundaries, and potential threats, following the wg-agentic-sdlc 8-section schema.
+
+#### Why It Matters
+
+AI agents generating security-sensitive code need to know what the system is protecting and where the attack surface lies. A threat model gives agents the context to make security-aware decisions: which inputs to validate, which boundaries to respect, and which mitigations to apply.
+
+#### Measurable Criteria
+
+**Scoring** (100 point scale):
+
+| Signal | Points |
+|--------|--------|
+| Threat model file exists | 40 |
+| Substantial content (>500 bytes excluding headings) | 10 |
+| Recognized sections (6 pts each, up to 8 sections) | up to 48 |
+| Threat table with structured entries | 2 |
+
+**The 8 canonical sections** (from wg-agentic-sdlc schema):
+
+1. System context
+2. Assets
+3. Entry points (and trust boundaries)
+4. Threats
+5. Deprioritized
+6. Open questions
+7. Provenance
+8. Recommended mitigations
+
+Section matching accepts numbered (`## 1. System Context`), unnumbered (`## System Context`), and section-symbol-prefixed (`## §7 Adversary model`) headings. Matching uses word-based fuzzy matching against canonical names, plus synonym support for common real-world heading variations (e.g., "Adversary model" matches "threats", "Out of scope" matches "deprioritized", "Trust boundaries" matches "entry points").
+
+**Recognized file locations**: `THREAT_MODEL.md`, `THREAT-MODEL.md`, `threat-model.md`, `threat_model.md` at repo root or under `docs/` or `docs/security/`.
+
+**SECURITY.md fallback**: If no standalone threat model file exists but `SECURITY.md` contains a "threat model" section heading, partial credit (25 pts) is awarded.
+
+**Pass threshold**: 50 points (file exists with substantial content, or file exists with at least 2 recognized sections).
+
+#### Remediation
+
+```bash
+cat > THREAT_MODEL.md << 'EOF'
+# Threat Model
+
+## 1. System Context
+Describe the system architecture and its environment.
+
+## 2. Assets
+List what the system protects (user data, credentials, etc.).
+
+## 3. Entry Points
+Identify API endpoints, CLI interfaces, file inputs, and trust boundaries.
+
+## 4. Threats
+| Threat | Category | Impact | Likelihood | Mitigation |
+|--------|----------|--------|------------|------------|
+| SQL injection via search | Injection | High | Medium | Parameterized queries |
+
+## 5. Deprioritized
+Threats considered but deemed low risk for now.
+
+## 6. Open Questions
+Unresolved security questions requiring further investigation.
+
+## 7. Provenance
+How dependencies and build artifacts are verified.
+
+## 8. Recommended Mitigations
+Prioritized list of security improvements to implement.
+EOF
+```
+
+**Tools**: [OWASP Threat Dragon](https://owasp.org/www-project-threat-dragon/), Microsoft Threat Modeling Tool
+
+**Citations**:
+
+- wg-agentic-sdlc: "THREAT_MODEL_README.md" schema specification
+- OWASP: "Threat Modeling"
+
+---
+
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
@@ -1185,12 +1363,12 @@ EOF
 
 ## Implementation Status
 
-All 24 assessors are fully implemented across all four tiers.
+All 27 assessors are fully implemented across all four tiers.
 
 **Current State**:
 - ✅ **Tier 1 (Essential)**: Fully implemented (9 attributes)
 - ✅ **Tier 2 (Critical)**: Fully implemented (9 attributes)
-- ✅ **Tier 3 (Important)**: Fully implemented (5 attributes)
+- ✅ **Tier 3 (Important)**: Fully implemented (7 attributes)
 - ✅ **Tier 4 (Advanced)**: Fully implemented (2 attributes)
 
 See the [GitHub repository](https://github.com/ambient-code/agentready) for current implementation details.
