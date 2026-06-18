@@ -1381,6 +1381,7 @@ class ArchitecturalBoundaryAssessor(BaseAssessor):
     """
 
     FILE_THRESHOLD = 20
+    SUPPORTED_LANGUAGES = {"Python", "JavaScript", "TypeScript", "Go"}
 
     @property
     def attribute_id(self) -> str:
@@ -1402,14 +1403,23 @@ class ArchitecturalBoundaryAssessor(BaseAssessor):
             default_weight=0.02,
         )
 
-    def is_applicable(self, repository: Repository) -> bool:
-        return repository.total_files >= self.FILE_THRESHOLD
+    def _has_supported_language(self, repository: Repository) -> bool:
+        if not repository.languages:
+            return True
+        return bool(set(repository.languages.keys()) & self.SUPPORTED_LANGUAGES)
 
     def assess(self, repository: Repository) -> Finding:
-        if not self.is_applicable(repository):
+        if repository.total_files < self.FILE_THRESHOLD:
             return Finding.not_applicable(
                 self.attribute,
                 reason=f"Repository has {repository.total_files} files (boundary rules relevant for >={self.FILE_THRESHOLD})",
+            )
+
+        if not self._has_supported_language(repository):
+            langs = ", ".join(sorted(repository.languages.keys()))
+            return Finding.not_applicable(
+                self.attribute,
+                reason=f"No supported languages detected ({langs}); boundary checks cover Python, JavaScript, TypeScript, Go",
             )
 
         tools_found = []

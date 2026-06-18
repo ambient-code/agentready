@@ -1511,3 +1511,24 @@ class TestArchitecturalBoundaryAssessor:
         assert assessor.attribute_id == "architectural_boundaries"
         assert assessor.tier == 3
         assert assessor.attribute.default_weight == 0.02
+
+    def test_java_repo_not_applicable(self, tmp_path):
+        """Java-only repo gets not_applicable (unsupported language)."""
+        repo = self._make_repo(tmp_path, languages={"Java": 90, "XML": 10})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_mixed_language_with_supported(self, tmp_path):
+        """Repo with Java and Python is still applicable."""
+        repo = self._make_repo(tmp_path, languages={"Java": 60, "Python": 40})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status != "not_applicable"
+
+    def test_no_languages_defaults_applicable(self, tmp_path):
+        """Repo with empty languages dict remains applicable."""
+        repo = self._make_repo(tmp_path, languages={})
+        assessor = ArchitecturalBoundaryAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status != "not_applicable"

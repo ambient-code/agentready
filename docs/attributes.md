@@ -1184,7 +1184,7 @@ Without enforced boundaries, AI agents freely import across module lines, creati
 
 #### Measurable Criteria
 
-**Not applicable** for repos with fewer than 20 files (too small for meaningful module boundaries).
+**Not applicable** for repos with fewer than 20 files (too small for meaningful module boundaries), or for repos whose detected languages are not yet supported (currently: Python, JavaScript, TypeScript, Go). Repos in Java, Rust, Ruby, C#, and other languages get `not_applicable` rather than being penalized.
 
 **Binary pass/fail**: the assessor checks for at least one recognized boundary enforcement tool configured in the repository:
 
@@ -1293,7 +1293,7 @@ AI agents generating security-sensitive code need to know what the system is pro
 7. Provenance
 8. Recommended mitigations
 
-Section matching accepts numbered (`## 1. System Context`) or unnumbered (`## System Context`) headings with fuzzy word matching.
+Section matching accepts numbered (`## 1. System Context`), unnumbered (`## System Context`), and section-symbol-prefixed (`## §7 Adversary model`) headings. Matching uses word-based fuzzy matching against canonical names, plus synonym support for common real-world heading variations (e.g., "Adversary model" matches "threats", "Out of scope" matches "deprioritized", "Trust boundaries" matches "entry points").
 
 **Recognized file locations**: `THREAT_MODEL.md`, `THREAT-MODEL.md`, `threat-model.md`, `threat_model.md` at repo root or under `docs/` or `docs/security/`.
 

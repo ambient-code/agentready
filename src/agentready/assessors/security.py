@@ -373,6 +373,56 @@ class ThreatModelAssessor(BaseAssessor):
         "recommended mitigations",
     ]
 
+    SECTION_ALIASES = {
+        "system context": [
+            "scope and",
+            "intended use",
+            "system overview",
+            "architecture overview",
+        ],
+        "assets": [
+            "sensitive data",
+            "protected resources",
+            "data classification",
+        ],
+        "entry points": [
+            "trust boundaries",
+            "data flow",
+            "attack surface",
+            "interfaces",
+        ],
+        "threats": [
+            "adversary model",
+            "threat analysis",
+            "threat actors",
+            "risk analysis",
+        ],
+        "deprioritized": [
+            "out of scope",
+            "excluded",
+            "non-threats",
+            "accepted risks",
+        ],
+        "open questions": [
+            "unresolved",
+            "future work",
+            "open issues",
+            "known unknowns",
+        ],
+        "provenance": [
+            "supply chain",
+            "build integrity",
+            "software bill",
+        ],
+        "recommended mitigations": [
+            "controls",
+            "countermeasures",
+            "security controls",
+            "downstream responsibilities",
+            "remediation",
+        ],
+    }
+
     THREAT_MODEL_FILENAMES = [
         "THREAT_MODEL.md",
         "THREAT-MODEL.md",
@@ -503,22 +553,30 @@ class ThreatModelAssessor(BaseAssessor):
         return None
 
     def _count_recognized_sections(self, content: str) -> tuple[int, list[str]]:
-        headings = re.findall(r"^##\s+(?:\d+\.\s*)?(.+)$", content, re.MULTILINE)
+        headings = re.findall(r"^##\s+(?:§?\d+\.?\s*)?(.+)$", content, re.MULTILINE)
         found = []
         for heading in headings:
             heading_lower = heading.strip().lower()
             heading_lower = re.sub(r"\s*[&]\s*", " and ", heading_lower)
-            for canonical in self.CANONICAL_SECTIONS:
-                canonical_words = canonical.split()
-                if all(word in heading_lower for word in canonical_words):
-                    if canonical not in found:
-                        found.append(canonical)
-                    break
+            matched = self._match_canonical_section(heading_lower)
+            if matched and matched not in found:
+                found.append(matched)
         return len(found), found
+
+    def _match_canonical_section(self, heading_lower: str) -> str | None:
+        for canonical in self.CANONICAL_SECTIONS:
+            canonical_words = canonical.split()
+            if all(word in heading_lower for word in canonical_words):
+                return canonical
+        for canonical, aliases in self.SECTION_ALIASES.items():
+            for alias in aliases:
+                if alias in heading_lower:
+                    return canonical
+        return None
 
     def _has_threat_table(self, content: str) -> bool:
         threats_match = re.search(
-            r"^##\s+(?:\d+\.\s*)?threats?\b.*$",
+            r"^##\s+(?:§?\d+\.?\s*)?(?:threats?|adversary\s+model)\b.*$",
             content,
             re.MULTILINE | re.IGNORECASE,
         )

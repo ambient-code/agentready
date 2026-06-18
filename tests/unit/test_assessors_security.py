@@ -1084,3 +1084,105 @@ A microservice.
         finding = assessor.assess(repo)
         assert "THREAT_MODEL.md" in finding.measured_value
         assert "docs" not in finding.measured_value
+
+    def test_section_symbol_prefix(self, tmp_path):
+        """Headings with section symbol prefix are recognized."""
+        content = (
+            "# Threat Model\n\n"
+            "## §7 Adversary model\n"
+            "| threat | impact |\n|---|---|\n| RCE | high |\n\n"
+            "## §14 Open questions\n"
+            "What about X?\n"
+        )
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert any(
+            "threats" in s
+            for s in finding.evidence[2]
+            if isinstance(finding.evidence[2], str)
+        ) or "2/8" in str(finding.evidence)
+        sections_evidence = [
+            e for e in finding.evidence if "recognized sections" in e.lower()
+        ]
+        assert len(sections_evidence) == 1
+        assert "threats" in sections_evidence[0]
+        assert "open questions" in sections_evidence[0]
+
+    def test_synonym_matching(self, tmp_path):
+        """Alias headings match their canonical equivalents."""
+        content = (
+            "# Threat Model\n\n"
+            "## Scope and intended use\n"
+            "A REST API.\n\n"
+            "## Trust boundaries and data flow\n"
+            "External users access via /api.\n\n"
+            "## Out of scope\n"
+            "Local attacks.\n\n"
+            "## Adversary model\n"
+            "Remote unauthenticated attackers.\n"
+        )
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        sections_evidence = [
+            e for e in finding.evidence if "recognized sections" in e.lower()
+        ]
+        assert len(sections_evidence) == 1
+        matched = sections_evidence[0]
+        assert "system context" in matched
+        assert "entry points" in matched
+        assert "deprioritized" in matched
+        assert "threats" in matched
+
+    def test_ranger_style_threat_model(self, tmp_path):
+        """Ranger-style threat model with section symbols scores well."""
+        content = (
+            "# Threat Model: Apache Ranger\n\n"
+            "## §1 Header\n"
+            "Provenance and maintainer info.\n"
+            "Reviewed by PMC.\n\n"
+            "## §2 Scope and intended use\n"
+            "Authorization framework for Hadoop ecosystem.\n"
+            "Detailed system context here with substantial content "
+            "that exceeds the 500 byte threshold for content bonus. " * 10 + "\n\n"
+            "## §3 Out of scope\n"
+            "Local kernel exploits.\n\n"
+            "## §4 Trust boundaries and data flow\n"
+            "Admin UI, REST API, plugin interface.\n\n"
+            "## §5 Protected resources\n"
+            "Policy data, audit logs, encryption keys.\n\n"
+            "## §6 Assumptions about inputs\n"
+            "All inputs validated at API boundary.\n\n"
+            "## §7 Adversary model\n"
+            "| threat | actor | impact | status |\n"
+            "|---|---|---|---|\n"
+            "| Privilege escalation | authenticated user | high | mitigated |\n\n"
+            "## §10 Downstream responsibilities\n"
+            "Plugin authors must validate inputs.\n\n"
+            "## §14 Open questions\n"
+            "Key rotation frequency.\n"
+        )
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert finding.status == "pass"
+        assert finding.score >= 80
+
+    def test_adversary_model_table_detection(self, tmp_path):
+        """Threat table bonus triggers for adversary model heading."""
+        content = (
+            "# Threat Model\n\n"
+            "## Adversary model\n"
+            "| threat | actor | impact |\n"
+            "|---|---|---|\n"
+            "| SQLi | remote | high |\n"
+        )
+        (tmp_path / "THREAT_MODEL.md").write_text(content)
+        repo = self._make_repo(tmp_path)
+        assessor = ThreatModelAssessor()
+        finding = assessor.assess(repo)
+        assert any("table" in e.lower() for e in finding.evidence)
