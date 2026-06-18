@@ -33,7 +33,7 @@ jobs:
       # for the agentready tools, then fetch only the submission file from PR.
       # See: https://github.com/ambient-code/agentready/pull/312
       - name: Checkout upstream for validation tools
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.repository }}
           ref: main
@@ -238,7 +238,7 @@ jobs:
       contents: write           # Commit and push updated leaderboard data
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v6
