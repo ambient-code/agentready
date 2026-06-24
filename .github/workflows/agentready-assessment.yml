@@ -21,7 +21,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Check AgentReady ACL
         id: check-agentready-acl
@@ -190,7 +190,7 @@ jobs:
 
       - name: Checkout current repository
         if: steps.parse.outputs.assess_current == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
 
