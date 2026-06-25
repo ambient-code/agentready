@@ -5,6 +5,7 @@ import subprocess
 from unittest.mock import patch
 
 import pytest
+
 from agentready.assessors.code_quality import (
     CyclomaticComplexityAssessor,
     TypeAnnotationsAssessor,
