@@ -877,7 +877,7 @@ class StructuredLoggingAssessor(BaseAssessor):
             tier=self.tier,
             description="Logging in structured format (JSON) with consistent fields",
             criteria="Structured logging library configured (structlog, winston, zap)",
-            default_weight=0.02,
+            default_weight=0.01,
         )
 
     def is_applicable(self, repository: Repository) -> bool:

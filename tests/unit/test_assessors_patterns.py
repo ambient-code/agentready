@@ -608,7 +608,7 @@ class TestProgressiveDisclosureAssessor:
     def test_default_weight(self):
         """Test default weight matches YAML config."""
         assessor = ProgressiveDisclosureAssessor()
-        assert assessor.attribute.default_weight == 0.02
+        assert assessor.attribute.default_weight == 0.01
 
     def test_not_applicable_for_small_repos(self, tmp_path):
         """Test that small repos get not_applicable status."""

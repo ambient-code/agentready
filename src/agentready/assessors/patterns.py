@@ -474,7 +474,7 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
             tier=self.tier,
             description="Path-scoped rules and skills for large repos",
             criteria="Component-level context files for repos >50K lines",
-            default_weight=0.02,
+            default_weight=0.01,
         )
 
     LOC_THRESHOLD = 50000

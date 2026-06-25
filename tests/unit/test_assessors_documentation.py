@@ -686,3 +686,120 @@ class TestAgentInstructionsAssessor:
         assert finding.status == "pass"
         assert finding.score == 100.0
         assert not any("Agent access" in e for e in finding.evidence)
+
+
+class TestArchitectureDecisionsAssessorCentralSource:
+    """Test that ArchitectureDecisionsAssessor gives credit for central ADR repos."""
+
+    def _make_repo(self, tmp_path, config=None):
+        """Create a minimal Repository at tmp_path with an optional Config."""
+        tmp_path.mkdir(parents=True, exist_ok=True)
+        (tmp_path / ".git").mkdir(exist_ok=True)
+        from agentready.models.repository import Repository
+
+        return Repository(
+            path=tmp_path,
+            name="build-service",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"Go": 100},
+            total_files=5,
+            total_lines=50,
+            config=config,
+        )
+
+    def test_passes_when_central_adr_source_configured(self, tmp_path):
+        """Return pass when central ADR repo exists with enough well-formed ADRs.
+
+        Scoring mirrors local ADRs: 40 (dir) + count (8/ADR, max 40) + template (max 20).
+        Three ADRs with all four template sections → 40 + 24 + 20 = 84 ≥ 75 → pass.
+        """
+        from agentready.assessors.documentation import ArchitectureDecisionsAssessor
+        from agentready.models.config import Config
+
+        central = tmp_path / "central" / "ADR"
+        central.mkdir(parents=True)
+        # Three ADRs each containing all required template sections (status/context/decision/consequences)
+        full_template = "# Status\nAccepted\n# Context\nWhy.\n# Decision\nWe will.\n# Consequences\nBecause.\n"
+        for i in range(1, 4):
+            (central / f"000{i}.md").write_text(
+                f'---\nstatus: Accepted\napplies_to: "*"\n---\n{full_template}'
+            )
+
+        config = Config(adr_source={"repo": str(tmp_path / "central"), "path": "ADR"})
+        repo = self._make_repo(tmp_path / "repo", config=config)
+
+        finding = ArchitectureDecisionsAssessor().assess(repo)
+        assert finding.status == "pass"
+        assert finding.score >= 75.0
+        assert any("central" in e.lower() for e in finding.evidence)
+
+    def test_skips_when_central_path_missing(self, tmp_path):
+        """Return skipped (not fail) when the configured central repo path does not exist.
+
+        When adr_source is configured but unreachable, the assessor degrades
+        gracefully to a skipped finding rather than falling through to a FAIL.
+        """
+        from agentready.assessors.documentation import ArchitectureDecisionsAssessor
+        from agentready.models.config import Config
+
+        config = Config(
+            adr_source={"repo": str(tmp_path / "nonexistent"), "path": "ADR"}
+        )
+        repo = self._make_repo(tmp_path / "repo", config=config)
+
+        finding = ArchitectureDecisionsAssessor().assess(repo)
+        assert finding.status == "skipped"
+        assert (
+            "not found" in finding.evidence[0].lower()
+            or "nonexistent" in finding.evidence[0]
+        )
+
+    def test_falls_through_when_no_adrs_match_repo(self, tmp_path):
+        """Fall through to fail when central ADRs exist but none match the repo name."""
+        from agentready.assessors.documentation import ArchitectureDecisionsAssessor
+        from agentready.models.config import Config
+
+        central = tmp_path / "central" / "ADR"
+        central.mkdir(parents=True)
+        # ADR only applies to a different service, not the assessed repo
+        (central / "0001.md").write_text(
+            "---\nstatus: Accepted\napplies_to: other-service\n---\n# ADR\n"
+        )
+
+        config = Config(adr_source={"repo": str(tmp_path / "central"), "path": "ADR"})
+        repo = self._make_repo(tmp_path / "repo", config=config)
+
+        finding = ArchitectureDecisionsAssessor().assess(repo)
+        # No ADRs match the repo name → falls through to normal failure path
+        assert finding.status == "fail"
+
+    def test_skips_when_adr_subdir_missing(self, tmp_path):
+        """Return skipped (not fail) when the repo root exists but ADR subdir is absent.
+
+        Configured-but-broken central repos degrade gracefully to skipped,
+        not to a FAIL that would penalise the score.
+        """
+        from agentready.assessors.documentation import ArchitectureDecisionsAssessor
+        from agentready.models.config import Config
+
+        # local_path exists but the ADR subdir does not
+        central = tmp_path / "central"
+        central.mkdir(parents=True)
+
+        config = Config(adr_source={"repo": str(central), "path": "ADR"})
+        repo = self._make_repo(tmp_path / "repo", config=config)
+
+        finding = ArchitectureDecisionsAssessor().assess(repo)
+        assert finding.status == "skipped"
+        assert "subdir" in finding.evidence[0].lower() or "ADR" in finding.evidence[0]
+
+    def test_no_config_still_fails_without_local_adr(self, tmp_path):
+        """Fail with score 0 when no config is set and no local ADR directory exists."""
+        from agentready.assessors.documentation import ArchitectureDecisionsAssessor
+
+        repo = self._make_repo(tmp_path)
+        finding = ArchitectureDecisionsAssessor().assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0

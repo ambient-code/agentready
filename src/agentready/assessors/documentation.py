@@ -11,6 +11,7 @@ from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from ..utils.subprocess_utils import safe_subprocess_run
+from .adr_sources import CentralAdrSource
 from .base import BaseAssessor
 
 
@@ -566,7 +567,7 @@ black .
 class ArchitectureDecisionsAssessor(BaseAssessor):
     """Assesses presence and quality of Architecture Decision Records (ADRs).
 
-    Tier 3 Important (3% weight) - ADRs provide historical context for
+    Tier 3 Important (1% weight) - ADRs provide historical context for
     architectural decisions, helping AI understand "why" choices were made.
     """
 
@@ -587,7 +588,7 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             tier=self.tier,
             description="Lightweight documents capturing architectural decisions",
             criteria="ADR directory with documented decisions",
-            default_weight=0.03,
+            default_weight=0.01,
         )
 
     def assess(self, repository: Repository) -> Finding:
@@ -651,6 +652,12 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
                     pass  # root unreadable — adr_dir stays None, fail finding follows
 
         if not adr_dir:
+            # Check for central ADR repo configured via adr_source config.
+            # If the org maintains ADRs centrally, the repo still gets full credit.
+            central_finding = self._check_central_adr_source(repository)
+            if central_finding is not None:
+                return central_finding
+
             partial_score, partial_evidence = self._check_agent_file_adr_summary(
                 repository
             )
@@ -689,6 +696,11 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
         adr_count = len(adr_files)
 
         if adr_count == 0:
+            # An empty local ADR placeholder should not penalise repos that
+            # rely on a central ADR source — check central config first.
+            central_finding = self._check_central_adr_source(repository)
+            if central_finding is not None:
+                return central_finding
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -737,6 +749,87 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
             score=total_score,
             measured_value=f"{adr_count} ADRs",
             threshold="≥3 ADRs with template",
+            evidence=evidence,
+            remediation=self._create_remediation() if status == "fail" else None,
+            error_message=None,
+        )
+
+    def _check_central_adr_source(self, repository: Repository) -> "Finding | None":
+        """Return a Finding if a central ADR source is configured.
+
+        When an organisation maintains ADRs in a dedicated central repository
+        (configured via config.adr_source), the assessed repo should receive
+        full credit for architecture_decisions even though it has no local ADR dir.
+
+        Returns:
+            Passing Finding: central repo is reachable and has applicable ADRs.
+            Skipped Finding: central repo is configured but the path or subdir
+                             cannot be read (degrade gracefully, not a FAIL).
+            None: adr_source is not configured, or is configured but has no ADRs
+                  that match this repo (caller falls through to local checks).
+        """
+        if repository.config is None:
+            return None
+        adr_source = repository.config.adr_source
+        if not adr_source:
+            return None
+
+        local_path = Path(adr_source.repo)
+        if not local_path.exists():
+            return Finding.skipped(
+                self.attribute,
+                f"Central ADR repo not found at configured path: {local_path}",
+            )
+
+        source = CentralAdrSource(local_path=local_path, adr_path=adr_source.path)
+
+        if not source.adr_dir.is_dir():
+            return Finding.skipped(
+                self.attribute,
+                f"Central ADR subdirectory missing: {source.adr_dir}",
+            )
+
+        # Explicitly verify the directory is readable before delegating.
+        # get_matching_adr_files swallows OSError and returns [], which would
+        # cause a misleading None/fall-through rather than a skipped finding.
+        try:
+            list(source.adr_dir.iterdir())
+        except OSError:
+            return Finding.skipped(
+                self.attribute,
+                f"Central ADR directory is not readable: {source.adr_dir}",
+            )
+
+        matched = source.get_matching_adr_files(repository.name)
+        if not matched:
+            return None
+
+        # Score central ADRs using the same formula as local ADRs so that a
+        # repo with 1 central ADR is not auto-passed at 100 points.
+        adr_count = len(matched)
+        dir_score = 40  # "directory" credit: central repo is configured and reachable
+        count_score = min(adr_count * 8, 40)
+        template_score = self._check_template_compliance(matched[:3])
+        total_score = dir_score + count_score + template_score
+        status = "pass" if total_score >= 75 else "fail"
+
+        evidence = [
+            f"Central ADR repository: {source.adr_dir}",
+            f"{adr_count} ADR(s) in central repo apply to {repository.name}",
+        ]
+        if self._has_consistent_naming(matched):
+            evidence.append("Consistent naming pattern detected")
+        if template_score > 0:
+            evidence.append(
+                f"Sampled {min(adr_count, 3)} ADRs: template compliance {template_score}/20"
+            )
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=float(total_score),
+            measured_value=f"{adr_count} central ADR(s)",
+            threshold="ADR directory with decisions",
             evidence=evidence,
             remediation=self._create_remediation() if status == "fail" else None,
             error_message=None,
@@ -1299,7 +1392,7 @@ function calculateDiscount(price, discountPercent) {
 class OpenAPISpecsAssessor(BaseAssessor):
     """Assesses presence and quality of OpenAPI specification.
 
-    Tier 3 Important (3% weight) - Machine-readable API documentation
+    Tier 3 Important (2% weight) - Machine-readable API documentation
     enables AI to generate client code, tests, and integration code.
     """
 
@@ -1320,7 +1413,7 @@ class OpenAPISpecsAssessor(BaseAssessor):
             tier=self.tier,
             description="Machine-readable API documentation in OpenAPI format",
             criteria="OpenAPI 3.x spec with complete endpoint documentation",
-            default_weight=0.03,
+            default_weight=0.02,
         )
 
     def is_applicable(self, repository: Repository) -> bool:
