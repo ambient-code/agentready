@@ -1,0 +1,1055 @@
+{
+  "schema_version": "1.0.0",
+  "metadata": {
+    "agentready_version": "2.48.0",
+    "research_version": "2.0.1",
+    "assessment_timestamp": "2026-06-26T11:32:13.913361",
+    "assessment_timestamp_human": "June 26, 2026 at 11:32 AM",
+    "executed_by": "tetikala@tetikala-mac",
+    "command": "/Users/tetikala/.pyenv/versions/3.12.12/bin/agentready assess .",
+    "working_directory": "/Users/tetikala/Documents/ASK"
+  },
+  "repository": {
+    "path": "/Users/tetikala/Documents/ASK",
+    "name": "ASK",
+    "url": "https://github.com/red-hat-data-services/agentic-starter-kits.git",
+    "branch": "main",
+    "commit_hash": "d9e417f758809a46ca713e7d5406274a920d0c11",
+    "languages": {
+      "Markdown": 61,
+      "YAML": 151,
+      "Python": 242,
+      "TOML": 16,
+      "Shell": 12,
+      "JSON": 3
+    },
+    "total_files": 627,
+    "total_lines": 113240
+  },
+  "timestamp": "2026-06-26T11:32:13.913361",
+  "overall_score": 68.4,
+  "certification_level": "Silver",
+  "attributes_assessed": 26,
+  "attributes_skipped": 5,
+  "attributes_total": 31,
+  "findings": [
+    {
+      "attribute": {
+        "id": "test_execution",
+        "name": "Test Execution & Coverage",
+        "category": "Testing & CI/CD",
+        "tier": 1,
+        "description": "Single-command test runner with adequate coverage configuration",
+        "criteria": "Runnable tests with coverage config",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 70.0,
+      "measured_value": "configured",
+      "threshold": "runnable tests with coverage config",
+      "evidence": [
+        "Python test files found",
+        "Test runner configured (pytest/tox)",
+        "Test command documented in AGENTS.md",
+        "Test organization: separate integration directories"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "type_annotations",
+        "name": "Type Annotations",
+        "category": "Code Quality",
+        "tier": 1,
+        "description": "Type hints in function signatures",
+        "criteria": ">80% of functions have type annotations",
+        "default_weight": 0.08
+      },
+      "status": "pass",
+      "score": 79.42399049881234,
+      "measured_value": "63.5%",
+      "threshold": "\u226580%",
+      "evidence": [
+        "Typed functions: 535/842",
+        "Coverage: 63.5%"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "agent_instructions",
+        "name": "Agent Instruction Files",
+        "category": "Context Window Optimization",
+        "tier": 1,
+        "description": "Project-specific configuration for AI coding agents",
+        "criteria": "CLAUDE.md or AGENTS.md file exists in repository root",
+        "default_weight": 0.07
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "@ reference to AGENTS.md",
+      "threshold": ">50 bytes, <=150 lines recommended",
+      "evidence": [
+        "CLAUDE.md found with @ reference to AGENTS.md",
+        "Referenced file contains 4960 bytes",
+        "AGENTS.md also present (cross-tool compatibility)",
+        "Context file is 90 lines (good: <=150)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "ci_quality_gates",
+        "name": "CI Quality Gates",
+        "category": "Testing & CI/CD",
+        "tier": 1,
+        "description": "CI runs lint, type-check, and tests on every PR",
+        "criteria": "CI gates with lint + type-check + tests",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 95,
+      "measured_value": "configured with quality gates",
+      "threshold": "CI with lint + test + type-check gates on PRs",
+      "evidence": [
+        "CI config found: .github/workflows/eval-gating.yml, .github/workflows/code-quality.yml, .github/workflows/pr-labeler.yml, .github/workflows/pr-title.yml, .github/workflows/agent-tests.yml, .github/workflows/agent-deployment-test.yaml",
+        "Lint gate detected in CI",
+        "Test gate detected in CI",
+        "Type-check gate detected in CI",
+        "Descriptive job/step names found",
+        "Parallel job execution detected",
+        "Config includes comments",
+        "Artifacts uploaded"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "single_file_verification",
+        "name": "Single-File Verification",
+        "category": "Verification & Feedback Loops",
+        "tier": 1,
+        "description": "Single-file lint and type-check commands available for fast feedback",
+        "criteria": "Documented single-file lint/type-check commands",
+        "default_weight": 0.05
+      },
+      "status": "fail",
+      "score": 50.0,
+      "measured_value": "partially documented",
+      "threshold": "single-file lint + type-check commands documented",
+      "evidence": [
+        "Single-file lint command found in AGENTS.md"
+      ],
+      "remediation": {
+        "summary": "Document single-file lint and type-check commands in CLAUDE.md/AGENTS.md",
+        "steps": [
+          "Add single-file lint command to context file (e.g., 'ruff check path/to/file.py')",
+          "Add single-file type-check command (e.g., 'mypy path/to/file.py')",
+          "Ensure these commands work without a full build step",
+          "Target <5 seconds execution per file"
+        ],
+        "tools": [
+          "ruff",
+          "eslint",
+          "mypy",
+          "pyright",
+          "tsc"
+        ],
+        "commands": [
+          "# Python",
+          "ruff check path/to/file.py",
+          "mypy path/to/file.py",
+          "",
+          "# JavaScript/TypeScript",
+          "npx eslint path/to/file.ts",
+          "npx tsc --noEmit path/to/file.ts"
+        ],
+        "examples": [],
+        "citations": []
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "readme_structure",
+        "name": "README Structure",
+        "category": "Documentation Standards",
+        "tier": 1,
+        "description": "Well-structured README with key sections",
+        "criteria": "README.md with installation, usage, and development sections",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "3/3 sections",
+      "threshold": "3/3 sections",
+      "evidence": [
+        "Found 3/3 essential sections",
+        "Installation: \u2713",
+        "Usage: \u2713",
+        "Development: \u2713"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "standard_layout",
+        "name": "Standard Project Layouts",
+        "category": "Repository Structure",
+        "tier": 1,
+        "description": "Follows standard project structure for language",
+        "criteria": "Standard directories (src/ or project-named, tests/) present",
+        "default_weight": 0.05
+      },
+      "status": "fail",
+      "score": 50.0,
+      "measured_value": "1/2 directories",
+      "threshold": "2/2 directories",
+      "evidence": [
+        "Found 1/2 standard directories",
+        "source directory: \u2717 (no src/ or project-named dir)",
+        "tests/: \u2713",
+        "Naming consistency: mixed conventions in agents/autogen/templates/mcp_agent/mcp_automl_template, agents/claude-code/deployment, agents/langflow/templates/simple_tool_calling_agent (+4 more) (reduces glob-ability for agents)"
+      ],
+      "remediation": {
+        "summary": "Organize code into standard directories",
+        "steps": [
+          "Create a source directory for your code",
+          "Option A: Use src/ layout (recommended for packages)",
+          "Option B: Use project-named directory (e.g., mypackage/)",
+          "Ensure your package has __init__.py"
+        ],
+        "tools": [],
+        "commands": [
+          "# Option A: src layout",
+          "mkdir -p src/mypackage",
+          "touch src/mypackage/__init__.py",
+          "# ---",
+          "# Option B: flat layout (project-named)",
+          "mkdir -p mypackage",
+          "touch mypackage/__init__.py"
+        ],
+        "examples": [
+          "# src layout (recommended for distributable packages)\nproject/\n\u251c\u2500\u2500 src/\n\u2502   \u2514\u2500\u2500 mypackage/\n\u2502       \u251c\u2500\u2500 __init__.py\n\u2502       \u2514\u2500\u2500 module.py\n\u251c\u2500\u2500 tests/\n\u2502   \u2514\u2500\u2500 test_module.py\n\u2514\u2500\u2500 pyproject.toml\n\n# flat layout (common in major projects like pandas, numpy)\nproject/\n\u251c\u2500\u2500 mypackage/\n\u2502   \u251c\u2500\u2500 __init__.py\n\u2502   \u2514\u2500\u2500 module.py\n\u251c\u2500\u2500 tests/\n\u2502   \u2514\u2500\u2500 test_module.py\n\u2514\u2500\u2500 pyproject.toml\n"
+        ],
+        "citations": [
+          {
+            "source": "Python Packaging Authority",
+            "title": "src layout vs flat layout",
+            "url": "https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/",
+            "relevance": "Official guidance on Python project layouts"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "lock_files",
+        "name": "Dependency Pinning for Reproducibility",
+        "category": "Dependency Management",
+        "tier": 1,
+        "description": "Dependencies pinned to exact versions in lock files",
+        "criteria": "Lock file with pinned versions, updated within 6 months",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "uv.lock",
+      "threshold": "lock file with pinned versions, < 6 months old",
+      "evidence": [
+        "Found lock file(s): uv.lock"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dependency_security",
+        "name": "Dependency Security & Vulnerability Scanning",
+        "category": "Security",
+        "tier": 1,
+        "description": "Security scanning tools configured for dependencies and code",
+        "criteria": "Dependabot, Renovate, CodeQL, or SAST tools configured; secret detection enabled",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 65,
+      "measured_value": "Security tools configured: Dependabot, pip-audit/safety, gitleaks",
+      "threshold": "\u226560 points (Dependabot/Renovate + SAST or multiple scanners)",
+      "evidence": [
+        "\u2713 Dependabot configured for dependency updates",
+        "  2 package ecosystem(s) monitored",
+        "\u2713 Python dependency scanner configured (pip-audit/safety)",
+        "\u2713 Secret detection configured (gitleaks)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dbt_project_config",
+        "name": "dbt Project Configuration",
+        "category": "dbt SQL Projects",
+        "tier": 1,
+        "description": "Valid dbt_project.yml with required fields",
+        "criteria": "dbt_project.yml exists with name, config-version, profile",
+        "default_weight": 0.1
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['Markdown', 'YAML', 'Python', 'TOML', 'Shell', 'JSON']"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dbt_model_documentation",
+        "name": "dbt Model Documentation",
+        "category": "dbt SQL Projects",
+        "tier": 1,
+        "description": "Model descriptions in schema YAML files",
+        "criteria": "\u226580% of models have descriptions in schema.yml",
+        "default_weight": 0.1
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['Markdown', 'YAML', 'Python', 'TOML', 'Shell', 'JSON']"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "deterministic_enforcement",
+        "name": "Deterministic Enforcement (Hooks & Lint Rules)",
+        "category": "Testing & CI/CD",
+        "tier": 2,
+        "description": "Hooks and lint rules for deterministic quality enforcement",
+        "criteria": "Pre-commit or agent hooks configured",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 40.0,
+      "measured_value": "configured",
+      "threshold": "configured",
+      "evidence": [
+        ".pre-commit-config.yaml found (git hooks, bypassable)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "conventional_commits",
+        "name": "Conventional Commit Messages",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Follows conventional commit format",
+        "criteria": "\u226580% of recent commits follow convention",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "configured",
+      "threshold": "configured",
+      "evidence": [
+        "Commit linting configured"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "gitignore_completeness",
+        "name": ".gitignore Completeness",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Comprehensive .gitignore file with language-specific patterns",
+        "criteria": ".gitignore exists and includes language-specific patterns from GitHub templates",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 75.0,
+      "measured_value": "9/12 patterns",
+      "threshold": "\u226570% of language-specific patterns",
+      "evidence": [
+        ".gitignore found (476 bytes)",
+        "Pattern coverage: 9/12 (75%)",
+        "Missing 3 recommended patterns"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "one_command_setup",
+        "name": "One-Command Build/Setup",
+        "category": "Build & Development",
+        "tier": 2,
+        "description": "Single command to set up development environment from fresh clone",
+        "criteria": "Single command (make setup, npm install, etc.) documented prominently",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100,
+      "measured_value": "uv pip",
+      "threshold": "single command",
+      "evidence": [
+        "Setup command found in README: 'uv pip'",
+        "Setup automation found: pyproject.toml",
+        "Setup instructions in prominent location"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "file_size_limits",
+        "name": "File Size Limits",
+        "category": "Context Window Optimization",
+        "tier": 2,
+        "description": "Files are reasonably sized for AI context windows",
+        "criteria": "<5% of files >500 lines, no files >1000 lines",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 90,
+      "measured_value": "0 huge, 8 large out of 242",
+      "threshold": "<5% files >500 lines, 0 files >1000 lines",
+      "evidence": [
+        "Found 8 files 500-1000 lines (3.3% of 242 files)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "separation_of_concerns",
+        "name": "Separation of Concerns",
+        "category": "Code Organization",
+        "tier": 2,
+        "description": "Code organized with single responsibility per module",
+        "criteria": "Feature-based organization, cohesive modules, low coupling",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 81.00826446280992,
+      "measured_value": "organization:100, cohesion:97, naming:40",
+      "threshold": "\u226575 overall",
+      "evidence": [
+        "Good directory organization (feature-based or flat)",
+        "File cohesion: 8/242 files >500 lines",
+        "Anti-pattern files found: utils.py, utils.py, utils.py"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "inline_documentation",
+        "name": "Inline Documentation",
+        "category": "Documentation",
+        "tier": 2,
+        "description": "Function, class, and module-level documentation using language-specific conventions",
+        "criteria": "\u226580% of public functions/classes have docstrings",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 76.46917148362236,
+      "measured_value": "61.2%",
+      "threshold": "\u226580%",
+      "evidence": [
+        "Documented items: 635/1038",
+        "Coverage: 61.2%",
+        "Moderate docstring coverage"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "pattern_references",
+        "name": "Pattern References for Common Changes",
+        "category": "Agent Patterns & Knowledge",
+        "tier": 2,
+        "description": "Reference implementations and skills for common change types",
+        "criteria": "3-5 pattern references or skills documented",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 40.0,
+      "measured_value": "1 reference source(s)",
+      "threshold": "pattern references or skills documented",
+      "evidence": [
+        "Pattern references found in AGENTS.md (1 reference(s))"
+      ],
+      "remediation": {
+        "summary": "Add pattern references for 3-5 common change types",
+        "steps": [
+          "Identify your 3-5 most common change types (new endpoint, new component, etc.)",
+          "For each, point to one real example in the codebase",
+          "Create .claude/skills/ directory with SKILL.md files for detailed patterns",
+          "Or add a 'Pattern References' section to CLAUDE.md/AGENTS.md"
+        ],
+        "tools": [],
+        "commands": [
+          "mkdir -p .claude/skills"
+        ],
+        "examples": [
+          "# In CLAUDE.md:\n## Pattern References\n- New API endpoint: follow the pattern in `src/api/handlers/users.ts`\n- New adapter: see `src/adapters/postgres.py` as reference"
+        ],
+        "citations": [
+          {
+            "source": "Red Hat",
+            "title": "Repository Scaffolding for AI Coding Agents, Section 2.1",
+            "url": "",
+            "relevance": "Pattern references turn novel changes into copy-modify changes"
+          },
+          {
+            "source": "Anthropic",
+            "title": "Claude Code Skills Documentation",
+            "url": "https://code.claude.com/docs/en/skills",
+            "relevance": "Skills system for on-demand pattern knowledge"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "design_intent",
+        "name": "Design Intent Documentation",
+        "category": "Agent Patterns & Knowledge",
+        "tier": 2,
+        "description": "Documented preconditions, invariants, and design rationale",
+        "criteria": "Design docs with architectural intent",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "not documented",
+      "threshold": "design docs with preconditions/invariants",
+      "evidence": [
+        "No design intent documentation found"
+      ],
+      "remediation": {
+        "summary": "Document design intent: preconditions, invariants, and rationale",
+        "steps": [
+          "Create docs/design/ directory",
+          "For each critical module, document preconditions, invariants, and rationale",
+          "Use an AI agent to reverse-engineer initial design docs from code, then enrich with intent",
+          "Reference design docs from CLAUDE.md/AGENTS.md",
+          "Add a rule to AGENTS.md requiring design doc updates with architectural changes",
+          "For stronger enforcement, add a hook or skill that checks for design doc updates"
+        ],
+        "tools": [],
+        "commands": [
+          "mkdir -p docs/design"
+        ],
+        "examples": [
+          "# docs/design/event-system.md\n## Invariants\n- Event log is append-only; never mutate or delete entries\n- Events are processed exactly-once via idempotency keys\n\n## Preconditions\n- Auth middleware must validate token before event handlers run\n\n## Rationale\n- Polling instead of webhooks: upstream API has 5s delivery SLA, too slow for our use case",
+          "# AGENTS.md - Advisory enforcement\n## Design Documentation\nWhen modifying component boundaries, data flows, or API contracts,\nreview and update the corresponding design doc in docs/design/."
+        ],
+        "citations": [
+          {
+            "source": "Red Hat",
+            "title": "Repository Scaffolding for AI Coding Agents, Section 2.3",
+            "url": "",
+            "relevance": "Agents cannot infer design intent from code alone"
+          },
+          {
+            "source": "Red Hat",
+            "title": "Repository Scaffolding for AI Coding Agents, Section 2.3 Practice C",
+            "url": "",
+            "relevance": "Enforce design doc updates as part of architectural changes"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dbt_data_tests",
+        "name": "dbt Data Tests",
+        "category": "dbt SQL Projects",
+        "tier": 2,
+        "description": "Generic tests on model primary keys",
+        "criteria": "\u226580% of models have unique/not_null tests on primary key",
+        "default_weight": 0.03
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['Markdown', 'YAML', 'Python', 'TOML', 'Shell', 'JSON']"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dbt_project_structure",
+        "name": "dbt Project Structure",
+        "category": "dbt SQL Projects",
+        "tier": 2,
+        "description": "Organized staging/marts directory structure",
+        "criteria": "models/ with staging/ and marts/ subdirectories",
+        "default_weight": 0.03
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['Markdown', 'YAML', 'Python', 'TOML', 'Shell', 'JSON']"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "architecture_decisions",
+        "name": "Architecture Decision Records (ADRs)",
+        "category": "Documentation Standards",
+        "tier": 3,
+        "description": "Lightweight documents capturing architectural decisions",
+        "criteria": "ADR directory with documented decisions",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 40.0,
+      "measured_value": "0 ADRs",
+      "threshold": "\u22653 ADRs",
+      "evidence": [
+        "ADR directory found: docs/adr",
+        "No ADR files (.md) found in directory"
+      ],
+      "remediation": {
+        "summary": "Create Architecture Decision Records (ADRs) directory and document key decisions",
+        "steps": [
+          "Create docs/adr/ directory in repository root",
+          "Use Michael Nygard ADR template or MADR format",
+          "Document each significant architectural decision",
+          "Number ADRs sequentially (0001-*.md, 0002-*.md)",
+          "Include Status, Context, Decision, and Consequences sections",
+          "Update ADR status when decisions are revised (Superseded, Deprecated)"
+        ],
+        "tools": [
+          "adr-tools",
+          "log4brains"
+        ],
+        "commands": [
+          "# Create ADR directory",
+          "mkdir -p docs/adr",
+          "",
+          "# Create first ADR using template",
+          "cat > docs/adr/0001-use-architecture-decision-records.md << 'EOF'",
+          "# 1. Use Architecture Decision Records",
+          "",
+          "Date: 2025-11-22",
+          "",
+          "## Status",
+          "Accepted",
+          "",
+          "## Context",
+          "We need to record architectural decisions made in this project.",
+          "",
+          "## Decision",
+          "We will use Architecture Decision Records (ADRs) as described by Michael Nygard.",
+          "",
+          "## Consequences",
+          "- Decisions are documented with context",
+          "- Future contributors understand rationale",
+          "- ADRs are lightweight and version-controlled",
+          "EOF"
+        ],
+        "examples": [
+          "# Example ADR Structure\n\n```markdown\n# 2. Use PostgreSQL for Database\n\nDate: 2025-11-22\n\n## Status\nAccepted\n\n## Context\nWe need a relational database for complex queries and ACID transactions.\nTeam has PostgreSQL experience. Need full-text search capabilities.\n\n## Decision\nUse PostgreSQL 15+ as primary database.\n\n## Consequences\n- Positive: Robust ACID, full-text search, team familiarity\n- Negative: Higher resource usage than SQLite\n- Neutral: Need to manage migrations, backups\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "Michael Nygard",
+            "title": "Documenting Architecture Decisions",
+            "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
+            "relevance": "Original ADR format and rationale"
+          },
+          {
+            "source": "GitHub adr/madr",
+            "title": "Markdown ADR (MADR) Template",
+            "url": "https://github.com/adr/madr",
+            "relevance": "Modern ADR template with examples"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "openapi_specs",
+        "name": "OpenAPI/Swagger Specifications",
+        "category": "API Documentation",
+        "tier": 3,
+        "description": "Machine-readable API documentation in OpenAPI format",
+        "criteria": "OpenAPI 3.x spec with complete endpoint documentation",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "no OpenAPI spec",
+      "threshold": "OpenAPI 3.x spec present",
+      "evidence": [
+        "No OpenAPI specification found",
+        "Searched recursively for: openapi.yaml, openapi.yml, openapi.json, swagger.yaml, swagger.yml, swagger.json"
+      ],
+      "remediation": {
+        "summary": "Create OpenAPI specification for API endpoints",
+        "steps": [
+          "Create openapi.yaml in repository root",
+          "Define OpenAPI version 3.x",
+          "Document all API endpoints with full schemas",
+          "Add request/response examples",
+          "Define security schemes (API keys, OAuth, etc.)",
+          "Validate spec with Swagger Editor or Spectral",
+          "Generate API documentation with Swagger UI or ReDoc"
+        ],
+        "tools": [
+          "swagger-editor",
+          "spectral",
+          "openapi-generator"
+        ],
+        "commands": [
+          "# Install OpenAPI validator",
+          "npm install -g @stoplight/spectral-cli",
+          "",
+          "# Validate spec",
+          "spectral lint openapi.yaml",
+          "",
+          "# Generate client SDK",
+          "npx @openapitools/openapi-generator-cli generate \\",
+          "  -i openapi.yaml \\",
+          "  -g python \\",
+          "  -o client/"
+        ],
+        "examples": [
+          "# openapi.yaml - Minimal example\nopenapi: 3.1.0\ninfo:\n  title: My API\n  version: 1.0.0\n  description: API for managing users\n\nservers:\n  - url: https://api.example.com/v1\n\npaths:\n  /users/{userId}:\n    get:\n      summary: Get user by ID\n      parameters:\n        - name: userId\n          in: path\n          required: true\n          schema:\n            type: string\n      responses:\n        '200':\n          description: User found\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/User'\n        '404':\n          description: User not found\n\ncomponents:\n  schemas:\n    User:\n      type: object\n      required:\n        - id\n        - email\n      properties:\n        id:\n          type: string\n          example: \"user_123\"\n        email:\n          type: string\n          format: email\n          example: \"user@example.com\"\n        name:\n          type: string\n          example: \"John Doe\"\n"
+        ],
+        "citations": [
+          {
+            "source": "OpenAPI Initiative",
+            "title": "OpenAPI Specification",
+            "url": "https://spec.openapis.org/oas/v3.1.0",
+            "relevance": "Official OpenAPI 3.1 specification"
+          },
+          {
+            "source": "Swagger",
+            "title": "API Documentation Best Practices",
+            "url": "https://swagger.io/resources/articles/best-practices-in-api-documentation/",
+            "relevance": "Guide to writing effective API docs"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "cyclomatic_complexity",
+        "name": "Cyclomatic Complexity Thresholds",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Cyclomatic complexity thresholds enforced",
+        "criteria": "Average complexity <10, no functions >15",
+        "default_weight": 0.02
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "3.5",
+      "threshold": "<10.0",
+      "evidence": [
+        "Average cyclomatic complexity: 3.5"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "structured_logging",
+        "name": "Structured Logging",
+        "category": "Code Quality",
+        "tier": 3,
+        "description": "Logging in structured format (JSON) with consistent fields",
+        "criteria": "Structured logging library configured (structlog, winston, zap)",
+        "default_weight": 0.02
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "not configured",
+      "threshold": "structured logging library",
+      "evidence": [
+        "No structured logging library found",
+        "Checked files: pyproject.toml",
+        "Using built-in logging module (unstructured)"
+      ],
+      "remediation": {
+        "summary": "Add structured logging library for machine-parseable logs",
+        "steps": [
+          "Choose structured logging library (structlog for Python, winston for Node.js)",
+          "Install library and configure JSON formatter",
+          "Add standard fields: timestamp, level, message, context",
+          "Include request context: request_id, user_id, session_id",
+          "Use consistent field naming (snake_case for Python)",
+          "Never log sensitive data (passwords, tokens, PII)",
+          "Configure different formats for dev (pretty) and prod (JSON)"
+        ],
+        "tools": [
+          "structlog",
+          "winston",
+          "zap"
+        ],
+        "commands": [
+          "# Install structlog",
+          "pip install structlog",
+          "",
+          "# Configure structlog",
+          "# See examples for configuration"
+        ],
+        "examples": [
+          "# Python with structlog\nimport structlog\n\n# Configure structlog\nstructlog.configure(\n    processors=[\n        structlog.stdlib.add_log_level,\n        structlog.processors.TimeStamper(fmt=\"iso\"),\n        structlog.processors.JSONRenderer()\n    ]\n)\n\nlogger = structlog.get_logger()\n\n# Good: Structured logging\nlogger.info(\n    \"user_login\",\n    user_id=\"123\",\n    email=\"user@example.com\",\n    ip_address=\"192.168.1.1\"\n)\n\n# Bad: Unstructured logging\nlogger.info(f\"User {user_id} logged in from {ip}\")\n"
+        ],
+        "citations": [
+          {
+            "source": "structlog",
+            "title": "structlog Documentation",
+            "url": "https://www.structlog.org/en/stable/",
+            "relevance": "Python structured logging library"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "progressive_disclosure",
+        "name": "Progressive Disclosure",
+        "category": "Agent Patterns & Knowledge",
+        "tier": 3,
+        "description": "Path-scoped rules and skills for large repos",
+        "criteria": "Component-level context files for repos >50K lines",
+        "default_weight": 0.02
+      },
+      "status": "fail",
+      "score": 10.0,
+      "measured_value": "not configured",
+      "threshold": "path-scoped rules or skills",
+      "evidence": [
+        "Root CLAUDE.md is 1 lines (good: <150)"
+      ],
+      "remediation": {
+        "summary": "Add path-scoped rules and skills for progressive context disclosure",
+        "steps": [
+          "Keep root CLAUDE.md/AGENTS.md under 150 lines as a routing layer",
+          "Create .claude/rules/ with path-scoped frontmatter for module-specific rules",
+          "Create .claude/skills/ for on-demand knowledge that loads only when relevant",
+          "Add subdirectory context files for frequently-changed modules"
+        ],
+        "tools": [],
+        "commands": [
+          "mkdir -p .claude/rules .claude/skills"
+        ],
+        "examples": [
+          "# .claude/rules/api-module.md\n---\npaths:\n  - \"src/api/**/*.ts\"\n---\n\n# API Module Rules\n- All endpoints use middleware chain in src/api/middleware/\n- Request validation uses zod schemas"
+        ],
+        "citations": [
+          {
+            "source": "Red Hat",
+            "title": "Repository Scaffolding for AI Coding Agents, Sections 3.1 & 4.1",
+            "url": "",
+            "relevance": "Progressive disclosure for large repos"
+          },
+          {
+            "source": "Anthropic",
+            "title": "Claude Code Skills Documentation",
+            "url": "https://code.claude.com/docs/en/skills",
+            "relevance": "Skills load on-demand rather than consuming context every session"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "architectural_boundaries",
+        "name": "Architectural Boundary Lint Rules",
+        "category": "Repository Structure",
+        "tier": 3,
+        "description": "Import restriction rules configured in linter to enforce module boundaries",
+        "criteria": "Linter config with import boundary rules (ESLint no-restricted-imports, Go depguard, Python import-linter, or similar)",
+        "default_weight": 0.02
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "no boundary enforcement found",
+      "threshold": "at least one import boundary tool configured",
+      "evidence": [
+        "No import boundary lint rules detected"
+      ],
+      "remediation": {
+        "summary": "Configure import boundary rules in your linter",
+        "steps": [
+          "Identify module boundaries in your codebase (e.g., frontend vs backend, domain vs infrastructure)",
+          "Add import restriction rules to your existing linter configuration",
+          "For JavaScript/TypeScript: add ESLint no-restricted-imports rule",
+          "For Go: enable depguard or gomodguard in .golangci.yml",
+          "For Python: configure import-linter or flake8-tidy-imports",
+          "For any language: consider dependency-cruiser for cross-language boundary enforcement"
+        ],
+        "tools": [
+          "ESLint",
+          "golangci-lint",
+          "import-linter",
+          "dependency-cruiser"
+        ],
+        "commands": [
+          "# Python: pip install import-linter",
+          "# Go: add depguard to .golangci.yml linters list",
+          "# JS/TS: add no-restricted-imports to ESLint rules",
+          "# Any: npx dependency-cruiser --init"
+        ],
+        "examples": [
+          "# ESLint (.eslintrc.json)\n\"rules\": {\n  \"no-restricted-imports\": [\"error\", {\n    \"patterns\": [{\n      \"group\": [\"../backend/*\"],\n      \"message\": \"Frontend cannot import backend modules directly\"\n    }]\n  }]\n}",
+          "# Go (.golangci.yml)\nlinters:\n  enable:\n    - depguard\nlinters-settings:\n  depguard:\n    rules:\n      main:\n        deny:\n          - pkg: internal/\n            desc: Use public API instead of internal packages"
+        ],
+        "citations": [
+          {
+            "source": "Factory.ai",
+            "title": "Using Linters to Direct Agents",
+            "url": "https://factory.ai/news/using-linters-to-direct-agents",
+            "relevance": "'Agents write code; linters write the law' principle for boundary enforcement"
+          },
+          {
+            "source": "Red Hat",
+            "title": "Repository Scaffolding for AI Coding Agents, Section 3.3",
+            "url": "",
+            "relevance": "Architectural boundary lint rules as Tier 3 best practice"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "threat_model",
+        "name": "Threat Model Documentation",
+        "category": "Security",
+        "tier": 3,
+        "description": "Structured THREAT_MODEL.md with security assumptions, attack surface, and prioritized threats",
+        "criteria": "THREAT_MODEL.md with recognized section structure (8-section schema)",
+        "default_weight": 0.02
+      },
+      "status": "fail",
+      "score": 0.0,
+      "measured_value": "no threat model found",
+      "threshold": "THREAT_MODEL.md with structured sections",
+      "evidence": [
+        "No THREAT_MODEL.md or equivalent found"
+      ],
+      "remediation": {
+        "summary": "Create a THREAT_MODEL.md with structured security analysis",
+        "steps": [
+          "Create THREAT_MODEL.md in the repository root",
+          "Add the 8-section structure: System context, Assets, Entry points, Threats, Deprioritized, Open questions, Provenance, Recommended mitigations",
+          "Start with system context describing what the project does and its security assumptions",
+          "List assets (what is worth protecting) with sensitivity levels",
+          "Document entry points where untrusted input enters the system",
+          "Add a threat table with actor, impact, likelihood, and status columns",
+          "Explicitly list deprioritized threats with rationale",
+          "Point SECURITY.md at the threat model for scope guidance"
+        ],
+        "tools": [],
+        "commands": [],
+        "examples": [
+          "# Threat Model: MyProject\n\n## 1. System context\nA REST API that processes user uploads...\n\n## 2. Assets\n| asset | description | sensitivity |\n|---|---|---|\n| user_data | PII in database | high |\n\n## 3. Entry points & trust boundaries\n| entry_point | description | trust_boundary | reachable_assets |\n|---|---|---|---|\n| /api/upload | File upload endpoint | remote unauth | user_data |\n\n## 4. Threats\n| id | threat | actor | impact | status |\n|---|---|---|---|---|\n| T1 | RCE via file upload | remote_unauth | critical | partially_mitigated |\n\n## 5. Deprioritized\n| threat | reason |\n|---|---|\n| Local file injection | Requires local admin access |\n\n## 6. Open questions\n- Is the upload size limit enforced at the proxy level?\n\n## 7. Provenance\n- mode: bootstrap\n- date: 2026-01-15\n\n## 8. Recommended mitigations\n| mitigation | threat_ids | effort |\n|---|---|---|\n| Sandbox file processing | T1 | M |"
+        ],
+        "citations": [
+          {
+            "source": "Red Hat",
+            "title": "THREAT_MODEL.md: A checked-in threat model for your repository",
+            "url": "",
+            "relevance": "Defines the 8-section schema for structured, machine-readable threat models"
+          },
+          {
+            "source": "Red Hat",
+            "title": "wg-agentic-sdlc Best Practices: Security & Standards",
+            "url": "",
+            "relevance": "Threat models enable AI agents to perform focused security scanning by providing entry points, threat priorities, and scope boundaries"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "issue_pr_templates",
+        "name": "Issue & Pull Request Templates",
+        "category": "Repository Structure",
+        "tier": 4,
+        "description": "Standardized templates for issues and PRs",
+        "criteria": "PR template and issue templates in .github/",
+        "default_weight": 0.01
+      },
+      "status": "pass",
+      "score": 100,
+      "measured_value": "PR:True, Issues:2",
+      "threshold": "PR template + \u22652 issue templates",
+      "evidence": [
+        "PR template found",
+        "Issue templates found: 2 templates"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "container_setup",
+        "name": "Container/Virtualization Setup",
+        "category": "Build & Development",
+        "tier": 4,
+        "description": "Container configuration for consistent development environments",
+        "criteria": "Dockerfile/Containerfile, docker-compose.yml, .dockerignore/.containerignore, multi-stage builds",
+        "default_weight": 0.01
+      },
+      "status": "not_applicable",
+      "score": null,
+      "measured_value": null,
+      "threshold": null,
+      "evidence": [
+        "Not applicable to ['Markdown', 'YAML', 'Python', 'TOML', 'Shell', 'JSON']"
+      ],
+      "remediation": null,
+      "error_message": null
+    }
+  ],
+  "config": {
+    "weights": {},
+    "excluded_attributes": [],
+    "language_overrides": {},
+    "output_dir": null,
+    "report_theme": "default",
+    "custom_theme": null
+  },
+  "duration_seconds": 0.9,
+  "discovered_skills": []
+}
