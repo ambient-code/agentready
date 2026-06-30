@@ -1,3 +1,10 @@
+# [2.49.0](https://github.com/ambient-code/agentready/compare/v2.48.0...v2.49.0) (2026-06-30)
+
+
+### Features
+
+* **assessors:** add adr_frontmatter_completeness assessor with central ADR repo support ([#512](https://github.com/ambient-code/agentready/issues/512), [#513](https://github.com/ambient-code/agentready/issues/513)) ([#514](https://github.com/ambient-code/agentready/issues/514)) ([5e607cd](https://github.com/ambient-code/agentready/commit/5e607cde78b727748648f9ef578844912800e5e4))
+
 # [2.48.0](https://github.com/ambient-code/agentready/compare/v2.47.0...v2.48.0) (2026-06-18)
 
 
