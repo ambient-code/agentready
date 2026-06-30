@@ -1100,12 +1100,13 @@ radon cc src/ -s -nb
 
 **Structured Logging** (`structured_logging`, 1%) — JSON logs with consistent fields
 **OpenAPI/Swagger Specs** (`openapi_specs`, 2%) — Machine-readable API docs
-**Progressive Disclosure** (`progressive_disclosure`, 2%) — Path-scoped rules, skills for focused context (moved from T4)
+**Progressive Disclosure** (`progressive_disclosure`, 1%) — Path-scoped rules, skills for focused context (moved from T4)
+**ADR Frontmatter Completeness** (`adr_frontmatter_completeness`, 2%) — Structured YAML frontmatter in ADR files enabling automated filtering by status and applicability
 ### Architecture Decision Records
 
 **ID**: `architecture_decisions`
 **Tier**: Tier 3
-**Weight**: 2%
+**Weight**: 1%
 **Category**: Documentation Standards
 **Status**: ✅ Implemented
 
@@ -1163,6 +1164,63 @@ EOF
 ```
 
 **Tools**: [adr-tools](https://github.com/npryce/adr-tools), [log4brains](https://github.com/thomvaill/log4brains)
+
+---
+
+### ADR Frontmatter Completeness
+
+**ID**: `adr_frontmatter_completeness`
+**Tier**: Tier 3
+**Weight**: 2%
+**Category**: Documentation Standards
+**Status**: ✅ Implemented
+
+#### Definition
+
+Scores repositories on whether ADR files contain structured YAML frontmatter with the required `status` and `applies_to` fields. Machine-readable frontmatter enables automated tooling (and AI agents) to filter ADRs by lifecycle state and applicability to a given service.
+
+#### Why It Matters
+
+ADRs without frontmatter are human-readable only. With `status` and `applies_to`, agents can determine whether a decision is still active and whether it applies to the repository they are working in — turning static documents into queryable knowledge.
+
+#### Measurable Criteria
+
+| Coverage | Score | Status |
+|----------|-------|--------|
+| ≥80% of ADR files have valid frontmatter | 100 | pass |
+| 50–79% have valid frontmatter | 60 | fail (partial) |
+| <50% have valid frontmatter | 0 | fail |
+| No ADR files found | — | skipped |
+
+A frontmatter block is **valid** when:
+- `status` is present and a non-empty string (any lifecycle value accepted, e.g. Proposed, Accepted, Implemented, Deprecated)
+- `applies_to` is present and either a non-empty string or a list of non-empty strings (wildcards `"*"` are supported)
+
+**Central ADR repository support**: repos that maintain ADRs in a shared central repository can configure `adr_source` in `.agentready-config.yaml` to point the assessor at the local clone. ADRs are then filtered by `applies_to` matching the assessed repo's name.
+
+```yaml
+# .agentready-config.yaml
+adr_source:
+  repo: /path/to/local/clone   # locally cloned central ADR repo
+  path: ADR                    # relative path within that repo
+```
+
+#### Remediation
+
+Add a YAML frontmatter block to the top of each ADR file:
+
+```markdown
+---
+status: Accepted
+applies_to: my-service   # or "*" for org-wide, or a list of service names
+---
+# ADR 0001: Title
+...
+```
+
+Aim for ≥80% of ADR files to have valid frontmatter.
+
+> **Note — config auto-discovery**: AgentReady does not yet auto-discover `.agentready-config.yaml` from the assessed repo's root (tracked in [#144](https://github.com/ambient-code/agentready/issues/144)). The `--config` flag must be passed explicitly when using the central ADR source feature. A repo maintainer committing `.agentready-config.yaml` to the repo root will not have it picked up automatically until #144 is resolved.
 
 ---
 

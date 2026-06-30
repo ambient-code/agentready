@@ -1,6 +1,6 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 27 attributes.
+# This file defines the default weights for all 28 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
 # Red Hat best practices (April 2026), and Cursor agent guidelines.
 #
@@ -9,7 +9,7 @@
 #
 # Tier 1 (Essential):  58% total (9 attributes)
 # Tier 2 (Critical):   27% total (3% each, 9 attributes)
-# Tier 3 (Important):  13% total (varies, 7 attributes)
+# Tier 3 (Important):  13% total (varies, 8 attributes)
 # Tier 4 (Advanced):    2% total (1% each, 2 attributes)
 # TOTAL:              100% (sum to 1.0)
 #
@@ -30,6 +30,11 @@
 # - Added threat_model (T3, 2%): structured threat model documentation
 # - Reduced test_execution (12% -> 11%), architecture_decisions (3% -> 2%),
 #   structured_logging (2% -> 1%), openapi_specs (3% -> 2%) to fund new weights
+#
+# Changes in v2.3.0 (feat/adr-frontmatter-central-repo):
+# - Added adr_frontmatter_completeness (T3, 2%): ADR structured-metadata coverage
+# - Reduced architecture_decisions (2% -> 1%) to fund new weight
+# - Reduced progressive_disclosure (2% -> 1%) to fund new weight
 
 # Tier 1 (Essential) - 58% total weight
 test_execution: 0.11                # 5.1 - Test Execution & Coverage
@@ -53,12 +58,13 @@ separation_of_concerns: 0.03        # 4.2 - Separation of Concerns
 pattern_references: 0.03            # 17.1 - Pattern References for Common Changes
 design_intent: 0.03                 # 17.2 - Design Intent Documentation (moved from T3)
 
-# Tier 3 (Important) - 13% total weight (7 attributes)
-architecture_decisions: 0.02        # 2.3 - Architecture Decision Records
+# Tier 3 (Important) - 13% total weight (8 attributes)
+architecture_decisions: 0.01        # 2.3 - Architecture Decision Records
+adr_frontmatter_completeness: 0.02  # 2.4 - ADR Frontmatter Completeness
 openapi_specs: 0.02                 # 10.1 - OpenAPI/Swagger Specifications
 cyclomatic_complexity: 0.02         # 3.1 - Cyclomatic Complexity Thresholds
 structured_logging: 0.01            # 9.2 - Structured Logging
-progressive_disclosure: 0.02        # 17.3 - Progressive Disclosure (moved from T4)
+progressive_disclosure: 0.01        # 17.3 - Progressive Disclosure (moved from T4)
 architectural_boundaries: 0.02      # B.1 - Architectural Boundary Lint Rules (ADR)
 threat_model: 0.02                  # B.2 - Threat Model Documentation (ADR)
 

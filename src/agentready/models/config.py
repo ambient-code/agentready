@@ -8,6 +8,50 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from ..utils.security import validate_path
 
 
+class AdrSourceConfig(BaseModel):
+    """Typed configuration for a central ADR repository.
+
+    Attributes:
+        repo: Absolute path to a locally cloned central ADR repository.
+        path: Relative subpath within repo containing ADR .md files (default "ADR").
+              Must be a relative path with no traversal components.
+    """
+
+    repo: Annotated[
+        str, Field(description="Absolute path to the locally cloned central ADR repo")
+    ]
+    path: Annotated[
+        str,
+        Field(default="ADR", description="Relative subpath within repo (e.g. 'ADR')"),
+    ]
+
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("path")
+    @classmethod
+    def validate_path_is_relative(cls, v: str) -> str:
+        """Reject empty, absolute, or traversal-containing path values."""
+        stripped = v.rstrip("/")
+        if not stripped:
+            raise ValueError(
+                f"adr_source.path must be a non-empty relative path, got: {v!r}"
+            )
+        p = Path(stripped)
+        if p.is_absolute():
+            raise ValueError(f"adr_source.path must be a relative path, got: {v!r}")
+        if ".." in p.parts:
+            raise ValueError(f"adr_source.path must not contain '..', got: {v!r}")
+        return stripped
+
+    @field_validator("repo")
+    @classmethod
+    def validate_repo_nonempty(cls, v: str) -> str:
+        """Reject empty repo strings."""
+        if not v.strip():
+            raise ValueError("adr_source.repo must not be empty")
+        return v
+
+
 class Config(BaseModel):
     """User configuration for customizing assessment behavior.
 
@@ -21,6 +65,7 @@ class Config(BaseModel):
         output_dir: Custom output directory (None uses default .agentready/)
         report_theme: Theme name for HTML reports (default, dark, light, etc.)
         custom_theme: Custom theme colors (overrides report_theme if provided)
+        adr_source: Central ADR repository config (repo path + relative ADR subdir)
     """
 
     weights: Annotated[
@@ -55,6 +100,13 @@ class Config(BaseModel):
         Field(
             default=None,
             description="Custom theme colors (str → str color mappings)",
+        ),
+    ]
+    adr_source: Annotated[
+        AdrSourceConfig | None,
+        Field(
+            default=None,
+            description="Central ADR repository config (repo path + relative ADR subdir)",
         ),
     ]
 

@@ -6,6 +6,7 @@ across CLI modules (main.py, assess_batch.py, demo.py).
 v2.0.0: Updated with evidence-based rebalancing (ETH Zurich, Red Hat, Anthropic).
 """
 
+from .adr_frontmatter import AdrFrontmatterAssessor
 from .base import BaseAssessor
 from .code_quality import (
     CyclomaticComplexityAssessor,
@@ -54,7 +55,12 @@ from .testing import (
 )
 from .verification import SingleFileVerificationAssessor
 
-__all__ = ["create_all_assessors", "BaseAssessor", "LockFilesAssessor"]
+__all__ = [
+    "create_all_assessors",
+    "BaseAssessor",
+    "LockFilesAssessor",
+    "AdrFrontmatterAssessor",
+]
 
 
 def create_all_assessors() -> list[BaseAssessor]:
@@ -91,12 +97,13 @@ def create_all_assessors() -> list[BaseAssessor]:
         DesignIntentAssessor(),  # 3% (moved from T3)
         DbtDataTestsAssessor(),  # dbt conditional
         DbtProjectStructureAssessor(),  # dbt conditional
-        # Tier 3 Important — 13% total (7 attributes)
-        ArchitectureDecisionsAssessor(),  # 2%
+        # Tier 3 Important — 13% total (8 attributes)
+        ArchitectureDecisionsAssessor(),  # 1%
+        AdrFrontmatterAssessor(),  # 2% (2.4 - ADR Frontmatter Completeness)
         OpenAPISpecsAssessor(),  # 2%
         CyclomaticComplexityAssessor(),  # 2%
         StructuredLoggingAssessor(),  # 1%
-        ProgressiveDisclosureAssessor(),  # 2% (moved from T4)
+        ProgressiveDisclosureAssessor(),  # 1% (moved from T4)
         ArchitecturalBoundaryAssessor(),  # 2% (ADR B.1)
         ThreatModelAssessor(),  # 2% (ADR B.2)
         # Tier 4 Advanced — 2% total (2 attributes, 1% each)
