@@ -1,6 +1,6 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 28 attributes.
+# This file defines the default weights for all 29 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
 # Red Hat best practices (April 2026), and Cursor agent guidelines.
 #
@@ -8,7 +8,7 @@
 # agent effectiveness. Documentation helps only marginally (+4%).
 #
 # Tier 1 (Essential):  58% total (9 attributes)
-# Tier 2 (Critical):   27% total (3% each, 9 attributes)
+# Tier 2 (Critical):   27% total (10 attributes, mixed weights)
 # Tier 3 (Important):  13% total (varies, 8 attributes)
 # Tier 4 (Advanced):    2% total (1% each, 2 attributes)
 # TOTAL:              100% (sum to 1.0)
@@ -35,6 +35,11 @@
 # - Added adr_frontmatter_completeness (T3, 2%): ADR structured-metadata coverage
 # - Reduced architecture_decisions (2% -> 1%) to fund new weight
 # - Reduced progressive_disclosure (2% -> 1%) to fund new weight
+#
+# Changes in v2.4.0 (feat/lint-config-coverage, issue #511):
+# - Added lint_config_coverage (T2, 2%): lint depth across correctness/standards/security
+# - Reduced gitignore_completeness (3% -> 2%) to partially fund new weight
+# - Reduced pattern_references (3% -> 2%) to partially fund new weight
 
 # Tier 1 (Essential) - 58% total weight
 test_execution: 0.11                # 5.1 - Test Execution & Coverage
@@ -47,16 +52,17 @@ standard_layout: 0.05               # 4.1 - Standard Project Layouts
 lock_files: 0.05                    # 6.1 - Dependency Pinning for Reproducibility
 dependency_security: 0.05           # 6.2 - Dependency Security & Vulnerability Scanning
 
-# Tier 2 (Critical) - 27% total weight (3% each)
+# Tier 2 (Critical) - 27% total weight
 deterministic_enforcement: 0.03     # 5.3 - Hooks & Lint Rules (deterministic > advisory)
 conventional_commits: 0.03          # 7.1 - Conventional Commit Messages
-gitignore_completeness: 0.03        # 7.2 - .gitignore Completeness
+gitignore_completeness: 0.02        # 7.2 - .gitignore Completeness (reduced 3%→2%)
 one_command_setup: 0.03             # 8.1 - One-Command Build/Setup
 inline_documentation: 0.03          # 2.2 - Inline Documentation
 file_size_limits: 0.03              # 1.3 - File Size Limits
 separation_of_concerns: 0.03        # 4.2 - Separation of Concerns
-pattern_references: 0.03            # 17.1 - Pattern References for Common Changes
+pattern_references: 0.02            # 17.1 - Pattern References (reduced 3%→2%)
 design_intent: 0.03                 # 17.2 - Design Intent Documentation (moved from T3)
+lint_config_coverage: 0.02          # 5.4 - Lint Config Coverage (issue #511, new)
 
 # Tier 3 (Important) - 13% total weight (8 attributes)
 architecture_decisions: 0.01        # 2.3 - Architecture Decision Records

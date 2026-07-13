@@ -861,6 +861,105 @@ pre-commit run --all-files
 
 ---
 
+### 10b. Lint Config Coverage
+
+**ID**: `lint_config_coverage`
+**Weight**: 2%
+**Category**: Code Quality
+**Status**: ✅ Implemented
+
+#### Definition
+
+Evaluates whether the repository's lint tooling covers all three essential categories: **correctness** (logic errors and type violations), **standards** (style and convention enforcement), and **security** (vulnerability pattern detection). A repo that only runs a formatter is not meaningfully safer for AI-assisted development than one with no lint at all.
+
+#### Why It Matters
+
+Agents generate code that compiles and passes formatting checks but may still silently drop errors, mishandle types, or introduce known security anti-patterns. Lint tooling that covers all three categories gives the agent automated, deterministic signal about each class of issue. Without security linting, an agent generating Go has no automated feedback on unhandled errors or injection risks.
+
+#### Measurable Criteria
+
+Score is proportional to the number of lint categories covered:
+
+| Categories covered | Score | Status |
+|--------------------|-------|--------|
+| 0/3 | 0 | fail |
+| 1/3 | 33 | fail |
+| 2/3 | 67 | fail |
+| 3/3 | 100 | **pass** |
+
+**Sources checked**: standalone lint config files, `.pre-commit-config.yaml` hook IDs, and CI workflow files (`.github/workflows/`, `.gitlab-ci.yml`, `.circleci/config.yml`, `.travis.yml`).
+
+#### Tool Catalog
+
+**Go** (parsed from `.golangci.yml`/`.golangci.yaml`/`.golangci.toml`):
+
+| Category | Tools |
+|----------|-------|
+| Correctness | `errcheck`, `staticcheck`, `gosimple`, `ineffassign`, `typecheck`, `govet`, `unused`, `nilerr`, `errorlint`, `nilnil`, `exhaustive`, `unparam`, `funclen`, `gocritic` (also standards) |
+| Standards | `revive`, `stylecheck`, `gofmt`, `goimports`, `godot`, `misspell`, `whitespace`, `wsl`, `lll`, `maintidx`, `godox`, `gochecknoinits`, `gocritic` (also correctness) |
+| Security | `gosec`, `bodyclose`, `sqlclosecheck`, `rowserrcheck`, `noctx` |
+
+**Python** (parsed from `pyproject.toml [tool.*]`, `setup.cfg`, `.flake8`, `ruff.toml`, `mypy.ini`, `.mypy.ini`, `pyrightconfig.json`, `.pylintrc`, `.bandit`, `.pre-commit-config.yaml`):
+
+| Category | Tools |
+|----------|-------|
+| Correctness | `mypy`, `pyright`, `pyflakes`, `pylint` (also standards), `ruff` (also standards), `flake8` (also standards) |
+| Standards | `ruff`, `flake8`, `pylint`, `black`, `isort`, `autopep8`, `pydocstyle`, `pycodestyle` |
+| Security | `bandit`, `semgrep`, `safety`, `pip-audit`, `dlint`, `flake8-bandit` |
+
+**JavaScript/TypeScript** (parsed from `.eslintrc.*`, `.eslintrc.yaml`, `eslint.config.*`, `package.json eslintConfig`, `tsconfig.json`, `.prettierrc*`):
+
+| Category | Tools / Configs |
+|----------|-----------------|
+| Correctness | `eslint:recommended` (also standards), `eslint:all` (also standards), `@typescript-eslint`, `typescript-eslint`, `@typescript-eslint/recommended`, `@typescript-eslint/recommended-type-checked`, `@typescript-eslint/strict-type-checked`, `tsconfig.json strict: true` |
+| Standards | `eslint:recommended`, `eslint:all`, `airbnb`, `airbnb-base`, `standard`, `prettier`, `plugin:import`, `plugin:unicorn` |
+| Security | `plugin:security`, `security`, `eslint-plugin-security`, `no-unsanitized`, `no-secrets` |
+
+#### Remediation
+
+**Python** — add all three categories:
+
+```toml
+# pyproject.toml
+[tool.mypy]
+strict = true
+
+[tool.ruff]
+select = ["E", "F", "S"]   # E/F = correctness+standards, S = flake8-bandit (security)
+
+[tool.bandit]
+targets = ["src"]
+```
+
+**Go** — enable tools for all categories in `.golangci.yml`:
+
+```yaml
+linters:
+  enable:
+    - errcheck      # correctness
+    - staticcheck   # correctness
+    - revive        # standards
+    - gosec         # security
+```
+
+**JavaScript/TypeScript** — configure ESLint with all three:
+
+```json
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:security/recommended"
+  ]
+}
+```
+
+**Citations**:
+
+- agentready: [Issue #511 — Lint assessment: check config coverage](https://github.com/ambient-code/agentready/issues/511)
+
+---
+
 ### 11. Conventional Commit Messages
 
 **ID**: `conventional_commits`
