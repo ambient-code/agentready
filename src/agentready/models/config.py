@@ -3,9 +3,54 @@
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..utils.security import validate_path
+
+
+class LintSuppressionOptions(BaseModel):
+    """Typed options for the lint_suppression_density assessor.
+
+    Attributes:
+        pass_per_kloc: Suppressions per 1,000 LOC at or below which score is 100 (pass).
+        fail_per_kloc: Suppressions per 1,000 LOC at or above which score is 0 (fail).
+        exclude_tests: When True, test files are excluded from suppression scanning.
+    """
+
+    pass_per_kloc: Annotated[
+        float,
+        Field(
+            default=5.0,
+            ge=0,
+            description="Pass threshold (suppressions per 1k LOC)",
+        ),
+    ]
+    fail_per_kloc: Annotated[
+        float,
+        Field(
+            default=15.0, gt=0, description="Fail threshold (suppressions per 1k LOC)"
+        ),
+    ]
+    exclude_tests: Annotated[
+        bool,
+        Field(
+            default=False, description="Exclude test files from suppression scanning"
+        ),
+    ]
+
+    # This instance (_SUPPRESSION_DEFAULTS) is a module-level singleton shared
+    # across every assessment; pydantic v2 doesn't re-validate on attribute
+    # assignment, so freeze it to catch accidental mutation immediately.
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    @model_validator(mode="after")
+    def validate_thresholds(self) -> "LintSuppressionOptions":
+        if self.fail_per_kloc <= self.pass_per_kloc:
+            raise ValueError(
+                f"fail_per_kloc ({self.fail_per_kloc}) must exceed "
+                f"pass_per_kloc ({self.pass_per_kloc})"
+            )
+        return self
 
 
 class AdrSourceConfig(BaseModel):
@@ -109,7 +154,13 @@ class Config(BaseModel):
             description="Central ADR repository config (repo path + relative ADR subdir)",
         ),
     ]
-
+    lint_suppression_density: Annotated[
+        LintSuppressionOptions,
+        Field(
+            default_factory=LintSuppressionOptions,
+            description="Options for the lint_suppression_density assessor",
+        ),
+    ]
     model_config = ConfigDict(
         arbitrary_types_allowed=True,  # Allow Path objects
         extra="forbid",  # Reject unknown fields

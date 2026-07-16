@@ -6,19 +6,24 @@ import json
 import logging
 import os
 import re
+import stat
 import subprocess
 import tomllib
 from pathlib import Path
+from typing import Iterator
 
 import lizard
 import radon.complexity
 import yaml
 
 from ..models.attribute import Attribute
+from ..models.config import LintSuppressionOptions
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
+from ..services.language_detector import LanguageDetector
 from ..services.scanner import MissingToolError
 from ..utils.subprocess_utils import (
+    SubprocessSecurityError,
     safe_subprocess_run,
     safe_subprocess_run_stream,
     sanitize_subprocess_error,
@@ -590,7 +595,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
             tier=self.tier,
             description="Cyclomatic complexity thresholds enforced",
             criteria="Average complexity <10, no functions >15",
-            default_weight=0.02,
+            default_weight=0.01,
         )
 
     def is_applicable(self, repository: Repository) -> bool:
@@ -1924,4 +1929,461 @@ class LintConfigCoverageAssessor(BaseAssessor):
                     relevance="Feature rationale and tool categorization",
                 )
             ],
+        )
+
+
+# =============================================================================
+# LintSuppressionAssessor — module-level constants
+# =============================================================================
+
+# Suppression directive patterns per language (applied per line)
+_SUPPRESSION_PATTERNS: dict[str, list[re.Pattern]] = {
+    "Go": [re.compile(r"//\s*nolint")],
+    "Python": [
+        re.compile(r"#\s*noqa"),
+        re.compile(r"#\s*type:\s*ignore"),
+        re.compile(r"#\s*pylint:\s*disable"),
+        re.compile(r"#\s*ruff:\s*noqa"),
+        re.compile(r"#\s*flake8:\s*noqa"),
+    ],
+    "JavaScript": [
+        re.compile(r"//\s*eslint-disable"),
+        re.compile(r"/\*\s*eslint-disable"),
+        re.compile(r"//\s*@ts-ignore"),
+    ],
+    "TypeScript": [
+        re.compile(r"//\s*eslint-disable"),
+        re.compile(r"/\*\s*eslint-disable"),
+        re.compile(r"//\s*@ts-ignore"),
+        re.compile(r"//\s*@ts-nocheck"),
+        re.compile(r"//\s*@ts-expect-error"),
+    ],
+    "Ruby": [re.compile(r"#\s*rubocop:disable")],
+    "Java": [re.compile(r"@SuppressWarnings")],
+    "Terraform": [re.compile(r"#\s*tflint-ignore:")],
+    "Shell": [re.compile(r"#\s*shellcheck\s+disable=")],
+    "Dockerfile": [re.compile(r"#\s*hadolint\s+ignore=")],
+    # Markdown/YAML are intentionally excluded: they're documentation/config,
+    # not source code, and are near-universally present with ~zero
+    # suppressions — counting their LOC in the denominator dilutes the
+    # density signal for repos that simply have good docs (see PR #518 review).
+}
+
+
+def _derive_lang_extensions() -> dict[str, list[str]]:
+    """Build the extension table from LanguageDetector's maps instead of
+    hand-maintaining a second, drift-prone copy (PR #518 review). This also
+    picks up extensions the old hand-written table missed (.pyx/.pyi for
+    Python, .mjs/.cjs for JavaScript, .zsh for Shell)."""
+    result: dict[str, list[str]] = {}
+    for ext, lang in LanguageDetector.EXTENSION_MAP.items():
+        if lang in _SUPPRESSION_PATTERNS:
+            result.setdefault(lang, []).append(ext)
+    for name, lang in LanguageDetector.BASENAME_MAP.items():
+        if lang in _SUPPRESSION_PATTERNS:
+            result.setdefault(lang, []).append(name)
+    return result
+
+
+# Source file extensions per language, derived from LanguageDetector so the
+# two tables can't silently drift apart (see test_suppression_tables_agree_with_detector).
+_LANG_EXTENSIONS: dict[str, list[str]] = _derive_lang_extensions()
+
+_TEST_DIR_FRAGMENTS: set[str] = {"/tests/", "/test/", "/__tests__/", "/spec/"}
+_TEST_ROOT_PREFIXES: set[str] = {"tests/", "test/", "__tests__/", "spec/"}
+
+_SUPPRESSION_EXCLUDED_DIRS = frozenset(
+    [
+        ".git",
+        "vendor",
+        "node_modules",
+        "__pycache__",
+        ".tox",
+        "dist",
+        "build",
+        "target",
+        "venv",
+        ".venv",
+        ".mypy_cache",
+        ".ruff_cache",
+    ]
+)
+
+_TOP_FILES_SHOWN = 5
+_MAX_SUPPRESSION_FILE_BYTES = 1_000_000  # 1 MB hard cap per source file read
+_SUPPRESSION_DEFAULTS = LintSuppressionOptions()
+
+
+class _GitInventoryUnavailable(RuntimeError):
+    """Raised when ignore-aware discovery via git ls-files is unavailable."""
+
+
+class LintSuppressionAssessor(BaseAssessor):
+    """Assesses lint suppression directive density across the codebase.
+
+    Tier 3 Important (2% weight). Heavy use of //nolint, # noqa, eslint-disable,
+    etc. degrades lint as a quality signal for AI agents: lint passes but not
+    because code is clean.
+
+    Scoring (suppressions per 1,000 source lines):
+      - ≤ pass_per_kloc (default 5)  → score 100, pass
+      - pass_per_kloc … fail_per_kloc → linear 100→0, fail
+      - ≥ fail_per_kloc (default 15)  → score 0, fail
+
+    Thresholds are configurable via .agentready-config.yaml::lint_suppression_density.
+
+    Test file exclusion (exclude_tests=True) applies the shared test
+    directory/path-prefix check (e.g. tests/, __tests__/, spec/) to every
+    supported language first. Go, Python, JavaScript, TypeScript, Ruby, and
+    Java additionally get language-specific filename heuristics (e.g.
+    *_test.go, test_*.py); other languages rely on the directory check alone.
+    """
+
+    @property
+    def attribute_id(self) -> str:
+        return "lint_suppression_density"
+
+    @property
+    def tier(self) -> int:
+        return 3
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Lint Suppression Density",
+            category="Code Quality",
+            tier=self.tier,
+            description=(
+                "Density of lint suppression directives (//nolint, # noqa, "
+                "eslint-disable, @SuppressWarnings, # tflint-ignore, "
+                "# shellcheck disable, # hadolint ignore, etc.) normalized per "
+                "1,000 lines of source code. Markdown and YAML are excluded "
+                "from scanning since they are documentation/config, not "
+                "source code, and would dilute the density signal."
+            ),
+            criteria=(
+                "Density at or below the configured pass_per_kloc threshold "
+                f"(default {_SUPPRESSION_DEFAULTS.pass_per_kloc} suppressions "
+                "per 1,000 lines of source code); see Finding.threshold for "
+                "the threshold actually applied to this run"
+            ),
+            default_weight=0.02,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        return bool(
+            set(repository.languages.keys()) & set(_SUPPRESSION_PATTERNS.keys())
+        )
+
+    def assess(self, repository: Repository) -> Finding:
+        try:
+            return self._assess_suppression_density(repository)
+        except Exception as exc:
+            logger.exception("LintSuppressionAssessor unexpected error")
+            return Finding.error(self.attribute, str(exc))
+
+    def _get_options(self, repository: Repository) -> LintSuppressionOptions:
+        if repository.config:
+            return repository.config.lint_suppression_density
+        return _SUPPRESSION_DEFAULTS
+
+    def _is_test_file(self, rel_path: str, lang: str) -> bool:
+        normalized = rel_path.replace("\\", "/")
+        name = Path(rel_path).name
+        if any(frag in normalized for frag in _TEST_DIR_FRAGMENTS) or any(
+            normalized.startswith(pfx) for pfx in _TEST_ROOT_PREFIXES
+        ):
+            return True
+        if lang == "Go":
+            return name.endswith("_test.go")
+        if lang == "Python":
+            return name.startswith("test_") or name.endswith("_test.py")
+        if lang in ("JavaScript", "TypeScript"):
+            ext = ".ts" if lang == "TypeScript" else ".js"
+            return f".test{ext}" in name or f".spec{ext}" in name
+        if lang == "Ruby":
+            return name.endswith("_spec.rb")
+        if lang == "Java":
+            return name.endswith("Test.java") or name.endswith("Tests.java")
+        return False
+
+    def _list_tracked_files(self, root: Path) -> list[str]:
+        """List all git-tracked files once per assessment.
+
+        Uses the streaming variant (line-by-line, unbounded cumulative size
+        governed by its own guardrail) instead of safe_subprocess_run's
+        buffered stdout, which a ~200k-path monorepo can exceed — the
+        likeliest real failure mode, not "missing git" (PR #518 review).
+        Raises _GitInventoryUnavailable with a message reflecting the
+        actual failure instead of a hardcoded guess.
+        """
+        try:
+            files: list[str] = []
+            with safe_subprocess_run_stream(
+                ["git", "ls-files"], cwd=root, timeout=30
+            ) as stream:
+                for line in stream:
+                    line = line.rstrip("\n")
+                    if line:
+                        files.append(line)
+            if stream.returncode != 0:
+                stderr_msg = sanitize_subprocess_error(stream.stderr.strip(), root)
+                raise _GitInventoryUnavailable(
+                    f"git ls-files failed (exit {stream.returncode}): "
+                    f"{stderr_msg or 'no error output'}"
+                )
+            return files
+        except _GitInventoryUnavailable:
+            raise
+        except subprocess.TimeoutExpired:
+            raise _GitInventoryUnavailable(
+                "Git file inventory unavailable: git ls-files timed out after 30s"
+            ) from None
+        except SubprocessSecurityError as exc:
+            raise _GitInventoryUnavailable(
+                f"Git file inventory unavailable: {exc}"
+            ) from exc
+        except OSError as exc:
+            raise _GitInventoryUnavailable(
+                f"Git file inventory unavailable: {exc}"
+            ) from exc
+
+    def _walk_source_files(
+        self,
+        root: Path,
+        extensions: list[str],
+        tracked_files: list[str],
+        stats: dict[str, int],
+    ) -> Iterator[tuple[Path, str]]:
+        # Separate bare filenames (e.g. "Dockerfile") from dot-extensions (e.g. ".go")
+        dot_exts = {e for e in extensions if e.startswith(".")}
+        bare_names = {e for e in extensions if not e.startswith(".")}
+
+        def _matches(filename: str) -> bool:
+            return filename in bare_names or any(
+                filename.endswith(ext) for ext in dot_exts
+            )
+
+        def _excluded(rel: str) -> bool:
+            return any(part in _SUPPRESSION_EXCLUDED_DIRS for part in Path(rel).parts)
+
+        for rel_path in tracked_files:
+            if not (_matches(Path(rel_path).name) and not _excluded(rel_path)):
+                continue
+            abs_path = root / rel_path
+            try:
+                mode = abs_path.lstat().st_mode
+            except OSError:
+                # Index entry with no file on disk (e.g. sparse checkout) —
+                # a real gap in coverage, not an intentional exclusion.
+                stats["files_missing"] += 1
+                continue
+            # Reject symlinks and non-regular files without following links.
+            # Intentional exclusion, not a scan failure — tracked separately
+            # from files_missing/files_unreadable for the skip-ratio check.
+            if not stat.S_ISREG(mode):
+                stats["files_non_regular"] += 1
+                continue
+            yield abs_path, rel_path
+
+    def _count_file_suppressions(
+        self,
+        file_path: Path,
+        patterns: list[re.Pattern],
+        stats: dict[str, int],
+    ) -> tuple[int, int]:
+        try:
+            with open(file_path, "rb") as handle:
+                # Read one byte past the cap so truncation can be detected
+                # (and disclosed) instead of silently reporting a partial
+                # file as if it were the whole, clean file.
+                raw = handle.read(_MAX_SUPPRESSION_FILE_BYTES + 1)
+        except OSError:
+            # Unreadable (permissions, race with deletion, etc.) is worse
+            # than a crash for a density metric: byte-identical to "(0, 0)"
+            # would silently present as a clean empty file. Surface it.
+            stats["files_unreadable"] += 1
+            return 0, 0
+        if len(raw) > _MAX_SUPPRESSION_FILE_BYTES:
+            stats["files_truncated"] += 1
+            raw = raw[:_MAX_SUPPRESSION_FILE_BYTES]
+        text = raw.decode("utf-8", errors="ignore")
+        # Split on "\n" only, not str.splitlines(), which also breaks on
+        # \v \f \x1c \x1d \x1e \x85 \u2028 \u2029 — form feeds and friends
+        # would otherwise inflate the LOC count. Blank lines are excluded to
+        # match "lines of source code" (mirrors LanguageDetector.count_total_lines).
+        lines = [ln for ln in text.split("\n") if ln.strip()]
+        sup_count = sum(1 for line in lines if any(p.search(line) for p in patterns))
+        return sup_count, len(lines)
+
+    def _assess_suppression_density(self, repository: Repository) -> Finding:
+        options = self._get_options(repository)
+        pass_per_kloc = options.pass_per_kloc
+        fail_per_kloc = options.fail_per_kloc
+        exclude_tests = options.exclude_tests
+        detected_langs = set(repository.languages.keys()) & set(
+            _SUPPRESSION_PATTERNS.keys()
+        )
+        total_suppressions = 0
+        total_lines = 0
+        files_scanned = 0
+        file_stats: list[tuple[int, str]] = []
+        stats = {
+            "files_missing": 0,
+            "files_non_regular": 0,
+            "files_unreadable": 0,
+            "files_truncated": 0,
+        }
+
+        try:
+            tracked_files = self._list_tracked_files(repository.path)
+        except _GitInventoryUnavailable as exc:
+            return Finding.skipped(
+                self.attribute,
+                reason=str(exc),
+                remediation=(
+                    "Ensure git is installed and the target is a valid git repository."
+                ),
+            )
+
+        for lang in sorted(detected_langs):
+            extensions = _LANG_EXTENSIONS[lang]
+            patterns = _SUPPRESSION_PATTERNS[lang]
+            for src_file, rel in self._walk_source_files(
+                repository.path, extensions, tracked_files, stats
+            ):
+                if exclude_tests and self._is_test_file(rel, lang):
+                    continue
+                files_scanned += 1
+                sup_count, line_count = self._count_file_suppressions(
+                    src_file, patterns, stats
+                )
+                total_suppressions += sup_count
+                total_lines += line_count
+                if sup_count > 0:
+                    file_stats.append((sup_count, rel))
+
+        # files_non_regular (symlinks etc.) is an intentional exclusion, not a
+        # failure — excluded from the skip-ratio so it can't trigger a skip.
+        unscanned = stats["files_missing"] + stats["files_unreadable"]
+        files_considered = files_scanned + unscanned
+        unscanned_ratio = (unscanned / files_considered) if files_considered else 0.0
+
+        if files_considered and unscanned_ratio > 0.10:
+            return Finding.skipped(
+                self.attribute,
+                reason=(
+                    f"{unscanned} of {files_considered} matched files could not "
+                    f"be read ({unscanned_ratio:.0%}: {stats['files_missing']} "
+                    f"missing from disk, {stats['files_unreadable']} unreadable) "
+                    "— a density computed over an unknown fraction of the "
+                    "codebase is not a reliable measurement"
+                ),
+                remediation=(
+                    "Investigate file permissions, sparse-checkout gaps, or "
+                    "filesystem errors for the affected paths, then re-run."
+                ),
+            )
+
+        if files_scanned == 0:
+            return Finding.not_applicable(
+                self.attribute,
+                reason=(
+                    f"Language(s) {', '.join(sorted(detected_langs))} detected, "
+                    "but no matching files remained after directory exclusions "
+                    "and test-file filtering"
+                ),
+            )
+
+        if total_lines == 0:
+            return Finding.not_applicable(
+                self.attribute,
+                reason=(
+                    f"{files_scanned} matching file(s) scanned but none "
+                    "contained non-blank source lines to measure"
+                ),
+            )
+
+        density = (total_suppressions / total_lines) * 1000.0
+
+        if density <= pass_per_kloc:
+            score = 100.0
+        elif density >= fail_per_kloc:
+            score = 0.0
+        else:
+            score = 100.0 * (fail_per_kloc - density) / (fail_per_kloc - pass_per_kloc)
+
+        status = "pass" if density <= pass_per_kloc else "fail"
+
+        scan_health = f"Scan health: {files_scanned} files scanned"
+        if stats["files_missing"]:
+            scan_health += f", {stats['files_missing']} missing from disk"
+        if stats["files_unreadable"]:
+            scan_health += f", {stats['files_unreadable']} unreadable"
+        if stats["files_truncated"]:
+            scan_health += (
+                f", {stats['files_truncated']} truncated at "
+                f"{_MAX_SUPPRESSION_FILE_BYTES:,} bytes"
+            )
+
+        evidence = [
+            f"Total suppressions: {total_suppressions} across {total_lines:,} LOC "
+            f"({density:.1f}/1k lines)",
+            scan_health,
+            f"Threshold: pass ≤{pass_per_kloc}/1k, fail >{fail_per_kloc}/1k",
+            f"Languages scanned: {', '.join(sorted(detected_langs))}",
+        ]
+        if exclude_tests:
+            evidence.append("Test files excluded from analysis")
+        if file_stats:
+            top_files = sorted(file_stats, reverse=True)[:_TOP_FILES_SHOWN]
+            tops = ", ".join(f"{path} ({count})" for count, path in top_files)
+            evidence.append(f"Top files by suppression count: {tops}")
+
+        remediation = None
+        if status == "fail":
+            top3_paths = [path for _, path in sorted(file_stats, reverse=True)[:3]]
+            steps = [
+                f"Current density is {density:.1f}/1k; target ≤{pass_per_kloc}/1k",
+                "Fix the underlying lint violations rather than suppressing them",
+                "Replace broad suppressions with narrowly-scoped, rule-specific ones and add explanatory comments",
+                "Isolate generated or vendored code in a subdirectory and exclude it from lint config instead",
+            ]
+            if top3_paths:
+                steps.append(
+                    f"Prioritize high-suppression files: {', '.join(top3_paths)}"
+                )
+            remediation = Remediation(
+                summary=(
+                    f"Reduce suppression density from {density:.1f}/1k to "
+                    f"≤{pass_per_kloc}/1k lines"
+                ),
+                steps=steps,
+                tools=[],
+                commands=[],
+                examples=[
+                    (
+                        "# Python — prefer specific rule over blanket noqa:\n"
+                        "result = legacy_func()  # noqa: ERA001  "
+                        "# legacy API, tracked in #123\n\n"
+                        "# Go — include rule name and rationale:\n"
+                        "//nolint:errcheck // legacy path, refactor in #456"
+                    ),
+                ],
+                citations=[],
+            )
+
+        return Finding(
+            attribute=self.attribute,
+            status=status,
+            score=round(score, 1),
+            measured_value=(
+                f"{total_suppressions} suppressions / {total_lines:,} LOC "
+                f"({density:.1f}/1k)"
+            ),
+            threshold=f"≤{pass_per_kloc}/1k lines",
+            evidence=evidence,
+            remediation=remediation,
+            error_message=None,
         )
