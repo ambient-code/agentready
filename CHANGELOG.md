@@ -1,3 +1,10 @@
+# [2.50.0](https://github.com/ambient-code/agentready/compare/v2.49.0...v2.50.0) (2026-07-16)
+
+
+### Features
+
+* **assessors:** add lint config coverage assessor ([#516](https://github.com/ambient-code/agentready/issues/516)) ([ae3fabd](https://github.com/ambient-code/agentready/commit/ae3fabdbedc7b5edec896bd730de13626ecb9547)), closes [#511](https://github.com/ambient-code/agentready/issues/511)
+
 # [2.49.0](https://github.com/ambient-code/agentready/compare/v2.48.0...v2.49.0) (2026-06-30)
 
 
