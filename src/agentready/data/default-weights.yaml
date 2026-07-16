@@ -1,6 +1,6 @@
 # Default Tier-Based Weight Distribution
 #
-# This file defines the default weights for all 29 attributes.
+# This file defines the default weights for all 30 attributes.
 # Weights are based on evidence from ETH Zurich (Feb 2026), Anthropic,
 # Red Hat best practices (April 2026), and Cursor agent guidelines.
 #
@@ -40,6 +40,11 @@
 # - Added lint_config_coverage (T2, 2%): lint depth across correctness/standards/security
 # - Reduced gitignore_completeness (3% -> 2%) to partially fund new weight
 # - Reduced pattern_references (3% -> 2%) to partially fund new weight
+#
+# Changes in v2.5.0 (feat/lint-suppression-density, issue #510):
+# - Added lint_suppression_density (T3, 2%): detects //nolint/# noqa/eslint-disable overuse
+# - Reduced cyclomatic_complexity (2% -> 1%) to fund new weight
+# - Reduced architectural_boundaries (2% -> 1%) to fund new weight
 
 # Tier 1 (Essential) - 58% total weight
 test_execution: 0.11                # 5.1 - Test Execution & Coverage
@@ -68,11 +73,12 @@ lint_config_coverage: 0.02          # 5.4 - Lint Config Coverage (issue #511, ne
 architecture_decisions: 0.01        # 2.3 - Architecture Decision Records
 adr_frontmatter_completeness: 0.02  # 2.4 - ADR Frontmatter Completeness
 openapi_specs: 0.02                 # 10.1 - OpenAPI/Swagger Specifications
-cyclomatic_complexity: 0.02         # 3.1 - Cyclomatic Complexity Thresholds
+cyclomatic_complexity: 0.01         # 3.1 - Cyclomatic Complexity Thresholds
 structured_logging: 0.01            # 9.2 - Structured Logging
 progressive_disclosure: 0.01        # 17.3 - Progressive Disclosure (moved from T4)
-architectural_boundaries: 0.02      # B.1 - Architectural Boundary Lint Rules (ADR)
+architectural_boundaries: 0.01      # B.1 - Architectural Boundary Lint Rules (ADR)
 threat_model: 0.02                  # B.2 - Threat Model Documentation (ADR)
+lint_suppression_density: 0.02      # B.3 - Lint Suppression Density
 
 # Tier 4 (Advanced) - 2% total weight
 issue_pr_templates: 0.01            # 7.3 - Issue & Pull Request Templates

@@ -4,11 +4,15 @@ import json
 import subprocess
 from unittest.mock import patch
 
+import pytest
+
 from agentready.assessors.code_quality import (
     CyclomaticComplexityAssessor,
     LintConfigCoverageAssessor,
+    LintSuppressionAssessor,
     TypeAnnotationsAssessor,
 )
+from agentready.models.config import Config, LintSuppressionOptions
 from agentready.models.repository import Repository
 
 
@@ -838,3 +842,625 @@ class TestLintConfigCoverageAssessorCI:
 
         assert finding.status == "pass"
         assert finding.score == 100.0
+
+
+# =============================================================================
+# LintSuppressionAssessor
+# =============================================================================
+
+
+def _make_suppression_repo(
+    tmp_path, languages: dict | None = None, config: Config | None = None
+):
+    """Create a minimal test repository for suppression tests.
+
+    Uses a real git checkout and stages existing files so git ls-files works.
+    """
+    if not (tmp_path / ".git" / "HEAD").exists():
+        result = subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True)
+        if result.returncode != 0:
+            pytest.skip("git init unavailable in this environment")
+    # Stage whatever source files tests already wrote (honors .gitignore).
+    add = subprocess.run(["git", "add", "-A"], cwd=tmp_path, capture_output=True)
+    if add.returncode != 0:
+        pytest.skip("git add unavailable in this environment")
+    return Repository(
+        path=tmp_path,
+        name="test-repo",
+        url=None,
+        branch="main",
+        commit_hash="abc123",
+        languages=languages or {"Python": 10},
+        total_files=10,
+        total_lines=200,
+        config=config,
+    )
+
+
+class TestLintSuppressionAssessorApplicability:
+    def test_applicable_for_python(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 10})
+        assert LintSuppressionAssessor().is_applicable(repo)
+
+    def test_applicable_for_go(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"Go": 10})
+        assert LintSuppressionAssessor().is_applicable(repo)
+
+    def test_applicable_for_typescript(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 10})
+        assert LintSuppressionAssessor().is_applicable(repo)
+
+    def test_applicable_for_ruby(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"Ruby": 10})
+        assert LintSuppressionAssessor().is_applicable(repo)
+
+    def test_not_applicable_for_unsupported_language(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"Haskell": 10})
+        assert not LintSuppressionAssessor().is_applicable(repo)
+
+    def test_applicable_mixed_languages(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"Haskell": 5, "Python": 5})
+        assert LintSuppressionAssessor().is_applicable(repo)
+
+
+class TestLintSuppressionAssessorNoFiles:
+    def test_no_source_files_returns_not_applicable(self, tmp_path):
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+
+class TestLintSuppressionPythonPass:
+    def test_clean_python_file_passes(self, tmp_path):
+        src = tmp_path / "main.py"
+        src.write_text(("def add(a: int, b: int) -> int:\n    return a + b\n") * 50)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert finding.remediation is None
+
+    def test_noqa_below_threshold_passes(self, tmp_path):
+        lines = ["x = 1\n"] * 999 + ["x = bad_call()  # noqa\n"]
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
+
+class TestLintSuppressionPythonFail:
+    def test_heavy_noqa_usage_fails(self, tmp_path):
+        lines = ["x = 1\n"] * 180 + ["x = bad()  # noqa\n"] * 20
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+        assert finding.remediation is not None
+
+    def test_type_ignore_counted(self, tmp_path):
+        lines = ["x = 1\n"] * 190 + ["x = f()  # type: ignore\n"] * 10
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+        assert finding.score == 0.0
+
+    def test_pylint_disable_counted(self, tmp_path):
+        lines = ["x = 1\n"] * 190 + [
+            "x = f()  # pylint: disable=unused-variable\n"
+        ] * 10
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionPartialScore:
+    def test_density_in_warning_range(self, tmp_path):
+        lines = ["x = 1\n"] * 990 + ["x = bad()  # noqa\n"] * 10
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+        assert 40.0 <= finding.score <= 60.0
+
+    def test_density_just_above_pass_threshold(self, tmp_path):
+        lines = ["x = 1\n"] * 994 + ["x = bad()  # noqa\n"] * 6
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+        assert finding.score > 80.0
+
+
+class TestLintSuppressionPythonWholeFilePatterns:
+    def test_ruff_noqa_detected(self, tmp_path):
+        lines = ["x = bad()  # ruff: noqa\n"] * 20 + ["x = 1\n"] * 80
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_flake8_noqa_detected(self, tmp_path):
+        lines = ["x = bad()  # flake8: noqa\n"] * 20 + ["x = 1\n"] * 80
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionGoPatterns:
+    def test_go_nolint_detected(self, tmp_path):
+        lines = (
+            ["package main\n"] + ["x := bad() //nolint\n"] * 20 + ["var y = 1\n"] * 80
+        )
+        (tmp_path / "main.go").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Go": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_go_nolint_with_space_detected(self, tmp_path):
+        lines = (
+            ["package main\n"] + ["x := bad() // nolint\n"] * 20 + ["var y = 1\n"] * 80
+        )
+        (tmp_path / "main.go").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Go": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionTypeScriptPatterns:
+    def test_eslint_disable_detected(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// eslint-disable-next-line\n"] * 20
+        (tmp_path / "index.ts").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_ts_ignore_detected(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// @ts-ignore\n"] * 20
+        (tmp_path / "index.ts").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_ts_nocheck_detected(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// @ts-nocheck\n"] * 20
+        (tmp_path / "index.ts").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_ts_expect_error_detected(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// @ts-expect-error\n"] * 20
+        (tmp_path / "index.ts").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionJavaScriptPatterns:
+    def test_eslint_disable_in_js_detected(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// eslint-disable-next-line\n"] * 20
+        (tmp_path / "app.js").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"JavaScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_jsx_file_scanned(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// eslint-disable\n"] * 20
+        (tmp_path / "App.jsx").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"JavaScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_block_eslint_disable_detected_js(self, tmp_path):
+        """Block-form /* eslint-disable */ is counted as a suppression."""
+        lines = ["const x = 1;\n"] * 80 + ["/* eslint-disable no-console */\n"] * 20
+        (tmp_path / "app.js").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"JavaScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_block_eslint_disable_detected_ts(self, tmp_path):
+        """Block-form /* eslint-disable */ is counted in TypeScript files too."""
+        lines = ["const x = 1;\n"] * 80 + [
+            "/* eslint-disable @typescript-eslint/no-explicit-any */\n"
+        ] * 20
+        (tmp_path / "index.ts").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionRubyPatterns:
+    def test_rubocop_disable_detected(self, tmp_path):
+        lines = ["x = 1\n"] * 80 + ["x = bad  # rubocop:disable Style/Foo\n"] * 20
+        (tmp_path / "app.rb").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Ruby": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionTestFileDetection:
+    def test_contest_utils_not_treated_as_test(self, tmp_path):
+        contest_dir = tmp_path / "contest_utils"
+        contest_dir.mkdir()
+        lines = ["x = bad()  # noqa\n"] * 20 + ["x = 1\n"] * 80
+        (contest_dir / "module.py").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_test_foo_py_excluded_when_configured(self, tmp_path):
+        lines = ["x = bad()  # noqa\n"] * 20 + ["x = 1\n"] * 80
+        (tmp_path / "test_foo.py").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_go_test_file_excluded_when_configured(self, tmp_path):
+        lines = ["x := bad() // nolint\n"] * 20 + ["var y = 1\n"] * 80
+        (tmp_path / "foo_test.go").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Go": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_js_test_file_excluded_when_configured(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// eslint-disable\n"] * 20
+        (tmp_path / "foo.test.js").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(
+            tmp_path, languages={"JavaScript": 1}, config=config
+        )
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_ts_spec_file_excluded_when_configured(self, tmp_path):
+        lines = ["const x = 1;\n"] * 80 + ["// @ts-ignore\n"] * 20
+        (tmp_path / "foo.spec.ts").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(
+            tmp_path, languages={"TypeScript": 1}, config=config
+        )
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_ruby_spec_file_excluded_when_configured(self, tmp_path):
+        lines = ["x = 1\n"] * 80 + ["x = bad  # rubocop:disable Style/Foo\n"] * 20
+        (tmp_path / "foo_spec.rb").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Ruby": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_java_test_file_excluded_when_configured(self, tmp_path):
+        lines = ["int x = 1;\n"] * 80 + ['@SuppressWarnings("unchecked")\n'] * 20
+        (tmp_path / "FooTest.java").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Java": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_java_file_under_test_dir_excluded_when_configured(self, tmp_path):
+        """Java files in src/test/java are excluded via shared dir fragments,
+        even when the filename itself doesn't follow *Test.java naming."""
+        test_dir = tmp_path / "src" / "test" / "java"
+        test_dir.mkdir(parents=True)
+        lines = ["int x = 1;\n"] * 80 + ['@SuppressWarnings("unchecked")\n'] * 20
+        (test_dir / "Helper.java").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Java": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+
+class TestLintSuppressionExcludedDirs:
+    def test_vendor_dir_excluded(self, tmp_path):
+        vendor = tmp_path / "vendor"
+        vendor.mkdir()
+        lines = ["x = 1\n"] * 80 + ["x = bad()  # noqa\n"] * 20
+        (vendor / "lib.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_node_modules_excluded(self, tmp_path):
+        nm = tmp_path / "node_modules"
+        nm.mkdir()
+        lines = ["const x = 1;\n"] * 80 + ["// eslint-disable\n"] * 20
+        (nm / "dep.ts").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"TypeScript": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "not_applicable"
+
+    def test_clean_src_with_dirty_vendor_passes(self, tmp_path):
+        src = tmp_path / "src"
+        src.mkdir()
+        vendor = tmp_path / "vendor"
+        vendor.mkdir()
+        (src / "main.py").write_text("def f(x: int) -> int:\n    return x\n" * 50)
+        dirty = ["x = bad()  # noqa\n"] * 20 + ["x = 1\n"] * 80
+        (vendor / "lib.py").write_text("".join(dirty))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 2})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "pass"
+
+
+class TestLintSuppressionExcludeTests:
+    def test_test_files_excluded_when_configured(self, tmp_path):
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        dirty = ["x = bad()  # noqa\n"] * 30 + ["x = 1\n"] * 70
+        (tests_dir / "test_foo.py").write_text("".join(dirty))
+        (tmp_path / "app.py").write_text("def f(x: int) -> int:\n    return x\n" * 50)
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(exclude_tests=True)
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 2}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "pass"
+        assert "Test files excluded" in " ".join(finding.evidence)
+
+    def test_test_files_counted_by_default(self, tmp_path):
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        dirty = ["x = bad()  # noqa\n"] * 30 + ["x = 1\n"] * 70
+        (tests_dir / "test_foo.py").write_text("".join(dirty))
+        (tmp_path / "app.py").write_text("def f(x: int) -> int:\n    return x\n" * 50)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 2})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionCustomThresholds:
+    def test_custom_strict_threshold(self, tmp_path):
+        lines = ["x = 1\n"] * 997 + ["x = bad()  # noqa\n"] * 3
+        (tmp_path / "code.py").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(
+                pass_per_kloc=1.0, fail_per_kloc=10.0
+            )
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_custom_lenient_threshold(self, tmp_path):
+        lines = ["x = 1\n"] * 990 + ["x = bad()  # noqa\n"] * 10
+        (tmp_path / "code.py").write_text("".join(lines))
+        config = Config(
+            lint_suppression_density=LintSuppressionOptions(
+                pass_per_kloc=20.0, fail_per_kloc=40.0
+            )
+        )
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1}, config=config)
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "pass"
+
+    def test_invalid_thresholds_rejected_at_config_construction(self, tmp_path):
+        """Pydantic rejects fail_per_kloc <= pass_per_kloc at construction time."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            LintSuppressionOptions(pass_per_kloc=20.0, fail_per_kloc=5.0)
+
+
+class TestLintSuppressionEvidenceContent:
+    def test_evidence_includes_suppression_count_and_density(self, tmp_path):
+        lines = ["x = 1\n"] * 990 + ["x = bad()  # noqa\n"] * 10
+        (tmp_path / "code.py").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        evidence_text = " ".join(finding.evidence)
+        assert "10" in evidence_text
+        assert "1,000" in evidence_text or "1000" in evidence_text
+        assert "/1k" in evidence_text
+
+    def test_evidence_reports_top_files(self, tmp_path):
+        dirty = ["x = bad()  # noqa\n"] * 20 + ["x = 1\n"] * 80
+        (tmp_path / "dirty.py").write_text("".join(dirty))
+        (tmp_path / "clean.py").write_text("x = 1\n" * 100)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 2})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert "dirty.py" in " ".join(finding.evidence)
+
+    def test_measured_value_format(self, tmp_path):
+        (tmp_path / "code.py").write_text("x = 1\n" * 100)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.measured_value is not None
+        assert "suppressions" in finding.measured_value
+        assert "LOC" in finding.measured_value
+
+    def test_threshold_field_contains_pass_value(self, tmp_path):
+        (tmp_path / "code.py").write_text("x = 1\n" * 100)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.threshold is not None
+        assert "5.0" in finding.threshold
+
+
+class TestLintSuppressionAdditionalLanguages:
+    def test_java_suppress_warnings_detected(self, tmp_path):
+        lines = (
+            ["public class Foo {\n"]
+            + ['    @SuppressWarnings("unchecked")\n'] * 20
+            + ["    void m() {}\n"] * 80
+        )
+        (tmp_path / "Foo.java").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Java": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_terraform_tflint_ignore_detected(self, tmp_path):
+        lines = (
+            ['resource "aws_instance" "x" {\n']
+            + ["  # tflint-ignore: terraform_naming_convention\n"] * 20
+            + ['  ami = "ami-123"\n'] * 80
+        )
+        (tmp_path / "main.tf").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Terraform": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_shell_shellcheck_disable_detected(self, tmp_path):
+        lines = (
+            ["#!/bin/bash\n"] + ["# shellcheck disable=SC2034\n"] * 20 + ["x=1\n"] * 80
+        )
+        (tmp_path / "script.sh").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Shell": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_dockerfile_hadolint_ignore_detected(self, tmp_path):
+        lines = (
+            ["FROM ubuntu\n"]
+            + ["# hadolint ignore=DL3008\n"] * 20
+            + ["RUN apt-get update\n"] * 80
+        )
+        (tmp_path / "Dockerfile").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Dockerfile": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_yaml_yamllint_disable_detected(self, tmp_path):
+        lines = (
+            ["---\n"]
+            + ["# yamllint disable-line rule:line-length\n"] * 20
+            + ["key: value\n"] * 80
+        )
+        (tmp_path / "config.yaml").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"YAML": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_yaml_kube_linter_disable_detected(self, tmp_path):
+        lines = (
+            ["---\n"]
+            + ["# kube-linter disable no-read-only-root-fs\n"] * 20
+            + ["key: value\n"] * 80
+        )
+        (tmp_path / "deploy.yml").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"YAML": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+    def test_markdown_markdownlint_disable_detected(self, tmp_path):
+        lines = (
+            ["# Title\n"]
+            + ["<!-- markdownlint-disable MD013 -->\n"] * 20
+            + ["some text\n"] * 80
+        )
+        (tmp_path / "README.md").write_text("".join(lines))
+        repo = _make_suppression_repo(tmp_path, languages={"Markdown": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "fail"
+
+
+class TestLintSuppressionGitInventory:
+    """Verify git ls-files path: gitignored files don't affect the score."""
+
+    def test_gitignored_files_not_scanned(self, tmp_path):
+        result = subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True)
+        if result.returncode != 0:
+            pytest.skip("git init unavailable in this environment")
+
+        # Tracked file: clean (git add'd → ls-files sees it)
+        (tmp_path / "app.py").write_text("x = 1\n" * 100)
+        subprocess.run(["git", "add", "app.py"], cwd=tmp_path, capture_output=True)
+
+        # generated/ is NOT in _SUPPRESSION_EXCLUDED_DIRS, so old os.walk would scan it.
+        # gitignore it — ls-files won't see it, os.walk would.
+        generated = tmp_path / "generated"
+        generated.mkdir()
+        (generated / "lib.py").write_text("x = bad()  # noqa\n" * 100)
+        (tmp_path / ".gitignore").write_text("generated/\n")
+
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        # ls-files skips generated/ → density stays 0 → pass
+        # os.walk would scan generated/ → 1000/kloc density → fail
+        assert (
+            finding.status == "pass"
+        ), f"Gitignored suppressions leaked into score: {finding.evidence}"
+
+    def test_git_inventory_unavailable_skips(self, tmp_path):
+        (tmp_path / "app.py").write_text("x = 1\n" * 100)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        with patch(
+            "agentready.assessors.code_quality.safe_subprocess_run",
+            side_effect=TimeoutError("git ls-files timed out"),
+        ):
+            finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "skipped"
+        assert "inventory unavailable" in " ".join(finding.evidence).lower()
+
+    def test_symlinks_not_scanned(self, tmp_path):
+        (tmp_path / "app.py").write_text("x = 1\n" * 100)
+        # Dirty target is gitignored so only the symlink is tracked.
+        target = tmp_path / "hidden_target.py"
+        target.write_text("x = bad()  # noqa\n" * 100)
+        (tmp_path / ".gitignore").write_text("hidden_target.py\n")
+        try:
+            (tmp_path / "link.py").symlink_to(target.name)
+        except OSError:
+            pytest.skip("symlinks unavailable in this environment")
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert (
+            finding.status == "pass"
+        ), f"Symlink suppressions leaked into score: {finding.evidence}"
+
+    def test_file_read_is_byte_bounded(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "agentready.assessors.code_quality._MAX_SUPPRESSION_FILE_BYTES", 40
+        )
+        # noqa only appears after the byte cap — must not be counted.
+        (tmp_path / "app.py").write_text("x = 1\n" * 20 + "x = bad()  # noqa\n" * 20)
+        repo = _make_suppression_repo(tmp_path, languages={"Python": 1})
+        finding = LintSuppressionAssessor().assess(repo)
+        assert finding.status == "pass"
+        assert "Total suppressions: 0" in " ".join(finding.evidence)
+
+
+class TestLintSuppressionAttributeMetadata:
+    def test_attribute_id(self):
+        assert LintSuppressionAssessor().attribute_id == "lint_suppression_density"
+
+    def test_attribute_tier(self):
+        assert LintSuppressionAssessor().tier == 3
+
+    def test_attribute_default_weight(self):
+        assert LintSuppressionAssessor().attribute.default_weight == 0.02
+
+    def test_attribute_name(self):
+        assert "Suppression" in LintSuppressionAssessor().attribute.name
+
+    def test_registered_in_create_all_assessors(self):
+        from agentready.assessors import create_all_assessors
+
+        assessors = create_all_assessors()
+        ids = [a.attribute_id for a in assessors]
+        assert "lint_suppression_density" in ids

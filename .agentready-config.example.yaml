@@ -82,6 +82,12 @@ report_theme: default
 #   border: "#334155"
 #   shadow: "rgba(0, 0, 0, 0.5)"
 
+# Lint suppression density thresholds
+# lint_suppression_density:
+#   pass_per_kloc: 5.0        # density at which score=100 (pass); default 5.0
+#   fail_per_kloc: 15.0       # density at which score=0 (fail); default 15.0
+#   exclude_tests: false      # set true to exclude test files from LOC count
+
 # Example: Increase weight for CLAUDE.md and tests
 # This increases CLAUDE.md from 7% to 15% and test_execution from 10% to 15%
 # Other attributes are automatically rescaled to maintain sum of 1.0
