@@ -10,6 +10,7 @@ from .adr_frontmatter import AdrFrontmatterAssessor
 from .base import BaseAssessor
 from .code_quality import (
     CyclomaticComplexityAssessor,
+    LintConfigCoverageAssessor,
     StructuredLoggingAssessor,
     TypeAnnotationsAssessor,
 )
@@ -85,7 +86,7 @@ def create_all_assessors() -> list[BaseAssessor]:
         DependencySecurityAssessor(),  # 5%
         DbtProjectConfigAssessor(),  # dbt conditional
         DbtModelDocumentationAssessor(),  # dbt conditional
-        # Tier 2 Critical — 27% total (9 attributes, 3% each)
+        # Tier 2 Critical — 27% total (9 attributes at 3% each) + lint_config_coverage, gitignore_completeness, pattern_references (2% each)
         DeterministicEnforcementAssessor(),
         ConventionalCommitsAssessor(),
         GitignoreAssessor(),
@@ -95,6 +96,7 @@ def create_all_assessors() -> list[BaseAssessor]:
         InlineDocumentationAssessor(),
         PatternReferencesAssessor(),
         DesignIntentAssessor(),  # 3% (moved from T3)
+        LintConfigCoverageAssessor(),  # 2% (issue #511)
         DbtDataTestsAssessor(),  # dbt conditional
         DbtProjectStructureAssessor(),  # dbt conditional
         # Tier 3 Important — 13% total (8 attributes)

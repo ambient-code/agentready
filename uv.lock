@@ -4,7 +4,7 @@ requires-python = ">=3.12"
 
 [[package]]
 name = "agentready"
-version = "2.47.0"
+version = "2.49.0"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },

@@ -2,11 +2,13 @@
 
 import ast
 import configparser
+import json
 import logging
 import os
 import re
 import subprocess
 import tomllib
+from pathlib import Path
 
 import lizard
 import radon.complexity
@@ -1132,5 +1134,794 @@ logger.info(f"User {user_id} logged in from {ip}")
                     url="https://www.structlog.org/en/stable/",
                     relevance="Python structured logging library",
                 ),
+            ],
+        )
+
+
+class LintConfigCoverageAssessor(BaseAssessor):
+    """Assesses lint config coverage across correctness, standards, and security categories.
+
+    Tier 2 Critical (2% weight) - A formatting-only lint config gives an agent
+    no automated signal about correctness errors or security issues in code it
+    generates. This assessor distinguishes between lint breadth and depth.
+
+    Scoring:
+    - 0/3 categories: 0 pts (fail)
+    - 1/3 categories: 33 pts (fail)
+    - 2/3 categories: 67 pts (fail)
+    - 3/3 categories: 100 pts (pass)
+
+    Sources checked: standalone lint config files, pre-commit hooks, CI workflow files.
+    """
+
+    # Per-language mapping of tool name → set of covered categories.
+    # A tool covering multiple categories counts for all of them.
+    _PYTHON_TOOLS: dict[str, set[str]] = {
+        # correctness
+        "mypy": {"correctness"},
+        "pyright": {"correctness"},
+        "pyflakes": {"correctness"},
+        "pylint": {"correctness", "standards"},
+        "ruff": {"correctness", "standards"},
+        "flake8": {"correctness", "standards"},
+        # standards only
+        "black": {"standards"},
+        "isort": {"standards"},
+        "autopep8": {"standards"},
+        "pydocstyle": {"standards"},
+        "pycodestyle": {"standards"},
+        # security
+        "bandit": {"security"},
+        "semgrep": {"security"},
+        "safety": {"security"},
+        "pip-audit": {"security"},
+        "dlint": {"security"},
+        "flake8-bandit": {"security"},
+    }
+
+    _GO_TOOLS: dict[str, set[str]] = {
+        # correctness
+        "errcheck": {"correctness"},
+        "staticcheck": {"correctness"},
+        "gosimple": {"correctness"},
+        "ineffassign": {"correctness"},
+        "typecheck": {"correctness"},
+        "govet": {"correctness"},
+        "unused": {"correctness"},
+        "nilerr": {"correctness"},
+        "errorlint": {"correctness"},
+        "nilnil": {"correctness"},
+        "exhaustive": {"correctness"},
+        "unparam": {"correctness"},
+        "funclen": {"correctness"},
+        # standards
+        "revive": {"standards"},
+        "stylecheck": {"standards"},
+        "gofmt": {"standards"},
+        "goimports": {"standards"},
+        "godot": {"standards"},
+        "misspell": {"standards"},
+        "whitespace": {"standards"},
+        "wsl": {"standards"},
+        "lll": {"standards"},
+        "maintidx": {"standards"},
+        "godox": {"standards"},
+        "gochecknoinits": {"standards"},
+        # both
+        "gocritic": {"correctness", "standards"},
+        # security
+        "gosec": {"security"},
+        "bodyclose": {"security"},
+        "sqlclosecheck": {"security"},
+        "rowserrcheck": {"security"},
+        "noctx": {"security"},
+    }
+
+    _JS_TOOLS: dict[str, set[str]] = {
+        # correctness — TypeScript-specific
+        "@typescript-eslint": {"correctness"},
+        "typescript-eslint": {"correctness"},
+        "@typescript-eslint/recommended": {"correctness"},
+        "@typescript-eslint/recommended-type-checked": {"correctness"},
+        "@typescript-eslint/strict-type-checked": {"correctness"},
+        # correctness + standards (ESLint core rules catch real bugs as well as style)
+        "eslint:recommended": {"correctness", "standards"},
+        "eslint:all": {"correctness", "standards"},
+        "airbnb": {"standards"},
+        "airbnb-base": {"standards"},
+        "standard": {"standards"},
+        "prettier": {"standards"},
+        "plugin:import": {"standards"},
+        "plugin:unicorn": {"standards"},
+        # security
+        "plugin:security": {"security"},
+        "security": {"security"},
+        "no-unsanitized": {"security"},
+        "no-secrets": {"security"},
+        "eslint-plugin-security": {"security"},
+    }
+
+    CATEGORIES = ("correctness", "standards", "security")
+
+    @property
+    def attribute_id(self) -> str:
+        return "lint_config_coverage"
+
+    @property
+    def tier(self) -> int:
+        return 2
+
+    @property
+    def attribute(self) -> Attribute:
+        return Attribute(
+            id=self.attribute_id,
+            name="Lint Config Coverage",
+            category="Code Quality",
+            tier=self.tier,
+            description="Lint config covers correctness, standards, and security categories",
+            criteria="All three lint categories present: correctness, standards, security",
+            default_weight=0.02,
+        )
+
+    def is_applicable(self, repository: Repository) -> bool:
+        supported = {"Python", "Go", "JavaScript", "TypeScript"}
+        return bool(set(repository.languages.keys()) & supported)
+
+    def assess(self, repository: Repository) -> Finding:
+        primary = self._primary_language(
+            repository, {"Python", "Go", "JavaScript", "TypeScript"}
+        )
+        if primary == "Python":
+            tools = self._collect_python_tools(repository)
+            catalog = self._PYTHON_TOOLS
+        elif primary == "Go":
+            tools = self._collect_go_tools(repository)
+            catalog = self._GO_TOOLS
+        elif primary in ("JavaScript", "TypeScript"):
+            tools = self._collect_js_tools(repository)
+            catalog = self._JS_TOOLS
+        else:
+            return Finding.not_applicable(
+                self.attribute,
+                reason=f"Lint coverage check not implemented for {list(repository.languages.keys())}",
+            )
+
+        # Merge CI-detected tools (language-agnostic text scan)
+        ci_tools = self._collect_ci_tools(repository, primary)
+        tools = tools | ci_tools
+
+        covered: set[str] = set()
+        tools_by_cat: dict[str, list[str]] = {c: [] for c in self.CATEGORIES}
+        for tool in tools:
+            tool_lower = tool.lower()
+            for catalog_tool, cats in catalog.items():
+                if tool_lower == catalog_tool:
+                    for cat in cats:
+                        covered.add(cat)
+                        tools_by_cat[cat].append(tool)
+
+        n_covered = len(covered)
+        score = self.calculate_proportional_score(n_covered, 3)
+
+        evidence = self._build_evidence(covered, tools_by_cat, tools)
+
+        if n_covered == 3:
+            return Finding(
+                attribute=self.attribute,
+                status="pass",
+                score=score,
+                measured_value="3/3 categories",
+                threshold="all 3 categories (correctness, standards, security)",
+                evidence=evidence,
+                remediation=None,
+                error_message=None,
+            )
+
+        missing = [c for c in self.CATEGORIES if c not in covered]
+        return Finding(
+            attribute=self.attribute,
+            status="fail",
+            score=score,
+            measured_value=f"{n_covered}/3 categories",
+            threshold="all 3 categories (correctness, standards, security)",
+            evidence=evidence,
+            remediation=self._create_remediation(missing, primary),
+            error_message=None,
+        )
+
+    # ------------------------------------------------------------------ #
+    #  Per-language tool collection                                        #
+    # ------------------------------------------------------------------ #
+
+    def _collect_python_tools(self, repository: Repository) -> set[str]:
+        tools: set[str] = set()
+
+        # pyproject.toml — [tool.X] sections
+        pyproject = repository.path / "pyproject.toml"
+        if pyproject.exists():
+            try:
+                with open(pyproject, "rb") as f:
+                    data = tomllib.load(f)
+                for key, cfg in data.get("tool", {}).items():
+                    if cfg:  # section must have at least one key (not just the header)
+                        tools.add(key.lower())
+            except (OSError, tomllib.TOMLDecodeError):
+                pass
+
+        # setup.cfg — [X] section headers
+        setup_cfg = repository.path / "setup.cfg"
+        if setup_cfg.exists():
+            try:
+                parser = configparser.ConfigParser()
+                parser.read(str(setup_cfg), encoding="utf-8")
+                for section in parser.sections():
+                    if parser.options(section):  # section must have at least one key
+                        tools.add(section.strip("[]").lower())
+            except (OSError, configparser.Error):
+                pass
+
+        # Standalone config file existence → tool presence
+        standalone: dict[str, str] = {
+            "mypy.ini": "mypy",
+            ".mypy.ini": "mypy",
+            "ruff.toml": "ruff",
+            ".ruff.toml": "ruff",
+            ".flake8": "flake8",
+            ".pylintrc": "pylint",
+            "pyrightconfig.json": "pyright",
+            ".bandit": "bandit",
+        }
+        for filename, tool_name in standalone.items():
+            if (repository.path / filename).exists():
+                tools.add(tool_name)
+
+        # .pre-commit-config.yaml — hook ids
+        tools |= self._collect_precommit_hooks(repository)
+
+        return tools
+
+    def _collect_go_tools(self, repository: Repository) -> set[str]:
+        tools: set[str] = set()
+
+        config_names = (".golangci.yml", ".golangci.yaml", ".golangci.toml")
+        search_dirs = [repository.path] + self._find_go_module_roots(repository)
+
+        for search_dir in search_dirs:
+            for config_name in config_names:
+                config_path = search_dir / config_name
+                if not config_path.exists():
+                    continue
+                try:
+                    raw = config_path.read_text(encoding="utf-8")
+                    if config_name.endswith(".toml"):
+                        parsed = tomllib.loads(raw)
+                    else:
+                        parsed = yaml.safe_load(raw)
+                    if not isinstance(parsed, dict):
+                        continue
+
+                    linters = parsed.get("linters", {})
+                    if not isinstance(linters, dict):
+                        continue
+                    # Explicit enable list
+                    enabled = linters.get("enable") or []
+                    if isinstance(enabled, list):
+                        tools.update(t.lower() for t in enabled if isinstance(t, str))
+
+                    # enable-all implies everything, treat as full coverage
+                    if linters.get("enable-all"):
+                        tools.update(self._GO_TOOLS.keys())
+                except (OSError, UnicodeDecodeError, yaml.YAMLError, ValueError):
+                    continue
+
+        return tools
+
+    def _collect_js_tools(self, repository: Repository) -> set[str]:
+        """Collect JS/TS lint tools from ESLint configs and tsconfig."""
+        tools: set[str] = set()
+
+        # JSON-parseable ESLint configs (structural extraction)
+        eslint_json_configs = [".eslintrc", ".eslintrc.json"]
+        # YAML ESLint configs — parse structurally with yaml.safe_load
+        eslint_yaml_configs = [".eslintrc.yaml", ".eslintrc.yml"]
+        # JS/CJS/MJS configs — text matching only (cannot parse without Node.js)
+        eslint_js_configs = [
+            ".eslintrc.js",
+            ".eslintrc.cjs",
+            ".eslintrc.mjs",
+            "eslint.config.js",
+            "eslint.config.mjs",
+            "eslint.config.cjs",
+            "eslint.config.ts",
+        ]
+
+        for cfg_name in eslint_json_configs:
+            cfg_path = repository.path / cfg_name
+            if not cfg_path.exists():
+                continue
+            try:
+                raw = cfg_path.read_text(encoding="utf-8")
+                tools |= self._extract_eslint_tools(raw, is_json=True)
+            except (OSError, UnicodeDecodeError):
+                continue
+
+        for cfg_name in eslint_yaml_configs:
+            cfg_path = repository.path / cfg_name
+            if not cfg_path.exists():
+                continue
+            try:
+                raw = cfg_path.read_text(encoding="utf-8")
+                data = yaml.safe_load(raw)
+                if isinstance(data, dict):
+                    tools |= self._extract_eslint_tools_from_dict(data)
+            except (OSError, UnicodeDecodeError, yaml.YAMLError):
+                continue
+
+        for cfg_name in eslint_js_configs:
+            cfg_path = repository.path / cfg_name
+            if not cfg_path.exists():
+                continue
+            try:
+                raw = cfg_path.read_text(encoding="utf-8")
+                tools |= self._extract_eslint_tools(raw, is_json=False)
+            except (OSError, UnicodeDecodeError):
+                continue
+
+        # package.json — eslintConfig key (structural) only; devDependencies alone
+        # are insufficient — a plugin must be explicitly enabled in an ESLint config.
+        pkg_json = repository.path / "package.json"
+        if pkg_json.exists():
+            try:
+                data = json.loads(pkg_json.read_text(encoding="utf-8"))
+                if not isinstance(data, dict):
+                    raise json.JSONDecodeError("not a dict", "", 0)
+                # eslintConfig embedded — parse structurally
+                eslint_cfg = data.get("eslintConfig", {})
+                if isinstance(eslint_cfg, dict) and eslint_cfg:
+                    tools |= self._extract_eslint_tools_from_dict(eslint_cfg)
+                # prettier key in package.json signals active prettier config
+                if data.get("prettier"):
+                    tools.add("prettier")
+            except (OSError, json.JSONDecodeError):
+                pass
+
+        # Standalone prettier config files
+        prettier_configs = [
+            ".prettierrc",
+            ".prettierrc.json",
+            ".prettierrc.yaml",
+            ".prettierrc.yml",
+            ".prettierrc.js",
+            ".prettierrc.cjs",
+            "prettier.config.js",
+            "prettier.config.cjs",
+            "prettier.config.mjs",
+        ]
+        for cfg_name in prettier_configs:
+            if (repository.path / cfg_name).exists():
+                tools.add("prettier")
+                break
+
+        # tsconfig.json strict: true → correctness signal
+        for tsconfig_path in self._find_tsconfig_files(repository):
+            try:
+                raw = tsconfig_path.read_text(encoding="utf-8")
+                cleaned = self._strip_json_comments(raw)
+                tsconfig = json.loads(cleaned)
+                if not isinstance(tsconfig, dict):
+                    continue
+                compiler = tsconfig.get("compilerOptions", {})
+                if not isinstance(compiler, dict):
+                    continue
+                if compiler.get("strict") or (
+                    compiler.get("noImplicitAny") and compiler.get("strictNullChecks")
+                ):
+                    tools.add("@typescript-eslint")  # signals correctness tooling
+            except (OSError, json.JSONDecodeError):
+                continue
+
+        # .pre-commit-config.yaml
+        tools |= self._collect_precommit_hooks(repository)
+
+        return tools
+
+    def _find_tsconfig_files(self, repository: Repository) -> list[Path]:
+        """Find all tsconfig.json files, excluding node_modules/vendor/testdata."""
+        found = []
+        for tsconfig in repository.path.rglob("tsconfig.json"):
+            parts = tsconfig.parts
+            if "node_modules" in parts or "vendor" in parts or "testdata" in parts:
+                continue
+            found.append(tsconfig)
+        return sorted(found)
+
+    @staticmethod
+    def _strip_json_comments(text: str) -> str:
+        """Strip // and /* */ comments from JSONC, preserving string contents."""
+        out: list[str] = []
+        i = 0
+        n = len(text)
+        while i < n:
+            c = text[i]
+            if c == '"':
+                out.append(c)
+                i += 1
+                while i < n and text[i] != '"':
+                    if text[i] == "\\" and i + 1 < n:
+                        out.append(text[i])
+                        out.append(text[i + 1])
+                        i += 2
+                    else:
+                        out.append(text[i])
+                        i += 1
+                if i < n:
+                    out.append(text[i])
+                    i += 1
+                continue
+            if c == "/" and i + 1 < n and text[i + 1] == "/":
+                i += 2
+                while i < n and text[i] != "\n":
+                    i += 1
+                continue
+            if c == "/" and i + 1 < n and text[i + 1] == "*":
+                i += 2
+                while i + 1 < n and not (text[i] == "*" and text[i + 1] == "/"):
+                    i += 1
+                i += 2
+                continue
+            out.append(c)
+            i += 1
+        return "".join(out)
+
+    def _extract_eslint_tools(self, text: str, is_json: bool = False) -> set[str]:
+        """Extract extends and plugins from ESLint config content.
+
+        For JSON-based configs (.eslintrc.json, eslintConfig in package.json),
+        parse structurally and walk extends/plugins arrays to avoid false
+        positives from comments or unrelated text.
+
+        For JS/CJS/MJS configs (not parseable as JSON), fall back to text
+        matching against the known tool catalog — only alternative without
+        running Node.js.
+        """
+        tools: set[str] = set()
+
+        if is_json:
+            try:
+                data = json.loads(text)
+                if isinstance(data, dict):
+                    return self._extract_eslint_tools_from_dict(data)
+            except (json.JSONDecodeError, AttributeError):
+                pass
+            # JSON parse failed or yielded non-dict — do not fall back to text
+            # matching for JSON configs; comments/disabled examples would cause
+            # false positives.
+            return tools
+
+        # Text matching fallback for JS/CJS/MJS configs (cannot parse without Node.js)
+        for candidate in self._JS_TOOLS:
+            if candidate.lower() in text.lower():
+                tools.add(candidate)
+        return tools
+
+    def _extract_eslint_tools_from_dict(self, data: dict) -> set[str]:
+        """Structural extraction of ESLint tools from a parsed config dict.
+
+        Inspects extends, plugins, and rule-key namespaces. Works for both
+        JSON-parsed and YAML-parsed ESLint configs.
+        """
+        tools: set[str] = set()
+        candidates: list[str] = []
+
+        extends = data.get("extends", [])
+        if isinstance(extends, str):
+            extends = [extends]
+        if isinstance(extends, list):
+            candidates.extend(v for v in extends if isinstance(v, str))
+
+        plugins = data.get("plugins", [])
+        if isinstance(plugins, str):
+            plugins = [plugins]
+        if isinstance(plugins, list):
+            candidates.extend(v for v in plugins if isinstance(v, str))
+
+        # Rule-key namespaces (e.g. "@typescript-eslint/no-unused-vars")
+        rules = data.get("rules", {})
+        if isinstance(rules, dict):
+            for rule_key in rules:
+                if "/" in rule_key:
+                    candidates.append(rule_key.split("/")[0])
+
+        joined = " ".join(candidates).lower()
+        for catalog_entry in self._JS_TOOLS:
+            if catalog_entry.lower() in joined:
+                tools.add(catalog_entry)
+        return tools
+
+    def _collect_precommit_hooks(self, repository: Repository) -> set[str]:
+        """Parse .pre-commit-config.yaml for hook ids."""
+        tools: set[str] = set()
+        precommit = repository.path / ".pre-commit-config.yaml"
+        if not precommit.exists():
+            return tools
+        try:
+            data = yaml.safe_load(precommit.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                return tools
+            repos = data.get("repos", [])
+            if not isinstance(repos, list):
+                return tools
+            for repo_entry in repos:
+                if not isinstance(repo_entry, dict):
+                    continue
+                hooks = repo_entry.get("hooks", [])
+                if not isinstance(hooks, list):
+                    continue
+                for hook in hooks:
+                    if not isinstance(hook, dict):
+                        continue
+                    hook_id = hook.get("id", "").lower()
+                    if hook_id:
+                        tools.add(hook_id)
+        except (OSError, yaml.YAMLError):
+            pass
+        return tools
+
+    def _collect_ci_tools(self, repository: Repository, language: str) -> set[str]:
+        """Scan CI workflow files for lint tool invocations in run: steps.
+
+        Parses YAML structurally and extracts only the text of `run:` step
+        values, avoiding false positives from job names, comments, or
+        condition strings that happen to contain a tool name.
+
+        Falls back to full-text scan for CI files that cannot be parsed as
+        YAML (e.g. Travis .travis.yml with complex anchors, or corrupted files).
+        """
+        ci_files: list[Path] = []
+
+        gh_workflows = repository.path / ".github" / "workflows"
+        if gh_workflows.exists():
+            ci_files.extend(gh_workflows.glob("*.yml"))
+            ci_files.extend(gh_workflows.glob("*.yaml"))
+
+        for ci_path in (
+            repository.path / ".gitlab-ci.yml",
+            repository.path / ".circleci" / "config.yml",
+            repository.path / ".travis.yml",
+        ):
+            if ci_path.exists():
+                ci_files.append(ci_path)
+
+        if language == "Python":
+            candidates = list(self._PYTHON_TOOLS.keys())
+        elif language == "Go":
+            candidates = list(self._GO_TOOLS.keys())
+        else:
+            candidates = list(self._JS_TOOLS.keys())
+
+        all_tools: set[str] = set()
+
+        for ci_file in ci_files:
+            try:
+                raw = ci_file.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            run_text = self._extract_ci_run_commands(raw)
+            run_lower = run_text.lower()
+            for tool in candidates:
+                # Use lookarounds instead of \b so @-prefixed names like
+                # @typescript-eslint also match (@ is non-\w, so \b fails there).
+                pattern = r"(?<!\w)" + re.escape(tool.lower()) + r"(?!\w)"
+                if re.search(pattern, run_lower):
+                    all_tools.add(tool)
+
+        return all_tools
+
+    @staticmethod
+    def _extract_ci_run_commands(ci_yaml: str) -> str:
+        """Extract the text of all `run:` step values from a CI YAML file.
+
+        Walks the parsed YAML tree recursively to collect every string value
+        associated with a `run` key, regardless of nesting depth or CI platform
+        (GitHub Actions, GitLab CI, CircleCI). Falls back to the full raw text
+        if the file cannot be parsed.
+        """
+        try:
+            data = yaml.safe_load(ci_yaml)
+        except yaml.YAMLError:
+            return ci_yaml  # fallback: full text scan
+
+        if not isinstance(data, dict):
+            return ci_yaml
+
+        run_chunks: list[str] = []
+
+        def _walk(node: object) -> None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if key == "run":
+                        if isinstance(value, str):
+                            # GitHub Actions: run: "cmd"
+                            run_chunks.append(value)
+                        elif isinstance(value, dict):
+                            # CircleCI: run: {command: "cmd", ...}
+                            cmd = value.get("command", "")
+                            if isinstance(cmd, str) and cmd:
+                                run_chunks.append(cmd)
+                            _walk(value)
+                        else:
+                            _walk(value)
+                    elif key == "script":
+                        if isinstance(value, list):
+                            # GitLab CI: script: [cmd1, cmd2, ...]
+                            run_chunks.extend(s for s in value if isinstance(s, str))
+                        else:
+                            _walk(value)
+                    else:
+                        _walk(value)
+            elif isinstance(node, list):
+                for item in node:
+                    _walk(item)
+
+        _walk(data)
+        if not run_chunks:
+            # YAML parsed successfully but contained no run/script commands —
+            # return empty rather than the raw file to avoid false positives
+            # from job names, YAML keys, or other inert text.
+            return ""
+
+        # Filter lines that are pure installation or echo statements with no
+        # compound operator (&&, ;, |). These mention a tool without invoking it.
+        _INERT_PREFIXES = (
+            "echo ",
+            "pip install ",
+            "pip3 install ",
+            "npm install ",
+            "npm ci",
+            "yarn add ",
+            "yarn install",
+            "apt-get install ",
+            "apt install ",
+            "brew install ",
+            "go install ",
+        )
+        filtered: list[str] = []
+        for chunk in run_chunks:
+            lines = []
+            for line in chunk.splitlines():
+                stripped = line.strip().lower()
+                has_compound = any(op in stripped for op in ("&&", ";", "|"))
+                if not has_compound and any(
+                    stripped.startswith(p) for p in _INERT_PREFIXES
+                ):
+                    continue  # skip pure install/echo line
+                lines.append(line)
+            if lines:
+                filtered.append("\n".join(lines))
+
+        return "\n".join(filtered)
+
+    # ------------------------------------------------------------------ #
+    #  Evidence and remediation helpers                                    #
+    # ------------------------------------------------------------------ #
+
+    def _build_evidence(
+        self,
+        covered: set[str],
+        tools_by_cat: dict[str, list[str]],
+        all_tools: set[str],
+    ) -> list[str]:
+        evidence: list[str] = []
+        for cat in self.CATEGORIES:
+            if cat in covered:
+                unique_tools = list(dict.fromkeys(tools_by_cat[cat]))[:3]
+                evidence.append(
+                    f"Correctness: {', '.join(unique_tools)}"
+                    if cat == "correctness"
+                    else (
+                        f"Standards: {', '.join(unique_tools)}"
+                        if cat == "standards"
+                        else f"Security: {', '.join(unique_tools)}"
+                    )
+                )
+            else:
+                evidence.append(f"Missing category: {cat}")
+        if all_tools:
+            evidence.append(f"Tools detected: {', '.join(sorted(all_tools)[:8])}")
+        return evidence
+
+    def _create_remediation(self, missing: list[str], language: str) -> Remediation:
+        steps: list[str] = []
+        tools: list[str] = []
+        commands: list[str] = []
+        examples: list[str] = []
+
+        if language == "Python":
+            if "correctness" in missing:
+                steps.append(
+                    "Add mypy or pyright for type/correctness checking: "
+                    "configure [tool.mypy] in pyproject.toml"
+                )
+                tools += ["mypy", "pyright"]
+                commands += ["pip install mypy", "mypy --strict src/"]
+            if "standards" in missing:
+                steps.append(
+                    "Add ruff for style enforcement: configure [tool.ruff] in pyproject.toml"
+                )
+                tools += ["ruff"]
+                commands += ["pip install ruff", "ruff check ."]
+            if "security" in missing:
+                steps.append(
+                    "Add bandit for security analysis: configure [tool.bandit] in pyproject.toml "
+                    "or add bandit pre-commit hook"
+                )
+                tools += ["bandit", "semgrep"]
+                commands += ["pip install bandit", "bandit -r src/"]
+            examples.append(
+                "# pyproject.toml\n"
+                "[tool.mypy]\nstrict = true\n\n"
+                '[tool.ruff]\nselect = ["E", "F", "S"]  # S = flake8-bandit (security)\n\n'
+                '[tool.bandit]\ntargets = ["src"]\n'
+            )
+
+        elif language == "Go":
+            if "correctness" in missing:
+                steps.append(
+                    "Enable errcheck and staticcheck in .golangci.yml linters.enable"
+                )
+                tools += ["golangci-lint"]
+                commands += ["golangci-lint run --enable errcheck,staticcheck"]
+            if "standards" in missing:
+                steps.append("Enable revive or stylecheck in .golangci.yml")
+                tools += ["golangci-lint"]
+            if "security" in missing:
+                steps.append("Enable gosec in .golangci.yml linters.enable")
+                tools += ["gosec"]
+                commands += ["golangci-lint run --enable gosec"]
+            examples.append(
+                "# .golangci.yml\nlinters:\n  enable:\n"
+                "    - errcheck\n    - staticcheck\n"
+                "    - revive\n    - stylecheck\n    - gosec\n"
+            )
+
+        else:  # JS/TS
+            if "correctness" in missing:
+                steps.append(
+                    "Add @typescript-eslint/recommended-type-checked to ESLint extends"
+                )
+                tools += ["@typescript-eslint/eslint-plugin"]
+                commands += ["npm install --save-dev @typescript-eslint/eslint-plugin"]
+            if "standards" in missing:
+                steps.append(
+                    "Add eslint:recommended or airbnb config to ESLint extends"
+                )
+                tools += ["eslint"]
+                commands += ["npm install --save-dev eslint"]
+            if "security" in missing:
+                steps.append("Add eslint-plugin-security to ESLint plugins")
+                tools += ["eslint-plugin-security"]
+                commands += ["npm install --save-dev eslint-plugin-security"]
+            examples.append(
+                '// .eslintrc.json\n{\n  "extends": [\n'
+                '    "eslint:recommended",\n'
+                '    "plugin:@typescript-eslint/recommended-type-checked",\n'
+                '    "plugin:security/recommended"\n'
+                "  ]\n}\n"
+            )
+
+        return Remediation(
+            summary=f"Extend lint config to cover missing categories: {', '.join(missing)}",
+            steps=steps,
+            tools=tools,
+            commands=commands,
+            examples=examples,
+            citations=[
+                Citation(
+                    source="agentready",
+                    title="Lint Config Coverage — Issue #511",
+                    url="https://github.com/ambient-code/agentready/issues/511",
+                    relevance="Feature rationale and tool categorization",
+                )
             ],
         )
