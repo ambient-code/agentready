@@ -1400,7 +1400,7 @@ class ArchitecturalBoundaryAssessor(BaseAssessor):
             tier=self.tier,
             description="Import restriction rules configured in linter to enforce module boundaries",
             criteria="Linter config with import boundary rules (ESLint no-restricted-imports, Go depguard, Python import-linter, or similar)",
-            default_weight=0.02,
+            default_weight=0.01,
         )
 
     def _has_supported_language(self, repository: Repository) -> bool:
