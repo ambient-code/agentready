@@ -10,7 +10,6 @@ import yaml
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
-from ..utils.subprocess_utils import safe_subprocess_run
 from .adr_sources import CentralAdrSource
 from .base import BaseAssessor
 
@@ -687,8 +686,12 @@ class ArchitectureDecisionsAssessor(BaseAssessor):
 
         # Count .md files in ADR directory
         try:
-            adr_files = list(adr_dir.glob("*.md"))
-        except OSError as e:
+            rel_prefix = adr_dir.relative_to(repository.path).as_posix()
+            adr_files = [
+                repository.path / rel
+                for rel in repository.assessment_match_any([f"{rel_prefix}/*.md"])
+            ]
+        except (OSError, ValueError) as e:
             return Finding.error(
                 self.attribute, reason=f"Could not read ADR directory: {e}"
             )
@@ -1062,21 +1065,10 @@ class InlineDocumentationAssessor(BaseAssessor):
     def _assess_python_docstrings(self, repository: Repository) -> Finding:
         """Assess Python docstring coverage using AST parsing."""
         # Get list of Python files
-        try:
-            result = safe_subprocess_run(
-                ["git", "ls-files", "*.py"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            python_files = [f for f in result.stdout.strip().split("\n") if f]
-        except Exception:
-            python_files = [
-                str(f.relative_to(repository.path))
-                for f in repository.path.rglob("*.py")
-            ]
+        python_files = [
+            str(p.relative_to(repository.path))
+            for p in repository.assessment_files("*.py")
+        ]
 
         total_public_items = 0
         documented_items = 0
@@ -1184,26 +1176,11 @@ class InlineDocumentationAssessor(BaseAssessor):
         """
         import re
 
-        try:
-            result = safe_subprocess_run(
-                ["git", "ls-files", "*.go"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            go_files = [
-                f
-                for f in result.stdout.strip().split("\n")
-                if f and not f.endswith("_test.go") and "vendor/" not in f
-            ]
-        except Exception:
-            go_files = [
-                str(f.relative_to(repository.path))
-                for f in repository.path.rglob("*.go")
-                if not f.name.endswith("_test.go") and "vendor" not in f.parts
-            ]
+        go_files = [
+            str(p.relative_to(repository.path))
+            for p in repository.assessment_files("*.go")
+            if not p.name.endswith("_test.go") and "vendor" not in p.parts
+        ]
 
         total_exported = 0
         documented_exported = 0
@@ -1481,28 +1458,12 @@ class OpenAPISpecsAssessor(BaseAssessor):
 
         # Recursively search for spec files
         found_specs = []
-        excluded_dirs = {
-            ".git",
-            "node_modules",
-            ".venv",
-            "venv",
-            "__pycache__",
-            ".pytest_cache",
-        }
 
         for spec_name in spec_files:
             try:
-                # Use rglob to search recursively
-                matches = list(repository.path.rglob(spec_name))
-                # Filter out files in excluded directories
-                matches = [
-                    m
-                    for m in matches
-                    if not any(part in m.parts for part in excluded_dirs)
-                ]
+                matches = repository.assessment_files(spec_name)
                 found_specs.extend(matches)
             except OSError:
-                # If rglob fails, continue to next pattern
                 continue
 
         # Remove duplicates while preserving order

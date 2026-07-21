@@ -142,7 +142,7 @@ class TestUtilityFunctions:
     def test_find_yaml_files(self, well_structured_repo):
         """Test _find_yaml_files finds YAML files recursively."""
         models_dir = well_structured_repo.path / "models"
-        yaml_files = _find_yaml_files(models_dir)
+        yaml_files = _find_yaml_files(well_structured_repo, models_dir)
 
         assert len(yaml_files) >= 2  # At least staging and marts schema.yml
         assert all(f.suffix in [".yml", ".yaml"] for f in yaml_files)

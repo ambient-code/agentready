@@ -44,7 +44,11 @@ class PatternReferencesAssessor(BaseAssessor):
         # Check for .claude/skills/ directory with tiered scoring
         skills_dir = repository.path / ".claude" / "skills"
         if skills_dir.exists() and skills_dir.is_dir():
-            skill_files = list(skills_dir.rglob("SKILL.md"))
+            skill_files = [
+                p
+                for p in repository.assessment_files("SKILL.md")
+                if skills_dir in p.parents or p.parent == skills_dir
+            ]
             skill_count = len(skill_files)
             if skill_count >= 3:
                 has_skills = True
@@ -239,32 +243,35 @@ class DesignIntentAssessor(BaseAssessor):
 
         low_confidence_dir = None
         for dir_name in design_dirs:
-            design_dir = repository.path / dir_name
-            if design_dir.exists() and design_dir.is_dir():
-                md_files = list(design_dir.glob("*.md"))
-                if md_files:
-                    has_intent_content = False
-                    for md_file in md_files:
-                        try:
-                            content = md_file.read_text(encoding="utf-8")
-                            if any(
-                                re.search(kw, content, re.IGNORECASE)
-                                for kw in intent_keywords
-                            ):
-                                has_intent_content = True
-                                break
-                        except (OSError, UnicodeDecodeError):
-                            continue
+            if not repository.assessment_exists(dir_name):
+                continue
+            md_files = [
+                repository.path / rel
+                for rel in repository.assessment_match_any([f"{dir_name}/*.md"])
+            ]
+            if md_files:
+                has_intent_content = False
+                for md_file in md_files:
+                    try:
+                        content = md_file.read_text(encoding="utf-8")
+                        if any(
+                            re.search(kw, content, re.IGNORECASE)
+                            for kw in intent_keywords
+                        ):
+                            has_intent_content = True
+                            break
+                    except (OSError, UnicodeDecodeError):
+                        continue
 
-                    if has_intent_content:
-                        score += 50.0
-                        evidence.append(
-                            f"{dir_name}/ directory with {len(md_files)} design document(s) containing intent language"
-                        )
-                        low_confidence_dir = None
-                        break
-                    elif low_confidence_dir is None:
-                        low_confidence_dir = (dir_name, len(md_files))
+                if has_intent_content:
+                    score += 50.0
+                    evidence.append(
+                        f"{dir_name}/ directory with {len(md_files)} design document(s) containing intent language"
+                    )
+                    low_confidence_dir = None
+                    break
+                elif low_confidence_dir is None:
+                    low_confidence_dir = (dir_name, len(md_files))
 
         if low_confidence_dir:
             score += 15.0
@@ -495,9 +502,11 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
         evidence = []
 
         # Check for .claude/rules/ directory with path-scoped rules
-        rules_dir = repository.path / ".claude" / "rules"
-        if rules_dir.exists() and rules_dir.is_dir():
-            rule_files = list(rules_dir.glob("*.md"))
+        if repository.assessment_exists(".claude/rules"):
+            rule_files = [
+                repository.path / rel
+                for rel in repository.assessment_match_any([".claude/rules/*.md"])
+            ]
             if rule_files:
                 # Check for path-scoped frontmatter
                 scoped_count = 0
@@ -521,8 +530,16 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
                     )
 
         # Check for subdirectory context files
-        sub_context_files = list(repository.path.rglob("CLAUDE.md"))
-        sub_context_files.extend(list(repository.path.rglob("AGENTS.md")))
+        sub_context_files = [
+            p
+            for p in repository.assessment_files("CLAUDE.md")
+            if p.parent != repository.path
+        ]
+        sub_context_files.extend(
+            p
+            for p in repository.assessment_files("AGENTS.md")
+            if p.parent != repository.path
+        )
         sub_context_count = sum(
             1 for f in sub_context_files if f.parent != repository.path
         )
@@ -534,7 +551,13 @@ class ProgressiveDisclosureAssessor(BaseAssessor):
         # Check for skills directory
         skills_dir = repository.path / ".claude" / "skills"
         if skills_dir.exists() and skills_dir.is_dir():
-            skill_count = len(list(skills_dir.rglob("SKILL.md")))
+            skill_count = len(
+                [
+                    p
+                    for p in repository.assessment_files("SKILL.md")
+                    if skills_dir in p.parents or p.parent == skills_dir
+                ]
+            )
             if skill_count > 0:
                 score = min(score + 30.0, 100.0)
                 evidence.append(

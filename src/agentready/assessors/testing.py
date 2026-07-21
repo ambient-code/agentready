@@ -233,12 +233,12 @@ class TestExecutionAssessor(BaseAssessor):
                     f"Test organization: separate {'/'.join(parts)} directories"
                 )
 
-            if not evidence:
-                test_files = (
-                    list((tests_dir).rglob("test_*.py"))[:10]
-                    if tests_dir.exists()
-                    else []
-                )
+            if not evidence and repository.assessment_exists("tests"):
+                test_files = [
+                    p
+                    for p in repository.assessment_files("test_*.py")
+                    if tests_dir in p.parents or p.parent == tests_dir
+                ][:10]
                 for tf in test_files:
                     try:
                         content = tf.read_text(encoding="utf-8")
@@ -306,7 +306,7 @@ class TestExecutionAssessor(BaseAssessor):
                     pass
 
         elif language == "Go":
-            test_files = list(repository.path.rglob("*_test.go"))[:10]
+            test_files = repository.assessment_files("*_test.go")[:10]
             for tf in test_files:
                 try:
                     content = tf.read_text(encoding="utf-8")
@@ -343,11 +343,13 @@ class TestExecutionAssessor(BaseAssessor):
         test_dirs = ["tests", "test"]
         for d in test_dirs:
             test_dir = repository.path / d
-            if test_dir.exists():
-                # Look for test_*.py or *_test.py files
-                test_files = list(test_dir.rglob("test_*.py")) + list(
-                    test_dir.rglob("*_test.py")
-                )
+            if repository.assessment_exists(d):
+                test_files = [
+                    p
+                    for p in repository.assessment_files("test_*.py")
+                    + repository.assessment_files("*_test.py")
+                    if test_dir in p.parents or p.parent == test_dir
+                ]
                 if test_files:
                     return True
         return False
@@ -488,14 +490,9 @@ class TestExecutionAssessor(BaseAssessor):
 
     def _has_js_test_files(self, repository: Repository) -> bool:
         """Check if JavaScript/TypeScript test files exist."""
-        # Check for __tests__ directory
-        if (repository.path / "__tests__").exists():
+        if repository.assessment_exists("__tests__"):
             return True
-        # Check for *.test.* or *.spec.* files in src/ or root
-        for pattern in ["**/*.test.*", "**/*.spec.*"]:
-            if list(repository.path.glob(pattern)):
-                return True
-        return False
+        return bool(repository.assessment_match_any(["*.test.*", "*.spec.*"]))
 
     def _has_js_coverage_threshold(self, repository: Repository, pkg: dict) -> bool:
         """Check if JS coverage threshold is configured."""
@@ -525,22 +522,7 @@ class TestExecutionAssessor(BaseAssessor):
 
     def _has_go_test_files(self, repository: Repository) -> bool:
         """Check if Go test files (*_test.go) exist."""
-        from ..utils.subprocess_utils import safe_subprocess_run
-
-        try:
-            result = safe_subprocess_run(
-                ["git", "ls-files", "*_test.go", "**/*_test.go"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            if result.returncode == 0:
-                files = [f for f in result.stdout.strip().split("\n") if f]
-                return len(files) > 0
-        except Exception:
-            pass
-        return bool(list(repository.path.rglob("*_test.go")))
+        return bool(repository.assessment_files("*_test.go"))
 
     def _assess_go_coverage(self, repository: Repository) -> Finding:
         """Assess Go test execution and coverage configuration.
@@ -655,11 +637,10 @@ class TestExecutionAssessor(BaseAssessor):
                 ]
             )
 
-        ci_dir = repository.path / ".github" / "workflows"
-        if ci_dir.exists():
-            files_to_check.extend(ci_dir.glob("*.yml"))
-            files_to_check.extend(ci_dir.glob("*.yaml"))
-
+        for rel in repository.assessment_match_any(
+            [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+        ):
+            files_to_check.append(repository.path / rel)
         for f in files_to_check:
             if f.exists():
                 try:
@@ -1053,27 +1034,23 @@ class CIQualityGatesAssessor(BaseAssessor):
 
     def _detect_ci_configs(self, repository: Repository) -> list:
         """Detect CI/CD configuration files."""
-        ci_config_checks = [
-            repository.path / ".github" / "workflows",  # GitHub Actions (directory)
-            repository.path / ".gitlab-ci.yml",  # GitLab CI
-            repository.path / ".circleci" / "config.yml",  # CircleCI
-            repository.path / ".travis.yml",  # Travis CI
-            repository.path / "Jenkinsfile",  # Jenkins
-            repository.path / ".tekton",  # Pipelines-as-Code
-        ]
+        configs: list[Path] = []
+        for rel in repository.assessment_match_any(
+            [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+        ):
+            configs.append(repository.path / rel)
 
-        configs = []
-        for config_path in ci_config_checks:
-            if config_path.exists():
-                if config_path.is_dir():
-                    # GitHub Actions: check for workflow files
-                    workflow_files = list(config_path.glob("*.yml")) + list(
-                        config_path.glob("*.yaml")
-                    )
-                    if workflow_files:
-                        configs.extend(workflow_files)
-                else:
-                    configs.append(config_path)
+        for rel in (
+            ".gitlab-ci.yml",
+            ".circleci/config.yml",
+            ".travis.yml",
+            "Jenkinsfile",
+        ):
+            if repository.assessment_exists(rel):
+                configs.append(repository.path / rel)
+
+        for rel in repository.assessment_match_any([".tekton/*.yml", ".tekton/*.yaml"]):
+            configs.append(repository.path / rel)
 
         return configs
 

@@ -178,6 +178,11 @@ agentready bootstrap /path/to/repo
 
 ## Running Assessments
 
+Assessment file discovery uses Git’s ignore rules (root and nested
+`.gitignore`, wildcards, anchors, and negation). Ignored paths — including
+tracked files that match an ignore rule — do not influence scores or
+language totals.
+
 ### Basic Usage
 
 ```bash

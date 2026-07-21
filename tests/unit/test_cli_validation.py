@@ -106,13 +106,11 @@ class TestLargeRepositoryWarnings:
         git_dir = tmp_path / ".git"
         git_dir.mkdir()
 
-        # Mock safe_subprocess_run to return large file count
-        with patch("agentready.cli.main.safe_subprocess_run") as mock_safe_run:
-            mock_result = MagicMock()
-            mock_result.returncode = 0
-            mock_result.stdout = "\n".join([f"file{i}.py" for i in range(10001)])
-            mock_safe_run.return_value = mock_result
-
+        large_files = [f"file{i}.py" for i in range(10001)]
+        with patch(
+            "agentready.cli.main.GitAwareFileIndex.iter_files",
+            return_value=iter(large_files),
+        ):
             # Run without confirmation (should abort)
             result = runner.invoke(cli, ["assess", str(tmp_path)], input="n\n")
 
@@ -135,13 +133,11 @@ class TestLargeRepositoryWarnings:
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Test Repository\n")
 
-        # Mock safe_subprocess_run to return small file count
-        with patch("agentready.cli.main.safe_subprocess_run") as mock_safe_run:
-            mock_result = MagicMock()
-            mock_result.returncode = 0
-            mock_result.stdout = "\n".join([f"file{i}.py" for i in range(100)])
-            mock_safe_run.return_value = mock_result
-
+        small_files = [f"file{i}.py" for i in range(100)]
+        with patch(
+            "agentready.cli.main.GitAwareFileIndex.iter_files",
+            return_value=iter(small_files),
+        ):
             # Run assessment
             result = runner.invoke(cli, ["assess", str(tmp_path)])
 
@@ -149,8 +145,10 @@ class TestLargeRepositoryWarnings:
             assert "Large repository detected" not in result.output
 
     def test_handles_git_failure_gracefully(self, tmp_path):
-        """Test that assessment continues if git ls-files fails during file count."""
+        """Test that assessment continues if the Git-aware index fails during file count."""
         import subprocess
+
+        from agentready.services.git_aware_file_index import GitAwareFileIndexError
 
         runner = CliRunner()
 
@@ -184,26 +182,11 @@ class TestLargeRepositoryWarnings:
             capture_output=True,
         )
 
-        # Mock safe_subprocess_run to fail only for the file count check (git ls-files)
-        # but let other git commands (in Scanner) work normally
-        original_safe_run = __import__(
-            "agentready.utils.subprocess_utils", fromlist=["safe_subprocess_run"]
-        ).safe_subprocess_run
-
-        def selective_mock(*args, **kwargs):
-            # Fail for git ls-files in the file count check (has timeout=5)
-            if args[0] == ["git", "ls-files"] and kwargs.get("timeout") == 5:
-                mock_result = MagicMock()
-                mock_result.returncode = 1
-                mock_result.stdout = ""
-                return mock_result
-            # Let all other calls through to real implementation
-            return original_safe_run(*args, **kwargs)
-
         with patch(
-            "agentready.cli.main.safe_subprocess_run", side_effect=selective_mock
+            "agentready.cli.main.GitAwareFileIndex.iter_files",
+            side_effect=GitAwareFileIndexError("simulated failure"),
         ):
-            # Run assessment - should continue despite git ls-files failure
+            # Run assessment - should continue despite index failure
             result = runner.invoke(cli, ["assess", str(tmp_path)])
 
             # Should complete successfully (file count check is wrapped in try/except)
@@ -235,13 +218,11 @@ class TestCombinedValidations:
             mock_path_instance.resolve.return_value = sensitive_mock
             mock_path_class.return_value = mock_path_instance
 
-            # Mock safe_subprocess_run to return large file count
-            with patch("agentready.cli.main.safe_subprocess_run") as mock_safe_run:
-                mock_result = MagicMock()
-                mock_result.returncode = 0
-                mock_result.stdout = "\n".join([f"file{i}.py" for i in range(10001)])
-                mock_safe_run.return_value = mock_result
-
+            large_files = [f"file{i}.py" for i in range(10001)]
+            with patch(
+                "agentready.cli.main.GitAwareFileIndex.iter_files",
+                return_value=iter(large_files),
+            ):
                 # Run without confirmation (should abort on first warning)
                 result = runner.invoke(cli, ["assess", str(tmp_path)], input="n\n")
 

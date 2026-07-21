@@ -53,14 +53,20 @@ class TestLocalAdrSourceFindAdrDir:
         assert source.find_adr_dir(repo) == adr_dir
 
     def test_finds_root_adr_lowercase(self, tmp_path):
-        """Return adr/ (lowercase) when it is the first matching candidate."""
+        """Return adr/ (lowercase) when it contains ADR markdown files.
+
+        On case-insensitive filesystems, the ``ADR`` candidate path resolves to
+        the same directory; ``samefile`` asserts the correct location either way.
+        """
         repo = _make_repo(tmp_path)
         adr_dir = tmp_path / "adr"
         adr_dir.mkdir()
         (adr_dir / "0001-init.md").write_text("# ADR 1")
 
         source = LocalAdrSource()
-        assert source.find_adr_dir(repo) == adr_dir
+        found = source.find_adr_dir(repo)
+        assert found is not None
+        assert found.samefile(adr_dir)
 
     def test_finds_decisions_dir(self, tmp_path):
         """Return decisions/ when it contains .md files."""

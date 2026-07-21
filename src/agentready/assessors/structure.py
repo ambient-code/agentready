@@ -391,22 +391,7 @@ class StandardLayoutAssessor(BaseAssessor):
         else:
             evidence.append("internal/ or pkg/: ✗ (no package encapsulation)")
 
-        from ..utils.subprocess_utils import safe_subprocess_run
-
-        has_tests = False
-        try:
-            result = safe_subprocess_run(
-                ["git", "ls-files", "*_test.go", "**/*_test.go"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            if result.returncode == 0:
-                test_files = [f for f in result.stdout.strip().split("\n") if f]
-                has_tests = len(test_files) > 0
-        except Exception:
-            has_tests = bool(list(repository.path.rglob("*_test.go")))
+        has_tests = bool(repository.assessment_files("*_test.go"))
 
         if has_tests:
             score += 20.0
@@ -463,21 +448,9 @@ class StandardLayoutAssessor(BaseAssessor):
         """
         from collections import defaultdict
 
-        from ..utils.subprocess_utils import safe_subprocess_run
-
-        try:
-            result = safe_subprocess_run(
-                ["git", "ls-files"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            if result.returncode != 0:
-                return []
-            files = [f for f in result.stdout.strip().split("\n") if f]
-        except Exception:
-            return []
+        files = [
+            str(p.relative_to(repository.path)) for p in repository.assessment_files()
+        ]
 
         skip_names = {"__init__", "__main__", "conftest", "setup"}
         dir_conventions: dict[str, dict[str, int]] = defaultdict(
@@ -995,41 +968,36 @@ class IssuePRTemplatesAssessor(BaseAssessor):
             repository.path / ".github" / "pull_request_template.md",
         ]
 
-        pr_template_found = any(p.exists() for p in pr_template_paths)
+        pr_template_found = any(
+            repository.assessment_exists(p.relative_to(repository.path).as_posix())
+            for p in pr_template_paths
+        )
 
         if pr_template_found:
             score += 50
             evidence.append("PR template found")
 
         # Check for issue templates (50%)
-        issue_template_dir = repository.path / ".github" / "ISSUE_TEMPLATE"
         issue_templates_found = False
+        issue_templates = repository.assessment_match_any(
+            [
+                ".github/ISSUE_TEMPLATE/*.md",
+                ".github/ISSUE_TEMPLATE/*.yml",
+                ".github/ISSUE_TEMPLATE/*.yaml",
+            ]
+        )
+        template_count = len(issue_templates)
 
-        if issue_template_dir.exists() and issue_template_dir.is_dir():
-            try:
-                md_templates = list(issue_template_dir.glob("*.md"))
-                yml_templates = list(issue_template_dir.glob("*.yml")) + list(
-                    issue_template_dir.glob("*.yaml")
-                )
-                template_count = len(md_templates) + len(yml_templates)
-
-                if template_count >= 2:
-                    score += 50
-                    evidence.append(
-                        f"Issue templates found: {template_count} templates"
-                    )
-                    issue_templates_found = True
-                elif template_count == 1:
-                    score += 25
-                    evidence.append(
-                        "Issue template directory exists with 1 template (need ≥2)"
-                    )
-                    issue_templates_found = True
-                else:
-                    evidence.append("Issue template directory exists but is empty")
-            except OSError:
-                evidence.append("Could not read issue template directory")
-
+        if template_count >= 2:
+            score += 50
+            evidence.append(f"Issue templates found: {template_count} templates")
+            issue_templates_found = True
+        elif template_count == 1:
+            score += 25
+            evidence.append("Issue template directory exists with 1 template (need ≥2)")
+            issue_templates_found = True
+        elif repository.assessment_exists(".github/ISSUE_TEMPLATE"):
+            evidence.append("Issue template directory exists but is empty")
         # Fall back to org-level .github repo if anything is still missing
         if not pr_template_found or not issue_templates_found:
             owner = self._parse_github_owner(repository.url)
@@ -1254,7 +1222,7 @@ class SeparationOfConcernsAssessor(BaseAssessor):
 
         # Check Python files
         try:
-            py_files = list(repository.path.rglob("*.py"))
+            py_files = repository.assessment_files("*.py")
             for py_file in py_files:
                 # Skip venv, node_modules, etc.
                 if any(
@@ -1291,7 +1259,7 @@ class SeparationOfConcernsAssessor(BaseAssessor):
         found = []
         try:
             for pattern in antipattern_names:
-                matches = list(repository.path.rglob(pattern))
+                matches = repository.assessment_files(pattern)
                 # Filter out venv/node_modules
                 matches = [
                     m

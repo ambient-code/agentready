@@ -12,7 +12,6 @@ import yaml
 from ..models.attribute import Attribute
 from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
-from ..utils.subprocess_utils import safe_subprocess_run
 from .base import BaseAssessor
 
 
@@ -67,10 +66,10 @@ class DependencyPinningAssessor(BaseAssessor):
 
         # Check subdirectories for Go monorepos (go.sum in module dirs)
         if "go.sum" not in found_strict:
-            for gosum in repository.path.rglob("go.sum"):
-                if "vendor" in gosum.parts:
+            for rel in repository.assessment_match_any(["go.sum"]):
+                if "vendor" in rel.split("/"):
                     continue
-                found_strict.append(str(gosum.relative_to(repository.path)))
+                found_strict.append(rel)
 
         if not found_strict and not found_manual:
             return Finding(
@@ -640,7 +639,7 @@ class FileSizeLimitsAssessor(BaseAssessor):
         - 75-99: Some files 500-1000 lines
         - 0-74: Files >1000 lines exist
 
-        Note: Uses git ls-files to respect .gitignore (fixes issue #245).
+        Note: Uses assessment file index to respect .gitignore (fixes issue #245).
         """
         # Count files by size
         large_files: list[tuple[Path, int]] = []  # 500-1000 lines
@@ -663,28 +662,9 @@ class FileSizeLimitsAssessor(BaseAssessor):
             "h",
         ]
 
-        # Get git-tracked files (respects .gitignore)
-        # This fixes issue #245 where .venv files were incorrectly scanned
-        try:
-            patterns = [f"*.{ext}" for ext in extensions]
-            result = safe_subprocess_run(
-                ["git", "ls-files"] + patterns,
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            tracked_files = [f for f in result.stdout.strip().split("\n") if f]
-        except Exception:
-            # Fallback for non-git repos: use glob (less accurate)
-            tracked_files = []
-            for ext in extensions:
-                tracked_files.extend(
-                    str(f.relative_to(repository.path))
-                    for f in repository.path.rglob(f"*.{ext}")
-                    if f.is_file()
-                )
+        tracked_files = repository.assessment_match_any(
+            f"*.{ext}" for ext in extensions
+        )
 
         # Count lines in tracked files
         for rel_path in tracked_files:

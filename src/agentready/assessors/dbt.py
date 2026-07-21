@@ -30,17 +30,37 @@ def _is_dbt_project(repository: Repository) -> bool:
     return (repository.path / "dbt_project.yml").exists()
 
 
-def _find_yaml_files(directory: Path) -> list[Path]:
-    """Find YAML files recursively (.yml and .yaml).
+def _assessment_files_under(
+    repository: Repository, directory: Path, pattern: str
+) -> list[Path]:
+    """Return assessment files matching pattern under a directory."""
+    try:
+        rel_prefix = directory.relative_to(repository.path).as_posix()
+    except ValueError:
+        return []
+    if not repository.assessment_exists(rel_prefix):
+        return []
+    prefix = rel_prefix + "/"
+    return [
+        p
+        for p in repository.assessment_files(pattern)
+        if p.relative_to(repository.path).as_posix().startswith(prefix)
+    ]
+
+
+def _find_yaml_files(repository: Repository, directory: Path) -> list[Path]:
+    """Find YAML files under directory (.yml and .yaml).
 
     Args:
+        repository: Repository entity
         directory: Directory to search
 
     Returns:
         List of matching .yml and .yaml file paths
     """
-    # Fix for #356: search both extensions explicitly instead of fragile replace()
-    return list(directory.rglob("*.yml")) + list(directory.rglob("*.yaml"))
+    return _assessment_files_under(
+        repository, directory, "*.yml"
+    ) + _assessment_files_under(repository, directory, "*.yaml")
 
 
 def _parse_yaml_safe(path: Path) -> dict:
@@ -275,7 +295,7 @@ class DbtModelDocumentationAssessor(BaseAssessor):
         """
         models_dir = repository.path / "models"
 
-        if not models_dir.exists():
+        if not repository.assessment_exists("models"):
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -288,7 +308,7 @@ class DbtModelDocumentationAssessor(BaseAssessor):
             )
 
         # Count total SQL models
-        sql_files = list(models_dir.rglob("*.sql"))
+        sql_files = _assessment_files_under(repository, models_dir, "*.sql")
         total_models = len(sql_files)
 
         if total_models == 0:
@@ -298,7 +318,7 @@ class DbtModelDocumentationAssessor(BaseAssessor):
 
         # Find and parse schema YAML files (any .yml/.yaml file in models/)
         # dbt supports multiple naming conventions: schema.yml, _models.yml, or one file per model
-        schema_files = _find_yaml_files(models_dir)
+        schema_files = _find_yaml_files(repository, models_dir)
 
         # Extract documented model names
         documented_models = set()
@@ -446,7 +466,7 @@ class DbtDataTestsAssessor(BaseAssessor):
         """
         models_dir = repository.path / "models"
 
-        if not models_dir.exists():
+        if not repository.assessment_exists("models"):
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -459,7 +479,7 @@ class DbtDataTestsAssessor(BaseAssessor):
             )
 
         # Count total SQL models
-        sql_files = list(models_dir.rglob("*.sql"))
+        sql_files = _assessment_files_under(repository, models_dir, "*.sql")
         total_models = len(sql_files)
 
         if total_models == 0:
@@ -469,7 +489,7 @@ class DbtDataTestsAssessor(BaseAssessor):
 
         # Find and parse schema YAML files (any .yml/.yaml file in models/)
         # dbt supports multiple naming conventions: schema.yml, _models.yml, or one file per model
-        schema_files = _find_yaml_files(models_dir)
+        schema_files = _find_yaml_files(repository, models_dir)
 
         # Extract models with PK tests (unique + not_null)
         models_with_pk_tests = set()
@@ -516,7 +536,11 @@ class DbtDataTestsAssessor(BaseAssessor):
 
         # Check for singular tests (bonus)
         tests_dir = repository.path / "tests"
-        singular_tests = list(tests_dir.rglob("*.sql")) if tests_dir.exists() else []
+        singular_tests = (
+            _assessment_files_under(repository, tests_dir, "*.sql")
+            if repository.assessment_exists("tests")
+            else []
+        )
 
         # Calculate proportional score
         score = self.calculate_proportional_score(
@@ -646,7 +670,7 @@ class DbtProjectStructureAssessor(BaseAssessor):
         """
         models_dir = repository.path / "models"
 
-        if not models_dir.exists():
+        if not repository.assessment_exists("models"):
             return Finding(
                 attribute=self.attribute,
                 status="fail",
@@ -659,7 +683,9 @@ class DbtProjectStructureAssessor(BaseAssessor):
             )
 
         # Check for flat structure (50+ files in root models/)
-        root_sql_files = list(models_dir.glob("*.sql"))
+        root_sql_files = [
+            p for p in repository.assessment_files("*.sql") if p.parent == models_dir
+        ]
         is_flat = len(root_sql_files) >= 50
 
         # Check for recommended subdirectories

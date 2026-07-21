@@ -4,7 +4,7 @@ import logging
 from collections import defaultdict
 from pathlib import Path
 
-from ..utils.subprocess_utils import safe_subprocess_run
+from .git_aware_file_index import GitAwareFileIndex, GitAwareFileIndexError
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 class LanguageDetector:
     """Detects programming languages in a repository.
 
-    Uses file extension mapping and respects .gitignore patterns
-    via git ls-files for accuracy.
+    Uses file extension mapping and respects .gitignore patterns via the
+    shared :class:`GitAwareFileIndex` (never an unfiltered ``rglob`` fallback).
     """
 
     # Extension to language mapping
@@ -58,14 +58,28 @@ class LanguageDetector:
         ".xml": "XML",
     }
 
-    def __init__(self, repository_path: Path):
+    def __init__(
+        self,
+        repository_path: Path,
+        file_index: GitAwareFileIndex | None = None,
+    ):
         """Initialize language detector for repository.
 
         Args:
             repository_path: Path to git repository root
+            file_index: Optional shared index (created if omitted)
         """
         self.repository_path = repository_path
+        self.file_index = file_index or GitAwareFileIndex(repository_path)
         self.minimum_file_threshold = 3  # Need 3+ files to count as "using language"
+
+    def _assessment_files(self) -> list[str]:
+        try:
+            return list(self.file_index.iter_files())
+        except GitAwareFileIndexError as exc:
+            # Fail closed: do not scan ignored trees via rglob.
+            logger.error("Language detection unavailable: %s", exc)
+            return []
 
     def detect_languages(self) -> dict[str, int]:
         """Detect languages in repository with file counts.
@@ -76,30 +90,9 @@ class LanguageDetector:
 
         Only includes languages with >= minimum_file_threshold files.
         """
-        language_counts = defaultdict(int)
+        language_counts: defaultdict[str, int] = defaultdict(int)
 
-        # Try git ls-files first (respects .gitignore)
-        try:
-            # Security: Use safe_subprocess_run for validation and limits
-            result = safe_subprocess_run(
-                ["git", "ls-files"],
-                cwd=self.repository_path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            files = result.stdout.strip().split("\n")
-        except Exception:
-            # Fall back to pathlib walk (less accurate)
-            files = [
-                str(f.relative_to(self.repository_path))
-                for f in self.repository_path.rglob("*")
-                if f.is_file()
-            ]
-
-        # Count files by language
-        for file_path in files:
+        for file_path in self._assessment_files():
             if not file_path.strip():
                 continue
 
@@ -123,21 +116,7 @@ class LanguageDetector:
         Returns:
             Total file count
         """
-        try:
-            # Security: Use safe_subprocess_run for validation and limits
-            result = safe_subprocess_run(
-                ["git", "ls-files"],
-                cwd=self.repository_path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            files = result.stdout.strip().split("\n")
-            return len([f for f in files if f.strip()])
-        except Exception:
-            # Fall back to pathlib
-            return sum(1 for _ in self.repository_path.rglob("*") if _.is_file())
+        return len(self._assessment_files())
 
     def count_total_lines(self) -> int:
         """Count total lines of code in repository.
@@ -150,25 +129,7 @@ class LanguageDetector:
         """
         total_lines = 0
 
-        try:
-            # Security: Use safe_subprocess_run for validation and limits
-            result = safe_subprocess_run(
-                ["git", "ls-files"],
-                cwd=self.repository_path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            files = result.stdout.strip().split("\n")
-        except Exception:
-            files = [
-                str(f.relative_to(self.repository_path))
-                for f in self.repository_path.rglob("*")
-                if f.is_file()
-            ]
-
-        for file_path in files:
+        for file_path in self._assessment_files():
             if not file_path.strip():
                 continue
 

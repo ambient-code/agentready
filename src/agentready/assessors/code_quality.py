@@ -19,7 +19,6 @@ from ..models.finding import Citation, Finding, Remediation
 from ..models.repository import Repository
 from ..services.scanner import MissingToolError
 from ..utils.subprocess_utils import (
-    safe_subprocess_run,
     safe_subprocess_run_stream,
     sanitize_subprocess_error,
 )
@@ -89,22 +88,10 @@ class TypeAnnotationsAssessor(BaseAssessor):
     def _assess_python_types(self, repository: Repository) -> Finding:
         """Assess Python type annotations using AST parsing."""
         # Use AST parsing to accurately detect type annotations
-        try:
-            # Security: Use safe_subprocess_run for validation and limits
-            result = safe_subprocess_run(
-                ["git", "ls-files", "*.py"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            python_files = [f for f in result.stdout.strip().split("\n") if f]
-        except Exception:
-            python_files = [
-                str(f.relative_to(repository.path))
-                for f in repository.path.rglob("*.py")
-            ]
+        python_files = [
+            str(p.relative_to(repository.path))
+            for p in repository.assessment_files("*.py")
+        ]
 
         total_functions = 0
         typed_functions = 0
@@ -421,7 +408,7 @@ class TypeAnnotationsAssessor(BaseAssessor):
     def _find_tsconfig_files(self, repository: Repository) -> list:
         """Find all tsconfig.json files, excluding node_modules/vendor/testdata."""
         found = []
-        for tsconfig in repository.path.rglob("tsconfig.json"):
+        for tsconfig in repository.assessment_files("tsconfig.json"):
             parts = tsconfig.parts
             if "node_modules" in parts or "vendor" in parts or "testdata" in parts:
                 continue
@@ -434,28 +421,11 @@ class TypeAnnotationsAssessor(BaseAssessor):
         Go is statically typed at compile time. Score starts at 100 and
         deducts for excessive use of interface{}/any which weakens type safety.
         """
-        from ..utils.subprocess_utils import safe_subprocess_run
-
-        try:
-            result = safe_subprocess_run(
-                ["git", "ls-files", "*.go"],
-                cwd=repository.path,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=True,
-            )
-            go_files = [
-                f
-                for f in result.stdout.strip().split("\n")
-                if f and not f.endswith("_test.go")
-            ]
-        except Exception:
-            go_files = [
-                str(f.relative_to(repository.path))
-                for f in repository.path.rglob("*.go")
-                if not f.name.endswith("_test.go")
-            ]
+        go_files = [
+            str(p.relative_to(repository.path))
+            for p in repository.assessment_files("*.go")
+            if not p.name.endswith("_test.go")
+        ]
 
         if not go_files:
             return Finding.not_applicable(
@@ -612,7 +582,7 @@ class CyclomaticComplexityAssessor(BaseAssessor):
         """Assess Python complexity using radon."""
         try:
             all_blocks = []
-            for py_file in repository.path.rglob("*.py"):
+            for py_file in repository.assessment_files("*.py"):
                 try:
                     code = py_file.read_text(encoding="utf-8")
                     all_blocks.extend(radon.complexity.cc_visit(code))
@@ -988,29 +958,16 @@ class StructuredLoggingAssessor(BaseAssessor):
 
         # Check for stdlib log/slog (Go 1.21+, no go.mod entry needed)
         if not found_libs:
-            from ..utils.subprocess_utils import safe_subprocess_run
-
-            try:
-                result = safe_subprocess_run(
-                    ["git", "ls-files", "*.go"],
-                    cwd=repository.path,
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
-                if result.returncode == 0:
-                    for f in result.stdout.strip().split("\n"):
-                        if not f or f.endswith("_test.go"):
-                            continue
-                        try:
-                            content = (repository.path / f).read_text(encoding="utf-8")
-                            if '"log/slog"' in content:
-                                found_libs.append("slog (stdlib)")
-                                break
-                        except (OSError, UnicodeDecodeError):
-                            continue
-            except Exception:
-                pass
+            for go_file in repository.assessment_files("*.go"):
+                if go_file.name.endswith("_test.go"):
+                    continue
+                try:
+                    content = go_file.read_text(encoding="utf-8")
+                    if '"log/slog"' in content:
+                        found_libs.append("slog (stdlib)")
+                        break
+                except (OSError, UnicodeDecodeError):
+                    continue
 
         if found_libs:
             return Finding(
@@ -1528,7 +1485,7 @@ class LintConfigCoverageAssessor(BaseAssessor):
     def _find_tsconfig_files(self, repository: Repository) -> list[Path]:
         """Find all tsconfig.json files, excluding node_modules/vendor/testdata."""
         found = []
-        for tsconfig in repository.path.rglob("tsconfig.json"):
+        for tsconfig in repository.assessment_files("tsconfig.json"):
             parts = tsconfig.parts
             if "node_modules" in parts or "vendor" in parts or "testdata" in parts:
                 continue
@@ -1679,19 +1636,18 @@ class LintConfigCoverageAssessor(BaseAssessor):
         """
         ci_files: list[Path] = []
 
-        gh_workflows = repository.path / ".github" / "workflows"
-        if gh_workflows.exists():
-            ci_files.extend(gh_workflows.glob("*.yml"))
-            ci_files.extend(gh_workflows.glob("*.yaml"))
-
-        for ci_path in (
-            repository.path / ".gitlab-ci.yml",
-            repository.path / ".circleci" / "config.yml",
-            repository.path / ".travis.yml",
+        for rel in repository.assessment_match_any(
+            [".github/workflows/*.yml", ".github/workflows/*.yaml"]
         ):
-            if ci_path.exists():
-                ci_files.append(ci_path)
+            ci_files.append(repository.path / rel)
 
+        for rel in (
+            ".gitlab-ci.yml",
+            ".circleci/config.yml",
+            ".travis.yml",
+        ):
+            if repository.assessment_exists(rel):
+                ci_files.append(repository.path / rel)
         if language == "Python":
             candidates = list(self._PYTHON_TOOLS.keys())
         elif language == "Go":

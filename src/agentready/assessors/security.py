@@ -143,16 +143,16 @@ class DependencySecurityAssessor(BaseAssessor):
                         evidence.append("  Meaningful Renovate configuration detected")
 
         # 2. CodeQL / GitHub Security Scanning (25 points)
-        codeql_workflow = repository.path / ".github" / "workflows"
-        if codeql_workflow.exists():
-            codeql_files = list(codeql_workflow.glob("*codeql*.yml")) + list(
-                codeql_workflow.glob("*codeql*.yaml")
-            )
-            if codeql_files:
-                score += 25
-                tools_found.append("CodeQL")
-                evidence.append("✓ CodeQL security scanning configured")
-
+        codeql_files = repository.assessment_match_any(
+            [
+                ".github/workflows/*codeql*.yml",
+                ".github/workflows/*codeql*.yaml",
+            ]
+        )
+        if codeql_files:
+            score += 25
+            tools_found.append("CodeQL")
+            evidence.append("✓ CodeQL security scanning configured")
         # 3. Python dependency scanners (20 points)
         if "Python" in repository.languages:
             # Check for pip-audit, safety, or bandit
@@ -223,24 +223,22 @@ class DependencySecurityAssessor(BaseAssessor):
                 pass
 
         # 6. Semgrep (multi-language SAST) (15 points)
-        semgrep_config = repository.path / ".semgrep.yml"
-        semgrep_workflow = repository.path / ".github" / "workflows"
-        if semgrep_config.exists():
+        if repository.assessment_exists(".semgrep.yml"):
             score += 15
             tools_found.append("Semgrep")
             evidence.append("✓ Semgrep SAST configured")
-        elif semgrep_workflow.exists():
-            semgrep_files = list(semgrep_workflow.glob("*semgrep*.yml")) + list(
-                semgrep_workflow.glob("*semgrep*.yaml")
-            )
-            if semgrep_files:
-                score += 15
-                tools_found.append("Semgrep")
-                evidence.append("✓ Semgrep SAST in GitHub Actions")
+        elif repository.assessment_match_any(
+            [
+                ".github/workflows/*semgrep*.yml",
+                ".github/workflows/*semgrep*.yaml",
+            ]
+        ):
+            score += 15
+            tools_found.append("Semgrep")
+            evidence.append("✓ Semgrep SAST in GitHub Actions")
 
         # 7. Security policy (5 points bonus)
-        security_md = repository.path / "SECURITY.md"
-        if security_md.exists():
+        if repository.assessment_exists("SECURITY.md"):
             score += 5
             evidence.append("✓ SECURITY.md present (vulnerability disclosure policy)")
 

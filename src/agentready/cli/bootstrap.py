@@ -77,8 +77,7 @@ def bootstrap(repository, dry_run, language):
         click.echo("  (none)")
 
     click.echo(
-        f"\n{skipped_label} {len(result.skipped_files)} file(s) "
-        "(already exists):"
+        f"\n{skipped_label} {len(result.skipped_files)} file(s) " "(already exists):"
     )
     if result.skipped_files:
         for file_path in sorted(result.skipped_files):

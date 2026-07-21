@@ -1,12 +1,13 @@
 """Repository model representing the target git repository being assessed."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..utils.privacy import sanitize_path, shorten_commit_hash
 
 if TYPE_CHECKING:
+    from ..services.git_aware_file_index import GitAwareFileIndex
     from .config import Config
 
 
@@ -35,6 +36,9 @@ class Repository:
     total_files: int
     total_lines: int
     config: "Config | None" = None
+    _file_index: "GitAwareFileIndex | None" = field(
+        default=None, repr=False, compare=False
+    )
 
     def __post_init__(self):
         """Validate repository data after initialization."""
@@ -53,6 +57,53 @@ class Repository:
 
         if self.total_lines < 0:
             raise ValueError(f"Total lines must be non-negative: {self.total_lines}")
+
+    @property
+    def file_index(self) -> "GitAwareFileIndex":
+        """Git-ignore-aware file index scoped to this repository.
+
+        Lazy-built and cached for the lifetime of this Repository instance so
+        assessors share one ignore boundary without process-global state.
+        """
+        if self._file_index is None:
+            from ..services.git_aware_file_index import GitAwareFileIndex
+
+            self._file_index = GitAwareFileIndex(self.path)
+        return self._file_index
+
+    def assessment_files(self, pattern: str | None = None) -> list[Path]:
+        """Return absolute paths of assessment-eligible files (optionally matched).
+
+        On Git index failure, returns an empty list (fail closed — never scan
+        ignored trees via unfiltered ``rglob``).
+        """
+        from ..services.git_aware_file_index import GitAwareFileIndexError
+
+        try:
+            return self.file_index.absolute_paths(pattern)
+        except GitAwareFileIndexError:
+            return []
+
+    def assessment_exists(self, relative: str | Path) -> bool:
+        """True when a score-relevant path exists and is not ignore-excluded.
+
+        On Git index failure, returns False (fail closed).
+        """
+        from ..services.git_aware_file_index import GitAwareFileIndexError
+
+        try:
+            return self.file_index.exists(relative)
+        except GitAwareFileIndexError:
+            return False
+
+    def assessment_match_any(self, patterns: list[str]) -> list[str]:
+        """Return relative paths matching any pattern via the assessment file set."""
+        from ..services.git_aware_file_index import GitAwareFileIndexError
+
+        try:
+            return self.file_index.match_any(patterns)
+        except GitAwareFileIndexError:
+            return []
 
     def get_sanitized_path(self) -> str:
         """Get sanitized path for public display.
@@ -91,6 +142,7 @@ class Repository:
         repo.total_files = data.get("total_files", 0)
         repo.total_lines = data.get("total_lines", 0)
         repo.config = None
+        repo._file_index = None
         return repo
 
     @property

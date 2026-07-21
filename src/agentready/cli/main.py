@@ -18,6 +18,7 @@ from ..assessors import create_all_assessors
 from ..models.config import Config
 from ..reporters.html import HTMLReporter
 from ..reporters.markdown import MarkdownReporter
+from ..services.git_aware_file_index import GitAwareFileIndex, GitAwareFileIndexError
 from ..services.research_loader import ResearchLoader
 from ..services.scanner import Scanner
 from ..utils.security import (
@@ -25,7 +26,6 @@ from ..utils.security import (
     VAR_SENSITIVE_SUBDIRS,
     _is_path_in_directory,
 )
-from ..utils.subprocess_utils import safe_subprocess_run
 
 # Lightweight commands - imported immediately
 from .align import align
@@ -206,27 +206,16 @@ def run_assessment(
 
     # Performance: Warn for large repositories
     try:
-        # Quick file count using git ls-files (if it's a git repo) or fallback
-        # Security: Use safe_subprocess_run for validation and limits
-        result = safe_subprocess_run(
-            ["git", "ls-files"],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            file_count = len(result.stdout.splitlines())
-        else:
-            # Not a git repo, use glob (slower but works)
-            file_count = sum(1 for _ in repo_path.rglob("*") if _.is_file())
-
+        index = GitAwareFileIndex(repo_path)
+        file_count = len(list(index.iter_files()))
         if file_count > 10000:
             click.confirm(
                 f"⚠️  Warning: Large repository detected ({file_count:,} files). "
                 "Assessment may take several minutes. Continue?",
                 abort=True,
             )
+    except GitAwareFileIndexError:
+        pass
     except click.Abort:
         # User declined to continue - re-raise to abort
         raise

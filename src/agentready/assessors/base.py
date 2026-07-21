@@ -105,10 +105,10 @@ class BaseAssessor(ABC):
             manifests = self._LANG_ROOT_MANIFESTS.get(lang, [])
             for manifest in manifests:
                 if "*" in manifest:
-                    if list(repository.path.glob(manifest)):
+                    if repository.assessment_files(manifest):
                         return True
                 else:
-                    if (repository.path / manifest).exists():
+                    if repository.assessment_exists(manifest):
                         return True
             return False
 
@@ -122,7 +122,7 @@ class BaseAssessor(ABC):
         # Special handling for JavaScript/TypeScript
         if set(detected_by_manifest) == {"JavaScript", "TypeScript"}:
             # TypeScript projects have tsconfig.json - stronger signal than file count
-            if (repository.path / "tsconfig.json").exists():
+            if repository.assessment_exists("tsconfig.json"):
                 return "TypeScript"
 
         # Use file counts to detect primary language
@@ -161,9 +161,9 @@ class BaseAssessor(ABC):
         testdata directories.
         """
         roots: list[Path] = []
-        if (repository.path / "go.mod").exists():
+        if repository.assessment_exists("go.mod"):
             roots.append(repository.path)
-        for gomod in repository.path.rglob("go.mod"):
+        for gomod in repository.assessment_files("go.mod"):
             if "vendor" in gomod.parts or "testdata" in gomod.parts:
                 continue
             if gomod.parent == repository.path:
