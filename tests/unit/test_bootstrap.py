@@ -2,10 +2,11 @@
 
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from agentready.services.bootstrap import BootstrapGenerator
+from agentready.services.bootstrap import BootstrapGenerator, BootstrapResult
 
 
 @pytest.fixture
@@ -24,6 +25,10 @@ def generator(temp_repo):
     return BootstrapGenerator(temp_repo, language="python")
 
 
+def _sentinel(name: str) -> str:
+    return f"SENTINEL-{name}-DO-NOT-OVERWRITE\n"
+
+
 class TestBootstrapGenerator:
     """Test BootstrapGenerator class."""
 
@@ -35,34 +40,31 @@ class TestBootstrapGenerator:
 
     def test_init_with_auto_detect(self, temp_repo):
         """Test initialization with auto language detection."""
-        # Create some Python files
         (temp_repo / "main.py").write_text("print('hello')")
         gen = BootstrapGenerator(temp_repo, language="auto")
         assert gen.repo_path == temp_repo
-        # Language should be detected (python or fallback)
         assert gen.language in ["python", "javascript", "go"]
 
     def test_generate_all_dry_run(self, generator):
         """Test generate_all in dry-run mode."""
-        files = generator.generate_all(dry_run=True)
+        result = generator.generate_all(dry_run=True)
 
-        # Should return list of paths that would be created
-        assert len(files) > 0
-        assert all(isinstance(f, Path) for f in files)
+        assert isinstance(result, BootstrapResult)
+        assert len(result.created_files) > 0
+        assert result.skipped_files == []
+        assert all(isinstance(f, Path) for f in result.created_files)
 
-        # Files should not actually exist (dry run)
-        for file_path in files:
+        for file_path in result.created_files:
             assert not file_path.exists()
 
     def test_generate_all_creates_files(self, generator):
         """Test generate_all actually creates files."""
-        files = generator.generate_all(dry_run=False)
+        result = generator.generate_all(dry_run=False)
 
-        # Should create files
-        assert len(files) > 0
+        assert len(result.created_files) > 0
+        assert result.skipped_files == []
 
-        # Files should actually exist
-        for file_path in files:
+        for file_path in result.created_files:
             assert file_path.exists()
             assert file_path.is_file()
 
@@ -70,17 +72,14 @@ class TestBootstrapGenerator:
         """Test workflow generation."""
         workflows = generator._generate_workflows(dry_run=False)
 
-        # Should generate 4 workflows
         assert len(workflows) == 4
 
-        # Check workflow files exist
         workflow_names = [w.name for w in workflows]
         assert "agentready-assessment.yml" in workflow_names
         assert "tests.yml" in workflow_names
         assert "security.yml" in workflow_names
         assert "repomix-update.yml" in workflow_names
 
-        # Verify content is valid YAML
         for workflow in workflows:
             content = workflow.read_text()
             assert "name:" in content
@@ -91,10 +90,8 @@ class TestBootstrapGenerator:
         """Test GitHub template generation."""
         templates = generator._generate_github_templates(dry_run=False)
 
-        # Should generate 4 files: 2 issue templates, 1 PR template, 1 CODEOWNERS
         assert len(templates) == 4
 
-        # Check file names
         template_names = [t.name for t in templates]
         assert "bug_report.md" in template_names
         assert "feature_request.md" in template_names
@@ -105,13 +102,11 @@ class TestBootstrapGenerator:
         """Test pre-commit configuration generation."""
         configs = generator._generate_precommit_config(dry_run=False)
 
-        # Should generate 1 file
         assert len(configs) == 1
 
         precommit_file = configs[0]
         assert precommit_file.name == ".pre-commit-config.yaml"
 
-        # Verify content
         content = precommit_file.read_text()
         assert "repos:" in content
         assert "hooks:" in content
@@ -120,13 +115,11 @@ class TestBootstrapGenerator:
         """Test Dependabot configuration generation."""
         configs = generator._generate_dependabot(dry_run=False)
 
-        # Should generate 1 file
         assert len(configs) == 1
 
         dependabot_file = configs[0]
         assert dependabot_file.name == "dependabot.yml"
 
-        # Verify content
         content = dependabot_file.read_text()
         assert "version:" in content
         assert "updates:" in content
@@ -135,63 +128,144 @@ class TestBootstrapGenerator:
         """Test documentation generation."""
         docs = generator._generate_docs(dry_run=False)
 
-        # Should generate 2 files (CONTRIBUTING.md, CODE_OF_CONDUCT.md)
         assert len(docs) == 2
 
-        # Check file names
         doc_names = [d.name for d in docs]
         assert "CONTRIBUTING.md" in doc_names
         assert "CODE_OF_CONDUCT.md" in doc_names
 
     def test_generate_docs_skips_existing(self, generator):
         """Test that docs generation skips existing files."""
-        # Create CONTRIBUTING.md
         contributing = generator.repo_path / "CONTRIBUTING.md"
         contributing.write_text("# Existing Contributing Guide")
 
         docs = generator._generate_docs(dry_run=False)
 
-        # Should only generate CODE_OF_CONDUCT.md
         assert len(docs) == 1
         assert docs[0].name == "CODE_OF_CONDUCT.md"
 
-        # CONTRIBUTING.md should not be overwritten
         assert contributing.read_text() == "# Existing Contributing Guide"
+
+    def test_preserves_all_existing_bootstrap_targets_byte_for_byte(self, generator):
+        """Pre-create every bootstrap target; none may change."""
+        first = generator.generate_all(dry_run=False)
+        targets = list(first.created_files)
+        assert targets
+
+        sentinels = {}
+        for path in targets:
+            sentinel = _sentinel(path.name)
+            path.write_text(sentinel)
+            sentinels[path] = sentinel
+
+        second = generator.generate_all(dry_run=False)
+        assert second.created_files == []
+        assert set(second.skipped_files) == set(targets)
+
+        for path, sentinel in sentinels.items():
+            assert path.read_text() == sentinel
+
+    def test_mixed_create_and_skip(self, generator):
+        """Missing targets are created; existing targets are skipped."""
+        precommit = generator.repo_path / ".pre-commit-config.yaml"
+        precommit.write_text(_sentinel("pre-commit"))
+
+        result = generator.generate_all(dry_run=False)
+
+        assert precommit in result.skipped_files
+        assert precommit.read_text() == _sentinel("pre-commit")
+        assert len(result.created_files) > 0
+        assert precommit not in result.created_files
+        for created in result.created_files:
+            assert created.exists()
+
+    def test_idempotent_second_run(self, generator):
+        """Second bootstrap creates nothing and skips every target."""
+        first = generator.generate_all(dry_run=False)
+        assert len(first.created_files) > 0
+
+        second = generator.generate_all(dry_run=False)
+        assert second.created_files == []
+        assert set(second.skipped_files) == set(first.created_files)
+
+    def test_dry_run_separates_would_create_and_would_skip(self, generator):
+        """Dry-run classifies existing vs missing without writing."""
+        precommit = generator.repo_path / ".pre-commit-config.yaml"
+        precommit.write_text(_sentinel("pre-commit"))
+
+        result = generator.generate_all(dry_run=True)
+
+        assert precommit in result.skipped_files
+        assert precommit.read_text() == _sentinel("pre-commit")
+        assert len(result.created_files) > 0
+        for path in result.created_files:
+            assert not path.exists()
+        assert precommit not in result.created_files
+
+    def test_file_exists_error_during_exclusive_create_is_skip(self, generator):
+        """Simulated FileExistsError from open('x') is recorded as skip."""
+        target = generator.repo_path / "exclusive.txt"
+        generator._result = BootstrapResult()
+
+        real_open = open
+
+        def open_x_raises(path, mode="r", *args, **kwargs):
+            if mode == "x":
+                raise FileExistsError(path)
+            return real_open(path, mode, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=open_x_raises):
+            result = generator._write_file(target, "content", dry_run=False)
+
+        assert result is None
+        assert target in generator._result.skipped_files
+        assert target not in generator._result.created_files
+        assert not target.exists()
 
     def test_write_file_creates_directories(self, generator):
         """Test that _write_file creates parent directories."""
         nested_file = generator.repo_path / "a" / "b" / "c" / "test.txt"
 
-        generator._write_file(nested_file, "test content", dry_run=False)
+        result = generator._write_file(nested_file, "test content", dry_run=False)
 
+        assert result == nested_file
         assert nested_file.exists()
         assert nested_file.read_text() == "test content"
 
     def test_write_file_dry_run(self, generator):
         """Test that _write_file doesn't create files in dry-run mode."""
         test_file = generator.repo_path / "test.txt"
+        generator._result = BootstrapResult()
 
         result = generator._write_file(test_file, "test content", dry_run=True)
 
-        # Should return path
         assert result == test_file
-
-        # But file should not exist
+        assert test_file in generator._result.created_files
         assert not test_file.exists()
+
+    def test_write_file_skips_existing_symlink(self, generator, temp_repo):
+        """Existing symlink targets must not be replaced."""
+        real = temp_repo / "real-precommit.yaml"
+        real.write_text(_sentinel("real"))
+        link = temp_repo / ".pre-commit-config.yaml"
+        link.symlink_to(real)
+
+        result = generator.generate_all(dry_run=False)
+        assert link in result.skipped_files
+        assert link.is_symlink()
+        assert real.read_text() == _sentinel("real")
 
     def test_all_generated_files_are_in_correct_locations(self, generator):
         """Test that all files are generated in expected locations."""
-        files = generator.generate_all(dry_run=False)
+        result = generator.generate_all(dry_run=False)
+        files = result.created_files
 
-        # Group files by location
         github_files = [f for f in files if ".github" in str(f)]
         root_files = [f for f in files if ".github" not in str(f)]
 
-        # Should have files in both .github and root
         assert len(github_files) > 0
         assert len(root_files) > 0
 
-        # Check specific locations
         workflow_files = [f for f in files if "workflows" in str(f)]
         assert len(workflow_files) == 4
 
@@ -200,12 +274,18 @@ class TestBootstrapGenerator:
 
     def test_language_fallback(self, temp_repo):
         """Test that unknown languages fall back to Python."""
-        # Create generator with unsupported language
         gen = BootstrapGenerator(temp_repo, language="python")
 
-        # Should still work and generate files
-        files = gen.generate_all(dry_run=True)
-        assert len(files) > 0
+        result = gen.generate_all(dry_run=True)
+        assert len(result.created_files) > 0
+
+    def test_generate_all_resets_result_state(self, generator):
+        """Each generate_all call starts with a fresh result."""
+        first = generator.generate_all(dry_run=False)
+        second = generator.generate_all(dry_run=False)
+        assert first is not second
+        assert second.created_files == []
+        assert len(second.skipped_files) == len(first.created_files)
 
 
 class TestBootstrapGeneratorLanguageDetection:
@@ -218,18 +298,15 @@ class TestBootstrapGeneratorLanguageDetection:
 
     def test_detect_language_auto_python(self, temp_repo):
         """Test auto-detection of Python."""
-        # Create Python files
         (temp_repo / "main.py").write_text("import sys")
         (temp_repo / "lib.py").write_text("def foo(): pass")
 
         gen = BootstrapGenerator(temp_repo, language="auto")
-        # Should detect Python
         assert gen.language in ["python", "javascript", "go"]
 
     def test_detect_language_auto_empty_repo(self, temp_repo):
         """Test auto-detection in empty repo falls back to Python."""
         gen = BootstrapGenerator(temp_repo, language="auto")
-        # Should fall back to python
         assert gen.language == "python"
 
 
@@ -243,13 +320,9 @@ class TestBootstrapTemplateRendering:
         for workflow in workflows:
             content = workflow.read_text()
 
-            # Basic YAML structure checks
             assert content.startswith("name:")
             assert "\non:" in content or "\non :" in content
             assert "\njobs:" in content
-
-            # Should not have Jinja2 control flow syntax in output
-            # Note: GitHub Actions uses ${{ }} syntax which is valid and expected
             assert "{%" not in content
 
     def test_repomix_workflow_uses_subdirectory_output(self, generator):
@@ -265,12 +338,9 @@ class TestBootstrapTemplateRendering:
 
     def test_templates_render_without_errors(self, generator):
         """Test that all templates render without errors."""
-        # This test ensures no Jinja2 rendering errors occur
-        files = generator.generate_all(dry_run=False)
+        result = generator.generate_all(dry_run=False)
 
-        # All files should be created successfully
-        assert len(files) > 0
+        assert len(result.created_files) > 0
 
-        # All files should have content
-        for file_path in files:
+        for file_path in result.created_files:
             assert file_path.stat().st_size > 0

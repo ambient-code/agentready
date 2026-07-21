@@ -31,6 +31,8 @@ def bootstrap(repository, dry_run, language):
     - Dependabot configuration
     - Contributing guidelines
 
+    Existing files are never overwritten; they are reported as skipped.
+
     REPOSITORY: Path to git repository (default: current directory)
     """
     repo_path = Path(repository).resolve()
@@ -51,21 +53,39 @@ def bootstrap(repository, dry_run, language):
 
     # Generate all files
     try:
-        created_files = generator.generate_all(dry_run=dry_run)
+        result = generator.generate_all(dry_run=dry_run)
     except Exception as e:
         click.echo(f"\nError during bootstrap: {str(e)}", err=True)
         sys.exit(1)
 
     # Report results
     click.echo("\n" + "=" * 50)
-    if dry_run:
-        click.echo("\nDry run complete! The following files would be created:")
-    else:
-        click.echo(f"\nBootstrap complete! Created {len(created_files)} files:")
+    created_label = "Would create" if dry_run else "Created"
+    skipped_label = "Would skip" if dry_run else "Skipped"
 
-    for file_path in sorted(created_files):
-        rel_path = file_path.relative_to(repo_path)
-        click.echo(f"  ✓ {rel_path}")
+    if dry_run:
+        click.echo("\nDry run complete!")
+    else:
+        click.echo("\nBootstrap complete!")
+
+    click.echo(f"\n{created_label} {len(result.created_files)} file(s):")
+    if result.created_files:
+        for file_path in sorted(result.created_files):
+            rel_path = file_path.relative_to(repo_path)
+            click.echo(f"  ✓ {rel_path}")
+    else:
+        click.echo("  (none)")
+
+    click.echo(
+        f"\n{skipped_label} {len(result.skipped_files)} file(s) "
+        "(already exists):"
+    )
+    if result.skipped_files:
+        for file_path in sorted(result.skipped_files):
+            rel_path = file_path.relative_to(repo_path)
+            click.echo(f"  · {rel_path}")
+    else:
+        click.echo("  (none)")
 
     if not dry_run:
         click.echo("\n✅ Repository bootstrapped successfully!")

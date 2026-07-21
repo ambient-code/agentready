@@ -44,7 +44,8 @@ class TestBootstrapCommand:
         # Should succeed
         assert result.exit_code == 0
         assert "Dry run" in result.output
-        assert "would be created" in result.output
+        assert "Would create" in result.output
+        assert "Would skip" in result.output
 
         # Files should not exist
         assert not (temp_repo / ".github" / "workflows").exists()
@@ -149,7 +150,7 @@ class TestBootstrapCommand:
         # Should report file count
         assert result.exit_code == 0
         assert "Created" in result.output
-        assert "files:" in result.output
+        assert "file(s):" in result.output
 
     def test_bootstrap_lists_created_files(self, runner, temp_repo):
         """Test bootstrap command lists created files."""
@@ -218,26 +219,38 @@ class TestBootstrapCommandEdgeCases:
         github_dir = temp_repo / ".github"
         github_dir.mkdir()
 
-        # Create a workflow file
+        # Create a workflow file (non-bootstrap target — should not affect counts)
         workflows_dir = github_dir / "workflows"
         workflows_dir.mkdir()
         (workflows_dir / "existing.yml").write_text("name: existing")
 
+        # Customize a bootstrap target that must be preserved
+        precommit = temp_repo / ".pre-commit-config.yaml"
+        precommit.write_text("repos: []  # customized\n")
+
         result = runner.invoke(bootstrap, [str(temp_repo)])
 
-        # Should still work (may skip existing files)
         assert result.exit_code == 0
+        assert "Skipped" in result.output
+        assert ".pre-commit-config.yaml" in result.output
+        assert precommit.read_text() == "repos: []  # customized\n"
 
     def test_bootstrap_multiple_runs(self, runner, temp_repo):
-        """Test running bootstrap multiple times."""
+        """Test running bootstrap multiple times is idempotent."""
         # First run
         result1 = runner.invoke(bootstrap, [str(temp_repo)])
         assert result1.exit_code == 0
+        assert "Created" in result1.output
+
+        precommit = temp_repo / ".pre-commit-config.yaml"
+        original = precommit.read_text()
 
         # Second run (files already exist)
         result2 = runner.invoke(bootstrap, [str(temp_repo)])
-        # Should still work (may skip or overwrite)
         assert result2.exit_code == 0
+        assert "Created 0 file" in result2.output
+        assert "Skipped" in result2.output
+        assert precommit.read_text() == original
 
     def test_bootstrap_creates_workflow_files(self, runner, temp_repo):
         """Test bootstrap creates specific workflow files."""

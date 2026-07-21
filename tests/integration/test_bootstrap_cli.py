@@ -40,7 +40,7 @@ class TestBootstrapCLI:
 
             assert result.exit_code == 0
             assert "Dry run complete" in result.output
-            assert "would be created" in result.output
+            assert "Would create" in result.output
 
             # Should list files that would be created
             assert ".github/workflows/agentready-assessment.yml" in result.output

@@ -98,7 +98,7 @@ Bootstrap is AgentReady's automated infrastructure generator. One command create
 **Safe by Design**:
 
 - Use `--dry-run` to preview changes
-- Never overwrites existing files (⚠️ [not yet fully implemented](https://github.com/ambient-code/agentready/issues/449), currently only `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` are protected)
+- Never overwrites existing files; skips them and reports the list
 - Review with `git status` before committing
 
 ### When to Use Bootstrap vs Assess
