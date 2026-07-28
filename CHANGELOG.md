@@ -1,3 +1,15 @@
+# [2.51.0](https://github.com/ambient-code/agentready/compare/v2.50.0...v2.51.0) (2026-07-28)
+
+
+### Bug Fixes
+
+* **ci:** pin ruff to prevent unpinned upgrade breaking lint checks ([cea1217](https://github.com/ambient-code/agentready/commit/cea12177ea21a81b6f486b5b5fe81ac6f29c6f9e))
+
+
+### Features
+
+* add red-hat-data-services/agentic-starter-kits to leaderboard ([7a166e6](https://github.com/ambient-code/agentready/commit/7a166e66171dd5cbb2a7ceb0a8d5d9ac5db176d8))
+
 # [2.50.0](https://github.com/ambient-code/agentready/compare/v2.49.0...v2.50.0) (2026-07-16)
 
 
