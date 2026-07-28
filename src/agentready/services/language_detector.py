@@ -51,11 +51,18 @@ class LanguageDetector:
         ".zsh": "Shell",
         ".sql": "SQL",
         ".md": "Markdown",
+        ".mdx": "Markdown",
         ".yaml": "YAML",
         ".yml": "YAML",
         ".json": "JSON",
         ".toml": "TOML",
         ".xml": "XML",
+        ".tf": "Terraform",
+    }
+
+    # Extensionless filenames matched by exact name (suffix-based lookup can't see these)
+    BASENAME_MAP = {
+        "Dockerfile": "Dockerfile",
     }
 
     def __init__(self, repository_path: Path):
@@ -107,8 +114,9 @@ class LanguageDetector:
             suffix = path.suffix.lower()
 
             if suffix in self.EXTENSION_MAP:
-                language = self.EXTENSION_MAP[suffix]
-                language_counts[language] += 1
+                language_counts[self.EXTENSION_MAP[suffix]] += 1
+            elif path.name in self.BASENAME_MAP:
+                language_counts[self.BASENAME_MAP[path.name]] += 1
 
         # Filter by minimum threshold
         return {

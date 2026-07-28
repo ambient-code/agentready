@@ -1510,7 +1510,7 @@ class TestArchitecturalBoundaryAssessor:
         assessor = ArchitecturalBoundaryAssessor()
         assert assessor.attribute_id == "architectural_boundaries"
         assert assessor.tier == 3
-        assert assessor.attribute.default_weight == 0.02
+        assert assessor.attribute.default_weight == 0.01
 
     def test_java_repo_not_applicable(self, tmp_path):
         """Java-only repo gets not_applicable (unsupported language)."""

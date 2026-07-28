@@ -11,6 +11,7 @@ from .base import BaseAssessor
 from .code_quality import (
     CyclomaticComplexityAssessor,
     LintConfigCoverageAssessor,
+    LintSuppressionAssessor,
     StructuredLoggingAssessor,
     TypeAnnotationsAssessor,
 )
@@ -59,6 +60,7 @@ from .verification import SingleFileVerificationAssessor
 __all__ = [
     "create_all_assessors",
     "BaseAssessor",
+    "LintSuppressionAssessor",
     "LockFilesAssessor",
     "AdrFrontmatterAssessor",
 ]
@@ -99,15 +101,16 @@ def create_all_assessors() -> list[BaseAssessor]:
         LintConfigCoverageAssessor(),  # 2% (issue #511)
         DbtDataTestsAssessor(),  # dbt conditional
         DbtProjectStructureAssessor(),  # dbt conditional
-        # Tier 3 Important — 13% total (8 attributes)
+        # Tier 3 Important — 13% total (9 attributes)
         ArchitectureDecisionsAssessor(),  # 1%
         AdrFrontmatterAssessor(),  # 2% (2.4 - ADR Frontmatter Completeness)
         OpenAPISpecsAssessor(),  # 2%
-        CyclomaticComplexityAssessor(),  # 2%
+        CyclomaticComplexityAssessor(),  # 1%
         StructuredLoggingAssessor(),  # 1%
         ProgressiveDisclosureAssessor(),  # 1% (moved from T4)
-        ArchitecturalBoundaryAssessor(),  # 2% (ADR B.1)
+        ArchitecturalBoundaryAssessor(),  # 1% (ADR B.1)
         ThreatModelAssessor(),  # 2% (ADR B.2)
+        LintSuppressionAssessor(),  # 2%
         # Tier 4 Advanced — 2% total (2 attributes, 1% each)
         IssuePRTemplatesAssessor(),
         ContainerSetupAssessor(),

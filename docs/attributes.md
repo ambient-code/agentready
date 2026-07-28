@@ -3,7 +3,7 @@ layout: page
 title: Attributes Reference
 ---
 
-Complete reference for all 27 agent-ready attributes assessed by AgentReady.
+Complete reference for all 30 agent-ready attributes assessed by AgentReady.
 
 <div class="feature" style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0;">
   <h3 style="margin-top: 0;">🤖 Bootstrap Automation</h3>
@@ -26,7 +26,7 @@ Complete reference for all 27 agent-ready attributes assessed by AgentReady.
 
 ## Overview
 
-AgentReady evaluates repositories against 27 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
+AgentReady evaluates repositories against 30 attributes derived from research by Anthropic, Microsoft, Google, ETH Zurich, and Red Hat. Each attribute has specific pass/fail criteria, a tier-based weight, and concrete remediation steps.
 
 Each entry below covers: what the assessor checks, the scoring breakdown, and how to fix a failing result.
 
@@ -39,8 +39,8 @@ Attributes are organized into four weighted tiers:
 | Tier | Weight | Focus | Attribute Count |
 |------|--------|-------|-----------------|
 | **Tier 1: Essential** | 58% | Fundamentals enabling basic AI functionality | 9 attributes |
-| **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 9 attributes |
-| **Tier 3: Important** | 13% | Significant improvements in specific areas | 7 attributes |
+| **Tier 2: Critical** | 27% | Major quality improvements and safety nets | 10 attributes |
+| **Tier 3: Important** | 13% | Significant improvements in specific areas | 9 attributes |
 | **Tier 4: Advanced** | 2% | Refinement and optimization | 2 attributes |
 
 Missing a Tier 1 attribute (up to 12% weight) has up to 12x the score impact of missing a Tier 4 attribute (1% weight).
@@ -1150,7 +1150,7 @@ setup:
 ### 14. Cyclomatic Complexity Limits
 
 **ID**: `cyclomatic_complexity`
-**Weight**: 2%
+**Weight**: 1%
 **Category**: Code Quality
 **Status**: ✅ Implemented
 
@@ -1327,7 +1327,7 @@ Aim for ≥80% of ADR files to have valid frontmatter.
 
 **ID**: `architectural_boundaries`
 **Tier**: Tier 3
-**Weight**: 2%
+**Weight**: 1%
 **Category**: Repository Structure
 **Status**: ✅ Implemented
 
@@ -1501,6 +1501,73 @@ EOF
 
 ---
 
+### Lint Suppression Density
+
+**ID**: `lint_suppression_density`
+**Tier**: Tier 3
+**Weight**: 2%
+**Category**: Code Quality
+**Status**: ✅ Implemented
+
+#### Definition
+
+Counts lint suppression directives (`//nolint`, `# noqa`, `# ruff: noqa`, `# flake8: noqa`, `# type: ignore`, `# pylint: disable`, `// eslint-disable`, `// @ts-ignore`, `// @ts-nocheck`, `// @ts-expect-error`, `# rubocop:disable`, `@SuppressWarnings`, `# tflint-ignore:`, `# shellcheck disable=`, `# hadolint ignore=`) across source files and normalizes the count per 1,000 lines of source code.
+
+#### Why It Matters
+
+A repo can have a comprehensive lint config and still render it meaningless through blanket suppression usage — lint passes, but not because the code is clean. A high density means violations are being silenced rather than fixed, which gives AI agents a false signal that the codebase is healthy.
+
+#### Measurable Criteria
+
+**Supported languages**: Go, Python, JavaScript, TypeScript, Ruby, Java, Terraform, Shell, Dockerfile.
+
+Markdown and YAML are intentionally excluded from scanning: they are documentation/config, not source code, and are near-universally present with ~zero suppressions — counting their LOC would dilute the density signal for any repo that simply has good docs.
+
+**File scanning**: Only git-tracked regular files are scanned (`.gitignore` is honored; symlinks and non-regular files are skipped). Generated directories (`vendor/`, `node_modules/`, `.venv/`, etc.) are excluded even if tracked. Each file read is capped at 1 MB. Blank lines are excluded from the line count. Scan health (files scanned/missing/unreadable/truncated) is reported in evidence; if too large a fraction of matched files couldn't be read, the assessor returns **skipped** rather than a computed score. Also returns **skipped** if git inventory is unavailable (missing git, non-git checkout, output-size limit, or timeout) — does not fall back to ignore-unaware directory walks.
+
+**Scoring**:
+
+| Condition | Score |
+|-----------|-------|
+| ≤5 suppressions/1k LOC (default) | 100 (pass) |
+| Between pass and fail thresholds | Linear 100→0 (fail) |
+| ≥15 suppressions/1k LOC (default) | 0 (fail) |
+
+**Pass threshold**: density at or below the configured `pass_per_kloc` (default 5.0 suppressions per 1,000 source lines).
+
+**Evidence reported**: total suppression count, total LOC scanned, density ratio, scan health tally, and the top files by suppression count.
+
+**Configuration** (`.agentready-config.yaml`):
+
+```yaml
+lint_suppression_density:
+  pass_per_kloc: 5.0       # density at which score=100 (pass)
+  fail_per_kloc: 15.0      # density at which score=0 (fail)
+  exclude_tests: false     # set true to exclude test files entirely (suppressions and LOC) from the calculation
+```
+
+#### Remediation
+
+Fix the underlying lint violations instead of suppressing them. For unavoidable suppressions, use narrow rule-specific directives with explanatory comments:
+
+```python
+# Python — specific rule + rationale (not blanket noqa)
+result = legacy_func()  # noqa: ERA001  # legacy API, refactor tracked in #123
+
+# Go — rule name + reason
+//nolint:errcheck // legacy path, full error handling in #456
+```
+
+For generated or vendored code, exclude the directory from lint config rather than adding inline suppressions.
+
+**Tools**: [ruff](https://docs.astral.sh/ruff/), [golangci-lint](https://golangci-lint.run/), [ESLint](https://eslint.org/)
+
+**Citations**:
+
+- agentready: Issue [#510](https://github.com/ambient-code/agentready/issues/510)
+
+---
+
 *Full details for each attribute available in the [research document](https://github.com/ambient-code/agentready/blob/main/RESEARCH_REPORT.md).*
 
 ---
@@ -1520,12 +1587,12 @@ EOF
 
 ## Implementation Status
 
-All 27 assessors are fully implemented across all four tiers.
+All 30 assessors are fully implemented across all four tiers.
 
 **Current State**:
 - ✅ **Tier 1 (Essential)**: Fully implemented (9 attributes)
-- ✅ **Tier 2 (Critical)**: Fully implemented (9 attributes)
-- ✅ **Tier 3 (Important)**: Fully implemented (7 attributes)
+- ✅ **Tier 2 (Critical)**: Fully implemented (10 attributes)
+- ✅ **Tier 3 (Important)**: Fully implemented (9 attributes)
 - ✅ **Tier 4 (Advanced)**: Fully implemented (2 attributes)
 
 See the [GitHub repository](https://github.com/ambient-code/agentready) for current implementation details.
