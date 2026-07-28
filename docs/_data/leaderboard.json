@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-21T16:12:20.734728Z",
+  "generated_at": "2026-07-28T09:22:58.070881Z",
   "total_repositories": 27,
   "overall": [
     {
@@ -177,6 +177,37 @@
       }
     },
     {
+      "repo": "red-hat-data-services/agentic-starter-kits",
+      "org": "red-hat-data-services",
+      "name": "agentic-starter-kits",
+      "score": 68.4,
+      "tier": "Silver",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-06-26",
+      "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
+      "agentready_version": "2.48.0",
+      "research_version": "2.0.1",
+      "history": [
+        {
+          "date": "2026-06-26",
+          "score": 68.4,
+          "agentready_version": "2.48.0",
+          "research_version": "2.0.1"
+        },
+        {
+          "date": "2026-05-21",
+          "score": 58.4,
+          "agentready_version": "2.39.3",
+          "research_version": "2.0.1"
+        }
+      ],
+      "rank": 7,
+      "lang_rank": {
+        "Unknown": 7
+      }
+    },
+    {
       "repo": "fullsend-ai/fullsend",
       "org": "fullsend-ai",
       "name": "fullsend",
@@ -196,9 +227,9 @@
           "research_version": "2.0.0"
         }
       ],
-      "rank": 7,
+      "rank": 8,
       "lang_rank": {
-        "Unknown": 7
+        "Unknown": 8
       }
     },
     {
@@ -227,9 +258,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 8,
+      "rank": 9,
       "lang_rank": {
-        "Unknown": 8
+        "Unknown": 9
       }
     },
     {
@@ -252,9 +283,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 9,
+      "rank": 10,
       "lang_rank": {
-        "Unknown": 9
+        "Unknown": 10
       }
     },
     {
@@ -277,9 +308,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 10,
+      "rank": 11,
       "lang_rank": {
-        "Unknown": 10
+        "Unknown": 11
       }
     },
     {
@@ -302,9 +333,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 11,
+      "rank": 12,
       "lang_rank": {
-        "Unknown": 11
+        "Unknown": 12
       }
     },
     {
@@ -327,59 +358,9 @@
           "research_version": "1.0.1"
         }
       ],
-      "rank": 12,
-      "lang_rank": {
-        "Unknown": 12
-      }
-    },
-    {
-      "repo": "red-hat-data-services/agentic-starter-kits",
-      "org": "red-hat-data-services",
-      "name": "agentic-starter-kits",
-      "score": 58.4,
-      "tier": "Bronze",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-05-21",
-      "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
-      "agentready_version": "2.39.3",
-      "research_version": "2.0.1",
-      "history": [
-        {
-          "date": "2026-05-21",
-          "score": 58.4,
-          "agentready_version": "2.39.3",
-          "research_version": "2.0.1"
-        }
-      ],
       "rank": 13,
       "lang_rank": {
         "Unknown": 13
-      }
-    },
-    {
-      "repo": "ambient-code/reference",
-      "org": "ambient-code",
-      "name": "reference",
-      "score": 55.8,
-      "tier": "Bronze",
-      "language": "Unknown",
-      "size": "Unknown",
-      "last_updated": "2026-01-15",
-      "url": "https://github.com/ambient-code/reference",
-      "agentready_version": "2.22.1",
-      "research_version": "1.0.1",
-      "history": [
-        {
-          "date": "2026-01-15",
-          "score": 55.8,
-          "agentready_version": "2.22.1",
-          "research_version": "1.0.1"
-        }
-      ],
-      "rank": 14,
-      "lang_rank": {
-        "Unknown": 14
       }
     },
     {
@@ -399,6 +380,31 @@
           "date": "2026-01-15",
           "score": 55.8,
           "agentready_version": "2.22.0",
+          "research_version": "1.0.1"
+        }
+      ],
+      "rank": 14,
+      "lang_rank": {
+        "Unknown": 14
+      }
+    },
+    {
+      "repo": "ambient-code/reference",
+      "org": "ambient-code",
+      "name": "reference",
+      "score": 55.8,
+      "tier": "Bronze",
+      "language": "Unknown",
+      "size": "Unknown",
+      "last_updated": "2026-01-15",
+      "url": "https://github.com/ambient-code/reference",
+      "agentready_version": "2.22.1",
+      "research_version": "1.0.1",
+      "history": [
+        {
+          "date": "2026-01-15",
+          "score": 55.8,
+          "agentready_version": "2.22.1",
           "research_version": "1.0.1"
         }
       ],
@@ -885,6 +891,37 @@
         }
       },
       {
+        "repo": "red-hat-data-services/agentic-starter-kits",
+        "org": "red-hat-data-services",
+        "name": "agentic-starter-kits",
+        "score": 68.4,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-06-26",
+        "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
+        "agentready_version": "2.48.0",
+        "research_version": "2.0.1",
+        "history": [
+          {
+            "date": "2026-06-26",
+            "score": 68.4,
+            "agentready_version": "2.48.0",
+            "research_version": "2.0.1"
+          },
+          {
+            "date": "2026-05-21",
+            "score": 58.4,
+            "agentready_version": "2.39.3",
+            "research_version": "2.0.1"
+          }
+        ],
+        "rank": 7,
+        "lang_rank": {
+          "Unknown": 7
+        }
+      },
+      {
         "repo": "fullsend-ai/fullsend",
         "org": "fullsend-ai",
         "name": "fullsend",
@@ -904,9 +941,9 @@
             "research_version": "2.0.0"
           }
         ],
-        "rank": 7,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 8
         }
       },
       {
@@ -935,9 +972,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 9
         }
       },
       {
@@ -960,9 +997,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 9,
+        "rank": 10,
         "lang_rank": {
-          "Unknown": 9
+          "Unknown": 10
         }
       },
       {
@@ -985,9 +1022,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 10,
+        "rank": 11,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 11
         }
       },
       {
@@ -1010,9 +1047,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 11,
+        "rank": 12,
         "lang_rank": {
-          "Unknown": 11
+          "Unknown": 12
         }
       },
       {
@@ -1035,59 +1072,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 12,
-        "lang_rank": {
-          "Unknown": 12
-        }
-      },
-      {
-        "repo": "red-hat-data-services/agentic-starter-kits",
-        "org": "red-hat-data-services",
-        "name": "agentic-starter-kits",
-        "score": 58.4,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-05-21",
-        "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
-        "agentready_version": "2.39.3",
-        "research_version": "2.0.1",
-        "history": [
-          {
-            "date": "2026-05-21",
-            "score": 58.4,
-            "agentready_version": "2.39.3",
-            "research_version": "2.0.1"
-          }
-        ],
         "rank": 13,
         "lang_rank": {
           "Unknown": 13
-        }
-      },
-      {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 14,
-        "lang_rank": {
-          "Unknown": 14
         }
       },
       {
@@ -1107,6 +1094,31 @@
             "date": "2026-01-15",
             "score": 55.8,
             "agentready_version": "2.22.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 14,
+        "lang_rank": {
+          "Unknown": 14
+        }
+      },
+      {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
             "research_version": "1.0.1"
           }
         ],
@@ -1594,6 +1606,37 @@
         }
       },
       {
+        "repo": "red-hat-data-services/agentic-starter-kits",
+        "org": "red-hat-data-services",
+        "name": "agentic-starter-kits",
+        "score": 68.4,
+        "tier": "Silver",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-06-26",
+        "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
+        "agentready_version": "2.48.0",
+        "research_version": "2.0.1",
+        "history": [
+          {
+            "date": "2026-06-26",
+            "score": 68.4,
+            "agentready_version": "2.48.0",
+            "research_version": "2.0.1"
+          },
+          {
+            "date": "2026-05-21",
+            "score": 58.4,
+            "agentready_version": "2.39.3",
+            "research_version": "2.0.1"
+          }
+        ],
+        "rank": 7,
+        "lang_rank": {
+          "Unknown": 7
+        }
+      },
+      {
         "repo": "fullsend-ai/fullsend",
         "org": "fullsend-ai",
         "name": "fullsend",
@@ -1613,9 +1656,9 @@
             "research_version": "2.0.0"
           }
         ],
-        "rank": 7,
+        "rank": 8,
         "lang_rank": {
-          "Unknown": 7
+          "Unknown": 8
         }
       },
       {
@@ -1644,9 +1687,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 8,
+        "rank": 9,
         "lang_rank": {
-          "Unknown": 8
+          "Unknown": 9
         }
       },
       {
@@ -1669,9 +1712,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 9,
+        "rank": 10,
         "lang_rank": {
-          "Unknown": 9
+          "Unknown": 10
         }
       },
       {
@@ -1694,9 +1737,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 10,
+        "rank": 11,
         "lang_rank": {
-          "Unknown": 10
+          "Unknown": 11
         }
       },
       {
@@ -1719,9 +1762,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 11,
+        "rank": 12,
         "lang_rank": {
-          "Unknown": 11
+          "Unknown": 12
         }
       },
       {
@@ -1744,59 +1787,9 @@
             "research_version": "1.0.1"
           }
         ],
-        "rank": 12,
-        "lang_rank": {
-          "Unknown": 12
-        }
-      },
-      {
-        "repo": "red-hat-data-services/agentic-starter-kits",
-        "org": "red-hat-data-services",
-        "name": "agentic-starter-kits",
-        "score": 58.4,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-05-21",
-        "url": "https://github.com/red-hat-data-services/agentic-starter-kits",
-        "agentready_version": "2.39.3",
-        "research_version": "2.0.1",
-        "history": [
-          {
-            "date": "2026-05-21",
-            "score": 58.4,
-            "agentready_version": "2.39.3",
-            "research_version": "2.0.1"
-          }
-        ],
         "rank": 13,
         "lang_rank": {
           "Unknown": 13
-        }
-      },
-      {
-        "repo": "ambient-code/reference",
-        "org": "ambient-code",
-        "name": "reference",
-        "score": 55.8,
-        "tier": "Bronze",
-        "language": "Unknown",
-        "size": "Unknown",
-        "last_updated": "2026-01-15",
-        "url": "https://github.com/ambient-code/reference",
-        "agentready_version": "2.22.1",
-        "research_version": "1.0.1",
-        "history": [
-          {
-            "date": "2026-01-15",
-            "score": 55.8,
-            "agentready_version": "2.22.1",
-            "research_version": "1.0.1"
-          }
-        ],
-        "rank": 14,
-        "lang_rank": {
-          "Unknown": 14
         }
       },
       {
@@ -1816,6 +1809,31 @@
             "date": "2026-01-15",
             "score": 55.8,
             "agentready_version": "2.22.0",
+            "research_version": "1.0.1"
+          }
+        ],
+        "rank": 14,
+        "lang_rank": {
+          "Unknown": 14
+        }
+      },
+      {
+        "repo": "ambient-code/reference",
+        "org": "ambient-code",
+        "name": "reference",
+        "score": 55.8,
+        "tier": "Bronze",
+        "language": "Unknown",
+        "size": "Unknown",
+        "last_updated": "2026-01-15",
+        "url": "https://github.com/ambient-code/reference",
+        "agentready_version": "2.22.1",
+        "research_version": "1.0.1",
+        "history": [
+          {
+            "date": "2026-01-15",
+            "score": 55.8,
+            "agentready_version": "2.22.1",
             "research_version": "1.0.1"
           }
         ],
@@ -2143,6 +2161,15 @@
       "to_score": 83.5,
       "from_date": "2026-02-19",
       "to_date": "2026-03-05",
+      "days": 0
+    },
+    {
+      "repo": "red-hat-data-services/agentic-starter-kits",
+      "improvement": 10.0,
+      "from_score": 58.4,
+      "to_score": 68.4,
+      "from_date": "2026-05-21",
+      "to_date": "2026-06-26",
       "days": 0
     }
   ]
