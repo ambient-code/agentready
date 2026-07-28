@@ -1,3 +1,10 @@
+# [2.52.0](https://github.com/ambient-code/agentready/compare/v2.51.0...v2.52.0) (2026-07-28)
+
+
+### Features
+
+* **assessors:** add lint suppression density assessor ([#518](https://github.com/ambient-code/agentready/issues/518)) ([56f3c00](https://github.com/ambient-code/agentready/commit/56f3c00edc35bd8dbb6a3183707979f1c8c23122)), closes [#510](https://github.com/ambient-code/agentready/issues/510)
+
 # [2.51.0](https://github.com/ambient-code/agentready/compare/v2.50.0...v2.51.0) (2026-07-28)
 
 
