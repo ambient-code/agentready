@@ -1,0 +1,695 @@
+{
+  "schema_version": "1.0.0",
+  "metadata": {
+    "agentready_version": "2.41.1",
+    "research_version": "2.0.1",
+    "assessment_timestamp": "2026-05-28T22:22:24.516105",
+    "assessment_timestamp_human": "May 28, 2026 at 10:22 PM",
+    "executed_by": "sjochman@sjochman1-mac",
+    "command": "/Users/sjochman/git_workspace/RedHat/agentready/src/agentready/__main__.py assess /Users/sjochman/git_workspace/RedHat/konflux-ui --config /Users/sjochman/git_workspace/RedHat/konflux-ui/.agentready-config.yaml",
+    "working_directory": "/Users/sjochman/git_workspace/RedHat/agentready"
+  },
+  "repository": {
+    "path": "/Users/sjochman/git_workspace/RedHat/konflux-ui",
+    "name": "konflux-ui",
+    "url": "git@github.com:konflux-ci/konflux-ui.git",
+    "branch": "KFLUXUI-1275",
+    "commit_hash": "6ae0a95aa1b4873a2fd6c92f5b52a47075054b55",
+    "languages": {
+      "YAML": 30,
+      "Markdown": 24,
+      "JSON": 8,
+      "Shell": 10,
+      "JavaScript": 17,
+      "TypeScript": 1430
+    },
+    "total_files": 1676,
+    "total_lines": 188357
+  },
+  "timestamp": "2026-05-28T22:22:24.516105",
+  "overall_score": 82.6,
+  "certification_level": "Gold",
+  "attributes_assessed": 21,
+  "attributes_skipped": 0,
+  "attributes_total": 21,
+  "findings": [
+    {
+      "attribute": {
+        "id": "test_execution",
+        "name": "Test Execution & Coverage",
+        "category": "Testing & CI/CD",
+        "tier": 1,
+        "description": "Single-command test runner with adequate coverage configuration",
+        "criteria": "Runnable tests with coverage config",
+        "default_weight": 0.1
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "configured",
+      "threshold": "runnable tests with coverage config",
+      "evidence": [
+        "scripts.test entry found in package.json",
+        "Test files found (*.test.* / *.spec.* / __tests__/)",
+        "jest found in devDependencies",
+        "Coverage threshold configured"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "type_annotations",
+        "name": "Type Annotations",
+        "category": "Code Quality",
+        "tier": 1,
+        "description": "Type hints in function signatures",
+        "criteria": ">80% of functions have type annotations",
+        "default_weight": 0.08
+      },
+      "status": "fail",
+      "score": 50.0,
+      "measured_value": "strict mode disabled",
+      "threshold": "strict mode enabled",
+      "evidence": [
+        "tsconfig.json missing strict: true"
+      ],
+      "remediation": {
+        "summary": "Add type annotations to function signatures",
+        "steps": [
+          "For Python: Add type hints to function parameters and return types",
+          "For TypeScript: Enable strict mode in tsconfig.json",
+          "Use mypy or pyright for Python type checking",
+          "Use tsc --strict for TypeScript",
+          "Add type annotations gradually to existing code"
+        ],
+        "tools": [
+          "mypy",
+          "pyright",
+          "typescript"
+        ],
+        "commands": [
+          "# Python",
+          "pip install mypy",
+          "mypy --strict src/",
+          "",
+          "# TypeScript",
+          "npm install --save-dev typescript",
+          "echo '{\"compilerOptions\": {\"strict\": true}}' > tsconfig.json"
+        ],
+        "examples": [
+          "# Python - Before\ndef calculate(x, y):\n    return x + y\n\n# Python - After\ndef calculate(x: float, y: float) -> float:\n    return x + y\n",
+          "// TypeScript - tsconfig.json\n{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"noImplicitAny\": true,\n    \"strictNullChecks\": true\n  }\n}\n"
+        ],
+        "citations": [
+          {
+            "source": "Python.org",
+            "title": "Type Hints",
+            "url": "https://docs.python.org/3/library/typing.html",
+            "relevance": "Official Python type hints documentation"
+          },
+          {
+            "source": "TypeScript",
+            "title": "TypeScript Handbook",
+            "url": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html",
+            "relevance": "TypeScript type system guide"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "claude_md_file",
+        "name": "CLAUDE.md Configuration Files",
+        "category": "Context Window Optimization",
+        "tier": 1,
+        "description": "Project-specific configuration for AI coding agents",
+        "criteria": "CLAUDE.md or AGENTS.md file exists in repository root",
+        "default_weight": 0.07
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "present",
+      "threshold": "present",
+      "evidence": [
+        "CLAUDE.md found at /Users/sjochman/git_workspace/RedHat/konflux-ui/CLAUDE.md"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "ci_quality_gates",
+        "name": "CI Quality Gates",
+        "category": "Testing & CI/CD",
+        "tier": 1,
+        "description": "CI runs lint, type-check, and tests on every PR",
+        "criteria": "CI gates with lint + type-check + tests",
+        "default_weight": 0.05
+      },
+      "status": "fail",
+      "score": 88,
+      "measured_value": "missing quality gates",
+      "threshold": "CI with lint + test + type-check gates on PRs",
+      "evidence": [
+        "CI config found: .github/workflows/release-publish.yml, .github/workflows/release-prod.yml, .github/workflows/coderabbit-resolve-check.yaml, .github/workflows/periodic-job-local.yaml, .github/workflows/periodic-watch-changes.yaml, .github/workflows/rerun-failed-pr-checks.yaml, .github/workflows/periodic-job-stage.yaml, .github/workflows/pr-check.yaml, .github/workflows/main.yaml, .github/workflows/post-merge.yaml, .github/workflows/periodic-job-stage-features.yaml, .github/workflows/pr-title-check.yaml, .github/workflows/pr-report.yaml, .github/workflows/periodic-cleanup.yaml, .github/workflows/base-test-image.yaml, .github/workflows/fullsend.yaml, .tekton/konflux-ui-push.yaml, .tekton/konflux-ui-pull-request.yaml",
+        "Lint gate detected in CI",
+        "Test gate detected in CI",
+        "No type-check gate found in CI",
+        "Descriptive job/step names found",
+        "Caching configured",
+        "Parallel job execution detected",
+        "Config includes comments"
+      ],
+      "remediation": {
+        "summary": "Add or improve CI/CD pipeline configuration",
+        "steps": [
+          "Create CI config for your platform (GitHub Actions, GitLab CI, etc.)",
+          "Define jobs: lint, test, build",
+          "Use descriptive job and step names",
+          "Configure dependency caching",
+          "Enable parallel job execution",
+          "Upload artifacts: test results, coverage reports",
+          "Add status badge to README"
+        ],
+        "tools": [
+          "github-actions",
+          "gitlab-ci",
+          "circleci"
+        ],
+        "commands": [
+          "# Create GitHub Actions workflow",
+          "mkdir -p .github/workflows",
+          "touch .github/workflows/ci.yml",
+          "",
+          "# Validate workflow",
+          "gh workflow view ci.yml"
+        ],
+        "examples": [
+          "# .github/workflows/ci.yml - Good example\n\nname: CI Pipeline\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  lint:\n    name: Lint Code\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n          cache: 'pip'  # Caching\n\n      - name: Install dependencies\n        run: pip install -r requirements.txt\n\n      - name: Run linters\n        run: |\n          black --check .\n          isort --check .\n          ruff check .\n\n  test:\n    name: Run Tests\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n          cache: 'pip'\n\n      - name: Install dependencies\n        run: pip install -r requirements.txt\n\n      - name: Run tests with coverage\n        run: pytest --cov --cov-report=xml\n\n      - name: Upload coverage reports\n        uses: codecov/codecov-action@v3\n        with:\n          files: ./coverage.xml\n\n  build:\n    name: Build Package\n    runs-on: ubuntu-latest\n    needs: [lint, test]  # Runs after lint/test pass\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Build package\n        run: python -m build\n\n      - name: Upload build artifacts\n        uses: actions/upload-artifact@v3\n        with:\n          name: dist\n          path: dist/\n"
+        ],
+        "citations": [
+          {
+            "source": "GitHub",
+            "title": "GitHub Actions Documentation",
+            "url": "https://docs.github.com/en/actions",
+            "relevance": "Official GitHub Actions guide"
+          },
+          {
+            "source": "CircleCI",
+            "title": "CI/CD Best Practices",
+            "url": "https://circleci.com/blog/ci-cd-best-practices/",
+            "relevance": "Industry best practices for CI/CD"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "single_file_verification",
+        "name": "Single-File Verification",
+        "category": "Verification & Feedback Loops",
+        "tier": 1,
+        "description": "Single-file lint and type-check commands available for fast feedback",
+        "criteria": "Documented single-file lint/type-check commands",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "documented",
+      "threshold": "single-file lint + type-check commands documented",
+      "evidence": [
+        "Single-file lint command found in CLAUDE.md",
+        "Single-file type-check command found in CLAUDE.md"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "readme_structure",
+        "name": "README Structure",
+        "category": "Documentation Standards",
+        "tier": 1,
+        "description": "Well-structured README with key sections",
+        "criteria": "README.md with installation, usage, and development sections",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "3/3 sections",
+      "threshold": "3/3 sections",
+      "evidence": [
+        "Found 3/3 essential sections",
+        "Installation: \u2713",
+        "Usage: \u2713",
+        "Development: \u2713"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "standard_layout",
+        "name": "Standard Project Layouts",
+        "category": "Repository Structure",
+        "tier": 1,
+        "description": "Follows standard project structure for language",
+        "criteria": "Standard directories (src/ or project-named, tests/) present",
+        "default_weight": 0.05
+      },
+      "status": "fail",
+      "score": 50.0,
+      "measured_value": "1/2 directories",
+      "threshold": "2/2 directories",
+      "evidence": [
+        "Found 1/2 standard directories",
+        "src/: \u2713",
+        "tests/: \u2717"
+      ],
+      "remediation": {
+        "summary": "Organize code into standard directories",
+        "steps": [
+          "Create tests/ directory for test files",
+          "Add at least one test file"
+        ],
+        "tools": [],
+        "commands": [
+          "# Create tests directory",
+          "mkdir -p tests",
+          "touch tests/__init__.py",
+          "touch tests/test_example.py"
+        ],
+        "examples": [
+          "# src layout (recommended for distributable packages)\nproject/\n\u251c\u2500\u2500 src/\n\u2502   \u2514\u2500\u2500 mypackage/\n\u2502       \u251c\u2500\u2500 __init__.py\n\u2502       \u2514\u2500\u2500 module.py\n\u251c\u2500\u2500 tests/\n\u2502   \u2514\u2500\u2500 test_module.py\n\u2514\u2500\u2500 pyproject.toml\n\n# flat layout (common in major projects like pandas, numpy)\nproject/\n\u251c\u2500\u2500 mypackage/\n\u2502   \u251c\u2500\u2500 __init__.py\n\u2502   \u2514\u2500\u2500 module.py\n\u251c\u2500\u2500 tests/\n\u2502   \u2514\u2500\u2500 test_module.py\n\u2514\u2500\u2500 pyproject.toml\n"
+        ],
+        "citations": [
+          {
+            "source": "Python Packaging Authority",
+            "title": "src layout vs flat layout",
+            "url": "https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/",
+            "relevance": "Official guidance on Python project layouts"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "lock_files",
+        "name": "Dependency Pinning for Reproducibility",
+        "category": "Dependency Management",
+        "tier": 1,
+        "description": "Dependencies pinned to exact versions in lock files",
+        "criteria": "Lock file with pinned versions, updated within 6 months",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "yarn.lock",
+      "threshold": "lock file with pinned versions, < 6 months old",
+      "evidence": [
+        "Found lock file(s): yarn.lock"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "dependency_security",
+        "name": "Dependency Security & Vulnerability Scanning",
+        "category": "Security",
+        "tier": 1,
+        "description": "Security scanning tools configured for dependencies and code",
+        "criteria": "Dependabot, Renovate, CodeQL, or SAST tools configured; secret detection enabled",
+        "default_weight": 0.05
+      },
+      "status": "pass",
+      "score": 65,
+      "measured_value": "Security tools configured: Dependabot, npm/yarn audit, detect-secrets, gitleaks",
+      "threshold": "\u226560 points (Dependabot/Renovate + SAST or multiple scanners)",
+      "evidence": [
+        "\u2713 Dependabot configured for dependency updates",
+        "  2 package ecosystem(s) monitored",
+        "\u2713 npm/yarn audit configured",
+        "\u2713 Secret detection configured (detect-secrets, gitleaks)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "deterministic_enforcement",
+        "name": "Deterministic Enforcement (Hooks & Lint Rules)",
+        "category": "Testing & CI/CD",
+        "tier": 2,
+        "description": "Hooks and lint rules for deterministic quality enforcement",
+        "criteria": "Pre-commit or agent hooks configured",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "configured",
+      "threshold": "configured",
+      "evidence": [
+        ".pre-commit-config.yaml found (pre-commit hooks)",
+        ".claude/settings.json has hooks configured (agent hooks)",
+        ".husky directory found (git hooks)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "conventional_commits",
+        "name": "Conventional Commit Messages",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Follows conventional commit format",
+        "criteria": "\u226580% of recent commits follow convention",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "configured",
+      "threshold": "configured",
+      "evidence": [
+        "Commit linting configured"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "gitignore_completeness",
+        "name": ".gitignore Completeness",
+        "category": "Git & Version Control",
+        "tier": 2,
+        "description": "Comprehensive .gitignore file with language-specific patterns",
+        "criteria": ".gitignore exists and includes language-specific patterns from GitHub templates",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100.0,
+      "measured_value": "11/11 patterns",
+      "threshold": "\u226570% of language-specific patterns",
+      "evidence": [
+        ".gitignore found (624 bytes)",
+        "Pattern coverage: 11/11 (100%)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "one_command_setup",
+        "name": "One-Command Build/Setup",
+        "category": "Build & Development",
+        "tier": 2,
+        "description": "Single command to set up development environment from fresh clone",
+        "criteria": "Single command (make setup, npm install, etc.) documented prominently",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 100,
+      "measured_value": "yarn setup",
+      "threshold": "single command",
+      "evidence": [
+        "Setup command found in README: 'yarn setup'",
+        "Setup automation found: setup.sh, package.json",
+        "Setup instructions in prominent location"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "file_size_limits",
+        "name": "File Size Limits",
+        "category": "Context Window Optimization",
+        "tier": 2,
+        "description": "Files are reasonably sized for AI context windows",
+        "criteria": "<5% of files >500 lines, no files >1000 lines",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 90,
+      "measured_value": "0 huge, 46 large out of 1441",
+      "threshold": "<5% files >500 lines, 0 files >1000 lines",
+      "evidence": [
+        "Found 46 files 500-1000 lines (3.2% of 1441 files)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "separation_of_concerns",
+        "name": "Separation of Concerns",
+        "category": "Code Organization",
+        "tier": 2,
+        "description": "Code organized with single responsibility per module",
+        "criteria": "Feature-based organization, cohesive modules, low coupling",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 94.0,
+      "measured_value": "organization:85, cohesion:100, naming:100",
+      "threshold": "\u226575 overall",
+      "evidence": [
+        "Good directory organization (feature-based or flat)",
+        "File cohesion: 0/0 files >500 lines",
+        "No catch-all modules (utils.py, helpers.py) detected"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "pattern_references",
+        "name": "Pattern References for Common Changes",
+        "category": "Agent Patterns & Knowledge",
+        "tier": 2,
+        "description": "Reference implementations and skills for common change types",
+        "criteria": "3-5 pattern references or skills documented",
+        "default_weight": 0.03
+      },
+      "status": "pass",
+      "score": 60.0,
+      "measured_value": "1 reference source(s)",
+      "threshold": "pattern references or skills documented",
+      "evidence": [
+        ".claude/skills/ directory with 3 SKILL.md file(s)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "design_intent",
+        "name": "Design Intent Documentation",
+        "category": "Agent Patterns & Knowledge",
+        "tier": 2,
+        "description": "Documented preconditions, invariants, and design rationale",
+        "criteria": "Design docs with architectural intent",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 45.0,
+      "measured_value": "minimal",
+      "threshold": "design docs with preconditions/invariants",
+      "evidence": [
+        "docs/adr/ directory exists (1 file(s)) but no intent language found",
+        "Design intent language found in README.md"
+      ],
+      "remediation": {
+        "summary": "Document design intent: preconditions, invariants, and rationale",
+        "steps": [
+          "Create docs/design/ directory",
+          "For each critical module, document preconditions, invariants, and rationale",
+          "Use an AI agent to reverse-engineer initial design docs from code, then enrich with intent",
+          "Reference design docs from CLAUDE.md/AGENTS.md"
+        ],
+        "tools": [],
+        "commands": [
+          "mkdir -p docs/design"
+        ],
+        "examples": [
+          "# docs/design/event-system.md\n## Invariants\n- Event log is append-only; never mutate or delete entries\n- Events are processed exactly-once via idempotency keys\n\n## Preconditions\n- Auth middleware must validate token before event handlers run\n\n## Rationale\n- Polling instead of webhooks: upstream API has 5s delivery SLA, too slow for our use case"
+        ],
+        "citations": [
+          {
+            "source": "Red Hat",
+            "title": "Repository Scaffolding for AI Coding Agents, Section 2.3",
+            "url": "",
+            "relevance": "Agents cannot infer design intent from code alone"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "architecture_decisions",
+        "name": "Architecture Decision Records (ADRs)",
+        "category": "Documentation Standards",
+        "tier": 3,
+        "description": "Lightweight documents capturing architectural decisions",
+        "criteria": "ADR directory with documented decisions",
+        "default_weight": 0.03
+      },
+      "status": "fail",
+      "score": 68,
+      "measured_value": "1 ADRs",
+      "threshold": "\u22653 ADRs with template",
+      "evidence": [
+        "ADR directory found: docs/adr",
+        "1 architecture decision records",
+        "Consistent naming pattern detected",
+        "Sampled 1 ADRs: template compliance 20/20"
+      ],
+      "remediation": {
+        "summary": "Create Architecture Decision Records (ADRs) directory and document key decisions",
+        "steps": [
+          "Create docs/adr/ directory in repository root",
+          "Use Michael Nygard ADR template or MADR format",
+          "Document each significant architectural decision",
+          "Number ADRs sequentially (0001-*.md, 0002-*.md)",
+          "Include Status, Context, Decision, and Consequences sections",
+          "Update ADR status when decisions are revised (Superseded, Deprecated)"
+        ],
+        "tools": [
+          "adr-tools",
+          "log4brains"
+        ],
+        "commands": [
+          "# Create ADR directory",
+          "mkdir -p docs/adr",
+          "",
+          "# Create first ADR using template",
+          "cat > docs/adr/0001-use-architecture-decision-records.md << 'EOF'",
+          "# 1. Use Architecture Decision Records",
+          "",
+          "Date: 2025-11-22",
+          "",
+          "## Status",
+          "Accepted",
+          "",
+          "## Context",
+          "We need to record architectural decisions made in this project.",
+          "",
+          "## Decision",
+          "We will use Architecture Decision Records (ADRs) as described by Michael Nygard.",
+          "",
+          "## Consequences",
+          "- Decisions are documented with context",
+          "- Future contributors understand rationale",
+          "- ADRs are lightweight and version-controlled",
+          "EOF"
+        ],
+        "examples": [
+          "# Example ADR Structure\n\n```markdown\n# 2. Use PostgreSQL for Database\n\nDate: 2025-11-22\n\n## Status\nAccepted\n\n## Context\nWe need a relational database for complex queries and ACID transactions.\nTeam has PostgreSQL experience. Need full-text search capabilities.\n\n## Decision\nUse PostgreSQL 15+ as primary database.\n\n## Consequences\n- Positive: Robust ACID, full-text search, team familiarity\n- Negative: Higher resource usage than SQLite\n- Neutral: Need to manage migrations, backups\n```\n"
+        ],
+        "citations": [
+          {
+            "source": "Michael Nygard",
+            "title": "Documenting Architecture Decisions",
+            "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
+            "relevance": "Original ADR format and rationale"
+          },
+          {
+            "source": "GitHub adr/madr",
+            "title": "Markdown ADR (MADR) Template",
+            "url": "https://github.com/adr/madr",
+            "relevance": "Modern ADR template with examples"
+          }
+        ]
+      },
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "progressive_disclosure",
+        "name": "Progressive Disclosure",
+        "category": "Agent Patterns & Knowledge",
+        "tier": 3,
+        "description": "Path-scoped rules and skills for large repos",
+        "criteria": "Component-level context files for repos >50K lines",
+        "default_weight": 0.02
+      },
+      "status": "pass",
+      "score": 40.0,
+      "measured_value": "2 disclosure mechanism(s)",
+      "threshold": "path-scoped rules or skills",
+      "evidence": [
+        "3 SKILL.md file(s) for on-demand knowledge",
+        "Root CLAUDE.md is 87 lines (good: <150)"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "issue_pr_templates",
+        "name": "Issue & Pull Request Templates",
+        "category": "Repository Structure",
+        "tier": 4,
+        "description": "Standardized templates for issues and PRs",
+        "criteria": "PR template and issue templates in .github/",
+        "default_weight": 0.01
+      },
+      "status": "pass",
+      "score": 100,
+      "measured_value": "PR:True, Issues:2",
+      "threshold": "PR template + \u22652 issue templates",
+      "evidence": [
+        "PR template found",
+        "Issue templates found: 2 templates"
+      ],
+      "remediation": null,
+      "error_message": null
+    },
+    {
+      "attribute": {
+        "id": "container_setup",
+        "name": "Container/Virtualization Setup",
+        "category": "Build & Development",
+        "tier": 4,
+        "description": "Container configuration for consistent development environments",
+        "criteria": "Dockerfile/Containerfile, docker-compose.yml, .dockerignore/.containerignore, multi-stage builds",
+        "default_weight": 0.01
+      },
+      "status": "pass",
+      "score": 70,
+      "measured_value": "70 points",
+      "threshold": "\u226570 points (Dockerfile + compose + .dockerignore/.containerignore)",
+      "evidence": [
+        "\u2713 Dockerfile present",
+        "\u2713 Multi-stage build detected (optimized image size)",
+        "\u2713 .dockerignore present (excludes unnecessary files)"
+      ],
+      "remediation": null,
+      "error_message": null
+    }
+  ],
+  "config": {
+    "weights": {},
+    "excluded_attributes": [
+      "openapi_specs",
+      "dbt_project_config",
+      "dbt_model_documentation",
+      "dbt_data_tests",
+      "dbt_project_structure",
+      "cyclomatic_complexity",
+      "structured_logging",
+      "inline_documentation"
+    ],
+    "language_overrides": {},
+    "output_dir": null,
+    "report_theme": "default",
+    "custom_theme": null
+  },
+  "duration_seconds": 4.4,
+  "discovered_skills": []
+}
