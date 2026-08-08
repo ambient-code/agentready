@@ -51,11 +51,13 @@ class SingleFileVerificationAssessor(BaseAssessor):
         (r"golangci-lint\s+run\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"black\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"prettier\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"(?:bunx\s+)?oxlint\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"gofmt\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         # Type check single file patterns
         (r"mypy\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"pyright\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"tsc\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
+        (r"(?:bunx\s+)?tsc@\d+(?:\.\d+)*\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
     ]
 
     def assess(self, repository: Repository) -> Finding:
