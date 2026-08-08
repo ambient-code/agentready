@@ -225,6 +225,30 @@ numpy
         assert "package-lock.json" in finding.measured_value
         assert "Cargo.lock" in finding.measured_value
 
+    def test_bun_lock_file(self, tmp_path):
+        """Test that bun.lock is recognized as a valid lock file."""
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        (tmp_path / "bun.lock").write_text("# bun lockfile\n")
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"TypeScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencyPinningAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+        assert "bun.lock" in finding.measured_value
+
     def test_backward_compatibility_alias(self):
         """Test that LockFilesAssessor is an alias for DependencyPinningAssessor."""
         from agentready.assessors.stub_assessors import LockFilesAssessor

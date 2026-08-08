@@ -50,6 +50,7 @@ class DependencyPinningAssessor(BaseAssessor):
             "package-lock.json",  # npm
             "yarn.lock",  # Yarn
             "pnpm-lock.yaml",  # pnpm
+            "bun.lock",  # Bun
             "poetry.lock",  # Poetry
             "Pipfile.lock",  # Pipenv
             "uv.lock",  # uv
