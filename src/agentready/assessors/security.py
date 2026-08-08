@@ -187,11 +187,17 @@ class DependencySecurityAssessor(BaseAssessor):
                     pkg = json.loads(package_json.read_text())
                     scripts = pkg.get("scripts", {})
 
-                    # Check for npm audit or yarn audit in scripts
-                    if any("audit" in str(v) for v in scripts.values()):
+                    # Check for npm/yarn/bun audit in scripts
+                    audit_scripts = [
+                        str(v) for v in scripts.values() if "audit" in str(v)
+                    ]
+                    if audit_scripts:
                         score += 10
                         tools_found.append("npm/yarn audit")
-                        evidence.append("✓ npm/yarn audit configured")
+                        if any("bun" in s for s in audit_scripts):
+                            evidence.append("✓ bun audit configured")
+                        else:
+                            evidence.append("✓ npm/yarn audit configured")
 
                     # Check for Snyk
                     deps = {
@@ -204,6 +210,21 @@ class DependencySecurityAssessor(BaseAssessor):
                         evidence.append("✓ Snyk security scanning configured")
                 except Exception:
                     pass
+
+            # Check for dependency audit step in CI workflows (npm/yarn/bun/pnpm)
+            workflows_dir = repository.path / ".github" / "workflows"
+            if workflows_dir.exists():
+                for wf in list(workflows_dir.glob("*.yml")) + list(
+                    workflows_dir.glob("*.yaml")
+                ):
+                    try:
+                        if re.search(r"\b(?:bun|npm|yarn|pnpm)\s+audit\b", wf.read_text()):
+                            score += 10
+                            tools_found.append("CI dependency audit")
+                            evidence.append("✓ Dependency audit step in CI workflow")
+                            break
+                    except OSError:
+                        continue
 
         # 5. Secret detection in pre-commit (20 points)
         precommit_config = repository.path / ".pre-commit-config.yaml"
