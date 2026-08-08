@@ -136,6 +136,44 @@ class TestSingleFileVerificationAssessor:
 
         assert finding.score >= 50.0
 
+    def test_recognizes_bunx_oxlint(self, tmp_path):
+        """Test that bunx oxlint pattern is recognized as lint."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Run `bunx oxlint src/lib/site.ts` to lint.\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_recognizes_bunx_tsc_versioned(self, tmp_path):
+        """Test that versioned bunx tsc (tsc@7) pattern is recognized as typecheck."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Run `bunx tsc@7 --noEmit src/lib/site.ts` to type-check.\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_full_score_with_bun_commands(self, tmp_path):
+        """Test that bunx oxlint + bunx tsc@7 together give full score."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text(
+            "# Commands\n"
+            "- Lint: `bunx oxlint src/lib/site.ts`\n"
+            "- Type check: `bunx tsc@7 --noEmit src/lib/site.ts`\n"
+        )
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score == 100.0
+
     def test_recognizes_pyright(self, tmp_path):
         """Test that pyright pattern is recognized as typecheck."""
         claude_md = tmp_path / "CLAUDE.md"
