@@ -136,6 +136,61 @@ class TestSingleFileVerificationAssessor:
 
         assert finding.score >= 50.0
 
+    def test_recognizes_go_vet(self, tmp_path):
+        """Test that go vet pattern is recognized as typecheck."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Type check: `go vet cmd/main.go`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_go_vet_multi_file_does_not_match(self, tmp_path):
+        """Test that go vet ./... is not recognized as single-file typecheck."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Run `go vet ./...` for static analysis.\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 0.0
+
+    def test_recognizes_yamllint(self, tmp_path):
+        """Test that yamllint pattern is recognized as lint."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Lint: `yamllint config/workflow.yaml`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_recognizes_shellcheck(self, tmp_path):
+        """Test that shellcheck pattern is recognized as lint."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Lint: `shellcheck scripts/deploy.sh`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_recognizes_bash_n(self, tmp_path):
+        """Test that bash -n pattern is recognized as typecheck."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Syntax check: `bash -n scripts/entrypoint.sh`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
     def test_recognizes_pyright(self, tmp_path):
         """Test that pyright pattern is recognized as typecheck."""
         claude_md = tmp_path / "CLAUDE.md"
