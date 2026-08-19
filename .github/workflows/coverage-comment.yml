@@ -26,14 +26,13 @@ jobs:
         id: pr_info
         env:
           GH_TOKEN: ${{ github.token }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TARGET_REPO: ${{ github.repository }}
         run: |
           # For fork PRs, pull_requests array is empty in workflow_run event
           # Use gh pr view to find the PR number
           # See: https://github.com/orgs/community/discussions/25220
-
-          HEAD_REPO="${{ github.event.workflow_run.head_repository.full_name }}"
-          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
-          TARGET_REPO="${{ github.repository }}"
 
           echo "Looking for PR from ${HEAD_REPO} branch ${HEAD_BRANCH}"
 
