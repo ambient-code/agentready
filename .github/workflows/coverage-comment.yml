@@ -61,7 +61,7 @@ jobs:
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Download coverage data
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: coverage-data
           path: coverage-data
@@ -97,7 +97,7 @@ jobs:
           fi
 
       - name: Post coverage comment
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           PR_COVERAGE: ${{ steps.coverage.outputs.pr_coverage }}
           MAIN_COVERAGE: ${{ steps.coverage.outputs.main_coverage }}
