@@ -23,11 +23,10 @@ jobs:
         id: pr_info
         env:
           GH_TOKEN: ${{ github.token }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TARGET_REPO: ${{ github.repository }}
         run: |
-          HEAD_REPO="${{ github.event.workflow_run.head_repository.full_name }}"
-          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
-          TARGET_REPO="${{ github.repository }}"
-
           if [ "$HEAD_REPO" = "$TARGET_REPO" ]; then
             BRANCH_QUERY="${HEAD_BRANCH}"
           else
