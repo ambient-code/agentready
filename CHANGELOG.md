@@ -1,3 +1,10 @@
+## [2.52.1](https://github.com/ambient-code/agentready/compare/v2.52.0...v2.52.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **assessors:** recognize go vet, yamllint, shellcheck, bash -n in single-file verification ([#537](https://github.com/ambient-code/agentready/issues/537)) ([0646eb1](https://github.com/ambient-code/agentready/commit/0646eb11f5e3ea2a86e8f0d9b424021801836dc7))
+
 # [2.52.0](https://github.com/ambient-code/agentready/compare/v2.51.0...v2.52.0) (2026-07-28)
 
 
