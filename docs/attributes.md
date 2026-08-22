@@ -692,17 +692,30 @@ Running the full test suite after every edit is slow. A documented single-file c
 
 #### Measurable Criteria
 
-**Passes if**: At least one of `CLAUDE.md`, `AGENTS.md`, `.claude/CLAUDE.md`, or `README.md` documents single-file lint or type-check commands.
+**Passes if**: `CLAUDE.md`, `AGENTS.md`, `.claude/CLAUDE.md`, or `README.md` documents **both** a single-file **lint** command and a single-file **type-check** (or syntax-check) command. Documenting only one category scores 50/100 and still fails.
 
 The assessor looks for patterns like:
-- `ruff check <file>`
-- `mypy <file>`
-- `eslint <file>`
-- `tsc --noEmit <file>`
+- `ruff check <file>` (lint)
+- `mypy <file>` (type-check)
+- `eslint <file>` (lint)
+- `tsc --noEmit <file>` (type-check)
+- `golangci-lint run <file>` (lint)
+- `go vet <file>` (type-check / static analysis)
+- `yamllint <file>` (lint)
+- `shellcheck <file>` (lint)
+- `bash -n <file>` (shell syntax check / type-check analog)
+
+Common passing pairs by ecosystem:
+- **Python**: `ruff check` / `pylint` + `mypy` / `pyright`
+- **Go**: `golangci-lint run` / `gofmt` + `go vet`
+- **Shell**: `shellcheck` + `bash -n`
+- **YAML-only repos**: `yamllint` alone is insufficient; a second recognized command is still required
+
+Commands must target a **single file path** (not `./...` or a directory).
 
 #### Remediation
 
-Add a section to your `CLAUDE.md`:
+Add a section to your `CLAUDE.md` or `AGENTS.md`:
 
 ```markdown
 # Single-File Verification
@@ -710,11 +723,17 @@ Add a section to your `CLAUDE.md`:
 To quickly check a single file without running the full test suite:
 
 \```bash
-# Lint a single file
+# Python: lint + type-check
 ruff check src/mypackage/module.py
-
-# Type-check a single file
 mypy src/mypackage/module.py
+
+# Go: lint + static analysis
+golangci-lint run cmd/main.go
+go vet cmd/main.go
+
+# Shell: lint + syntax check
+shellcheck scripts/entrypoint.sh
+bash -n scripts/entrypoint.sh
 \```
 ```
 
