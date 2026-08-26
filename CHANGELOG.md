@@ -1,3 +1,10 @@
+## [2.52.2](https://github.com/ambient-code/agentready/compare/v2.52.1...v2.52.2) (2026-08-26)
+
+
+### Bug Fixes
+
+* skip test files and test functions in Python type annotations check ([#493](https://github.com/ambient-code/agentready/issues/493)) ([08710c7](https://github.com/ambient-code/agentready/commit/08710c7494d980f0fa2e4cc60dbdf5cb4706d06c)), closes [#385](https://github.com/ambient-code/agentready/issues/385)
+
 ## [2.52.1](https://github.com/ambient-code/agentready/compare/v2.52.0...v2.52.1) (2026-08-22)
 
 
