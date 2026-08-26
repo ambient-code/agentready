@@ -19,9 +19,7 @@ class TestDependencyPinningAssessor:
 
     def test_no_lock_files(self, tmp_path):
         """Test that assessor fails when dep manifests exist but no lock files."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         # Add a dependency manifest so the repo isn't "not_applicable"
         (tmp_path / "pyproject.toml").write_text("[project]\nname = 'test'\n")
@@ -234,9 +232,7 @@ numpy
 
     def test_subdirectory_go_sum_multi_module(self, tmp_path):
         """Test that go.sum in subdirectories is detected for multi-module repos."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         # Create sub-module with go.mod + go.sum (no root-level lock file)
         sub = tmp_path / "tools" / "mytool"
@@ -264,9 +260,7 @@ numpy
 
     def test_subdirectory_lock_excludes_vendor(self, tmp_path):
         """Test that lock files inside vendor/ are ignored."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         # go.mod at root so the repo is recognized as having deps
         (tmp_path / "go.mod").write_text("module example.com/test\n\ngo 1.21\n")
@@ -296,9 +290,7 @@ numpy
 
     def test_no_dependency_manifests_returns_not_applicable(self, tmp_path):
         """Test that repos with no code/deps return not_applicable."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         # Only README + LICENSE — no package manager files at all
         (tmp_path / "README.md").write_text("# My Project\n")
@@ -322,9 +314,7 @@ numpy
 
     def test_has_go_mod_but_no_lock_still_fails(self, tmp_path):
         """Test that having go.mod without go.sum still fails."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         (tmp_path / "go.mod").write_text(
             "module example.com/test\n\ngo 1.21\n\n"
@@ -350,21 +340,19 @@ numpy
 
     def test_terraform_versions_tf_range_constraints(self, tmp_path):
         """Test Terraform repos with >= range constraints in versions.tf."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         tf_dir = tmp_path / "terraform" / "modules" / "vpc"
         tf_dir.mkdir(parents=True)
         (tf_dir / "versions.tf").write_text(
-            'terraform {\n'
-            '  required_providers {\n'
-            '    aws = {\n'
+            "terraform {\n"
+            "  required_providers {\n"
+            "    aws = {\n"
             '      source  = "hashicorp/aws"\n'
             '      version = ">= 6.0"\n'
-            '    }\n'
-            '  }\n'
-            '}\n'
+            "    }\n"
+            "  }\n"
+            "}\n"
         )
 
         repo = Repository(
@@ -387,21 +375,19 @@ numpy
 
     def test_terraform_versions_tf_exact_pins(self, tmp_path):
         """Test Terraform repos with exact version pins in versions.tf."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         tf_dir = tmp_path / "terraform"
         tf_dir.mkdir()
         (tf_dir / "versions.tf").write_text(
-            'terraform {\n'
-            '  required_providers {\n'
-            '    aws = {\n'
+            "terraform {\n"
+            "  required_providers {\n"
+            "    aws = {\n"
             '      source  = "hashicorp/aws"\n'
             '      version = "6.0.0"\n'
-            '    }\n'
-            '  }\n'
-            '}\n'
+            "    }\n"
+            "  }\n"
+            "}\n"
         )
 
         repo = Repository(
@@ -423,14 +409,12 @@ numpy
 
     def test_terraform_lock_hcl_detected(self, tmp_path):
         """Test that .terraform.lock.hcl is detected as a strict lock file."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         (tmp_path / ".terraform.lock.hcl").write_text(
             'provider "registry.terraform.io/hashicorp/aws" {\n'
             '  version = "6.0.0"\n'
-            '}\n'
+            "}\n"
         )
 
         repo = Repository(
@@ -453,9 +437,7 @@ numpy
 
     def test_subdirectory_requirements_txt(self, tmp_path):
         """Test that requirements.txt in subdirectories is found."""
-        subprocess.run(
-            ["git", "init"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
 
         sub = tmp_path / "experiments" / "auth"
         sub.mkdir(parents=True)

@@ -510,8 +510,14 @@ Without a lock file, two installs of the same repo can get different dependency 
 
 **Passes if** a recognized lock file is present (score >= 75):
 
-- **Auto-managed lock files** (always fully pinned): `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Pipfile.lock`, `uv.lock`, `Cargo.lock`, `Gemfile.lock`, `go.sum`
+- **Auto-managed lock files** (always fully pinned): `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Pipfile.lock`, `uv.lock`, `Cargo.lock`, `Gemfile.lock`, `go.sum`, `pdm.lock`, `.terraform.lock.hcl`
 - **Manual lock files** (`requirements.txt`): validated for version pinning quality; counts `==` (pinned) vs `>=`/unpinned usage and scores proportionally
+
+**Subdirectory search**: If no lock file exists at the repository root, the assessor searches subdirectories recursively (excluding `vendor/`, `node_modules/`, `.venv/`, `venv/`, `__pycache__/`, `.git/`, and `.terraform/`), so multi-module repos and monorepos with per-package lock files are recognized.
+
+**Terraform fallback**: Repos with no lock files but with `versions.tf` provider constraints are scored on pinning quality: exact pins (`version = "6.0.0"`) count toward a full score, range constraints (`>=`, `<`, `~`, `!=`) score proportionally with a floor of 35 points.
+
+**Not applicable**: Repos with no dependency manifests at all (no `go.mod`, `package.json`, `pyproject.toml`, `Cargo.toml`, `Gemfile`, `requirements.txt`, `Dockerfile`, etc.) return `not_applicable` instead of failing, so documentation-only or config-only repos are not penalized.
 
 **Freshness check**: Lock files older than 6 months incur a 15-point deduction.
 

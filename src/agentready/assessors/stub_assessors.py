@@ -45,17 +45,34 @@ class DependencyPinningAssessor(BaseAssessor):
 
     # Directories to exclude from recursive lock file searches
     _EXCLUDED_DIRS = {
-        "vendor", "node_modules", ".venv", "venv",
-        "__pycache__", ".git", ".terraform",
+        "vendor",
+        "node_modules",
+        ".venv",
+        "venv",
+        "__pycache__",
+        ".git",
+        ".terraform",
     }
 
     # Package manifests that indicate a repo actually uses dependencies
     _DEPENDENCY_MANIFESTS = [
-        "go.mod", "package.json", "pyproject.toml", "setup.py",
-        "setup.cfg", "Gemfile", "Cargo.toml", "requirements.txt",
-        "Pipfile", "pom.xml", "build.gradle", "build.gradle.kts",
-        "composer.json", "mix.exs", "pubspec.yaml",
-        "Dockerfile", "Containerfile",
+        "go.mod",
+        "package.json",
+        "pyproject.toml",
+        "setup.py",
+        "setup.cfg",
+        "Gemfile",
+        "Cargo.toml",
+        "requirements.txt",
+        "Pipfile",
+        "pom.xml",
+        "build.gradle",
+        "build.gradle.kts",
+        "composer.json",
+        "mix.exs",
+        "pubspec.yaml",
+        "Dockerfile",
+        "Containerfile",
     ]
 
     def _rglob_filtered(self, root: Path, filename: str) -> list[Path]:
@@ -80,26 +97,20 @@ class DependencyPinningAssessor(BaseAssessor):
         import re
 
         tf_version_files = self._rglob_filtered(repository.path, "versions.tf")
-        tf_lock_files = self._rglob_filtered(
-            repository.path, ".terraform.lock.hcl"
-        )
+        tf_lock_files = self._rglob_filtered(repository.path, ".terraform.lock.hcl")
 
         if not tf_version_files and not tf_lock_files:
             return None
 
         if tf_lock_files:
-            rel_paths = [
-                str(p.relative_to(repository.path)) for p in tf_lock_files
-            ]
+            rel_paths = [str(p.relative_to(repository.path)) for p in tf_lock_files]
             return Finding(
                 attribute=self.attribute,
                 status="pass",
                 score=100.0,
                 measured_value=", ".join(rel_paths),
                 threshold="lock file with pinned versions",
-                evidence=[
-                    f"Found Terraform lock file(s): {', '.join(rel_paths)}"
-                ],
+                evidence=[f"Found Terraform lock file(s): {', '.join(rel_paths)}"],
                 remediation=None,
                 error_message=None,
             )
@@ -109,9 +120,7 @@ class DependencyPinningAssessor(BaseAssessor):
         for vf in tf_version_files:
             try:
                 content = vf.read_text()
-                for m in re.finditer(
-                    r'version\s*=\s*"([^"]+)"', content
-                ):
+                for m in re.finditer(r'version\s*=\s*"([^"]+)"', content):
                     ver = m.group(1)
                     if any(op in ver for op in [">", "<", "~", "!="]):
                         ranged += 1
@@ -139,22 +148,25 @@ class DependencyPinningAssessor(BaseAssessor):
                 f"with provider constraints",
                 f"{pinned} exact pins, {ranged} range constraints",
             ],
-            remediation=Remediation(
-                summary="Pin Terraform providers to exact versions",
-                steps=[
-                    "Run 'terraform providers lock' to generate "
-                    ".terraform.lock.hcl",
-                    "Or pin exact versions in versions.tf "
-                    '(e.g., version = "6.0.0" not ">= 6.0")',
-                ],
-                tools=["terraform"],
-                commands=[
-                    "terraform providers lock "
-                    "-platform=linux_amd64",
-                ],
-                examples=[],
-                citations=[],
-            ) if status == "fail" else None,
+            remediation=(
+                Remediation(
+                    summary="Pin Terraform providers to exact versions",
+                    steps=[
+                        "Run 'terraform providers lock' to generate "
+                        ".terraform.lock.hcl",
+                        "Or pin exact versions in versions.tf "
+                        '(e.g., version = "6.0.0" not ">= 6.0")',
+                    ],
+                    tools=["terraform"],
+                    commands=[
+                        "terraform providers lock " "-platform=linux_amd64",
+                    ],
+                    examples=[],
+                    citations=[],
+                )
+                if status == "fail"
+                else None
+            ),
             error_message=None,
         )
 
@@ -179,14 +191,8 @@ class DependencyPinningAssessor(BaseAssessor):
         manual_lock_files = ["requirements.txt"]  # Python pip
 
         # 1. Check root-level lock files
-        found_strict = [
-            f for f in strict_lock_files
-            if (repository.path / f).exists()
-        ]
-        found_manual = [
-            f for f in manual_lock_files
-            if (repository.path / f).exists()
-        ]
+        found_strict = [f for f in strict_lock_files if (repository.path / f).exists()]
+        found_manual = [f for f in manual_lock_files if (repository.path / f).exists()]
 
         # 2. Recursive fallback for multi-module repos (e.g. Go workspaces,
         #    monorepos with per-package lock files)
@@ -195,8 +201,7 @@ class DependencyPinningAssessor(BaseAssessor):
                 matches = self._rglob_filtered(repository.path, f)
                 if matches:
                     found_strict.extend(
-                        str(m.relative_to(repository.path))
-                        for m in matches
+                        str(m.relative_to(repository.path)) for m in matches
                     )
 
         if not found_manual and not found_strict:
@@ -204,8 +209,7 @@ class DependencyPinningAssessor(BaseAssessor):
                 matches = self._rglob_filtered(repository.path, f)
                 if matches:
                     found_manual.extend(
-                        str(m.relative_to(repository.path))
-                        for m in matches
+                        str(m.relative_to(repository.path)) for m in matches
                     )
 
         # 3. If nothing found, check for special ecosystems and edge cases
@@ -235,17 +239,13 @@ class DependencyPinningAssessor(BaseAssessor):
                     summary="Add lock file for dependency reproducibility",
                     steps=[
                         "For Go: run 'go mod tidy' (generates go.sum)",
-                        "For npm: run 'npm install' "
-                        "(generates package-lock.json)",
-                        "For Python: use 'pip freeze > requirements.txt'"
-                        " or poetry",
-                        "For Ruby: run 'bundle install' "
-                        "(generates Gemfile.lock)",
+                        "For npm: run 'npm install' " "(generates package-lock.json)",
+                        "For Python: use 'pip freeze > requirements.txt'" " or poetry",
+                        "For Ruby: run 'bundle install' " "(generates Gemfile.lock)",
                         "For Terraform: run 'terraform providers lock'"
                         " (generates .terraform.lock.hcl)",
                     ],
-                    tools=["go", "npm", "pip", "poetry", "bundler",
-                           "terraform"],
+                    tools=["go", "npm", "pip", "poetry", "bundler", "terraform"],
                     commands=[
                         "go mod tidy  # Go",
                         "npm install  # npm",
