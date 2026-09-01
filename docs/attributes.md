@@ -707,7 +707,10 @@ The assessor looks for patterns like:
 - `eslint <file>` (lint)
 - `tsc --noEmit <file>` (type-check)
 - `golangci-lint run <file>` (lint)
+- `golangci-lint-vX.Y.Z run ./pkg/foo/` (lint; versioned binary + Go package dir)
+- `gofmt <file>` / `gofmt -l file.go` (lint)
 - `go vet <file>` (type-check / static analysis)
+- `go vet ./pkg/foo/` (type-check; Go package dir)
 - `yamllint <file>` (lint)
 - `shellcheck <file>` (lint)
 - `bash -n <file>` (shell syntax check / type-check analog)
@@ -718,7 +721,7 @@ Common passing pairs by ecosystem:
 - **Shell**: `shellcheck` + `bash -n`
 - **YAML-only repos**: `yamllint` alone is insufficient; a second recognized command is still required
 
-Commands must target a **single file path** (not `./...` or a directory).
+Commands must target a **single file path**, or for Go a **package directory** such as `./pkg/foo/` (not `./...` or `.`).
 
 #### Remediation
 

@@ -38,7 +38,9 @@ class SingleFileVerificationAssessor(BaseAssessor):
 
     # Patterns that suggest single-file lint/type-check commands.
     # Each entry is (regex, category) where category is "lint" or "typecheck".
-    # The lookahead (?=\s*(?:[`\n]|$)) anchors the file path as the final
+    # Most patterns require a file with an extension. Go also accepts a
+    # package directory (`./pkg/foo/`), but not `./...` or `.`.
+    # The lookahead (?=\s*(?:[`\n]|$)) anchors the path as the final
     # token — only backtick (end of inline code), newline, or end-of-string
     # may follow, preventing multi-file invocations from matching.
     SINGLE_FILE_PATTERNS = [
@@ -49,14 +51,20 @@ class SingleFileVerificationAssessor(BaseAssessor):
         (r"flake8\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"rubocop\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"golangci-lint\s+run\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (
+            r"golangci-lint(?:-v\d+\.\d+\.\d+)?\s+run\s+\./(?:[\w\-]+/)*[\w\-]+/?(?=\s*(?:[`\n]|$))",
+            "lint",
+        ),
         (r"black\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"prettier\s+--check\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"gofmt\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
+        (r"gofmt\s+-l\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"yamllint\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         (r"shellcheck\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "lint"),
         # Type check single file patterns
         (r"mypy\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"go\s+vet\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
+        (r"go\s+vet\s+\./(?:[\w\-]+/)*[\w\-]+/?(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"bash\s+-n\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"pyright\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
         (r"tsc\s+--noEmit\s+(?!-)[\w./\-]*\.\w{1,10}(?=\s*(?:[`\n]|$))", "typecheck"),
