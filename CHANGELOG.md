@@ -1,3 +1,10 @@
+## [2.52.3](https://github.com/ambient-code/agentready/compare/v2.52.2...v2.52.3) (2026-09-02)
+
+
+### Bug Fixes
+
+* **assessors:** recognize Go package dirs, versioned golangci-lint, and gofmt -l ([#540](https://github.com/ambient-code/agentready/issues/540)) ([60740c0](https://github.com/ambient-code/agentready/commit/60740c01cca6251d7b19d5f1c811077767612c24))
+
 ## [2.52.2](https://github.com/ambient-code/agentready/compare/v2.52.1...v2.52.2) (2026-08-26)
 
 
