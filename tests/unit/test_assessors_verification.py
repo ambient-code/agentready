@@ -158,6 +158,50 @@ class TestSingleFileVerificationAssessor:
 
         assert finding.score == 0.0
 
+    def test_recognizes_versioned_golangci_lint(self, tmp_path):
+        """Test that versioned golangci-lint on a Go package dir counts as lint."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Run `./bin/golangci-lint-v2.11.4 run ./pkg/notifier/`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_recognizes_go_vet_package_dir(self, tmp_path):
+        """Test that go vet on a Go package dir counts as typecheck."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Type check: `go vet ./pkg/notifier/`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
+    def test_go_vet_dot_does_not_match(self, tmp_path):
+        """Test that go vet . is not recognized as scoped typecheck."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Run `go vet .` for static analysis.\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score == 0.0
+
+    def test_recognizes_gofmt_dash_l(self, tmp_path):
+        """Test that gofmt -l on a file counts as lint."""
+        claude_md = tmp_path / "CLAUDE.md"
+        claude_md.write_text("Lint: `gofmt -l main.go`\n")
+
+        repo = self._make_repo(tmp_path)
+        assessor = SingleFileVerificationAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 50.0
+
     def test_recognizes_yamllint(self, tmp_path):
         """Test that yamllint pattern is recognized as lint."""
         claude_md = tmp_path / "CLAUDE.md"
