@@ -778,7 +778,7 @@ The assessor checks for recognized security tools:
 - **Semgrep** (multi-language SAST) — 15 pts
 - **SECURITY.md** present — 5 pts bonus
 
-**Pass threshold**: 60 points.
+**Pass threshold**: 60+ points is a full pass. Scores of 30-59 still pass with partial credit, but the finding includes remediation guidance for adding more scanning tools. Scores below 30 fail.
 
 **Tools checked**: pip-audit, safety, dependabot, snyk, trivy, grype, osvscanner, bandit (Python); npm audit, yarn audit (JavaScript/TypeScript); CodeQL, Semgrep, gitleaks, detect-secrets (multi-language).
 
