@@ -563,6 +563,31 @@ class TestCIQualityGatesAssessor:
         assert finding.status == "pass"
         assert finding.score >= 75
 
+    def test_bun_workflow_passes(self, tmp_path):
+        """Test pass when a Bun-based workflow has all three gates on PRs."""
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  quality:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - uses: oven-sh/setup-bun@v2\n"
+            "      - run: bun install --frozen-lockfile\n"
+            "      - run: bun run lint\n"
+            "      - run: bun run test\n"
+            "      - run: bunx tsc@7 --noEmit\n"
+        )
+
+        repo = _make_repo(tmp_path)
+        assessor = CIQualityGatesAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.status == "pass"
+        assert finding.score >= 75
+
     def test_push_only_workflow_fails(self, tmp_path):
         """Test that push-only workflows fail even with all three gates."""
         workflows_dir = tmp_path / ".github" / "workflows"
