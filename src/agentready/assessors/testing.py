@@ -1131,7 +1131,7 @@ class CIQualityGatesAssessor(BaseAssessor):
             gate_score: 0-30
         """
         lint_patterns = [
-            r"(?:eslint|ruff|pylint|flake8|rubocop|golangci-lint|black|isort|prettier|stylelint)\b",
+            r"(?:eslint|ruff|pylint|flake8|rubocop|golangci-lint|black|isort|prettier|stylelint|oxlint)\b",
             r"\blint\b",
             r"\bformatting?\b",
             r"\bcargo\s+clippy\b",
@@ -1143,6 +1143,7 @@ class CIQualityGatesAssessor(BaseAssessor):
             r"\bmocha\b",
             r"\bnpm\s+test\b",
             r"\byarn\s+test\b",
+            r"\bbun\s+run\s+test\b",
             r"(?:\bgo|\$\(GO\))\s+test\b",
             r"\bcargo\s+test\b",
             r"\brspec\b",
