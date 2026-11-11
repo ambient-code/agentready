@@ -289,6 +289,46 @@ bandit = "^1.7.0"
             or "Snyk" in finding.measured_value
         )
 
+    def test_bun_audit_in_ci_workflow(self, tmp_path):
+        """Test that bun audit in a CI workflow is detected."""
+        # Initialize git repository
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+
+        # Create a bare package.json (no audit script) and a workflow with bun audit
+        package_json = tmp_path / "package.json"
+        package_json.write_text('{"scripts": {"test": "vitest run"}}\n')
+
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "ci.yml").write_text(
+            "name: CI\n"
+            "on: [push, pull_request]\n"
+            "jobs:\n"
+            "  quality:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            "      - uses: oven-sh/setup-bun@v2\n"
+            "      - run: bun install --frozen-lockfile\n"
+            "      - run: bun audit\n"
+        )
+
+        repo = Repository(
+            path=tmp_path,
+            name="test-repo",
+            url=None,
+            branch="main",
+            commit_hash="abc123",
+            languages={"TypeScript": 100},
+            total_files=10,
+            total_lines=100,
+        )
+
+        assessor = DependencySecurityAssessor()
+        finding = assessor.assess(repo)
+
+        assert finding.score >= 10
+        assert any("audit" in e for e in finding.evidence)
+
     def test_renovate_json_configuration(self, tmp_path):
         """Test that Renovate configuration in renovate.json is detected."""
         # Initialize git repository
